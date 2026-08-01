@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "669700001010",
+    "project_id": "easy-book-zaki",
+    "storage_bucket": "easy-book-zaki.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669700001010:android:a47c10c1fe440d6a47946b",
+        "android_client_info": {
+          "package_name": "ae.easybook.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApbJ5knQAHW9wCBMeKq8Z4CrfQYWgsMCM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669700001010:android:27b759ec2a883f7347946b",
+        "android_client_info": {
+          "package_name": "com.example.easy_book"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApbJ5knQAHW9wCBMeKq8Z4CrfQYWgsMCM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,644 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+
+class _SignUpScreenState extends State<SignUpScreen> {
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  final _formKey = GlobalKey<FormState>();
+
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+
+  bool agree = false;
+  bool hidePassword = true;
+  bool hideConfirmPassword = true;
+
+
+  @override
+  void dispose() {
+
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+
+    super.dispose();
+  }
+
+
+
+  Future<void> signUp() async {
+
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+
+
+    if (!agree) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+
+        const SnackBar(
+
+          content: Text(
+            "Please accept Terms & Conditions",
+          ),
+
+        ),
+
+      );
+
+      return;
+    }
+
+
+
+    try {
+
+
+      // إنشاء حساب Firebase Authentication
+
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+
+        email: _emailController.text.trim(),
+
+        password: _passwordController.text.trim(),
+
+      );
+
+
+
+      // حفظ الاسم داخل Firebase Authentication
+
+      await userCredential.user!.updateDisplayName(
+
+        _nameController.text.trim(),
+
+      );
+
+
+
+      // حفظ بيانات المستخدم داخل Cloud Firestore
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+
+        'uid': userCredential.user!.uid,
+
+        'name': _nameController.text.trim(),
+
+        'email': _emailController.text.trim(),
+
+        'createdAt': Timestamp.now(),
+
+      });
+
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+
+        const SnackBar(
+
+          content: Text(
+            "Account created successfully",
+          ),
+
+        ),
+
+      );
+
+
+
+    } on FirebaseAuthException catch (e) {
+
+
+      String message = "Registration failed";
+
+
+
+      if (e.code == 'email-already-in-use') {
+
+        message = "Email already exists";
+
+      }
+
+
+      if (e.code == 'weak-password') {
+
+        message = "Password is too weak";
+
+      }
+
+
+      if (e.code == 'invalid-email') {
+
+        message = "Invalid email address";
+
+      }
+
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+
+        SnackBar(
+
+          content: Text(message),
+
+        ),
+
+      );
+
+
+    } catch (e) {
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+
+        SnackBar(
+
+          content: Text(
+            "Error: $e",
+          ),
+
+        ),
+
+      );
+
+
+    }
+
+  }
+
+
+
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+    return Scaffold(
+
+
+      body: SafeArea(
+
+
+        child: SingleChildScrollView(
+
+
+          padding: const EdgeInsets.all(24),
+
+
+          child: Form(
+
+
+            key: _formKey,
+
+
+            child: Column(
+
+
+              crossAxisAlignment: CrossAxisAlignment.start,
+
+
+              children: [
+
+
+
+                const SizedBox(height:40),
+
+
+
+                const Text(
+
+                  "Create Account",
+
+                  style: TextStyle(
+
+                    fontSize:30,
+
+                    fontWeight:FontWeight.bold,
+
+                  ),
+
+                ),
+
+
+
+                const SizedBox(height:10),
+
+
+
+                const Text(
+
+                  "Create your Easy Book account",
+
+                  style: TextStyle(
+
+                    fontSize:16,
+
+                    color:Colors.grey,
+
+                  ),
+
+                ),
+
+
+
+                const SizedBox(height:40),
+
+
+
+
+                TextFormField(
+
+                  controller:_nameController,
+
+
+                  decoration:InputDecoration(
+
+                    labelText:"Full Name",
+
+                    prefixIcon:const Icon(Icons.person),
+
+
+                    border:OutlineInputBorder(
+
+                      borderRadius:BorderRadius.circular(12),
+
+                    ),
+
+                  ),
+
+
+
+                  validator:(value){
+
+
+                    if(value == null || value.isEmpty){
+
+                      return "Please enter your full name";
+
+                    }
+
+
+                    return null;
+
+                  },
+
+
+                ),
+
+
+
+
+                const SizedBox(height:20),
+
+
+
+
+
+                TextFormField(
+
+                  controller:_emailController,
+
+
+                  keyboardType:TextInputType.emailAddress,
+
+
+                  decoration:InputDecoration(
+
+                    labelText:"Email",
+
+                    prefixIcon:const Icon(Icons.email),
+
+
+                    border:OutlineInputBorder(
+
+                      borderRadius:BorderRadius.circular(12),
+
+                    ),
+
+                  ),
+
+
+
+                  validator:(value){
+
+
+                    if(value == null || value.isEmpty){
+
+                      return "Please enter your email";
+
+                    }
+
+
+                    if(!value.contains("@")){
+
+                      return "Enter valid email";
+
+                    }
+
+
+                    return null;
+
+                  },
+
+
+                ),
+
+
+
+
+                const SizedBox(height:20),
+
+
+
+
+                TextFormField(
+
+                  controller:_passwordController,
+
+
+                  obscureText:hidePassword,
+
+
+                  decoration:InputDecoration(
+
+                    labelText:"Password",
+
+                    prefixIcon:const Icon(Icons.lock),
+
+
+
+                    suffixIcon:IconButton(
+
+                      icon:Icon(
+
+                        hidePassword
+
+                            ? Icons.visibility_off
+
+                            : Icons.visibility,
+
+                      ),
+
+
+
+                      onPressed:(){
+
+                        setState((){
+
+                          hidePassword=!hidePassword;
+
+                        });
+
+                      },
+
+                    ),
+
+
+
+                    border:OutlineInputBorder(
+
+                      borderRadius:BorderRadius.circular(12),
+
+                    ),
+
+                  ),
+
+
+
+
+                  validator:(value){
+
+
+                    if(value == null || value.isEmpty){
+
+                      return "Please enter password";
+
+                    }
+
+
+                    if(value.length < 6){
+
+                      return "Minimum 6 characters";
+
+                    }
+
+
+                    return null;
+
+                  },
+
+
+                ),
+
+
+
+
+
+                const SizedBox(height:20),
+
+
+
+
+
+                TextFormField(
+
+                  controller:_confirmPasswordController,
+
+
+                  obscureText:hideConfirmPassword,
+
+
+
+                  decoration:InputDecoration(
+
+                    labelText:"Confirm Password",
+
+                    prefixIcon:const Icon(Icons.lock_outline),
+
+
+
+                    suffixIcon:IconButton(
+
+                      icon:Icon(
+
+                        hideConfirmPassword
+
+                            ? Icons.visibility_off
+
+                            : Icons.visibility,
+
+                      ),
+
+
+                      onPressed:(){
+
+                        setState((){
+
+                          hideConfirmPassword =
+                              !hideConfirmPassword;
+
+                        });
+
+                      },
+
+                    ),
+
+
+
+                    border:OutlineInputBorder(
+
+                      borderRadius:BorderRadius.circular(12),
+
+                    ),
+
+                  ),
+
+
+
+                  validator:(value){
+
+
+                    if(value != _passwordController.text){
+
+                      return "Passwords do not match";
+
+                    }
+
+
+                    return null;
+
+                  },
+
+
+                ),
+
+
+
+
+
+                const SizedBox(height:20),
+
+
+
+
+                CheckboxListTile(
+
+                  value:agree,
+
+
+                  contentPadding:EdgeInsets.zero,
+
+
+                  controlAffinity:
+                  ListTileControlAffinity.leading,
+
+
+
+                  title:const Text(
+
+                    "I agree to the Terms & Conditions",
+
+                  ),
+
+
+
+                  onChanged:(value){
+
+
+                    setState((){
+
+                      agree=value!;
+
+                    });
+
+
+                  },
+
+                ),
+
+
+
+
+
+                const SizedBox(height:30),
+
+
+
+
+
+                SizedBox(
+
+                  width:double.infinity,
+
+                  height:55,
+
+
+
+                  child:ElevatedButton(
+
+
+                    onPressed:signUp,
+
+
+
+                    child:const Text(
+
+                      "Create Account",
+
+                      style:TextStyle(
+
+                        fontSize:18,
+
+                        fontWeight:FontWeight.bold,
+
+                      ),
+
+                    ),
+
+
+                  ),
+
+                ),
+
+
+              ],
+
+            ),
+
+
+          ),
+
+
+        ),
+
+
+      ),
+
+
+    );
+
+  }
+
+}

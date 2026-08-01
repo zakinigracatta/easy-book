@@ -1,0 +1,28 @@
+/* App.css is intentionally left mostly blank as we use index.css for global styles and inline/modules elsewhere */
+.app-container {
+  max-width: 480px; /* Mobile first approach for booking app */
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--bg-dark); /* Use theme background */
+  position: relative;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+@media (min-width: 768px) {
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .app-container {
+    height: 90vh;
+    border-radius: 40px;
+    border: 8px solid var(--glass-border);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  /* Hide scrollbar for the app container on desktop mock */
+  .app-container::-webkit-scrollbar {
+    display: none;
+  }
+}
