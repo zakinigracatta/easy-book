@@ -12,41 +12,17 @@ service cloud.firestore {
 
     function isOwnerAccount() {
       return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
     function isBusinessOwner(businessId) {
-      let biz = get(/databases/$(database)/documents/businesses/$(businessId)).data;
-      return isAuthenticated() && (
-        (isOwnerAccount() && (
-          ('owner_id' in biz && biz.owner_id == request.auth.uid) ||
-          ('ownerId' in biz && biz.ownerId == request.auth.uid)
-        )) ||
-        ('owner_id' in biz && biz.owner_id == request.auth.uid) ||
-        ('ownerId' in biz && biz.ownerId == request.auth.uid)
-      );
-    }
-
-    function isValidTimestampBinding(data) {
-      return ('startTimestamp' in data) &&
-             ('startDateTime' in data) &&
-             data.startTimestamp is int &&
-             (data.startTimestamp % (15 * 60 * 1000) == 0) &&
-             data.startDateTime == timestamp.value(data.startTimestamp);
-    }
-
-    function isServiceActive(businessId, serviceId) {
-      let s = get(/databases/$(database)/documents/businesses/$(businessId)/services/$(serviceId)).data;
-      return (!('active' in s) || s.active == true) &&
-             (!('isActive' in s) || s.isActive == true) &&
-             (!('is_active' in s) || s.is_active == true);
-    }
-
-    function isStaffActive(businessId, staffId) {
-      let st = get(/databases/$(database)/documents/businesses/$(businessId)/staff/$(staffId)).data;
-      return (!('active' in st) || st.active == true) &&
-             (!('isActive' in st) || st.isActive == true) &&
-             (!('is_active' in st) || st.is_active == true);
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+        (
+          ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
+          ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+        );
     }
 
     // User Devices
@@ -139,70 +115,20 @@ service cloud.firestore {
       }
     }
 
-    // Slot Locks Collection (Privacy-Preserving Non-Sensitive Availability Locks)
+    // Slot Locks Collection (Public Non-Sensitive Availability Queries; Untrusted Client Writes Denied)
     match /booking_slots/{slotId} {
       allow read, get, list: if isAuthenticated();
-
-      allow create: if isAuthenticated()
-                    && request.resource.data.slotId == slotId
-                    && isValidTimestampBinding(request.resource.data)
-                    && existsAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId))
-                    && (
-                      getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.customerId == request.auth.uid ||
-                      isBusinessOwner(request.resource.data.businessId)
-                    );
-
-      allow delete: if isAuthenticated()
-                    && (
-                      isBusinessOwner(resource.data.businessId) ||
-                      (
-                        existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)) &&
-                        getAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.customerId == request.auth.uid
-                      ) ||
-                      (
-                        exists(/databases/$(database)/documents/bookings/$(resource.data.bookingId)) &&
-                        get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.customerId == request.auth.uid
-                      )
-                    );
+      allow create, update, delete: if false;
     }
 
-    // Bookings Collection
+    // Bookings Collection (Untrusted Client Direct Writes Denied; Cloud Functions Admin SDK Execution Canonical)
     match /bookings/{bookingId} {
       allow read: if isAuthenticated() && (
         resource.data.customerId == request.auth.uid ||
         isBusinessOwner(resource.data.businessId)
       );
 
-      allow create: if isAuthenticated()
-                    && (
-                      (request.resource.data.customerId == request.auth.uid && request.resource.data.bookingSource == 'app') ||
-                      (isBusinessOwner(request.resource.data.businessId) && request.resource.data.bookingSource == 'walkIn')
-                    )
-                    && isValidTimestampBinding(request.resource.data)
-                    && exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId))
-                    && isServiceActive(request.resource.data.businessId, request.resource.data.serviceId)
-                    && isStaffActive(request.resource.data.businessId, request.resource.data.staffId);
-
-      allow update: if isAuthenticated()
-                    && (
-                      (
-                        resource.data.customerId == request.auth.uid
-                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason', 'cancelledAt', 'cancelledBy', 'updatedAt'])
-                        && request.resource.data.status == 'cancelled'
-                      )
-                      ||
-                      (
-                        resource.data.customerId == request.auth.uid
-                        && (resource.data.status == 'pending' || resource.data.status == 'confirmed')
-                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['startDateTime', 'endDateTime', 'startTimestamp', 'slotLockId', 'status', 'updatedAt'])
-                      )
-                      ||
-                      (
-                        isBusinessOwner(resource.data.businessId)
-                      )
-                    );
-
-      allow delete: if isBusinessOwner(resource.data.businessId);
+      allow create, update, delete: if false;
     }
   }
 }

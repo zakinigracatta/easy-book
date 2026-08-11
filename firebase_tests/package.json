@@ -1,0 +1,14 @@
+{
+  "name": "easy-book-firebase-tests",
+  "version": "1.0.0",
+  "description": "Executable Firebase Security Rules & Callable Functions Emulator Test Suite",
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^3.0.0",
+    "firebase-admin": "^12.0.0"
+  },
+  "private": true
+}
