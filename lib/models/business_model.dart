@@ -1,5 +1,7 @@
 import 'working_hours_model.dart';
 
+enum BusinessOperationalStatus { open, closed, temporarilyClosed }
+
 class BusinessModel {
   final String id;
   final String name;
@@ -18,7 +20,9 @@ class BusinessModel {
   final String? phone;
   final String? website;
   final List<String> galleryUrls;
-  final bool isActive;
+  final bool isActive; // Platform level entity active state
+  final String businessStatus; // 'open', 'closed', 'temporarilyClosed'
+  final bool acceptingBookings; // Online booking availability state
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -46,9 +50,16 @@ class BusinessModel {
     this.website,
     this.galleryUrls = const [],
     this.isActive = true,
+    String? businessStatus,
+    bool? acceptingBookings,
     this.createdAt,
     this.updatedAt,
-  }) : workingHours = workingHours ?? WorkingHoursModel.defaultSchedule();
+  })  : workingHours = workingHours ?? WorkingHoursModel.defaultSchedule(),
+        businessStatus = businessStatus ?? 'open',
+        acceptingBookings = (businessStatus == 'closed' ||
+                businessStatus == 'temporarilyClosed')
+            ? false
+            : (acceptingBookings ?? true);
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
     List<String> parseStringList(dynamic list) {
@@ -57,6 +68,13 @@ class BusinessModel {
       }
       return [];
     }
+
+    final rawStatus = json['business_status'] as String? ??
+        json['businessStatus'] as String? ??
+        'open';
+    final rawAccepting = json['accepting_bookings'] as bool? ??
+        json['acceptingBookings'] as bool? ??
+        true;
 
     return BusinessModel(
       id: json['id'] as String? ?? '',
@@ -88,6 +106,8 @@ class BusinessModel {
       website: json['website'] as String?,
       galleryUrls: parseStringList(json['gallery_urls'] ?? json['galleryUrls']),
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
+      businessStatus: rawStatus,
+      acceptingBookings: rawAccepting,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
@@ -117,8 +137,66 @@ class BusinessModel {
       'website': website,
       'gallery_urls': galleryUrls,
       'is_active': isActive,
+      'business_status': businessStatus,
+      'accepting_bookings': acceptingBookings,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
+  }
+
+  BusinessModel copyWith({
+    String? id,
+    String? name,
+    String? category,
+    String? address,
+    double? rating,
+    int? reviewCount,
+    String? imageUrl,
+    bool? isVerified,
+    String? description,
+    String? ownerId,
+    double? latitude,
+    double? longitude,
+    WorkingHoursModel? workingHours,
+    List<String>? amenities,
+    String? phone,
+    String? website,
+    List<String>? galleryUrls,
+    bool? isActive,
+    String? businessStatus,
+    bool? acceptingBookings,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    final nextStatus = businessStatus ?? this.businessStatus;
+    final nextAccepting =
+        (nextStatus == 'closed' || nextStatus == 'temporarilyClosed')
+            ? false
+            : (acceptingBookings ?? this.acceptingBookings);
+
+    return BusinessModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      address: address ?? this.address,
+      rating: rating ?? this.rating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isVerified: isVerified ?? this.isVerified,
+      description: description ?? this.description,
+      ownerId: ownerId ?? this.ownerId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      workingHours: workingHours ?? this.workingHours,
+      amenities: amenities ?? this.amenities,
+      phone: phone ?? this.phone,
+      website: website ?? this.website,
+      galleryUrls: galleryUrls ?? this.galleryUrls,
+      isActive: isActive ?? this.isActive,
+      businessStatus: nextStatus,
+      acceptingBookings: nextAccepting,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }

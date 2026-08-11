@@ -1,6 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum BookingStatus { pending, confirmed, arrived, inProgress, completed, cancelled, noShow }
+enum BookingStatus {
+  pending,
+  confirmed,
+  arrived,
+  inProgress,
+  completed,
+  cancelled,
+  noShow
+}
 
 class BookingModel {
   final String id;
@@ -80,7 +88,8 @@ class BookingModel {
       customerName: json['customerName'] as String? ??
           json['customer_name'] as String? ??
           'Valued Customer',
-      customerPhone: json['customerPhone'] as String? ?? json['customer_phone'] as String?,
+      customerPhone:
+          json['customerPhone'] as String? ?? json['customer_phone'] as String?,
       businessId: json['businessId'] as String? ??
           json['business_id'] as String? ??
           json['salon_id'] as String? ??
@@ -109,9 +118,12 @@ class BookingModel {
       endDateTime: parseDate(
           json['endDateTime'] ?? json['end_date_time'] ?? json['date_time']),
       status: parsedStatus,
-      bookingSource: json['bookingSource'] as String? ?? json['booking_source'] as String? ?? 'app',
+      bookingSource: json['bookingSource'] as String? ??
+          json['booking_source'] as String? ??
+          'app',
       notes: json['notes'] as String?,
-      ownerNotes: json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
+      ownerNotes:
+          json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
       slotLockId:
           json['slotLockId'] as String? ?? json['slot_lock_id'] as String?,
       createdAt:
@@ -140,7 +152,6 @@ class BookingModel {
       'status': status.name,
       'bookingSource': bookingSource,
       if (notes != null) 'notes': notes,
-      if (ownerNotes != null) 'ownerNotes': ownerNotes,
       'slotLockId': computedSlotLockId,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
@@ -166,7 +177,6 @@ class BookingModel {
       'status': status.name,
       'bookingSource': bookingSource,
       if (notes != null) 'notes': notes,
-      if (ownerNotes != null) 'ownerNotes': ownerNotes,
       'slotLockId': computedSlotLockId,
       'createdAt': createdAt != null
           ? Timestamp.fromDate(createdAt!)

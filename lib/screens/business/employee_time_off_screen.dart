@@ -19,8 +19,7 @@ class EmployeeTimeOffScreen extends ConsumerStatefulWidget {
       _EmployeeTimeOffScreenState();
 }
 
-class _EmployeeTimeOffScreenState
-    extends ConsumerState<EmployeeTimeOffScreen> {
+class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
   final _reasonController = TextEditingController(text: 'Annual Vacation');
   final _notesController = TextEditingController();
 
@@ -128,7 +127,8 @@ class _EmployeeTimeOffScreenState
                     onPressed: () => _showAddTimeOffModal(context),
                     icon: const Icon(Icons.add_rounded, size: 16),
                     label: const Text('Add Leave',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -150,8 +150,10 @@ class _EmployeeTimeOffScreenState
 
                   return Column(
                     children: timeOffs.map((t) {
-                      final startStr = DateFormat('MMM d, yyyy').format(t.startDate);
-                      final endStr = DateFormat('MMM d, yyyy').format(t.endDate);
+                      final startStr =
+                          DateFormat('MMM d, yyyy').format(t.startDate);
+                      final endStr =
+                          DateFormat('MMM d, yyyy').format(t.endDate);
 
                       return GlassCard(
                         padding: const EdgeInsets.all(14),
@@ -299,7 +301,8 @@ class _EmployeeTimeOffScreenState
                             context: ctx,
                             initialDate: _startDate,
                             firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 365)),
                           );
                           if (p != null) setModalState(() => _startDate = p);
                         },
@@ -308,7 +311,8 @@ class _EmployeeTimeOffScreenState
                           decoration: BoxDecoration(
                             color: AppColors.bgDark,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.glassBorderDark),
+                            border:
+                                Border.all(color: AppColors.glassBorderDark),
                           ),
                           child: Text(
                             'Start: ${DateFormat('MMM d').format(_startDate)}',
@@ -326,7 +330,8 @@ class _EmployeeTimeOffScreenState
                             context: ctx,
                             initialDate: _endDate,
                             firstDate: _startDate,
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 365)),
                           );
                           if (p != null) setModalState(() => _endDate = p);
                         },
@@ -335,7 +340,8 @@ class _EmployeeTimeOffScreenState
                           decoration: BoxDecoration(
                             color: AppColors.bgDark,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.glassBorderDark),
+                            border:
+                                Border.all(color: AppColors.glassBorderDark),
                           ),
                           child: Text(
                             'End: ${DateFormat('MMM d').format(_endDate)}',

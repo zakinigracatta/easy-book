@@ -19,8 +19,7 @@ class AddEditEmployeeScreen extends ConsumerStatefulWidget {
       _AddEditEmployeeScreenState();
 }
 
-class _AddEditEmployeeScreenState
-    extends ConsumerState<AddEditEmployeeScreen> {
+class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _roleController;
@@ -37,8 +36,8 @@ class _AddEditEmployeeScreenState
     _nameController = TextEditingController(text: st?.name ?? '');
     _roleController =
         TextEditingController(text: st?.roleTitle ?? 'Master Specialist');
-    _experienceController = TextEditingController(
-        text: st != null ? '${st.experienceYears}' : '5');
+    _experienceController =
+        TextEditingController(text: st != null ? '${st.experienceYears}' : '5');
     _avatarUrlController = TextEditingController(text: st?.avatarUrl ?? '');
     _isActive = st?.isActive ?? true;
   }
@@ -145,7 +144,8 @@ class _AddEditEmployeeScreenState
                   ),
                   const SizedBox(height: 24),
                   CustomButton(
-                    text: isEditing ? 'Update Employee' : 'Add Employee to Team',
+                    text:
+                        isEditing ? 'Update Employee' : 'Add Employee to Team',
                     isLoading: _isLoading,
                     onPressed: _saveEmployee,
                   ),
@@ -164,7 +164,7 @@ class _AddEditEmployeeScreenState
     setState(() => _isLoading = true);
 
     try {
-      final bizId = ref.read(currentBusinessIdProvider);
+      final bizId = ref.read(currentBusinessIdProvider).value ?? '';
       final expYears = int.tryParse(_experienceController.text.trim()) ?? 5;
 
       final staff = StaffModel(

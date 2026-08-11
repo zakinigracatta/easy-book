@@ -90,7 +90,8 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                     onPressed: () => context.push('/quick-walk-in'),
                     icon: const Icon(Icons.add_rounded, size: 16),
                     label: const Text('New Booking',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -140,7 +141,8 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                 error: (_, __) => const OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Calendar',
-                  description: 'Could not fetch schedule data for selected date.',
+                  description:
+                      'Could not fetch schedule data for selected date.',
                 ),
               ),
             ),

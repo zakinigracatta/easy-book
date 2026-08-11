@@ -31,6 +31,7 @@ service cloud.firestore {
       return ('startTimestamp' in data) &&
              ('startDateTime' in data) &&
              data.startTimestamp is int &&
+             (data.startTimestamp % (15 * 60 * 1000) == 0) &&
              data.startDateTime == timestamp.value(data.startTimestamp);
     }
 
@@ -46,13 +47,6 @@ service cloud.firestore {
       return (!('active' in st) || st.active == true) &&
              (!('isActive' in st) || st.isActive == true) &&
              (!('is_active' in st) || st.is_active == true);
-    }
-
-    function matchesServicePrice(businessId, serviceId, price) {
-      let s = get(/databases/$(database)/documents/businesses/$(businessId)/services/$(serviceId)).data;
-      return ('price' in s && s.price == price) ||
-             ('servicePrice' in s && s.servicePrice == price) ||
-             ('service_price' in s && s.service_price == price);
     }
 
     // User Devices
@@ -145,10 +139,9 @@ service cloud.firestore {
       }
     }
 
-    // Slot Locks Collection
+    // Slot Locks Collection (Public Non-Sensitive Availability Querying)
     match /booking_slots/{slotId} {
-      allow get: if isAuthenticated();
-      allow list: if false;
+      allow read, get, list: if isAuthenticated();
 
       allow create: if isAuthenticated()
                     && request.resource.data.slotId == slotId
@@ -158,8 +151,16 @@ service cloud.firestore {
 
       allow delete: if isAuthenticated()
                     && (resource.data.customerId == request.auth.uid || isBusinessOwner(resource.data.businessId))
-                    && existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId))
-                    && getAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.status == 'cancelled';
+                    && (
+                      (
+                        existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId))
+                        && getAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.status == 'cancelled'
+                      )
+                      ||
+                      (
+                        existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId))
+                      )
+                    );
     }
 
     // Bookings Collection
@@ -170,21 +171,27 @@ service cloud.firestore {
       );
 
       allow create: if isAuthenticated()
-                    && (request.resource.data.customerId == request.auth.uid || isBusinessOwner(request.resource.data.businessId))
+                    && (
+                      (request.resource.data.customerId == request.auth.uid && request.resource.data.bookingSource == 'app') ||
+                      (isBusinessOwner(request.resource.data.businessId) && request.resource.data.bookingSource == 'walkIn')
+                    )
                     && isValidTimestampBinding(request.resource.data)
-                    && exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId));
+                    && exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId))
+                    && isServiceActive(request.resource.data.businessId, request.resource.data.serviceId)
+                    && isStaffActive(request.resource.data.businessId, request.resource.data.staffId);
 
       allow update: if isAuthenticated()
                     && (
                       (
                         resource.data.customerId == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason', 'cancelledAt', 'updatedAt'])
                         && request.resource.data.status == 'cancelled'
                       )
                       ||
                       (
                         resource.data.customerId == request.auth.uid
                         && (resource.data.status == 'pending' || resource.data.status == 'confirmed')
-                        && request.resource.data.status == 'pending'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['startDateTime', 'endDateTime', 'startTimestamp', 'slotLockId', 'status', 'updatedAt'])
                       )
                       ||
                       (

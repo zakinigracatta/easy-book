@@ -113,7 +113,8 @@ class PromotionManagementScreen extends ConsumerWidget {
                     onPressed: () => _showAddOfferModal(context, ref),
                     icon: const Icon(Icons.add_rounded, size: 16),
                     label: const Text('New Offer',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -136,8 +137,10 @@ class PromotionManagementScreen extends ConsumerWidget {
                   return Column(
                     children: offers.map((o) {
                       final startStr = DateFormat('MMM d').format(o.startDate);
-                      final endStr = DateFormat('MMM d, yyyy').format(o.endDate);
-                      final isPercent = o.discountType == DiscountType.percentage;
+                      final endStr =
+                          DateFormat('MMM d, yyyy').format(o.endDate);
+                      final isPercent =
+                          o.discountType == DiscountType.percentage;
 
                       return GlassCard(
                         padding: const EdgeInsets.all(16),
@@ -162,10 +165,12 @@ class PromotionManagementScreen extends ConsumerWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: AppColors.gold.withValues(alpha: 0.15),
+                                    color:
+                                        AppColors.gold.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                        color: AppColors.gold.withValues(alpha: 0.4)),
+                                        color: AppColors.gold
+                                            .withValues(alpha: 0.4)),
                                   ),
                                   child: Text(
                                     isPercent
@@ -294,9 +299,7 @@ class PromotionManagementScreen extends ConsumerWidget {
                   endDate: DateTime.now().add(const Duration(days: 30)),
                 );
 
-                await ref
-                    .read(ownerRepositoryProvider)
-                    .saveOffer(newOffer);
+                await ref.read(ownerRepositoryProvider).saveOffer(newOffer);
                 ref.invalidate(ownerOffersProvider);
 
                 Navigator.pop(ctx);

@@ -136,10 +136,10 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   CircleAvatar(
                     radius: 26,
                     backgroundColor: AppColors.primary,
-                    backgroundImage: (biz.imageUrl != null &&
-                            biz.imageUrl.isNotEmpty)
-                        ? NetworkImage(biz.imageUrl)
-                        : null,
+                    backgroundImage:
+                        (biz.imageUrl != null && biz.imageUrl.isNotEmpty)
+                            ? NetworkImage(biz.imageUrl)
+                            : null,
                     child: (biz.imageUrl == null || biz.imageUrl.isEmpty)
                         ? const Icon(Icons.storefront_rounded,
                             color: Colors.white, size: 24)
@@ -277,16 +277,15 @@ class OwnerDashboardScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: const [
-          CircleAvatar(
-              radius: 26, backgroundColor: AppColors.glassBorderDark),
+          CircleAvatar(radius: 26, backgroundColor: AppColors.glassBorderDark),
           SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Easy Book Business',
-                    style: TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold)),
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 SizedBox(height: 4),
                 Text('Loading business details...',
                     style: TextStyle(
@@ -315,9 +314,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
             .where((b) => b.status != BookingStatus.cancelled)
             .fold<double>(0.0, (sum, b) => sum + b.servicePrice);
 
-        final pendingCount = bookings
-            .where((b) => b.status == BookingStatus.pending)
-            .length;
+        final pendingCount =
+            bookings.where((b) => b.status == BookingStatus.pending).length;
 
         final customerIdsToday =
             todayBookings.map((b) => b.customerId).toSet().length;

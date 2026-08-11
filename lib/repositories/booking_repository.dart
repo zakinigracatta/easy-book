@@ -30,7 +30,8 @@ class BookingRepositoryImpl implements BookingRepository {
 
   @override
   Future<bool> cancelBooking(String bookingId) {
-    return _service.cancelBooking(bookingId);
+    return _service.cancelBooking(
+        bookingId: bookingId, cancelledBy: 'customer');
   }
 
   @override

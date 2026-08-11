@@ -5,7 +5,6 @@ import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
-import '../../widgets/business/business_image_picker.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/gallery_image_model.dart';
 
@@ -22,7 +21,6 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
   @override
   Widget build(BuildContext context) {
     final galleryAsync = ref.watch(ownerGalleryProvider);
-    final businessAsync = ref.watch(ownerBusinessProvider);
 
     final categories = [
       {'id': 'all', 'label': 'All Photos'},
@@ -83,9 +81,8 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                         fontSize: 12,
                         fontWeight:
                             isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textMutedDark,
+                        color:
+                            isSelected ? Colors.white : AppColors.textMutedDark,
                       ),
                       selectedColor: AppColors.primary,
                       backgroundColor: AppColors.cardDark,
@@ -169,7 +166,8 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                                             size: 12, color: Colors.white),
                                         onPressed: () {
                                           ref
-                                              .read(ownerGalleryProvider.notifier)
+                                              .read(
+                                                  ownerGalleryProvider.notifier)
                                               .deleteGalleryImage(img.id);
                                         },
                                       ),
@@ -182,7 +180,8 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.6),
+                                        color:
+                                            Colors.black.withValues(alpha: 0.6),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
@@ -272,8 +271,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                         value: 'interior', child: Text('Interior')),
                     DropdownMenuItem(
                         value: 'exterior', child: Text('Exterior')),
-                    DropdownMenuItem(
-                        value: 'service', child: Text('Service')),
+                    DropdownMenuItem(value: 'service', child: Text('Service')),
                     DropdownMenuItem(
                         value: 'portfolio', child: Text('Portfolio')),
                     DropdownMenuItem(
@@ -302,8 +300,8 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   style: TextStyle(color: AppColors.textMutedDark)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary),
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: () {
                 final newImg = GalleryImageModel(
                   id: 'img_${DateTime.now().millisecondsSinceEpoch}',
@@ -313,9 +311,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   caption: captionController.text.trim(),
                 );
 
-                ref
-                    .read(ownerGalleryProvider.notifier)
-                    .addGalleryImage(newImg);
+                ref.read(ownerGalleryProvider.notifier).addGalleryImage(newImg);
 
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(

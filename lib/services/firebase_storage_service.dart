@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
 import '../core/domain_exceptions.dart';
 
@@ -13,9 +14,14 @@ enum ImageTargetType {
 }
 
 class FirebaseStorageService {
+  final FirebaseStorage _storage;
+
   static const int maxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-  /// Uploads an image file or URL to the appropriate storage destination path and returns the Storage download URL.
+  FirebaseStorageService([FirebaseStorage? storage])
+      : _storage = storage ?? FirebaseStorage.instance;
+
+  /// Uploads an image file to real Firebase Storage destination path and returns the Storage download URL.
   Future<String> uploadImage({
     required String businessId,
     required ImageTargetType targetType,
@@ -41,7 +47,8 @@ class FirebaseStorageService {
     final ext = filePathOrUrl.split('.').last.toLowerCase();
     final allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
     if (!allowedExts.contains(ext)) {
-      throw DomainException('Unsupported image format. Allowed formats: JPG, PNG, WEBP.');
+      throw DomainException(
+          'Unsupported image format. Allowed formats: JPG, PNG, WEBP.');
     }
 
     final uniqueId = const Uuid().v4();
@@ -55,11 +62,28 @@ class FirebaseStorageService {
 
     debugPrint('UPLOADING_IMAGE_TO_STORAGE: $path (size: ${fileSize}B)');
 
-    // Simulated network delay / Real Firebase Storage upload hook
-    await Future.delayed(const Duration(milliseconds: 600));
+    try {
+      final ref = _storage.ref().child(path);
+      final metadata = SettableMetadata(
+        contentType: 'image/$ext',
+        customMetadata: {
+          'businessId': businessId,
+          'targetType': targetType.name,
+        },
+      );
 
-    // Return production CDN storage URL representation
-    return 'https://firebasestorage.googleapis.com/v0/b/easy-book-zaki.appspot.com/o/${Uri.encodeComponent(path)}?alt=media';
+      final uploadTask = await ref.putFile(file, metadata);
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      debugPrint('UPLOAD_SUCCESSFUL: $downloadUrl');
+      return downloadUrl;
+    } on FirebaseException catch (e) {
+      debugPrint('FIREBASE_STORAGE_ERROR: ${e.code} - ${e.message}');
+      throw DomainException('Failed to upload image: ${e.message ?? e.code}');
+    } catch (e) {
+      debugPrint('STORAGE_UPLOAD_ERROR: $e');
+      throw DomainException(
+          'An unexpected error occurred during image upload.');
+    }
   }
 
   String _resolveStoragePath({

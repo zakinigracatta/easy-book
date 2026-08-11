@@ -87,8 +87,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                                       )
                                     : null,
                               ),
-                              child: (s.imageUrl == null ||
-                                      s.imageUrl!.isEmpty)
+                              child: (s.imageUrl == null || s.imageUrl!.isEmpty)
                                   ? const Icon(Icons.design_services_rounded,
                                       color: AppColors.primaryLight)
                                   : null,
@@ -162,11 +161,10 @@ class ServicesManagementScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 12),
-                        const Divider(color: AppColors.glassBorderDark, height: 1),
+                        const Divider(
+                            color: AppColors.glassBorderDark, height: 1),
                         const SizedBox(height: 10),
-
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -222,7 +220,8 @@ class ServicesManagementScreen extends ConsumerWidget {
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline_rounded,
                                       size: 18, color: AppColors.error),
-                                  onPressed: () => _confirmDelete(context, ref, s),
+                                  onPressed: () =>
+                                      _confirmDelete(context, ref, s),
                                 ),
                               ],
                             ),
@@ -248,7 +247,8 @@ class ServicesManagementScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref, ServiceModel service) {
+  void _confirmDelete(
+      BuildContext context, WidgetRef ref, ServiceModel service) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(

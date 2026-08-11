@@ -70,11 +70,16 @@ class OwnerReviewsScreen extends ConsumerWidget {
                         const SizedBox(height: 6),
                         Row(
                           children: const [
-                            Icon(Icons.star_rounded, size: 16, color: AppColors.gold),
-                            Icon(Icons.star_rounded, size: 16, color: AppColors.gold),
-                            Icon(Icons.star_rounded, size: 16, color: AppColors.gold),
-                            Icon(Icons.star_rounded, size: 16, color: AppColors.gold),
-                            Icon(Icons.star_half_rounded, size: 16, color: AppColors.gold),
+                            Icon(Icons.star_rounded,
+                                size: 16, color: AppColors.gold),
+                            Icon(Icons.star_rounded,
+                                size: 16, color: AppColors.gold),
+                            Icon(Icons.star_rounded,
+                                size: 16, color: AppColors.gold),
+                            Icon(Icons.star_rounded,
+                                size: 16, color: AppColors.gold),
+                            Icon(Icons.star_half_rounded,
+                                size: 16, color: AppColors.gold),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -89,7 +94,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
                     ),
 
                     const SizedBox(width: 24),
-                    const VerticalDivider(color: AppColors.glassBorderDark, width: 1),
+                    const VerticalDivider(
+                        color: AppColors.glassBorderDark, width: 1),
                     const SizedBox(width: 20),
 
                     // Distribution Bars Column
@@ -127,13 +133,15 @@ class OwnerReviewsScreen extends ConsumerWidget {
                     return OwnerEmptyStateWidget(
                       icon: Icons.rate_review_rounded,
                       title: 'No Reviews Yet',
-                      description: 'Customer reviews will appear here once submitted.',
+                      description:
+                          'Customer reviews will appear here once submitted.',
                     );
                   }
 
                   return Column(
                     children: reviews.map((r) {
-                      final dateStr = DateFormat('MMM d, yyyy').format(r.createdAt);
+                      final dateStr =
+                          DateFormat('MMM d, yyyy').format(r.createdAt);
 
                       return GlassCard(
                         padding: const EdgeInsets.all(16),
@@ -145,7 +153,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
                               children: [
                                 CircleAvatar(
                                   radius: 18,
-                                  backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                                  backgroundColor:
+                                      AppColors.primary.withValues(alpha: 0.2),
                                   backgroundImage: (r.userAvatar.isNotEmpty)
                                       ? NetworkImage(r.userAvatar)
                                       : null,
@@ -162,7 +171,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         r.userName,
@@ -201,9 +211,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                                 ),
                               ],
                             ),
-
                             const SizedBox(height: 10),
-
                             Text(
                               r.comment,
                               style: const TextStyle(
@@ -212,9 +220,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                                 height: 1.4,
                               ),
                             ),
-
                             const SizedBox(height: 10),
-
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -229,7 +235,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
                                 // Owner Reply Action Button
                                 TextButton.icon(
                                   onPressed: () => _showReplyDialog(context, r),
-                                  icon: const Icon(Icons.reply_rounded, size: 14),
+                                  icon:
+                                      const Icon(Icons.reply_rounded, size: 14),
                                   label: const Text(
                                     'Reply to Review',
                                     style: TextStyle(
@@ -272,7 +279,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
             width: 42,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 10, color: AppColors.textMutedDark),
+              style:
+                  const TextStyle(fontSize: 10, color: AppColors.textMutedDark),
             ),
           ),
           Expanded(
@@ -299,7 +307,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.cardDark,
         title: Text('Reply to ${review.userName}',
-            style: const TextStyle(color: AppColors.textPrimaryDark, fontSize: 16)),
+            style: const TextStyle(
+                color: AppColors.textPrimaryDark, fontSize: 16)),
         content: TextField(
           controller: replyController,
           maxLines: 3,
@@ -310,7 +319,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textMutedDark)),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textMutedDark)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -323,7 +333,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
                 ),
               );
             },
-            child: const Text('Post Reply', style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Post Reply', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

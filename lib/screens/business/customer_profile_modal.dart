@@ -58,9 +58,10 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                  backgroundImage: (c.avatarUrl != null && c.avatarUrl!.isNotEmpty)
-                      ? NetworkImage(c.avatarUrl!)
-                      : null,
+                  backgroundImage:
+                      (c.avatarUrl != null && c.avatarUrl!.isNotEmpty)
+                          ? NetworkImage(c.avatarUrl!)
+                          : null,
                   child: (c.avatarUrl == null || c.avatarUrl!.isEmpty)
                       ? Text(
                           c.name[0].toUpperCase(),
@@ -115,15 +116,20 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
             Row(
               children: [
                 Expanded(
-                  child: _metricBox('Visits', '${c.completedVisits}', AppColors.primaryLight),
+                  child: _metricBox(
+                      'Visits', '${c.completedVisits}', AppColors.primaryLight),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _metricBox('Total Spent', 'AED ${c.totalSpent.toStringAsFixed(0)}', AppColors.success),
+                  child: _metricBox(
+                      'Total Spent',
+                      'AED ${c.totalSpent.toStringAsFixed(0)}',
+                      AppColors.success),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _metricBox('No-Shows', '${c.noShowCount}', AppColors.warning),
+                  child: _metricBox(
+                      'No-Shows', '${c.noShowCount}', AppColors.warning),
                 ),
               ],
             ),
@@ -209,7 +215,9 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               isLoading: _isSaving,
               onPressed: () async {
                 setState(() => _isSaving = true);
+                final bizId = ref.read(currentBusinessIdProvider).value ?? '';
                 await ref.read(ownerRepositoryProvider).saveCustomerNotes(
+                      bizId,
                       c.id,
                       _notesController.text.trim(),
                     );

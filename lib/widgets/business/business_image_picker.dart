@@ -85,7 +85,8 @@ class BusinessImagePicker extends StatelessWidget {
                             children: [
                               CircleAvatar(
                                 radius: 16,
-                                backgroundColor: Colors.black.withValues(alpha: 0.6),
+                                backgroundColor:
+                                    Colors.black.withValues(alpha: 0.6),
                                 child: IconButton(
                                   icon: const Icon(Icons.edit_rounded,
                                       size: 14, color: Colors.white),

@@ -36,8 +36,11 @@ class OfferModel {
       return DateTime.now();
     }
 
-    final discTypeStr = json['discountType'] as String? ?? json['discount_type'] as String? ?? 'percentage';
-    final parsedType = discTypeStr == 'fixed' ? DiscountType.fixed : DiscountType.percentage;
+    final discTypeStr = json['discountType'] as String? ??
+        json['discount_type'] as String? ??
+        'percentage';
+    final parsedType =
+        discTypeStr == 'fixed' ? DiscountType.fixed : DiscountType.percentage;
 
     List<String> parseServices(dynamic s) {
       if (s is List) return s.map((e) => e.toString()).toList();
@@ -46,16 +49,20 @@ class OfferModel {
 
     return OfferModel(
       id: json['id'] as String? ?? '',
-      businessId: json['businessId'] as String? ?? json['business_id'] as String? ?? '',
+      businessId:
+          json['businessId'] as String? ?? json['business_id'] as String? ?? '',
       title: json['title'] as String? ?? 'Special Offer',
       description: json['description'] as String? ?? '',
       discountType: parsedType,
-      discountValue: (json['discountValue'] as num?)?.toDouble() ?? (json['discount_value'] as num?)?.toDouble() ?? 10.0,
+      discountValue: (json['discountValue'] as num?)?.toDouble() ??
+          (json['discount_value'] as num?)?.toDouble() ??
+          10.0,
       startDate: parseDate(json['startDate'] ?? json['start_date']),
       endDate: parseDate(json['endDate'] ?? json['end_date']),
       serviceIds: parseServices(json['serviceIds'] ?? json['service_ids']),
       isActive: json['isActive'] as bool? ?? json['is_active'] as bool? ?? true,
-      createdAt: json['createdAt'] != null ? parseDate(json['createdAt']) : null,
+      createdAt:
+          json['createdAt'] != null ? parseDate(json['createdAt']) : null,
     );
   }
 

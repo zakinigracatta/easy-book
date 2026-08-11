@@ -460,8 +460,8 @@ class _QuickWalkInBookingScreenState
         _selectedTime.minute,
       );
 
-      final endDt = startDt.add(
-          Duration(minutes: _selectedService!.durationMinutes));
+      final endDt =
+          startDt.add(Duration(minutes: _selectedService!.durationMinutes));
 
       final walkInBooking = BookingModel(
         id: '',
@@ -472,7 +472,8 @@ class _QuickWalkInBookingScreenState
         businessName: bizName,
         serviceId: _selectedService!.id,
         serviceName: _selectedService!.name,
-        servicePrice: _selectedService!.discountPrice ?? _selectedService!.price,
+        servicePrice:
+            _selectedService!.discountPrice ?? _selectedService!.price,
         staffId: _selectedStaff!.id,
         staffName: _selectedStaff!.name,
         startDateTime: startDt,

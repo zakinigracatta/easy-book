@@ -143,7 +143,8 @@ void main() {
       );
 
       // Lead time cutoff is 10:30 AM (now + 30 mins)
-      final earlySlots = slots.where((s) => s.startAt.isBefore(DateTime(2026, 8, 17, 10, 30)));
+      final earlySlots =
+          slots.where((s) => s.startAt.isBefore(DateTime(2026, 8, 17, 10, 30)));
       expect(earlySlots.isEmpty, isTrue);
     });
   });

@@ -40,14 +40,12 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
     _nameController = TextEditingController(text: s?.name ?? '');
     _categoryController =
         TextEditingController(text: s?.categoryName ?? 'Hair Services');
-    _descriptionController =
-        TextEditingController(text: s?.description ?? '');
+    _descriptionController = TextEditingController(text: s?.description ?? '');
     _priceController =
         TextEditingController(text: s != null ? '${s.price}' : '');
     _discountController = TextEditingController(
-        text: s?.discountPrice != null ? '${s.discountPrice}' : '');
-    _imageUrlController =
-        TextEditingController(text: s?.imageUrl ?? '');
+        text: s?.discountPrice != null ? '${s!.discountPrice}' : '');
+    _imageUrlController = TextEditingController(text: s?.imageUrl ?? '');
 
     _selectedDurationMinutes = s?.durationMinutes ?? 30;
     _isActive = s?.isActive ?? true;
@@ -155,9 +153,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
                       // Duration Dropdown in minutes
                       DropdownButtonFormField<int>(
-                        value: _durationOptions.contains(_selectedDurationMinutes)
-                            ? _selectedDurationMinutes
-                            : 30,
+                        value:
+                            _durationOptions.contains(_selectedDurationMinutes)
+                                ? _selectedDurationMinutes
+                                : 30,
                         decoration: InputDecoration(
                           labelText: 'Service Duration *',
                           labelStyle:
@@ -272,7 +271,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
           ? double.tryParse(_discountController.text.trim())
           : null;
 
-      final bizId = ref.read(currentBusinessIdProvider);
+      final bizId = ref.read(currentBusinessIdProvider).value ?? '';
 
       final service = ServiceModel(
         id: widget.initialService?.id ??

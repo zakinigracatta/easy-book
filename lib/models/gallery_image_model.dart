@@ -5,7 +5,8 @@ class GalleryImageModel {
   final String businessId;
   final String imageUrl;
   final String? thumbnailUrl;
-  final String category; // interior, exterior, service, portfolio, beforeAfter, other
+  final String
+      category; // interior, exterior, service, portfolio, beforeAfter, other
   final String caption;
   final int sortOrder;
   final DateTime createdAt;
@@ -30,9 +31,12 @@ class GalleryImageModel {
 
     return GalleryImageModel(
       id: json['id'] as String? ?? '',
-      businessId: json['businessId'] as String? ?? json['business_id'] as String? ?? '',
-      imageUrl: json['imageUrl'] as String? ?? json['image_url'] as String? ?? '',
-      thumbnailUrl: json['thumbnailUrl'] as String? ?? json['thumbnail_url'] as String?,
+      businessId:
+          json['businessId'] as String? ?? json['business_id'] as String? ?? '',
+      imageUrl:
+          json['imageUrl'] as String? ?? json['image_url'] as String? ?? '',
+      thumbnailUrl:
+          json['thumbnailUrl'] as String? ?? json['thumbnail_url'] as String?,
       category: json['category'] as String? ?? 'portfolio',
       caption: json['caption'] as String? ?? '',
       sortOrder: json['sortOrder'] as int? ?? json['sort_order'] as int? ?? 0,

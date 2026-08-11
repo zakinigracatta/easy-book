@@ -48,13 +48,21 @@ class CustomerProfileModel {
       phone: json['phone'] as String? ?? '',
       email: json['email'] as String?,
       avatarUrl: json['avatarUrl'] as String? ?? json['avatar_url'] as String?,
-      totalBookings: json['totalBookings'] as int? ?? json['total_bookings'] as int? ?? 0,
-      completedVisits: json['completedVisits'] as int? ?? json['completed_visits'] as int? ?? 0,
-      noShowCount: json['noShowCount'] as int? ?? json['no_show_count'] as int? ?? 0,
-      totalSpent: (json['totalSpent'] as num?)?.toDouble() ?? (json['total_spent'] as num?)?.toDouble() ?? 0.0,
+      totalBookings:
+          json['totalBookings'] as int? ?? json['total_bookings'] as int? ?? 0,
+      completedVisits: json['completedVisits'] as int? ??
+          json['completed_visits'] as int? ??
+          0,
+      noShowCount:
+          json['noShowCount'] as int? ?? json['no_show_count'] as int? ?? 0,
+      totalSpent: (json['totalSpent'] as num?)?.toDouble() ??
+          (json['total_spent'] as num?)?.toDouble() ??
+          0.0,
       lastVisit: parseDate(json['lastVisit'] ?? json['last_visit']),
-      favoriteServices: parseFavs(json['favoriteServices'] ?? json['favorite_services']),
-      ownerNotes: json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
+      favoriteServices:
+          parseFavs(json['favoriteServices'] ?? json['favorite_services']),
+      ownerNotes:
+          json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
     );
   }
 

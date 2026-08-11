@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
 import '../../theme/app_colors.dart';
 
 class ChatScreen extends StatelessWidget {

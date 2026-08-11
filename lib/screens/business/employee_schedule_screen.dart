@@ -16,15 +16,64 @@ class EmployeeScheduleScreen extends ConsumerStatefulWidget {
 
 class _EmployeeScheduleScreenState
     extends ConsumerState<EmployeeScheduleScreen> {
-  final Map<String, ({bool isWorking, String open, String close, String breakStart, String breakEnd})>
-      _weeklySchedule = {
-    'Monday': (isWorking: true, open: '09:00 AM', close: '08:00 PM', breakStart: '01:00 PM', breakEnd: '02:00 PM'),
-    'Tuesday': (isWorking: true, open: '09:00 AM', close: '08:00 PM', breakStart: '01:00 PM', breakEnd: '02:00 PM'),
-    'Wednesday': (isWorking: true, open: '09:00 AM', close: '08:00 PM', breakStart: '01:00 PM', breakEnd: '02:00 PM'),
-    'Thursday': (isWorking: true, open: '09:00 AM', close: '08:00 PM', breakStart: '01:00 PM', breakEnd: '02:00 PM'),
-    'Friday': (isWorking: true, open: '02:00 PM', close: '11:00 PM', breakStart: '05:00 PM', breakEnd: '06:00 PM'),
-    'Saturday': (isWorking: true, open: '10:00 AM', close: '09:00 PM', breakStart: '02:00 PM', breakEnd: '03:00 PM'),
-    'Sunday': (isWorking: false, open: '09:00 AM', close: '05:00 PM', breakStart: '01:00 PM', breakEnd: '02:00 PM'),
+  final Map<
+      String,
+      ({
+        bool isWorking,
+        String open,
+        String close,
+        String breakStart,
+        String breakEnd
+      })> _weeklySchedule = {
+    'Monday': (
+      isWorking: true,
+      open: '09:00 AM',
+      close: '08:00 PM',
+      breakStart: '01:00 PM',
+      breakEnd: '02:00 PM'
+    ),
+    'Tuesday': (
+      isWorking: true,
+      open: '09:00 AM',
+      close: '08:00 PM',
+      breakStart: '01:00 PM',
+      breakEnd: '02:00 PM'
+    ),
+    'Wednesday': (
+      isWorking: true,
+      open: '09:00 AM',
+      close: '08:00 PM',
+      breakStart: '01:00 PM',
+      breakEnd: '02:00 PM'
+    ),
+    'Thursday': (
+      isWorking: true,
+      open: '09:00 AM',
+      close: '08:00 PM',
+      breakStart: '01:00 PM',
+      breakEnd: '02:00 PM'
+    ),
+    'Friday': (
+      isWorking: true,
+      open: '02:00 PM',
+      close: '11:00 PM',
+      breakStart: '05:00 PM',
+      breakEnd: '06:00 PM'
+    ),
+    'Saturday': (
+      isWorking: true,
+      open: '10:00 AM',
+      close: '09:00 PM',
+      breakStart: '02:00 PM',
+      breakEnd: '03:00 PM'
+    ),
+    'Sunday': (
+      isWorking: false,
+      open: '09:00 AM',
+      close: '05:00 PM',
+      breakStart: '01:00 PM',
+      breakEnd: '02:00 PM'
+    ),
   };
 
   @override

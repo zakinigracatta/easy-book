@@ -137,7 +137,6 @@ class _BusinessWorkingHoursScreenState
                           ),
                         ],
                       ),
-
                       Row(
                         children: [
                           Text(

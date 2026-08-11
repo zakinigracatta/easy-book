@@ -18,8 +18,7 @@ class SalonManagementScreen extends ConsumerStatefulWidget {
       _SalonManagementScreenState();
 }
 
-class _SalonManagementScreenState
-    extends ConsumerState<SalonManagementScreen> {
+class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _categoryController;
@@ -38,18 +37,17 @@ class _SalonManagementScreenState
     final biz = ref.read(ownerBusinessProvider).value;
     _nameController =
         TextEditingController(text: biz?.name ?? 'Style Barber Lounge');
-    _categoryController = TextEditingController(
-        text: biz?.category ?? 'Barbershop & Spa Center');
+    _categoryController =
+        TextEditingController(text: biz?.category ?? 'Barbershop & Spa Center');
     _descriptionController =
         TextEditingController(text: biz?.description ?? '');
     _addressController = TextEditingController(
         text: biz?.address ?? 'Marina Gate 2, Dubai Marina, UAE');
     _phoneController =
         TextEditingController(text: biz?.phone ?? '+971 4 399 1234');
-    _websiteController = TextEditingController(
-        text: biz?.website ?? 'https://stylebarber.ae');
-    _logoUrlController =
-        TextEditingController(text: biz?.imageUrl ?? '');
+    _websiteController =
+        TextEditingController(text: biz?.website ?? 'https://stylebarber.ae');
+    _logoUrlController = TextEditingController(text: biz?.imageUrl ?? '');
 
     _acceptingBookings = biz?.isActive ?? true;
   }
@@ -152,9 +150,7 @@ class _SalonManagementScreenState
                             setState(() {});
                           },
                         ),
-
                         const SizedBox(height: 16),
-
                         CustomTextField(
                           controller: _nameController,
                           label: 'Business Name *',
@@ -163,50 +159,38 @@ class _SalonManagementScreenState
                               ? 'Enter business name'
                               : null,
                         ),
-
                         const SizedBox(height: 14),
-
                         CustomTextField(
                           controller: _categoryController,
                           label: 'Category (e.g. Salon, Barber, Spa)',
                           prefixIcon: Icons.category_rounded,
                         ),
-
                         const SizedBox(height: 14),
-
                         CustomTextField(
                           controller: _phoneController,
                           label: 'Contact Phone Number',
                           prefixIcon: Icons.phone_rounded,
                         ),
-
                         const SizedBox(height: 14),
-
                         CustomTextField(
                           controller: _addressController,
                           label: 'Full Physical Address',
                           prefixIcon: Icons.location_on_rounded,
                         ),
-
                         const SizedBox(height: 14),
-
                         CustomTextField(
                           controller: _websiteController,
                           label: 'Website / Social Link',
                           prefixIcon: Icons.language_rounded,
                         ),
-
                         const SizedBox(height: 14),
-
                         CustomTextField(
                           controller: _descriptionController,
                           label: 'Business Description',
                           prefixIcon: Icons.notes_rounded,
                           maxLines: 3,
                         ),
-
                         const SizedBox(height: 24),
-
                         CustomButton(
                           text: 'Save Business Profile',
                           isLoading: _isLoading,

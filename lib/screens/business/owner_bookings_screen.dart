@@ -18,7 +18,14 @@ class OwnerBookingsScreen extends ConsumerWidget {
     final filteredBookings = ref.watch(filteredOwnerBookingsProvider);
     final bookingsAsync = ref.watch(ownerBookingsProvider);
 
-    final filters = ['All', 'Today', 'Upcoming', 'Pending', 'Completed', 'Cancelled'];
+    final filters = [
+      'All',
+      'Today',
+      'Upcoming',
+      'Pending',
+      'Completed',
+      'Cancelled'
+    ];
 
     return PopScope(
       canPop: context.canPop(),
@@ -113,9 +120,8 @@ class OwnerBookingsScreen extends ConsumerWidget {
                         fontSize: 12,
                         fontWeight:
                             isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected
-                            ? Colors.white
-                            : AppColors.textMutedDark,
+                        color:
+                            isSelected ? Colors.white : AppColors.textMutedDark,
                       ),
                       selectedColor: AppColors.primary,
                       backgroundColor: AppColors.cardDark,
@@ -128,9 +134,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                         ),
                       ),
                       onSelected: (_) {
-                        ref
-                            .read(ownerBookingFilterProvider.notifier)
-                            .state = f;
+                        ref.read(ownerBookingFilterProvider.notifier).state = f;
                       },
                     ),
                   );
@@ -156,8 +160,8 @@ class OwnerBookingsScreen extends ConsumerWidget {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: filteredBookings.length,
                     itemBuilder: (context, index) {
                       final booking = filteredBookings[index];

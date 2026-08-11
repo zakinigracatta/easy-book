@@ -1,12 +1,21 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/booking_model.dart';
+import '../core/domain_exceptions.dart';
 
 class BookingService {
   BookingService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
+
+  /// Verifies that booking start time is strictly aligned to 15-minute intervals.
+  static void validateCanonical15MinAlignment(DateTime start) {
+    if (start.minute % 15 != 0 || start.second != 0 || start.millisecond != 0) {
+      throw InvalidBookingTimeException(
+          'Booking start time must be aligned to 15-minute intervals (e.g., 10:00, 10:15, 10:30, 10:45).');
+    }
+  }
 
   Future<List<BookingModel>> getBookings(String customerId) async {
     if (customerId.isEmpty) return [];
@@ -20,19 +29,9 @@ class BookingService {
           snap.docs.map((doc) => BookingModel.fromJson(doc.data())).toList();
       list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
       return list;
-    } catch (_) {
-      try {
-        final snap = await _firestore
-            .collection('bookings')
-            .where('customer_id', isEqualTo: customerId)
-            .get();
-        final list =
-            snap.docs.map((doc) => BookingModel.fromJson(doc.data())).toList();
-        list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
-        return list;
-      } catch (e) {
-        return [];
-      }
+    } catch (e) {
+      debugPrint('getBookings error: $e');
+      throw DomainException('Failed to fetch bookings for customer.');
     }
   }
 
@@ -52,7 +51,16 @@ class BookingService {
     return ids;
   }
 
+  /// Creates a booking (App or Walk-in) inside an atomic transaction with 15-minute slot locks.
   Future<BookingModel> createBooking(BookingModel booking) async {
+    // 1. Enforce 15-Minute Canonical Slot Alignment
+    validateCanonical15MinAlignment(booking.startDateTime);
+
+    if (booking.endDateTime.isBefore(booking.startDateTime) ||
+        booking.endDateTime.isAtSameMomentAs(booking.startDateTime)) {
+      throw DomainException('Booking end time must be after start time.');
+    }
+
     final primarySlotLockId =
         '${booking.businessId}_${booking.staffId}_${booking.startDateTime.millisecondsSinceEpoch}';
     final intervalLockIds = generateIntervalSlotLockIds(
@@ -62,23 +70,18 @@ class BookingService {
       booking.endDateTime,
     );
 
-    debugPrint('BOOKING_CREATE_START');
-    debugPrint('booking businessId: ${booking.businessId}');
-    debugPrint('serviceId: ${booking.serviceId}');
-    debugPrint('staffId: ${booking.staffId}');
-    debugPrint('startDateTime: ${booking.startDateTime.toIso8601String()}');
-    debugPrint('primarySlotLockId: $primarySlotLockId');
-    debugPrint('intervalLockIds count: ${intervalLockIds.length}');
-
     final bookingDocRef = booking.id.isNotEmpty
         ? _firestore.collection('bookings').doc(booking.id)
         : _firestore.collection('bookings').doc();
 
     final now = DateTime.now();
+    final isWalkIn = booking.bookingSource == 'walkIn';
+
     final toSave = BookingModel(
       id: bookingDocRef.id,
       customerId: booking.customerId,
       customerName: booking.customerName,
+      customerPhone: booking.customerPhone,
       businessId: booking.businessId,
       businessName: booking.businessName,
       serviceId: booking.serviceId,
@@ -88,7 +91,9 @@ class BookingService {
       staffName: booking.staffName,
       startDateTime: booking.startDateTime,
       endDateTime: booking.endDateTime,
-      status: BookingStatus.pending,
+      status: isWalkIn ? BookingStatus.confirmed : BookingStatus.pending,
+      bookingSource: booking.bookingSource,
+      notes: booking.notes,
       slotLockId: primarySlotLockId,
       createdAt: now,
       updatedAt: now,
@@ -101,8 +106,8 @@ class BookingService {
           final slotSnap = await transaction
               .get(_firestore.collection('booking_slots').doc(lockId));
           if (slotSnap.exists) {
-            throw Exception(
-                'This time slot is already booked for the selected specialist. Please choose another time.');
+            throw SlotConflictException(
+                'This time slot was just booked by another customer. Please choose another available time.');
           }
         }
 
@@ -123,7 +128,6 @@ class BookingService {
             'staffId': booking.staffId,
             'startDateTime': Timestamp.fromDate(currentBucketDateTime),
             'startTimestamp': currentBucketMs,
-            'customerId': booking.customerId,
             'createdAt': FieldValue.serverTimestamp(),
           });
         }
@@ -131,186 +135,223 @@ class BookingService {
         transaction.set(bookingDocRef, toSave.toFirestore());
       });
 
-      debugPrint('BOOKING_CREATE_SUCCESS: ${toSave.id}');
       return toSave;
-    } catch (e, st) {
-      debugPrint('BOOKING_CREATE_ERROR: $e\n$st');
+    } on FirebaseException catch (e) {
+      debugPrint('BOOKING_CREATE_FIREBASE_ERROR: ${e.code} - ${e.message}');
+      throw DomainException(
+          'Booking transaction failed: ${e.message ?? e.code}');
+    } catch (e) {
+      debugPrint('BOOKING_CREATE_ERROR: $e');
       rethrow;
     }
   }
 
-  Future<bool> cancelBooking(String bookingId) async {
+  /// Single canonical cancellation path for both Customer and Owner cancellations.
+  Future<bool> cancelBooking({
+    required String bookingId,
+    required String cancelledBy,
+    String? cancelReason,
+  }) async {
     final bookingDocRef = _firestore.collection('bookings').doc(bookingId);
 
     try {
       await _firestore.runTransaction((transaction) async {
         final bookingSnap = await transaction.get(bookingDocRef);
-        if (!bookingSnap.exists) return;
+        if (!bookingSnap.exists) {
+          throw DomainException('Booking document not found.');
+        }
 
         final data = bookingSnap.data();
-        if (data != null) {
-          final booking = BookingModel.fromJson(data);
-          final intervalLockIds = generateIntervalSlotLockIds(
-            booking.businessId,
-            booking.staffId,
-            booking.startDateTime,
-            booking.endDateTime,
-          );
+        if (data == null) throw DomainException('Booking data is empty.');
 
-          for (final lockId in intervalLockIds) {
-            transaction
-                .delete(_firestore.collection('booking_slots').doc(lockId));
-          }
-
-          transaction.update(bookingDocRef, {
-            'status': BookingStatus.cancelled.name,
-            'updatedAt': DateTime.now().toIso8601String(),
-          });
+        final booking = BookingModel.fromJson(data);
+        if (booking.status == BookingStatus.cancelled) {
+          throw DomainException('Booking is already cancelled.');
         }
+
+        final intervalLockIds = generateIntervalSlotLockIds(
+          booking.businessId,
+          booking.staffId,
+          booking.startDateTime,
+          booking.endDateTime,
+        );
+
+        // Delete occupied future slot locks
+        for (final lockId in intervalLockIds) {
+          transaction
+              .delete(_firestore.collection('booking_slots').doc(lockId));
+        }
+
+        final updateData = <String, dynamic>{
+          'status': BookingStatus.cancelled.name,
+          'cancelledBy': cancelledBy,
+          'cancelledAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+        if (cancelReason != null && cancelReason.isNotEmpty) {
+          updateData['cancelReason'] = cancelReason;
+        }
+
+        transaction.update(bookingDocRef, updateData);
       });
       return true;
-    } catch (_) {
-      return false;
+    } on FirebaseException catch (e) {
+      throw DomainException('Failed to cancel booking: ${e.message ?? e.code}');
+    } catch (e) {
+      rethrow;
     }
   }
 
+  /// Reschedules an existing booking to a new start/end time.
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newStartDateTime,
     required DateTime newEndDateTime,
   }) async {
+    validateCanonical15MinAlignment(newStartDateTime);
+
     final bookingDocRef = _firestore.collection('bookings').doc(bookingId);
 
     late BookingModel updatedBooking;
 
-    await _firestore.runTransaction((transaction) async {
-      final bookingSnap = await transaction.get(bookingDocRef);
-      if (!bookingSnap.exists) {
-        throw Exception('Booking not found.');
-      }
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final bookingSnap = await transaction.get(bookingDocRef);
+        if (!bookingSnap.exists) {
+          throw DomainException('Booking not found.');
+        }
 
-      final data = bookingSnap.data();
-      if (data == null) {
-        throw Exception('Booking data is empty.');
-      }
+        final data = bookingSnap.data();
+        if (data == null) {
+          throw DomainException('Booking data is empty.');
+        }
 
-      final existingBooking = BookingModel.fromJson(data);
+        final existingBooking = BookingModel.fromJson(data);
 
-      if (existingBooking.status == BookingStatus.cancelled ||
-          existingBooking.status == BookingStatus.completed) {
-        throw Exception(
-            'Cannot reschedule a ${existingBooking.status.name} appointment.');
-      }
+        if (existingBooking.status == BookingStatus.cancelled ||
+            existingBooking.status == BookingStatus.completed) {
+          throw DomainException(
+              'Cannot reschedule a ${existingBooking.status.name} appointment.');
+        }
 
-      // Check if new time equals old time
-      if (existingBooking.startDateTime.millisecondsSinceEpoch ==
-              newStartDateTime.millisecondsSinceEpoch &&
-          existingBooking.endDateTime.millisecondsSinceEpoch ==
-              newEndDateTime.millisecondsSinceEpoch) {
-        throw Exception('Please select a different date or time.');
-      }
+        // Check if new time equals old time
+        if (existingBooking.startDateTime.millisecondsSinceEpoch ==
+                newStartDateTime.millisecondsSinceEpoch &&
+            existingBooking.endDateTime.millisecondsSinceEpoch ==
+                newEndDateTime.millisecondsSinceEpoch) {
+          throw DomainException('Please select a different date or time.');
+        }
 
-      final oldLockIds = generateIntervalSlotLockIds(
-        existingBooking.businessId,
-        existingBooking.staffId,
-        existingBooking.startDateTime,
-        existingBooking.endDateTime,
-      ).toSet();
+        final oldLockIds = generateIntervalSlotLockIds(
+          existingBooking.businessId,
+          existingBooking.staffId,
+          existingBooking.startDateTime,
+          existingBooking.endDateTime,
+        ).toSet();
 
-      final newLockIds = generateIntervalSlotLockIds(
-        existingBooking.businessId,
-        existingBooking.staffId,
-        newStartDateTime,
-        newEndDateTime,
-      ).toSet();
+        final newLockIds = generateIntervalSlotLockIds(
+          existingBooking.businessId,
+          existingBooking.staffId,
+          newStartDateTime,
+          newEndDateTime,
+        ).toSet();
 
-      final locksToKeep = oldLockIds.intersection(newLockIds);
-      final locksToDelete = oldLockIds.difference(newLockIds);
-      final locksToCreate = newLockIds.difference(oldLockIds);
+        final locksToKeep = oldLockIds.intersection(newLockIds);
+        final locksToDelete = oldLockIds.difference(newLockIds);
+        final locksToCreate = newLockIds.difference(oldLockIds);
 
-      // Verify that every lock in locksToCreate is available
-      for (final lockId in locksToCreate) {
-        final lockSnap = await transaction
-            .get(_firestore.collection('booking_slots').doc(lockId));
-        if (lockSnap.exists) {
-          final lockData = lockSnap.data();
-          if (lockData != null && lockData['bookingId'] != bookingId) {
-            throw Exception(
-                'That time slot was just booked by someone else. Please choose another available time.');
+        // Verify that every lock in locksToCreate is available
+        for (final lockId in locksToCreate) {
+          final lockSnap = await transaction
+              .get(_firestore.collection('booking_slots').doc(lockId));
+          if (lockSnap.exists) {
+            final lockData = lockSnap.data();
+            if (lockData != null && lockData['bookingId'] != bookingId) {
+              throw SlotConflictException(
+                  'That time slot was just booked by someone else. Please choose another available time.');
+            }
           }
         }
-      }
 
-      // Delete locks no longer needed
-      for (final lockId in locksToDelete) {
-        transaction.delete(_firestore.collection('booking_slots').doc(lockId));
-      }
+        // Delete locks no longer needed
+        for (final lockId in locksToDelete) {
+          transaction
+              .delete(_firestore.collection('booking_slots').doc(lockId));
+        }
 
-      // Create new required locks
-      const int bucketMs = 15 * 60 * 1000;
-      final startMs = newStartDateTime.millisecondsSinceEpoch;
-      final newLockList = generateIntervalSlotLockIds(
-        existingBooking.businessId,
-        existingBooking.staffId,
-        newStartDateTime,
-        newEndDateTime,
-      );
+        // Create new required locks
+        const int bucketMs = 15 * 60 * 1000;
+        final startMs = newStartDateTime.millisecondsSinceEpoch;
+        final newLockList = generateIntervalSlotLockIds(
+          existingBooking.businessId,
+          existingBooking.staffId,
+          newStartDateTime,
+          newEndDateTime,
+        );
 
-      for (int i = 0; i < newLockList.length; i++) {
-        final lockId = newLockList[i];
-        if (locksToKeep.contains(lockId)) continue;
+        for (int i = 0; i < newLockList.length; i++) {
+          final lockId = newLockList[i];
+          if (locksToKeep.contains(lockId)) continue;
 
-        final currentBucketMs = startMs + (i * bucketMs);
-        final currentBucketDateTime =
-            DateTime.fromMillisecondsSinceEpoch(currentBucketMs);
-        final slotDocRef = _firestore.collection('booking_slots').doc(lockId);
+          final currentBucketMs = startMs + (i * bucketMs);
+          final currentBucketDateTime =
+              DateTime.fromMillisecondsSinceEpoch(currentBucketMs);
+          final slotDocRef = _firestore.collection('booking_slots').doc(lockId);
 
-        transaction.set(slotDocRef, {
-          'slotId': lockId,
-          'bookingId': bookingId,
-          'businessId': existingBooking.businessId,
-          'staffId': existingBooking.staffId,
-          'startDateTime': Timestamp.fromDate(currentBucketDateTime),
-          'startTimestamp': currentBucketMs,
-          'customerId': existingBooking.customerId,
-          'createdAt': FieldValue.serverTimestamp(),
+          transaction.set(slotDocRef, {
+            'slotId': lockId,
+            'bookingId': bookingId,
+            'businessId': existingBooking.businessId,
+            'staffId': existingBooking.staffId,
+            'startDateTime': Timestamp.fromDate(currentBucketDateTime),
+            'startTimestamp': currentBucketMs,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+
+        final newPrimarySlotLockId =
+            '${existingBooking.businessId}_${existingBooking.staffId}_$startMs';
+        final now = DateTime.now();
+
+        updatedBooking = BookingModel(
+          id: existingBooking.id,
+          customerId: existingBooking.customerId,
+          customerName: existingBooking.customerName,
+          customerPhone: existingBooking.customerPhone,
+          businessId: existingBooking.businessId,
+          businessName: existingBooking.businessName,
+          serviceId: existingBooking.serviceId,
+          serviceName: existingBooking.serviceName,
+          servicePrice: existingBooking.servicePrice,
+          staffId: existingBooking.staffId,
+          staffName: existingBooking.staffName,
+          startDateTime: newStartDateTime,
+          endDateTime: newEndDateTime,
+          status: BookingStatus.pending,
+          bookingSource: existingBooking.bookingSource,
+          notes: existingBooking.notes,
+          slotLockId: newPrimarySlotLockId,
+          createdAt: existingBooking.createdAt,
+          updatedAt: now,
+        );
+
+        transaction.update(bookingDocRef, {
+          'startDateTime': Timestamp.fromDate(newStartDateTime),
+          'endDateTime': Timestamp.fromDate(newEndDateTime),
+          'startTimestamp': startMs,
+          'slotLockId': newPrimarySlotLockId,
+          'status': BookingStatus.pending.name,
+          'updatedAt': FieldValue.serverTimestamp(),
         });
-      }
-
-      final newPrimarySlotLockId =
-          '${existingBooking.businessId}_${existingBooking.staffId}_$startMs';
-      final now = DateTime.now();
-
-      updatedBooking = BookingModel(
-        id: existingBooking.id,
-        customerId: existingBooking.customerId,
-        customerName: existingBooking.customerName,
-        businessId: existingBooking.businessId,
-        businessName: existingBooking.businessName,
-        serviceId: existingBooking.serviceId,
-        serviceName: existingBooking.serviceName,
-        servicePrice: existingBooking.servicePrice,
-        staffId: existingBooking.staffId,
-        staffName: existingBooking.staffName,
-        startDateTime: newStartDateTime,
-        endDateTime: newEndDateTime,
-        status: BookingStatus.pending,
-        slotLockId: newPrimarySlotLockId,
-        createdAt: existingBooking.createdAt,
-        updatedAt: now,
-      );
-
-      transaction.update(bookingDocRef, {
-        'startDateTime': Timestamp.fromDate(newStartDateTime),
-        'endDateTime': Timestamp.fromDate(newEndDateTime),
-        'startTimestamp': startMs,
-        'slotLockId': newPrimarySlotLockId,
-        'status': BookingStatus.pending.name,
-        'updatedAt': Timestamp.fromDate(now),
       });
-    });
 
-    return updatedBooking;
+      return updatedBooking;
+    } on FirebaseException catch (e) {
+      throw DomainException(
+          'Reschedule transaction failed: ${e.message ?? e.code}');
+    } catch (e) {
+      rethrow;
+    }
   }
 
   static bool canTransitionBookingStatus({
@@ -328,63 +369,69 @@ class BookingService {
     }
 
     if (actorRole == 'owner') {
-      if (from == BookingStatus.pending && to == BookingStatus.confirmed)
+      if (from == BookingStatus.pending && to == BookingStatus.confirmed) {
         return true;
-      if (from == BookingStatus.confirmed && to == BookingStatus.completed)
+      }
+      if (from == BookingStatus.confirmed && to == BookingStatus.arrived) {
         return true;
-      if (to == BookingStatus.cancelled) return true;
+      }
+      if (from == BookingStatus.arrived && to == BookingStatus.inProgress) {
+        return true;
+      }
+      if (from == BookingStatus.inProgress && to == BookingStatus.completed) {
+        return true;
+      }
+      if (to == BookingStatus.cancelled || to == BookingStatus.noShow) {
+        return true;
+      }
       return false;
     }
 
     return false;
   }
 
-  Future<bool> confirmBooking(String bookingId) async {
-    final bookingDocRef = _firestore.collection('bookings').doc(bookingId);
-    try {
-      await _firestore.runTransaction((transaction) async {
-        final snap = await transaction.get(bookingDocRef);
-        if (!snap.exists) throw Exception('Booking not found.');
-        final data = snap.data();
-        if (data == null) throw Exception('Booking data is empty.');
-        final currentStatus = data['status'] as String?;
-        if (currentStatus != BookingStatus.pending.name) {
-          throw Exception('Only pending bookings can be confirmed.');
-        }
-
-        transaction.update(bookingDocRef, {
-          'status': BookingStatus.confirmed.name,
-          'updatedAt': Timestamp.fromDate(DateTime.now()),
-        });
-      });
-      return true;
-    } catch (e) {
-      debugPrint('confirmBooking error: $e');
-      rethrow;
+  Future<bool> updateBookingStatusByOwner({
+    required String bookingId,
+    required BookingStatus newStatus,
+  }) async {
+    if (newStatus == BookingStatus.cancelled) {
+      return cancelBooking(
+        bookingId: bookingId,
+        cancelledBy: 'owner',
+        cancelReason: 'Cancelled by business owner',
+      );
     }
-  }
 
-  Future<bool> completeBooking(String bookingId) async {
     final bookingDocRef = _firestore.collection('bookings').doc(bookingId);
     try {
       await _firestore.runTransaction((transaction) async {
         final snap = await transaction.get(bookingDocRef);
-        if (!snap.exists) throw Exception('Booking not found.');
+        if (!snap.exists) throw DomainException('Booking not found.');
+
         final data = snap.data();
-        if (data == null) throw Exception('Booking data is empty.');
-        final currentStatus = data['status'] as String?;
-        if (currentStatus != BookingStatus.confirmed.name) {
-          throw Exception('Only confirmed bookings can be completed.');
+        if (data == null) throw DomainException('Booking data is empty.');
+
+        final currentStatusStr = data['status'] as String? ?? 'pending';
+        final currentStatus = BookingStatus.values.firstWhere(
+          (e) => e.name == currentStatusStr,
+          orElse: () => BookingStatus.pending,
+        );
+
+        if (!canTransitionBookingStatus(
+            from: currentStatus, to: newStatus, actorRole: 'owner')) {
+          throw DomainException(
+              'Invalid booking status transition from ${currentStatus.name} to ${newStatus.name}.');
         }
 
         transaction.update(bookingDocRef, {
-          'status': BookingStatus.completed.name,
-          'updatedAt': Timestamp.fromDate(DateTime.now()),
+          'status': newStatus.name,
+          'updatedAt': FieldValue.serverTimestamp(),
         });
       });
       return true;
+    } on FirebaseException catch (e) {
+      throw DomainException('Failed to update status: ${e.message ?? e.code}');
     } catch (e) {
-      debugPrint('completeBooking error: $e');
       rethrow;
     }
   }

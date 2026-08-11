@@ -376,8 +376,7 @@ class OwnerBookingCard extends StatelessWidget {
                   context,
                   title: 'Mark as No Show',
                   message: 'Mark customer as No Show for this appointment?',
-                  onConfirm: () =>
-                      onStatusChanged?.call(BookingStatus.noShow),
+                  onConfirm: () => onStatusChanged?.call(BookingStatus.noShow),
                 );
               },
             ),
@@ -415,8 +414,8 @@ class OwnerBookingCard extends StatelessWidget {
         backgroundColor: AppColors.cardDark,
         title: Text(title,
             style: const TextStyle(color: AppColors.textPrimaryDark)),
-        content:
-            Text(message, style: const TextStyle(color: AppColors.textMutedDark)),
+        content: Text(message,
+            style: const TextStyle(color: AppColors.textMutedDark)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -429,8 +428,7 @@ class OwnerBookingCard extends StatelessWidget {
               Navigator.pop(ctx);
               onConfirm();
             },
-            child: const Text('Confirm',
-                style: TextStyle(color: Colors.white)),
+            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

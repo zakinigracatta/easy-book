@@ -55,7 +55,8 @@ class _CustomerManagementScreenState
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: TextField(
-                onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                onChanged: (val) =>
+                    setState(() => _searchQuery = val.toLowerCase()),
                 decoration: InputDecoration(
                   hintText: 'Search clients by name or phone...',
                   hintStyle: const TextStyle(

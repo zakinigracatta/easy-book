@@ -47,7 +47,8 @@ class OwnerNotificationsScreen extends ConsumerWidget {
               return OwnerEmptyStateWidget(
                 icon: Icons.notifications_none_rounded,
                 title: 'No Notifications',
-                description: 'You have no new alerts or business notifications.',
+                description:
+                    'You have no new alerts or business notifications.',
               );
             }
 
@@ -64,9 +65,11 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: GlassCard(
                     onTap: () async {
+                      final bizId =
+                          ref.read(currentBusinessIdProvider).value ?? '';
                       await ref
                           .read(ownerRepositoryProvider)
-                          .markNotificationRead(n.id);
+                          .markNotificationRead(bizId, n.id);
                       ref.invalidate(ownerNotificationsProvider);
 
                       if (context.mounted && n.relatedBookingId != null) {

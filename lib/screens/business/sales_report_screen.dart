@@ -47,18 +47,22 @@ class SalesReportScreen extends ConsumerWidget {
           data: (bookings) {
             final now = DateTime.now();
 
-            final todayBookings = bookings.where((b) =>
-                b.startDateTime.year == now.year &&
-                b.startDateTime.month == now.month &&
-                b.startDateTime.day == now.day).toList();
+            final todayBookings = bookings
+                .where((b) =>
+                    b.startDateTime.year == now.year &&
+                    b.startDateTime.month == now.month &&
+                    b.startDateTime.day == now.day)
+                .toList();
 
             final todayRev = todayBookings
                 .where((b) => b.status != BookingStatus.cancelled)
                 .fold<double>(0.0, (sum, b) => sum + b.servicePrice);
 
-            final monthBookings = bookings.where((b) =>
-                b.startDateTime.year == now.year &&
-                b.startDateTime.month == now.month).toList();
+            final monthBookings = bookings
+                .where((b) =>
+                    b.startDateTime.year == now.year &&
+                    b.startDateTime.month == now.month)
+                .toList();
 
             final monthRev = monthBookings
                 .where((b) => b.status != BookingStatus.cancelled)
@@ -72,9 +76,8 @@ class SalesReportScreen extends ConsumerWidget {
                 .where((b) => b.status == BookingStatus.cancelled)
                 .length;
 
-            final noShowCount = bookings
-                .where((b) => b.status == BookingStatus.noShow)
-                .length;
+            final noShowCount =
+                bookings.where((b) => b.status == BookingStatus.noShow).length;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -128,8 +131,10 @@ class SalesReportScreen extends ConsumerWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: _statBox("Today's Revenue",
-                            'AED ${todayRev.toStringAsFixed(0)}', AppColors.success),
+                        child: _statBox(
+                            "Today's Revenue",
+                            'AED ${todayRev.toStringAsFixed(0)}',
+                            AppColors.success),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -144,15 +149,18 @@ class SalesReportScreen extends ConsumerWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: _statBox('Completed', '$completedCount', AppColors.success),
+                        child: _statBox(
+                            'Completed', '$completedCount', AppColors.success),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _statBox('Cancelled', '$cancelledCount', AppColors.error),
+                        child: _statBox(
+                            'Cancelled', '$cancelledCount', AppColors.error),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _statBox('No Shows', '$noShowCount', AppColors.warning),
+                        child: _statBox(
+                            'No Shows', '$noShowCount', AppColors.warning),
                       ),
                     ],
                   ),

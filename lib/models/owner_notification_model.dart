@@ -1,6 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum OwnerNotificationType { newBooking, bookingCancelled, bookingRescheduled, newReview, customerArrived, system }
+enum OwnerNotificationType {
+  newBooking,
+  bookingCancelled,
+  bookingRescheduled,
+  newReview,
+  customerArrived,
+  system
+}
 
 class OwnerNotificationModel {
   final String id;
@@ -40,14 +47,16 @@ class OwnerNotificationModel {
 
     return OwnerNotificationModel(
       id: json['id'] as String? ?? '',
-      businessId: json['businessId'] as String? ?? json['business_id'] as String? ?? '',
+      businessId:
+          json['businessId'] as String? ?? json['business_id'] as String? ?? '',
       title: json['title'] as String? ?? 'Notification',
       body: json['body'] as String? ?? '',
       type: parsedType,
       createdAt: parseDate(json['createdAt'] ?? json['created_at']),
       readAt: json['readAt'] != null ? parseDate(json['readAt']) : null,
       isRead: json['isRead'] as bool? ?? json['is_read'] as bool? ?? false,
-      relatedBookingId: json['relatedBookingId'] as String? ?? json['related_booking_id'] as String?,
+      relatedBookingId: json['relatedBookingId'] as String? ??
+          json['related_booking_id'] as String?,
     );
   }
 

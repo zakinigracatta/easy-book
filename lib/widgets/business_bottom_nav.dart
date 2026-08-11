@@ -36,8 +36,8 @@ class BusinessBottomNav extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _navItem(context, 0, Icons.home_rounded, 'Home', routes[0]),
-          _navItem(
-              context, 1, Icons.assignment_turned_in_rounded, 'Bookings', routes[1]),
+          _navItem(context, 1, Icons.assignment_turned_in_rounded, 'Bookings',
+              routes[1]),
           _navItem(
               context, 2, Icons.calendar_month_rounded, 'Calendar', routes[2]),
           _navItem(

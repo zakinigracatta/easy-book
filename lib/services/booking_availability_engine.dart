@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../models/business_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
-import '../models/booking_model.dart';
 import '../models/staff_schedule_model.dart';
 import '../models/available_slot.dart';
 import '../models/employee_time_off_model.dart';
@@ -37,13 +36,13 @@ class BookingAvailabilityEngine {
 
     return allStaff.where((staff) {
       if (!staff.isActive) return false;
-      // If staff has no serviceIds restricted list, assume eligible by default
       if (staff.serviceIds.isEmpty) return true;
       return staff.serviceIds.toSet().containsAll(selectedServiceIds);
     }).toList();
   }
 
   /// Calculates available slots for a given business, selected services, specialist (or any specialist), and date.
+  /// Customer availability queries non-sensitive booking_slots to preserve customer privacy.
   Future<List<AvailableSlot>> computeAvailableSlots({
     required BusinessModel business,
     required List<ServiceModel> selectedServices,
@@ -57,7 +56,12 @@ class BookingAvailabilityEngine {
     List<EmployeeTimeOffModel> employeeTimeOffs = const [],
   }) async {
     // 1. Business Operational & Accepting Bookings Check
-    if (!business.isActive || selectedServices.isEmpty) return [];
+    if (!business.isActive ||
+        !business.acceptingBookings ||
+        business.businessStatus != 'open' ||
+        selectedServices.isEmpty) {
+      return [];
+    }
 
     final now = nowOverride ?? DateTime.now();
 
@@ -109,39 +113,15 @@ class BookingAvailabilityEngine {
         0, (runningTotal, s) => runningTotal + s.durationMinutes);
     if (totalDurationMinutes <= 0) return [];
 
-    // 5. Fetch Active Bookings and Interval Locks from Firestore
-    final activeBookingsMap =
-        <String, List<({DateTime start, DateTime end})>>{};
+    // 5. Query Non-Sensitive booking_slots Collection (Privacy Preserving)
     final occupiedBucketsMap = <String, Set<int>>{};
 
     for (final staff in targetStaffList) {
-      activeBookingsMap[staff.id] = [];
       occupiedBucketsMap[staff.id] = {};
 
       final db = _db;
       if (db != null) {
         try {
-          final bSnap = await db
-              .collection('bookings')
-              .where('businessId', isEqualTo: business.id)
-              .where('staffId', isEqualTo: staff.id)
-              .get();
-
-          for (final doc in bSnap.docs) {
-            final data = doc.data();
-            final status = data['status'] as String? ?? '';
-            // Cancelled bookings do NOT block availability
-            if (status == BookingStatus.cancelled.name) continue;
-
-            final model = BookingModel.fromJson(data);
-            if (model.startDateTime.year == date.year &&
-                model.startDateTime.month == date.month &&
-                model.startDateTime.day == date.day) {
-              activeBookingsMap[staff.id]!
-                  .add((start: model.startDateTime, end: model.endDateTime));
-            }
-          }
-
           final lockSnap = await db
               .collection('booking_slots')
               .where('businessId', isEqualTo: business.id)
@@ -156,12 +136,12 @@ class BookingAvailabilityEngine {
             }
           }
         } catch (_) {
-          // Evaluation based on local data if offline
+          // Fallback to local evaluation if offline
         }
       }
     }
 
-    // 6. Generate Candidate Start Times
+    // 6. Generate Candidate Start Times (Canonical 15-Minute Alignment)
     final resultSlots = <AvailableSlot>[];
     final isToday =
         date.year == now.year && date.month == now.month && date.day == now.day;
@@ -190,11 +170,12 @@ class BookingAvailabilityEngine {
           candStart: candStart,
           candEnd: candEnd,
           totalDurationMinutes: totalDurationMinutes,
-          activeBookings: activeBookingsMap[staff.id] ?? [],
           occupiedBuckets: occupiedBucketsMap[staff.id] ?? {},
           blockedPeriods: blockedPeriods,
           staffBreaks: staffBreaks,
           employeeTimeOffs: employeeTimeOffs,
+          bOpenMinutes: bOpenMinutes,
+          bCloseMinutes: bCloseMinutes,
         )) {
           availableStaffForThisSlot.add(staff.id);
         }
@@ -220,22 +201,21 @@ class BookingAvailabilityEngine {
     required DateTime candStart,
     required DateTime candEnd,
     required int totalDurationMinutes,
-    required List<({DateTime start, DateTime end})> activeBookings,
     required Set<int> occupiedBuckets,
     required List<BlockedPeriodModel> blockedPeriods,
     required List<StaffBreakModel> staffBreaks,
     required List<EmployeeTimeOffModel> employeeTimeOffs,
+    required int bOpenMinutes,
+    required int bCloseMinutes,
   }) {
     final candStartMs = candStart.millisecondsSinceEpoch;
     final candEndMs = candEnd.millisecondsSinceEpoch;
 
-    // 1. Check Active Bookings Overlap: candStart < bEnd && candEnd > bStart
-    for (final b in activeBookings) {
-      final bStartMs = b.start.millisecondsSinceEpoch;
-      final bEndMs = b.end.millisecondsSinceEpoch;
-      if (candStartMs < bEndMs && candEndMs > bStartMs) {
-        return false;
-      }
+    // 1. Employee Shift Boundaries Check (Objective 15)
+    final candStartMin = candStart.hour * 60 + candStart.minute;
+    final candEndMin = candStartMin + totalDurationMinutes;
+    if (candStartMin < bOpenMinutes || candEndMin > bCloseMinutes) {
+      return false;
     }
 
     // 2. Check 15-minute Slot Lock Buckets
@@ -266,14 +246,13 @@ class BookingAvailabilityEngine {
       }
     }
 
-    // 5. Check Staff Breaks
+    // 5. Check Staff Breaks (Multiple Breaks Supported - Objective 16)
     for (final brk in staffBreaks) {
       if (brk.staffId == staff.id) {
         final bStartMin = _parseTimeStringToMinutes(brk.startTime);
         final bEndMin = _parseTimeStringToMinutes(brk.endTime);
-        final candStartMin = candStart.hour * 60 + candStart.minute;
-        final candEndMin = candStartMin + totalDurationMinutes;
 
+        // Overlap condition: candStart < breakEnd && candEnd > breakStart
         if (candStartMin < bEndMin && candEndMin > bStartMin) {
           return false;
         }

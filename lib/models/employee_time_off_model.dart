@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EmployeeTimeOffModel {
   final String id;
+  final String? businessId;
   final String employeeId;
   final String employeeName;
   final DateTime startDate;
@@ -11,6 +12,7 @@ class EmployeeTimeOffModel {
 
   EmployeeTimeOffModel({
     required this.id,
+    this.businessId,
     required this.employeeId,
     required this.employeeName,
     required this.startDate,
@@ -28,8 +30,13 @@ class EmployeeTimeOffModel {
 
     return EmployeeTimeOffModel(
       id: json['id'] as String? ?? '',
-      employeeId: json['employeeId'] as String? ?? json['employee_id'] as String? ?? '',
-      employeeName: json['employeeName'] as String? ?? json['employee_name'] as String? ?? 'Employee',
+      businessId:
+          json['businessId'] as String? ?? json['business_id'] as String?,
+      employeeId:
+          json['employeeId'] as String? ?? json['employee_id'] as String? ?? '',
+      employeeName: json['employeeName'] as String? ??
+          json['employee_name'] as String? ??
+          'Employee',
       startDate: parseDate(json['startDate'] ?? json['start_date']),
       endDate: parseDate(json['endDate'] ?? json['end_date']),
       reason: json['reason'] as String? ?? 'Vacation / Day Off',
@@ -40,6 +47,7 @@ class EmployeeTimeOffModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      if (businessId != null) 'businessId': businessId,
       'employeeId': employeeId,
       'employeeName': employeeName,
       'startDate': startDate.toIso8601String(),
