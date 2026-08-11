@@ -1,14 +1,149 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
+import '../../providers/app_providers.dart';
+import '../../models/booking_model.dart';
+import '../../services/navigation_service.dart';
 
-class BookingConfirmationScreen extends StatelessWidget {
+class BookingConfirmationScreen extends ConsumerStatefulWidget {
   const BookingConfirmationScreen({super.key});
 
   @override
+  ConsumerState<BookingConfirmationScreen> createState() =>
+      _BookingConfirmationScreenState();
+}
+
+class _BookingConfirmationScreenState
+    extends ConsumerState<BookingConfirmationScreen> {
+  bool _isCreating = false;
+
+  Future<void> _confirmBooking() async {
+    debugPrint('BOOKING_CONFIRM_PRESSED');
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      NavigationService().setPendingRoute('/booking-confirmation');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please sign in to complete your booking.')),
+      );
+      context.push('/login');
+      return;
+    }
+
+    if (!currentUser.emailVerified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Please verify your email address to proceed with booking.')),
+      );
+      context.push('/verify-email');
+      return;
+    }
+
+    final draft = ref.read(bookingDraftProvider);
+    if (!draft.isComplete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('Please select all booking details before confirming.')),
+      );
+      return;
+    }
+
+    // Parse timeSlot into startDateTime
+    int hour = 10;
+    int minute = 0;
+    try {
+      final parts = draft.timeSlot!.split(' ');
+      final timeParts = parts[0].split(':');
+      hour = int.parse(timeParts[0]);
+      minute = int.parse(timeParts[1]);
+      if (parts.length > 1 && parts[1].toUpperCase() == 'PM' && hour < 12) {
+        hour += 12;
+      } else if (parts.length > 1 &&
+          parts[1].toUpperCase() == 'AM' &&
+          hour == 12) {
+        hour = 0;
+      }
+    } catch (e) {
+      debugPrint('Error parsing time slot: $e');
+    }
+
+    final int durationMinutes = draft.serviceDurationMinutes ?? 30;
+
+    final date = draft.date!;
+    final startDateTime =
+        DateTime(date.year, date.month, date.day, hour, minute);
+    final startTimestamp = startDateTime.millisecondsSinceEpoch;
+    final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
+    final slotLockId = '${draft.businessId}_${draft.staffId}_$startTimestamp';
+
+    debugPrint('BOOKING_CREATE_START');
+    debugPrint('customerId: ${currentUser.uid}');
+    debugPrint('businessId: ${draft.businessId}');
+    debugPrint('serviceId: ${draft.serviceId}');
+    debugPrint('staffId: ${draft.staffId}');
+    debugPrint('startDateTime: ${startDateTime.toIso8601String()}');
+    debugPrint('startTimestamp: $startTimestamp');
+    debugPrint('slotLockId: $slotLockId');
+
+    final booking = BookingModel(
+      id: '',
+      customerId: currentUser.uid,
+      customerName: currentUser.displayName ?? 'Valued Customer',
+      businessId: draft.businessId!,
+      businessName: draft.businessName!,
+      serviceId: draft.serviceId!,
+      serviceName: draft.serviceName!,
+      servicePrice: draft.servicePrice!,
+      staffId: draft.staffId!,
+      staffName: draft.staffName!,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
+      status: BookingStatus.pending,
+      slotLockId: slotLockId,
+    );
+
+    setState(() => _isCreating = true);
+
+    try {
+      final result =
+          await ref.read(appointmentsProvider.notifier).createBooking(booking);
+
+      debugPrint('BOOKING_CREATE_SUCCESS: ${result.id}');
+
+      if (mounted) {
+        context.push('/booking-success');
+      }
+    } catch (e, st) {
+      debugPrint('BOOKING_CREATE_ERROR: $e\n$st');
+      if (mounted) {
+        final errText = e is FirebaseException
+            ? '[${e.code}] ${e.message}'
+            : e.toString().replaceAll('Exception: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errText),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isCreating = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final draft = ref.watch(bookingDraftProvider);
+    final dateStr = draft.date != null
+        ? '${draft.date!.year}-${draft.date!.month.toString().padLeft(2, '0')}-${draft.date!.day.toString().padLeft(2, '0')}'
+        : 'Not selected';
+
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -42,23 +177,28 @@ class BookingConfirmationScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const Text('Executive Barber Lounge', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(draft.businessName ?? 'Salon',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    const Text('142 Luxury Blvd, NYC', style: TextStyle(color: AppColors.textMutedDark, fontSize: 12)),
                     const Divider(height: 24),
-                    _row('Service', 'Royal Haircut & Beard Trim'),
-                    _row('Specialist', 'Marcus Vance'),
-                    _row('Date & Time', 'Tomorrow at 10:00 AM'),
-                    _row('Duration', '45 mins'),
+                    _row('Service', draft.serviceName ?? 'Not selected'),
+                    _row('Duration', draft.serviceDuration ?? 'Not selected'),
+                    _row('Specialist', draft.staffName ?? 'Not selected'),
+                    _row('Date & Time',
+                        '$dateStr at ${draft.timeSlot ?? 'Not selected'}'),
                     const Divider(height: 24),
-                    _row('Total Price', '\$65.00', isBold: true),
+                    _row('Total Price',
+                        '\$${(draft.servicePrice ?? 0.0).toStringAsFixed(2)}',
+                        isBold: true),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: 'Proceed to Payment',
-                onPressed: () => context.push('/payment'),
+                text: 'Confirm Booking',
+                isLoading: _isCreating,
+                onPressed: _confirmBooking,
               ),
             ],
           ),
@@ -74,7 +214,14 @@ class BookingConfirmationScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(color: AppColors.textMutedDark)),
-          Text(val, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.w600, fontSize: isBold ? 17 : 14, color: isBold ? AppColors.primary : null)),
+          Text(
+            val,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+              fontSize: isBold ? 17 : 14,
+              color: isBold ? AppColors.primary : null,
+            ),
+          ),
         ],
       ),
     );

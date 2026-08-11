@@ -1,22 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
+import '../../providers/app_providers.dart';
+import '../../models/staff_model.dart';
+import '../../models/available_slot.dart';
+import 'widgets/booking_progress_header.dart';
+import 'widgets/booking_date_selector.dart';
+import 'widgets/time_slot_grid.dart';
 
-class BookingTimeScreen extends StatefulWidget {
+class BookingTimeScreen extends ConsumerStatefulWidget {
   const BookingTimeScreen({super.key});
 
   @override
-  State<BookingTimeScreen> createState() => _BookingTimeScreenState();
+  ConsumerState<BookingTimeScreen> createState() => _BookingTimeScreenState();
 }
 
-class _BookingTimeScreenState extends State<BookingTimeScreen> {
-  String _selectedSlot = '10:00 AM';
-  final slots = ['09:00 AM', '10:00 AM', '11:30 AM', '01:00 PM', '02:30 PM', '04:00 PM', '05:30 PM', '07:00 PM'];
+class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
+  AvailableSlot? _selectedSlot;
+  late DateTime _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    final draft = ref.read(bookingDraftProvider);
+    final now = DateTime.now();
+    _selectedDate = draft.date ?? DateTime(now.year, now.month, now.day);
+  }
+
+  void _onNext(
+      List<StaffModel> eligibleStaff, List<AvailableSlot> availableSlots) {
+    if (_selectedSlot == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please select an available time slot to continue.')),
+      );
+      return;
+    }
+
+    final draft = ref.read(bookingDraftProvider);
+    String resolvedId = draft.staffId ?? '';
+    String resolvedName = draft.staffName ?? 'Specialist';
+
+    // If Any Specialist was chosen, resolve staff ID from available staff for this slot
+    if (draft.anySpecialist || resolvedId.isEmpty) {
+      if (_selectedSlot!.availableStaffIds.isNotEmpty) {
+        resolvedId = _selectedSlot!.availableStaffIds.first;
+        final match = eligibleStaff.where((s) => s.id == resolvedId).toList();
+        if (match.isNotEmpty) {
+          resolvedName = match.first.name;
+        }
+      }
+    }
+
+    ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
+      date: _selectedDate,
+      timeSlot: _selectedSlot!.timeString,
+      resolvedStaffId: resolvedId,
+      resolvedStaffName: resolvedName,
+    );
+
+    context.push('/booking-summary');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final draft = ref.watch(bookingDraftProvider);
+    final businessId = draft.businessId ?? '';
+    final businessState = ref.watch(businessDetailProvider(businessId));
+    final selectedServices = draft.selectedServices;
+
+    final eligibleStaffState = ref.watch(eligibleStaffProvider((
+      businessId: businessId,
+      selectedServices: selectedServices,
+    )));
+
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -29,6 +88,7 @@ class _BookingTimeScreenState extends State<BookingTimeScreen> {
         }
       },
       child: Scaffold(
+        backgroundColor: AppColors.bgDark,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
@@ -40,43 +100,107 @@ class _BookingTimeScreenState extends State<BookingTimeScreen> {
               }
             },
           ),
-          title: const Text('Step 3: Select Time Slot'),
+          title: const Text('Select Appointment Time'),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 2.2,
-                  ),
-                  itemCount: slots.length,
-                  itemBuilder: (context, index) {
-                    final s = slots[index];
-                    final isSel = _selectedSlot == s;
-                    return GlassCard(
-                      onTap: () => setState(() => _selectedSlot = s),
-                      borderColor: isSel ? AppColors.primary : null,
-                      backgroundColor: isSel ? AppColors.primary.withValues(alpha: 0.2) : null,
-                      child: Center(
-                        child: Text(s, style: TextStyle(fontWeight: FontWeight.bold, color: isSel ? AppColors.primary : Colors.white)),
+        body: businessState.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(
+              child: Text('Error: $err',
+                  style: const TextStyle(color: AppColors.error))),
+          data: (business) {
+            if (business == null) {
+              return const Center(
+                  child: Text('Salon not found.',
+                      style: TextStyle(color: AppColors.textMutedDark)));
+            }
+
+            return eligibleStaffState.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Center(
+                  child: Text('Error loading staff: $err',
+                      style: const TextStyle(color: AppColors.error))),
+              data: (eligibleStaff) {
+                final engineSlotsState =
+                    ref.watch(availableSlotsEngineProvider((
+                  business: business,
+                  selectedServices: selectedServices,
+                  allStaff: eligibleStaff,
+                  specialistId: draft.staffId,
+                  anySpecialist: draft.anySpecialist,
+                  date: _selectedDate,
+                )));
+
+                return Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Progress Header Step 2
+                      const BookingProgressHeader(currentStep: 2),
+                      const SizedBox(height: 16),
+
+                      // Date Selector
+                      BookingDateSelector(
+                        selectedDate: _selectedDate,
+                        onDateSelected: (d) {
+                          setState(() {
+                            _selectedDate = d;
+                            _selectedSlot = null; // clear slot on date change
+                          });
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
-              CustomButton(
-                text: 'Next: Review Booking',
-                onPressed: () => context.push('/booking-confirmation'),
-              ),
-            ],
-          ),
+                      const SizedBox(height: 20),
+
+                      // Time Slots
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: engineSlotsState.when(
+                            loading: () => const TimeSlotGrid(
+                              slots: [],
+                              selectedSlotTime: null,
+                              onSlotSelected: _noop,
+                              isLoading: true,
+                            ),
+                            error: (err, _) => Center(
+                                child: Text('Error loading slots: $err',
+                                    style: const TextStyle(
+                                        color: AppColors.error))),
+                            data: (availableSlots) {
+                              return TimeSlotGrid(
+                                slots: availableSlots,
+                                selectedSlotTime: _selectedSlot?.timeString,
+                                onSlotSelected: (slot) {
+                                  setState(() {
+                                    _selectedSlot = slot;
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      engineSlotsState.maybeWhen(
+                        data: (slots) => CustomButton(
+                          text: 'Review Booking Summary',
+                          onPressed: _selectedSlot != null
+                              ? () => _onNext(eligibleStaff, slots)
+                              : null,
+                        ),
+                        orElse: () => const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
   }
+
+  static void _noop(AvailableSlot slot) {}
 }

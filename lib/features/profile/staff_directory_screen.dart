@@ -9,8 +9,20 @@ class StaffDirectoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final staff = [
-      {'name': 'Marcus Vance', 'role': 'Master Barber', 'rating': 4.9, 'avatar': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80'},
-      {'name': 'Elena Rostova', 'role': 'Senior Colorist', 'rating': 5.0, 'avatar': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80'},
+      {
+        'name': 'Marcus Vance',
+        'role': 'Master Barber',
+        'rating': 4.9,
+        'avatar':
+            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80'
+      },
+      {
+        'name': 'Elena Rostova',
+        'role': 'Senior Colorist',
+        'rating': 5.0,
+        'avatar':
+            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80'
+      },
     ];
 
     return PopScope(
@@ -50,14 +62,17 @@ class StaffDirectoryScreen extends StatelessWidget {
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(s['avatar'] as String),
                   ),
-                  title: Text(s['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(s['name'] as String,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(s['role'] as String),
                   trailing: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       RatingStars(rating: s['rating'] as double),
-                      Text('${s['rating']}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text('${s['rating']}',
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),

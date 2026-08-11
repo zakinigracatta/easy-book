@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Brand Primary & Accent Colors (matching React --primary-color and --accent-color)
-  static const Color primary = Color(0xFF4F46E5);       // Professional Deep Indigo
+  static const Color primary = Color(0xFF4F46E5); // Professional Deep Indigo
   static const Color primaryHover = Color(0xFF4338CA);
-  static const Color accent = Color(0xFFA855F7);        // Electric Purple / Accent
-  static const Color secondary = Color(0xFF1E1B4B);     // Midnight Indigo
-  static const Color gold = Color(0xFFD4AF37);         // Gold Accent
+  static const Color accent = Color(0xFFA855F7); // Electric Purple / Accent
+  static const Color secondary = Color(0xFF1E1B4B); // Midnight Indigo
+  static const Color gold = Color(0xFFD4AF37); // Gold Accent
 
   // Light Theme Colors
   static const Color backgroundLight = Color(0xFFFFFFFF);
@@ -21,11 +21,12 @@ class AppColors {
   static const Color backgroundDark = Color(0xFF080C16);
   static const Color surfaceDark = Color(0xFF121828);
   static const Color cardDark = Color(0xFF121828);
-  static const Color glassBgDark = Color(0x08FFFFFF);  // rgba(255,255,255,0.03)
-  static const Color glassBorderDark = Color(0x14FFFFFF); // rgba(255,255,255,0.08)
+  static const Color glassBgDark = Color(0x08FFFFFF); // rgba(255,255,255,0.03)
+  static const Color glassBorderDark =
+      Color(0x14FFFFFF); // rgba(255,255,255,0.08)
   static const Color textPrimaryDark = Color(0xFFF5F5F5);
   static const Color textMutedDark = Color(0xFFA3A3A3);
-  static const Color shadowDark = Color(0x5E000000);   // rgba(0,0,0,0.37)
+  static const Color shadowDark = Color(0x5E000000); // rgba(0,0,0,0.37)
 
   // Status & Feedback Colors
   static const Color success = Color(0xFF10B981);

@@ -37,8 +37,10 @@ class AppTheme {
           foregroundColor: Colors.white,
           elevation: 2,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          textStyle: GoogleFonts.tajawal(fontWeight: FontWeight.bold, fontSize: 15),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          textStyle:
+              GoogleFonts.tajawal(fontWeight: FontWeight.bold, fontSize: 15),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

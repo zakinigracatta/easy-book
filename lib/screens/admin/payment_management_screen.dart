@@ -40,7 +40,9 @@ class PaymentManagementScreen extends StatelessWidget {
               child: ListTile(
                 title: Text('Executive Barber Lounge'),
                 subtitle: Text('Pending Payout: \$3,450.00'),
-                trailing: Text('Approve', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+                trailing: Text('Approve',
+                    style: TextStyle(
+                        color: AppColors.success, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

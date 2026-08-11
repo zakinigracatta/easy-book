@@ -18,8 +18,8 @@ class ChatMessageModel {
       id: json['id'] as String? ?? '',
       senderId: json['sender_id'] as String? ?? '',
       text: json['text'] as String? ?? '',
-      timestamp: json['timestamp'] != null 
-          ? DateTime.parse(json['timestamp'] as String) 
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'] as String)
           : DateTime.now(),
       isFromCustomer: json['is_from_customer'] as bool? ?? true,
     );

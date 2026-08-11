@@ -18,10 +18,17 @@ class SalonService {
     await Future.delayed(const Duration(milliseconds: 300));
     var list = MockData.salons;
     if (category != null && category != 'all') {
-      list = list.where((s) => s.category.toLowerCase().contains(category.toLowerCase())).toList();
+      list = list
+          .where(
+              (s) => s.category.toLowerCase().contains(category.toLowerCase()))
+          .toList();
     }
     if (query != null && query.isNotEmpty) {
-      list = list.where((s) => s.name.toLowerCase().contains(query.toLowerCase()) || s.address.toLowerCase().contains(query.toLowerCase())).toList();
+      list = list
+          .where((s) =>
+              s.name.toLowerCase().contains(query.toLowerCase()) ||
+              s.address.toLowerCase().contains(query.toLowerCase()))
+          .toList();
     }
     return list;
   }

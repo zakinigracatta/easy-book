@@ -9,7 +9,11 @@ class UsersManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final users = [
       {'name': 'Ahmed Mohamed', 'role': 'Customer', 'status': 'Active'},
-      {'name': 'Executive Barber Lounge', 'role': 'Business Partner', 'status': 'Verified'},
+      {
+        'name': 'Executive Barber Lounge',
+        'role': 'Business Partner',
+        'status': 'Verified'
+      },
       {'name': 'Sarah Jenkins', 'role': 'Customer', 'status': 'Active'},
     ];
 
@@ -47,10 +51,14 @@ class UsersManagementScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: GlassCard(
                 child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person_rounded)),
-                  title: Text(u['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  leading:
+                      const CircleAvatar(child: Icon(Icons.person_rounded)),
+                  title: Text(u['name']!,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(u['role']!),
-                  trailing: Text(u['status']!, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  trailing: Text(u['status']!,
+                      style: const TextStyle(
+                          color: Colors.green, fontWeight: FontWeight.bold)),
                 ),
               ),
             );

@@ -1,0 +1,158 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../models/business_model.dart';
+import '../../../providers/app_providers.dart';
+import '../../../core/utils/currency_formatter.dart';
+import '../../../services/auth_guard.dart';
+import '../../../theme/app_colors.dart';
+
+class BookingBottomBar extends ConsumerWidget {
+  final BusinessModel business;
+  final VoidCallback? onBookNowTap;
+
+  const BookingBottomBar({
+    super.key,
+    required this.business,
+    this.onBookNowTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final draft = ref.watch(bookingDraftProvider);
+    final count = draft.selectedServicesCount;
+    final totalPrice = draft.totalPrice;
+    final totalDuration = draft.totalDurationMinutes;
+
+    final hasSelection = count > 0;
+    final buttonText = hasSelection ? 'Continue' : 'Book Now';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardDark,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: const Border(
+          top: BorderSide(color: AppColors.glassBorderDark, width: 1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            children: [
+              // Price / Selection Summary
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (hasSelection) ...[
+                      Text(
+                        '$count ${count == 1 ? 'service' : 'services'} selected',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondaryDark,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text(
+                            CurrencyFormatter.format(totalPrice),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '•  $totalDuration min',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textMutedDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      Text(
+                        business.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Select service or tap Book Now',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMutedDark,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              // Action Button
+              ElevatedButton(
+                onPressed: business.isActive
+                    ? () async {
+                        if (onBookNowTap != null) {
+                          onBookNowTap!();
+                        } else {
+                          // Update draft with business context
+                          final currentDraft = ref.read(bookingDraftProvider);
+                          ref.read(bookingDraftProvider.notifier).state =
+                              currentDraft.copyWith(
+                            businessId: business.id,
+                            businessName: business.name,
+                          );
+
+                          final allowed = await requireLogin(context,
+                              targetRoute: '/booking-service');
+                          if (allowed && context.mounted) {
+                            context.push('/booking-service');
+                          }
+                        }
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: business.isActive
+                      ? AppColors.primary
+                      : AppColors.cardDark,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: business.isActive ? 4 : 0,
+                ),
+                child: Text(
+                  business.isActive ? buttonText : 'Unavailable',
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

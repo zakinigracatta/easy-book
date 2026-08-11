@@ -24,9 +24,13 @@ class HomeScreen extends StatelessWidget {
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Downtown, NYC 📍', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                      Text('Downtown, NYC 📍',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.textMutedDark)),
                       SizedBox(height: 2),
-                      Text('Welcome Back 👋', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      Text('Welcome Back 👋',
+                          style: TextStyle(
+                              fontSize: 22, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   Row(
@@ -39,7 +43,8 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => context.push('/customer-profile'),
                         child: const CircleAvatar(
                           radius: 20,
-                          backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'),
+                          backgroundImage: NetworkImage(
+                              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'),
                         ),
                       ),
                     ],
@@ -55,9 +60,11 @@ class HomeScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Row(
                     children: [
-                      Icon(Icons.search_rounded, color: AppColors.textMutedDark),
+                      Icon(Icons.search_rounded,
+                          color: AppColors.textMutedDark),
                       SizedBox(width: 12),
-                      Text('Search salons, spas & services...', style: TextStyle(color: AppColors.textMutedDark)),
+                      Text('Search salons, spas & services...',
+                          style: TextStyle(color: AppColors.textMutedDark)),
                     ],
                   ),
                 ),
@@ -69,8 +76,12 @@ class HomeScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Categories', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  TextButton(onPressed: () => context.push('/categories'), child: const Text('View All')),
+                  const Text('Categories',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  TextButton(
+                      onPressed: () => context.push('/categories'),
+                      child: const Text('View All')),
                 ],
               ),
               const SizedBox(height: 10),
@@ -78,10 +89,14 @@ class HomeScreen extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _categoryChip(context, 'Barber', Icons.content_cut_rounded, AppColors.primary),
-                    _categoryChip(context, 'Hair Salon', Icons.face_rounded, AppColors.accent),
-                    _categoryChip(context, 'Spa & Relax', Icons.spa_rounded, AppColors.success),
-                    _categoryChip(context, 'Nails & Beauty', Icons.brush_rounded, AppColors.gold),
+                    _categoryChip(context, 'Barber', Icons.content_cut_rounded,
+                        AppColors.primary),
+                    _categoryChip(context, 'Hair Salon', Icons.face_rounded,
+                        AppColors.accent),
+                    _categoryChip(context, 'Spa & Relax', Icons.spa_rounded,
+                        AppColors.success),
+                    _categoryChip(context, 'Nails & Beauty',
+                        Icons.brush_rounded, AppColors.gold),
                   ],
                 ),
               ),
@@ -92,13 +107,18 @@ class HomeScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Featured Businesses', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  TextButton(onPressed: () => context.push('/salon-list'), child: const Text('See All')),
+                  const Text('Featured Businesses',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  TextButton(
+                      onPressed: () => context.push('/salon-list'),
+                      child: const Text('See All')),
                 ],
               ),
               const SizedBox(height: 12),
               _salonCard(
                 context,
+                'b1',
                 'Executive Barber Lounge',
                 '142 Luxury Blvd • 0.4 mi',
                 4.9,
@@ -108,6 +128,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 14),
               _salonCard(
                 context,
+                'b2',
                 'Royal Spa & Wellness',
                 '88 Grand Ave • 1.2 mi',
                 4.8,
@@ -122,7 +143,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _categoryChip(BuildContext context, String name, IconData icon, Color color) {
+  Widget _categoryChip(
+      BuildContext context, String name, IconData icon, Color color) {
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: GestureDetector(
@@ -138,7 +160,9 @@ class HomeScreen extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: color),
               const SizedBox(width: 8),
-              Text(name, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(name,
+                  style: TextStyle(
+                      color: color, fontWeight: FontWeight.bold, fontSize: 13)),
             ],
           ),
         ),
@@ -146,9 +170,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _salonCard(BuildContext context, String name, String loc, double rating, int reviews, String img) {
+  Widget _salonCard(BuildContext context, String id, String name, String loc,
+      double rating, int reviews, String img) {
     return GlassCard(
-      onTap: () => context.push('/salon-details'),
+      onTap: () => context.push('/salon/$id'),
       child: Row(
         children: [
           ClipRRect(
@@ -160,15 +185,21 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(loc, style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                Text(loc,
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textMutedDark)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     RatingStars(rating: rating),
                     const SizedBox(width: 6),
-                    Text('$rating ($reviews)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Text('$rating ($reviews)',
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],

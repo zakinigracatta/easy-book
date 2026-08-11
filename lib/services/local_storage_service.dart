@@ -21,7 +21,8 @@ class LocalStorageService {
 
   static Future<void> saveFavorite(String businessId) async {
     final box = Hive.box(AppConstants.hiveFavoritesBox);
-    final List<dynamic> favs = box.get('ids', defaultValue: <dynamic>[]) as List<dynamic>;
+    final List<dynamic> favs =
+        box.get('ids', defaultValue: <dynamic>[]) as List<dynamic>;
     if (!favs.contains(businessId)) {
       favs.add(businessId);
       await box.put('ids', favs);
@@ -30,7 +31,8 @@ class LocalStorageService {
 
   static List<String> getFavorites() {
     final box = Hive.box(AppConstants.hiveFavoritesBox);
-    final List<dynamic> favs = box.get('ids', defaultValue: <dynamic>[]) as List<dynamic>;
+    final List<dynamic> favs =
+        box.get('ids', defaultValue: <dynamic>[]) as List<dynamic>;
     return favs.cast<String>();
   }
 }

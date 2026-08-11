@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
@@ -33,14 +34,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       final user = await ref.read(authProvider.notifier).login(
-        _emailController.text.trim(),
-        _passwordController.text,
-        requestedRole: _selectedRole,
-      );
+            _emailController.text.trim(),
+            _passwordController.text,
+            requestedRole: _selectedRole,
+          );
 
       if (mounted) {
+        final firebaseUser = FirebaseAuth.instance.currentUser;
+        if (firebaseUser != null) {
+          await firebaseUser.reload();
+          if (!mounted) return;
+          final refreshedUser = FirebaseAuth.instance.currentUser;
+          if (refreshedUser != null && !refreshedUser.emailVerified) {
+            context.go('/verify-email');
+            return;
+          }
+        }
+
         final pendingRoute = NavigationService().consumePendingRoute();
-        if (user.role == UserRole.owner || user.role == UserRole.businessOwner) {
+        if (user.role == UserRole.owner ||
+            user.role == UserRole.businessOwner) {
           NavigationService().clearPendingRoute();
           context.go('/owner-dashboard');
         } else if (pendingRoute != null && pendingRoute.isNotEmpty) {
@@ -56,6 +69,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             context.go('/home');
           }
         }
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message ?? 'Authentication failed.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('An error occurred during sign in: ${e.toString()}')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -84,9 +111,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Welcome Back 👋', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+              const Text('Welcome Back 👋',
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
-              const Text('Sign in to access your portal', style: TextStyle(color: AppColors.textMutedDark)),
+              const Text('Sign in to access your portal',
+                  style: TextStyle(color: AppColors.textMutedDark)),
               const SizedBox(height: 24),
 
               // Role Toggle Segment
@@ -94,16 +123,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _selectedRole = UserRole.customer),
+                      onTap: () =>
+                          setState(() => _selectedRole = UserRole.customer),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: _selectedRole == UserRole.customer ? AppColors.primary : AppColors.cardDark,
+                          color: _selectedRole == UserRole.customer
+                              ? AppColors.primary
+                              : AppColors.cardDark,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _selectedRole == UserRole.customer ? AppColors.primary : AppColors.glassBorderDark),
+                          border: Border.all(
+                              color: _selectedRole == UserRole.customer
+                                  ? AppColors.primary
+                                  : AppColors.glassBorderDark),
                         ),
                         child: const Center(
-                          child: Text('Customer', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('Customer',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
@@ -111,16 +147,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _selectedRole = UserRole.owner),
+                      onTap: () =>
+                          setState(() => _selectedRole = UserRole.owner),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: _selectedRole == UserRole.owner ? AppColors.accent : AppColors.cardDark,
+                          color: _selectedRole == UserRole.owner
+                              ? AppColors.accent
+                              : AppColors.cardDark,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _selectedRole == UserRole.owner ? AppColors.accent : AppColors.glassBorderDark),
+                          border: Border.all(
+                              color: _selectedRole == UserRole.owner
+                                  ? AppColors.accent
+                                  : AppColors.glassBorderDark),
                         ),
                         child: const Center(
-                          child: Text('Business Owner', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('Business Owner',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
@@ -146,11 +189,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       obscureText: true,
                       prefixIcon: Icons.lock_outline_rounded,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => context.push('/forgot-password'),
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                              color: AppColors.textMutedDark,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     CustomButton(
                       text: 'Sign In',
                       isLoading: _isLoading,
-                      backgroundColor: _selectedRole == UserRole.owner ? AppColors.accent : AppColors.primary,
+                      backgroundColor: _selectedRole == UserRole.owner
+                          ? AppColors.accent
+                          : AppColors.primary,
                       onPressed: _handleLogin,
                     ),
                   ],
@@ -162,7 +221,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Customer? ', style: TextStyle(color: AppColors.textMutedDark)),
+                      const Text('Register as Customer? ',
+                          style: TextStyle(color: AppColors.textMutedDark)),
                       TextButton(
                         onPressed: () => context.push('/register'),
                         child: const Text('Customer Register'),
@@ -172,10 +232,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Partner? ', style: TextStyle(color: AppColors.textMutedDark)),
+                      const Text('Register as Partner? ',
+                          style: TextStyle(color: AppColors.textMutedDark)),
                       TextButton(
                         onPressed: () => context.push('/business-register'),
-                        child: const Text('Owner Register', style: TextStyle(color: AppColors.accent)),
+                        child: const Text('Owner Register',
+                            style: TextStyle(color: AppColors.accent)),
                       ),
                     ],
                   ),

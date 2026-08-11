@@ -51,11 +51,15 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
               itemBuilder: (context, index) {
                 final msg = messages[index];
                 return Align(
-                  alignment: msg.isFromCustomer ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: msg.isFromCustomer
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.75),
                     decoration: BoxDecoration(
                       color: msg.isFromCustomer
                           ? Theme.of(context).primaryColor
@@ -65,7 +69,9 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                     child: Text(
                       msg.text,
                       style: TextStyle(
-                        color: msg.isFromCustomer ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                        color: msg.isFromCustomer
+                            ? Colors.white
+                            : Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                   ),

@@ -10,7 +10,8 @@ class POSScreen extends StatefulWidget {
 
 class _POSScreenState extends State<POSScreen> {
   final List<Map<String, dynamic>> _cart = [];
-  double get _total => _cart.fold(0.0, (sum, item) => sum + (item['price'] as double));
+  double get _total =>
+      _cart.fold(0.0, (sum, item) => sum + (item['price'] as double));
 
   void _addItem(String name, double price) {
     setState(() {
@@ -56,7 +57,9 @@ class _POSScreenState extends State<POSScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Current Order', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        const Text('Current Order',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18)),
                         const Divider(),
                         Expanded(
                           child: _cart.isEmpty
@@ -76,8 +79,14 @@ class _POSScreenState extends State<POSScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Total:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            Text('\$${_total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6C3EF4))),
+                            const Text('Total:',
+                                style: TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text('\$${_total.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF6C3EF4))),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -87,7 +96,9 @@ class _POSScreenState extends State<POSScreen> {
                               ? () {}
                               : () {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Payment processed successfully!')),
+                                    const SnackBar(
+                                        content: Text(
+                                            'Payment processed successfully!')),
                                   );
                                   setState(() => _cart.clear());
                                 },
@@ -112,14 +123,20 @@ class _POSScreenState extends State<POSScreen> {
         decoration: BoxDecoration(
           color: Theme.of(context).primaryColor.withOpacity(0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.3)),
+          border: Border.all(
+              color: Theme.of(context).primaryColor.withOpacity(0.3)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(name,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 4),
-            Text('\$$price', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+            Text('\$$price',
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.bold)),
           ],
         ),
       ),

@@ -2,7 +2,14 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
 abstract class AuthRepository {
-  Future<UserModel> login(String email, String password, {UserRole? requestedRole});
+  Stream<UserModel?> authStateChanges();
+
+  Future<UserModel> login(
+    String email,
+    String password, {
+    UserRole? requestedRole,
+  });
+
   Future<UserModel> registerCustomer({
     required String name,
     required String phone,
@@ -10,6 +17,7 @@ abstract class AuthRepository {
     required String password,
     String? profileImageUrl,
   });
+
   Future<UserModel> registerBusinessOwner({
     required String businessName,
     required String category,
@@ -19,16 +27,35 @@ abstract class AuthRepository {
     required String location,
     String? businessImageUrl,
   });
+
+  Future<void> logout();
+
+  Future<void> sendPasswordResetEmail(String email);
+
+  Future<void> resendEmailVerification();
+
+  Future<bool> isEmailVerified();
 }
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthService _authService;
-
   AuthRepositoryImpl(this._authService);
 
+  final AuthService _authService;
+
   @override
-  Future<UserModel> login(String email, String password, {UserRole? requestedRole}) {
-    return _authService.login(email, password, requestedRole: requestedRole);
+  Stream<UserModel?> authStateChanges() => _authService.authStateChanges();
+
+  @override
+  Future<UserModel> login(
+    String email,
+    String password, {
+    UserRole? requestedRole,
+  }) {
+    return _authService.login(
+      email,
+      password,
+      requestedRole: requestedRole,
+    );
   }
 
   @override
@@ -68,4 +95,18 @@ class AuthRepositoryImpl implements AuthRepository {
       businessImageUrl: businessImageUrl,
     );
   }
+
+  @override
+  Future<void> logout() => _authService.logout();
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) =>
+      _authService.sendPasswordResetEmail(email);
+
+  @override
+  Future<void> resendEmailVerification() =>
+      _authService.resendEmailVerification();
+
+  @override
+  Future<bool> isEmailVerified() => _authService.isEmailVerified();
 }

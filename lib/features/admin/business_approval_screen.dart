@@ -9,8 +9,16 @@ class BusinessApprovalScreen extends StatefulWidget {
 
 class _BusinessApprovalScreenState extends State<BusinessApprovalScreen> {
   final List<Map<String, String>> _pending = [
-    {'name': 'Crown Grooming Lounge', 'category': 'Barber Shop', 'address': '77 Park Ave'},
-    {'name': 'Zenith Wellness Spa', 'category': 'Spa & Massage', 'address': '12 Ocean View'},
+    {
+      'name': 'Crown Grooming Lounge',
+      'category': 'Barber Shop',
+      'address': '77 Park Ave'
+    },
+    {
+      'name': 'Zenith Wellness Spa',
+      'category': 'Spa & Massage',
+      'address': '12 Ocean View'
+    },
   ];
 
   @override
@@ -29,15 +37,19 @@ class _BusinessApprovalScreenState extends State<BusinessApprovalScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                  Text(item['name']!,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 17)),
                   const SizedBox(height: 4),
-                  Text('${item['category']} • ${item['address']}', style: const TextStyle(color: Colors.grey)),
+                  Text('${item['category']} • ${item['address']}',
+                      style: const TextStyle(color: Colors.grey)),
                   const SizedBox(height: 14),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       OutlinedButton(
-                        onPressed: () => setState(() => _pending.removeAt(index)),
+                        onPressed: () =>
+                            setState(() => _pending.removeAt(index)),
                         child: const Text('Reject'),
                       ),
                       const SizedBox(width: 8),
@@ -45,7 +57,9 @@ class _BusinessApprovalScreenState extends State<BusinessApprovalScreen> {
                         onPressed: () {
                           setState(() => _pending.removeAt(index));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Business approved successfully!')),
+                            const SnackBar(
+                                content:
+                                    Text('Business approved successfully!')),
                           );
                         },
                         child: const Text('Approve'),

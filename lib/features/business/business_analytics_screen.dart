@@ -13,17 +13,30 @@ class BusinessAnalyticsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Monthly Sales Growth', style: Theme.of(context).textTheme.titleLarge),
+            Text('Monthly Sales Growth',
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             SizedBox(
               height: 240,
               child: BarChart(
                 BarChartData(
                   barGroups: [
-                    BarChartGroupData(x: 1, barRods: [BarChartRodData(toY: 3000, color: Theme.of(context).primaryColor)]),
-                    BarChartGroupData(x: 2, barRods: [BarChartRodData(toY: 4200, color: Theme.of(context).primaryColor)]),
-                    BarChartGroupData(x: 3, barRods: [BarChartRodData(toY: 3800, color: Theme.of(context).primaryColor)]),
-                    BarChartGroupData(x: 4, barRods: [BarChartRodData(toY: 5100, color: Theme.of(context).primaryColor)]),
+                    BarChartGroupData(x: 1, barRods: [
+                      BarChartRodData(
+                          toY: 3000, color: Theme.of(context).primaryColor)
+                    ]),
+                    BarChartGroupData(x: 2, barRods: [
+                      BarChartRodData(
+                          toY: 4200, color: Theme.of(context).primaryColor)
+                    ]),
+                    BarChartGroupData(x: 3, barRods: [
+                      BarChartRodData(
+                          toY: 3800, color: Theme.of(context).primaryColor)
+                    ]),
+                    BarChartGroupData(x: 4, barRods: [
+                      BarChartRodData(
+                          toY: 5100, color: Theme.of(context).primaryColor)
+                    ]),
                   ],
                 ),
               ),

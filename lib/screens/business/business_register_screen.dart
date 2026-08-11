@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
@@ -11,18 +12,21 @@ class BusinessRegisterScreen extends ConsumerStatefulWidget {
   const BusinessRegisterScreen({super.key});
 
   @override
-  ConsumerState<BusinessRegisterScreen> createState() => _BusinessRegisterScreenState();
+  ConsumerState<BusinessRegisterScreen> createState() =>
+      _BusinessRegisterScreenState();
 }
 
-class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen> {
+class _BusinessRegisterScreenState
+    extends ConsumerState<BusinessRegisterScreen> {
   final _businessNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _locationController = TextEditingController();
-  
+
   String _selectedCategory = 'Barber';
-  String? _businessImageUrl = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+  String? _businessImageUrl =
+      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
   bool _isLoading = false;
 
   final List<String> _categories = [
@@ -34,7 +38,9 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
   ];
 
   Future<void> _handleRegister() async {
-    if (_businessNameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_businessNameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please complete all required fields.')),
       );
@@ -44,21 +50,46 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).registerBusinessOwner(
-        businessName: _businessNameController.text.trim(),
-        category: _selectedCategory,
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        location: _locationController.text.trim(),
-        businessImageUrl: _businessImageUrl,
-      );
+            businessName: _businessNameController.text.trim(),
+            category: _selectedCategory,
+            phone: _phoneController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            location: _locationController.text.trim(),
+            businessImageUrl: _businessImageUrl,
+          );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Business Partner Registered! Role saved as "owner".')),
+          const SnackBar(
+              content:
+                  Text('Registration successful! Please verify your email.')),
         );
-        // Owner goes to Business Dashboard
-        context.go('/owner-dashboard');
+        // Owner goes to Verify Email Screen
+        context.go('/verify-email');
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  e.message ?? 'Authentication failed. Please check details.')),
+        );
+      }
+    } on FirebaseException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  e.message ?? 'Database error occurred during registration.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('An unexpected error occurred: ${e.toString()}')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -98,7 +129,8 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.storefront_rounded, size: 60, color: AppColors.accent),
+                const Icon(Icons.storefront_rounded,
+                    size: 60, color: AppColors.accent),
                 const SizedBox(height: 12),
                 const Text(
                   'Partner Account Creation',
@@ -109,7 +141,8 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                 const Text(
                   'Register your salon or spa. Saved in database with role "owner".',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                  style:
+                      TextStyle(color: AppColors.textMutedDark, fontSize: 13),
                 ),
                 const SizedBox(height: 24),
 
@@ -135,7 +168,8 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                         child: CircleAvatar(
                           backgroundColor: AppColors.accent,
                           radius: 16,
-                          child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+                          child: const Icon(Icons.camera_alt_rounded,
+                              size: 16, color: Colors.white),
                         ),
                       ),
                     ],
@@ -156,18 +190,27 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                       const SizedBox(height: 14),
 
                       // Category Selection Dropdown
-                      const Text('Business Category', style: TextStyle(fontSize: 12, color: AppColors.textSecondaryDark)),
+                      const Text('Business Category',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondaryDark)),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         value: _selectedCategory,
                         dropdownColor: AppColors.cardDark,
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.category_rounded, size: 20),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                          prefixIcon:
+                              const Icon(Icons.category_rounded, size: 20),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16)),
                         ),
-                        items: _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                        items: _categories
+                            .map((cat) =>
+                                DropdownMenuItem(value: cat, child: Text(cat)))
+                            .toList(),
                         onChanged: (val) {
-                          if (val != null) setState(() => _selectedCategory = val);
+                          if (val != null)
+                            setState(() => _selectedCategory = val);
                         },
                       ),
 
@@ -213,10 +256,14 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already registered? ', style: TextStyle(color: AppColors.textMutedDark)),
+                    const Text('Already registered? ',
+                        style: TextStyle(color: AppColors.textMutedDark)),
                     TextButton(
                       onPressed: () => context.push('/owner-login'),
-                      child: const Text('Partner Sign In', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+                      child: const Text('Partner Sign In',
+                          style: TextStyle(
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

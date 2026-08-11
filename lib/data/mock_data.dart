@@ -5,8 +5,10 @@ import '../models/employee_model.dart';
 import '../models/booking_model.dart';
 
 class MockData {
-  static const String defaultCustomerAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
-  static const String defaultSalonBanner = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+  static const String defaultCustomerAvatar =
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+  static const String defaultSalonBanner =
+      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
 
   // --- Users Collection ---
   static final UserModel customerUser = UserModel(
@@ -48,10 +50,12 @@ class MockData {
       address: '142 Luxury Blvd, Downtown NYC',
       rating: 4.9,
       reviewCount: 328,
-      imageUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
+      imageUrl:
+          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
       isVerified: true,
       ownerId: 'owner_202',
-      description: 'Premium grooming experience with luxury drinks and hot towel treatment.',
+      description:
+          'Premium grooming experience with luxury drinks and hot towel treatment.',
     ),
     SalonModel(
       id: 's2',
@@ -60,7 +64,8 @@ class MockData {
       address: '88 Serenity Way, Upper West NYC',
       rating: 4.8,
       reviewCount: 210,
-      imageUrl: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80',
+      imageUrl:
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80',
       isVerified: true,
       ownerId: 'owner_203',
       description: 'Holistic skin rejuvenation and deep tissue massages.',
@@ -72,10 +77,12 @@ class MockData {
       address: '45 Fashion St, Midtown NYC',
       rating: 4.95,
       reviewCount: 540,
-      imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+      imageUrl:
+          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
       isVerified: true,
       ownerId: 'owner_204',
-      description: 'Master colorists, balayage specialists, and precision hair styling.',
+      description:
+          'Master colorists, balayage specialists, and precision hair styling.',
     ),
   ];
 
@@ -87,7 +94,8 @@ class MockData {
       name: 'Royal Haircut & Beard Sculpting',
       price: 65.0,
       duration: '45 mins',
-      description: 'Hair wash, precision haircut, beard sculpt and hot towel treatment.',
+      description:
+          'Hair wash, precision haircut, beard sculpt and hot towel treatment.',
     ),
     ServiceModel(
       id: 'srv_2',
@@ -95,7 +103,8 @@ class MockData {
       name: 'Hot Towel Royal Shave',
       price: 45.0,
       duration: '30 mins',
-      description: 'Classic straight razor shave with essential oils and hot wrap.',
+      description:
+          'Classic straight razor shave with essential oils and hot wrap.',
     ),
     ServiceModel(
       id: 'srv_3',
@@ -115,7 +124,8 @@ class MockData {
       name: 'Marcus Vance',
       role: 'Master Barber & Stylist',
       rating: 4.9,
-      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
       isAvailable: true,
       shiftHours: '09:00 AM - 05:00 PM',
     ),
@@ -125,7 +135,8 @@ class MockData {
       name: 'Elena Rostova',
       role: 'Senior Colorist',
       rating: 5.0,
-      avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
       isAvailable: true,
       shiftHours: '10:00 AM - 06:00 PM',
     ),
@@ -135,7 +146,8 @@ class MockData {
       name: 'David Kim',
       role: 'Massage Specialist',
       rating: 4.8,
-      avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
       isAvailable: false,
       shiftHours: '12:00 PM - 08:00 PM',
     ),
@@ -147,24 +159,33 @@ class MockData {
       id: 'bk_101',
       customerId: 'cust_101',
       customerName: 'Ahmed Mohamed',
-      salonId: 's1',
-      salonName: 'Executive Barber Lounge',
+      businessId: 's1',
+      businessName: 'Executive Barber Lounge',
+      serviceId: 'srv_1',
       serviceName: 'Royal Haircut & Beard Sculpting',
       servicePrice: 65.0,
-      employeeName: 'Marcus Vance',
-      dateTime: DateTime.now().add(const Duration(days: 1, hours: 2)),
+      staffId: 'emp_1',
+      staffName: 'Marcus Vance',
+      startDateTime: DateTime.now().add(const Duration(days: 1, hours: 2)),
+      endDateTime:
+          DateTime.now().add(const Duration(days: 1, hours: 2, minutes: 45)),
       status: BookingStatus.confirmed,
     ),
     BookingModel(
       id: 'bk_102',
       customerId: 'cust_101',
       customerName: 'Ahmed Mohamed',
-      salonId: 's2',
-      salonName: 'Royal Spa & Wellness',
+      businessId: 's2',
+      businessName: 'Royal Spa & Wellness',
+      serviceId: 'srv_3',
       serviceName: 'Deep Tissue Spa Massage',
       servicePrice: 90.0,
-      employeeName: 'Elena Rostova',
-      dateTime: DateTime.now().subtract(const Duration(days: 4)),
+      staffId: 'emp_2',
+      staffName: 'Elena Rostova',
+      startDateTime: DateTime.now().subtract(const Duration(days: 4)),
+      endDateTime: DateTime.now()
+          .subtract(const Duration(days: 4))
+          .add(const Duration(minutes: 60)),
       status: BookingStatus.completed,
     ),
   ];

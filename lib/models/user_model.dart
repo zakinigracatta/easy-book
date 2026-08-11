@@ -29,19 +29,28 @@ class UserModel {
     this.businessImageUrl,
   });
 
-  String get roleString => role == UserRole.owner || role == UserRole.businessOwner ? 'owner' : 'customer';
+  String get roleString =>
+      role == UserRole.owner || role == UserRole.businessOwner
+          ? 'owner'
+          : 'customer';
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     final roleStr = json['role'] as String? ?? 'customer';
     return UserModel(
       id: json['id'] as String? ?? '',
       email: json['email'] as String? ?? '',
-      fullName: json['full_name'] as String? ?? json['name'] as String? ?? 'Valued User',
+      fullName: json['full_name'] as String? ??
+          json['name'] as String? ??
+          'Valued User',
       phone: json['phone'] as String? ?? '',
-      avatarUrl: json['avatar_url'] as String? ?? json['profile_image'] as String?,
-      role: roleStr == 'owner' || roleStr == 'businessOwner' ? UserRole.owner : UserRole.customer,
+      avatarUrl:
+          json['avatar_url'] as String? ?? json['profile_image'] as String?,
+      role: roleStr == 'owner' || roleStr == 'businessOwner'
+          ? UserRole.owner
+          : UserRole.customer,
       walletBalance: (json['wallet_balance'] as num?)?.toDouble() ?? 0.0,
-      favoriteBusinessIds: List<String>.from(json['favorite_business_ids'] ?? []),
+      favoriteBusinessIds:
+          List<String>.from(json['favorite_business_ids'] ?? []),
       businessName: json['business_name'] as String?,
       category: json['category'] as String?,
       location: json['location'] as String?,

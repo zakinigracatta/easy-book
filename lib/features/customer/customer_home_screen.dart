@@ -39,22 +39,26 @@ class CustomerHomeScreen extends ConsumerWidget {
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.location_on_rounded, size: 16, color: AppColors.primary),
+                              Icon(Icons.location_on_rounded,
+                                  size: 16, color: AppColors.primary),
                               SizedBox(width: 4),
                               Text(
                                 'Downtown, NYC',
-                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600, fontSize: 13),
                               ),
                             ],
                           ),
                           const SizedBox(height: 4),
                           const Text(
                             'Welcome back 👋',
-                            style: TextStyle(fontSize: 13, color: AppColors.textMutedDark),
+                            style: TextStyle(
+                                fontSize: 13, color: AppColors.textMutedDark),
                           ),
                           Text(
                             user?.fullName ?? 'Ahmed Mohamed',
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -68,7 +72,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                             onTap: () => context.push('/profile'),
                             child: const CircleAvatar(
                               radius: 20,
-                              backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'),
+                              backgroundImage: NetworkImage(
+                                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'),
                             ),
                           ),
                         ],
@@ -86,14 +91,18 @@ class CustomerHomeScreen extends ConsumerWidget {
                         child: GestureDetector(
                           onTap: () => context.push('/search'),
                           child: const GlassCard(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14),
                             child: Row(
                               children: [
-                                Icon(Icons.search_rounded, color: AppColors.textMutedDark),
+                                Icon(Icons.search_rounded,
+                                    color: AppColors.textMutedDark),
                                 SizedBox(width: 12),
                                 Text(
                                   'Search for a salon or service...',
-                                  style: TextStyle(color: AppColors.textMutedDark, fontSize: 14),
+                                  style: TextStyle(
+                                      color: AppColors.textMutedDark,
+                                      fontSize: 14),
                                 ),
                               ],
                             ),
@@ -105,8 +114,10 @@ class CustomerHomeScreen extends ConsumerWidget {
                         icon: const Icon(Icons.navigation_rounded, size: 16),
                         label: const Text('Map'),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                         ),
                         onPressed: () => context.push('/map-explorer'),
                       ),
@@ -159,7 +170,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                     children: [
                       const Text(
                         'Special Offers',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       TextButton(
                         onPressed: () => context.push('/deals'),
@@ -227,11 +239,13 @@ class CustomerHomeScreen extends ConsumerWidget {
                       final isSelected = selectedCategory == cat['id'];
                       return GestureDetector(
                         onTap: () {
-                          ref.read(selectedCategoryProvider.notifier).state = cat['id']!;
+                          ref.read(selectedCategoryProvider.notifier).state =
+                              cat['id']!;
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 10),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.primary
@@ -246,7 +260,9 @@ class CustomerHomeScreen extends ConsumerWidget {
                           child: Text(
                             cat['name']!,
                             style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                               color: isSelected ? Colors.white : null,
                             ),
                           ),
@@ -266,7 +282,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                     children: [
                       const Text(
                         'Featured Businesses',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       TextButton(
                         onPressed: () => context.push('/search'),
@@ -281,7 +298,11 @@ class CustomerHomeScreen extends ConsumerWidget {
                   data: (businesses) {
                     final filtered = selectedCategory == 'all'
                         ? businesses
-                        : businesses.where((b) => b.category.toLowerCase() == selectedCategory.toLowerCase()).toList();
+                        : businesses
+                            .where((b) =>
+                                b.category.toLowerCase() ==
+                                selectedCategory.toLowerCase())
+                            .toList();
 
                     return ListView.builder(
                       shrinkWrap: true,
@@ -303,23 +324,35 @@ class CustomerHomeScreen extends ConsumerWidget {
                                     width: 90,
                                     height: 90,
                                     fit: BoxFit.cover,
-                                    errorWidget: (_, __, ___) => Container(color: Colors.grey.shade800),
+                                    errorWidget: (_, __, ___) =>
+                                        Container(color: Colors.grey.shade800),
                                   ),
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text(salon.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      Text(salon.name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16)),
                                       const SizedBox(height: 4),
-                                      Text(salon.address, style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                                      Text(salon.address,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textMutedDark)),
                                       const SizedBox(height: 8),
                                       Row(
                                         children: [
                                           RatingStars(rating: salon.rating),
                                           const SizedBox(width: 6),
-                                          Text('${salon.rating} (${salon.reviewCount})', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                          Text(
+                                              '${salon.rating} (${salon.reviewCount})',
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold)),
                                         ],
                                       ),
                                     ],
@@ -332,7 +365,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                       },
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (err, stack) => Center(child: Text('Error: $err')),
                 ),
               ],
@@ -344,7 +378,8 @@ class CustomerHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _quickPill(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _quickPill(BuildContext context, String label, IconData icon,
+      Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -358,14 +393,17 @@ class CustomerHomeScreen extends ConsumerWidget {
           children: [
             Icon(icon, size: 16, color: color),
             const SizedBox(width: 8),
-            Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(label,
+                style: TextStyle(
+                    color: color, fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
       ),
     );
   }
 
-  Widget _offerBannerCard(BuildContext context, String title, String salon, Gradient gradient, VoidCallback onTap) {
+  Widget _offerBannerCard(BuildContext context, String title, String salon,
+      Gradient gradient, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -375,7 +413,10 @@ class CustomerHomeScreen extends ConsumerWidget {
           gradient: gradient,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4)),
+            BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -385,15 +426,28 @@ class CustomerHomeScreen extends ConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800, fontSize: 18)),
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18)),
                 const SizedBox(height: 4),
-                Text(salon, style: TextStyle(color: Colors.black.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(salon,
+                    style: TextStyle(
+                        color: Colors.black.withOpacity(0.7),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
               ],
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(10)),
-              child: const Text('Book Now', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+              decoration: BoxDecoration(
+                  color: Colors.black, borderRadius: BorderRadius.circular(10)),
+              child: const Text('Book Now',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
             ),
           ],
         ),

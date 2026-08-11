@@ -15,7 +15,8 @@ class NavigationService {
   String? get pendingRoute => _pendingRoute;
 
   /// Whether a pending post-login redirect route exists.
-  bool get hasPendingRoute => _pendingRoute != null && _pendingRoute!.isNotEmpty;
+  bool get hasPendingRoute =>
+      _pendingRoute != null && _pendingRoute!.isNotEmpty;
 
   /// Store a pending route to navigate to after successful authentication.
   void setPendingRoute(String route) {

@@ -46,17 +46,25 @@ class MobileWalletPassScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('EASY BOOK PASS', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('EASY BOOK PASS',
+                            style: TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12)),
                         Icon(Icons.wallet_rounded, color: AppColors.accent),
                       ],
                     ),
                     SizedBox(height: 20),
-                    GradientText('Executive Barber Lounge', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    GradientText('Executive Barber Lounge',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
-                    Text('Appointment: Tomorrow, 2:30 PM', style: TextStyle(color: Colors.white, fontSize: 14)),
+                    Text('Appointment: Tomorrow, 2:30 PM',
+                        style: TextStyle(color: Colors.white, fontSize: 14)),
                     SizedBox(height: 20),
                     Center(
-                      child: Icon(Icons.qr_code, size: 100, color: Colors.white),
+                      child:
+                          Icon(Icons.qr_code, size: 100, color: Colors.white),
                     ),
                   ],
                 ),

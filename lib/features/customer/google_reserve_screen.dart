@@ -41,11 +41,16 @@ class GoogleReserveScreen extends StatelessWidget {
               GlassCard(
                 child: Column(
                   children: [
-                    const Icon(Icons.g_mobiledata_rounded, size: 60, color: AppColors.primary),
+                    const Icon(Icons.g_mobiledata_rounded,
+                        size: 60, color: AppColors.primary),
                     const SizedBox(height: 12),
-                    const GradientText('Instant Google Reserve', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const GradientText('Instant Google Reserve',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
-                    const Text('Seamlessly book appointments directly through Google Search & Maps listings.', textAlign: TextAlign.center),
+                    const Text(
+                        'Seamlessly book appointments directly through Google Search & Maps listings.',
+                        textAlign: TextAlign.center),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {},

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/utils/formatters.dart';
-import '../../models/appointment_model.dart';
+import '../../models/booking_model.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/empty_state.dart';
@@ -20,13 +21,15 @@ class CustomerBookingsScreen extends ConsumerWidget {
       ),
       body: appointmentsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error loading appointments: $err')),
+        error: (err, _) =>
+            Center(child: Text('Error loading appointments: $err')),
         data: (appointments) {
           if (appointments.isEmpty) {
             return const EmptyStateWidget(
               icon: Icons.calendar_today_outlined,
               title: 'No Appointments Yet',
-              message: 'Book your first salon or spa appointment to see it here.',
+              message:
+                  'Book your first salon or spa appointment to see it here.',
             );
           }
 
@@ -35,7 +38,7 @@ class CustomerBookingsScreen extends ConsumerWidget {
             itemCount: appointments.length,
             itemBuilder: (context, index) {
               final apt = appointments[index];
-              final isCancelled = apt.status == AppointmentStatus.cancelled;
+              final isCancelled = apt.status == BookingStatus.cancelled;
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 14),
@@ -50,52 +53,76 @@ class CustomerBookingsScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               apt.businessName,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 17),
                             ),
                           ),
                           LuxuryBadge(
                             text: apt.status.name.toUpperCase(),
-                            color: isCancelled ? Colors.red : const Color(0xFF10B981),
+                            color: switch (apt.status) {
+                              BookingStatus.pending => const Color(0xFFF59E0B),
+                              BookingStatus.confirmed =>
+                                const Color(0xFF3B82F6),
+                              BookingStatus.completed =>
+                                const Color(0xFF10B981),
+                              BookingStatus.cancelled => Colors.red,
+                            },
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
                         apt.serviceName,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 15),
                       ),
                       const SizedBox(height: 4),
-                      Text('Staff: ${apt.staffName}', style: TextStyle(color: Colors.grey.shade600)),
+                      Text('Staff: ${apt.staffName}',
+                          style: TextStyle(color: Colors.grey.shade600)),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.access_time, size: 16, color: Color(0xFF6C3EF4)),
+                              const Icon(Icons.access_time,
+                                  size: 16, color: Color(0xFF6C3EF4)),
                               const SizedBox(width: 4),
                               Text(
                                 Formatters.formatDateTime(apt.dateTime),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                           Text(
                             Formatters.formatCurrency(apt.servicePrice),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),
-                      if (!isCancelled && apt.status != AppointmentStatus.completed) ...[
+                      if (!isCancelled &&
+                          apt.status != BookingStatus.completed) ...[
                         const Divider(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
+                            OutlinedButton(
+                              onPressed: () {
+                                context.push('/reschedule-booking', extra: apt);
+                              },
+                              child: const Text('Reschedule'),
+                            ),
+                            const SizedBox(width: 8),
                             TextButton(
                               onPressed: () {
-                                ref.read(appointmentsProvider.notifier).cancelAppointment(apt.id);
+                                ref
+                                    .read(appointmentsProvider.notifier)
+                                    .cancelAppointment(apt.id);
                               },
-                              style: TextButton.styleFrom(foregroundColor: Colors.red),
+                              style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red),
                               child: const Text('Cancel Booking'),
                             ),
                           ],

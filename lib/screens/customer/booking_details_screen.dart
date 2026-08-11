@@ -40,11 +40,15 @@ class BookingDetailsScreen extends StatelessWidget {
               GlassCard(
                 child: Column(
                   children: [
-                    const Icon(Icons.qr_code_2_rounded, size: 140, color: AppColors.primary),
+                    const Icon(Icons.qr_code_2_rounded,
+                        size: 140, color: AppColors.primary),
                     const SizedBox(height: 8),
-                    const Text('Booking Ref: #BK-94821', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Booking Ref: #BK-94821',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    const Text('Scan code at salon check-in desk', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                    const Text('Scan code at salon check-in desk',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textMutedDark)),
                   ],
                 ),
               ),
@@ -53,15 +57,21 @@ class BookingDetailsScreen extends StatelessWidget {
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Executive Barber Lounge', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text('Executive Barber Lounge',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     SizedBox(height: 4),
-                    Text('142 Luxury Blvd, NYC', style: TextStyle(color: AppColors.textMutedDark)),
+                    Text('142 Luxury Blvd, NYC',
+                        style: TextStyle(color: AppColors.textMutedDark)),
                     Divider(height: 24),
                     Text('Service: Royal Haircut & Beard Trim'),
                     SizedBox(height: 4),
                     Text('Time: Tomorrow at 10:00 AM'),
                     SizedBox(height: 4),
-                    Text('Status: Confirmed', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+                    Text('Status: Confirmed',
+                        style: TextStyle(
+                            color: AppColors.success,
+                            fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

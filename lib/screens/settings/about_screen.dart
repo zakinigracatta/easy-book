@@ -43,9 +43,13 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.content_cut_rounded, size: 60),
                     SizedBox(height: 12),
-                    GradientText('Easy Book v2.5', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    GradientText('Easy Book v2.5',
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
-                    Text('Next-generation native Flutter reservation app for barbers, hair salons, spas and beauty clinics.', textAlign: TextAlign.center),
+                    Text(
+                        'Next-generation native Flutter reservation app for barbers, hair salons, spas and beauty clinics.',
+                        textAlign: TextAlign.center),
                   ],
                 ),
               ),

@@ -56,7 +56,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               error: (err, _) => Center(child: Text('Error: $err')),
               data: (businesses) {
                 if (businesses.isEmpty) {
-                  return const Center(child: Text('No matching salons or services found.'));
+                  return const Center(
+                      child: Text('No matching salons or services found.'));
                 }
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -76,7 +77,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             fit: BoxFit.cover,
                           ),
                         ),
-                        title: Text(b.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        title: Text(b.name,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

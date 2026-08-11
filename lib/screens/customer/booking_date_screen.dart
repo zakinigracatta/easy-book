@@ -1,17 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/custom_button.dart';
+import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
+import 'widgets/booking_progress_header.dart';
+import 'widgets/booking_date_selector.dart';
 
-class BookingDateScreen extends StatefulWidget {
+class BookingDateScreen extends ConsumerStatefulWidget {
   const BookingDateScreen({super.key});
 
   @override
-  State<BookingDateScreen> createState() => _BookingDateScreenState();
+  ConsumerState<BookingDateScreen> createState() => _BookingDateScreenState();
 }
 
-class _BookingDateScreenState extends State<BookingDateScreen> {
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
+  late DateTime _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    final draftDate = ref.read(bookingDraftProvider).date;
+    final now = DateTime.now();
+    _selectedDate = draftDate ?? DateTime(now.year, now.month, now.day);
+  }
+
+  void _onNext() {
+    ref.read(bookingDraftProvider.notifier).state =
+        ref.read(bookingDraftProvider).copyWith(
+              date: _selectedDate,
+            );
+    context.push('/booking-time');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +47,7 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
         }
       },
       child: Scaffold(
+        backgroundColor: AppColors.bgDark,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
@@ -38,22 +59,29 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
               }
             },
           ),
-          title: const Text('Step 2: Select Date'),
+          title: const Text('Select Appointment Date'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CalendarDatePicker(
-                initialDate: _selectedDate,
-                firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 60)),
-                onDateChanged: (d) => setState(() => _selectedDate = d),
+              // Progress Header Step 2
+              const BookingProgressHeader(currentStep: 2),
+              const SizedBox(height: 20),
+
+              // Date Selector Component
+              BookingDateSelector(
+                selectedDate: _selectedDate,
+                onDateSelected: (d) => setState(() => _selectedDate = d),
               ),
+
+              const SizedBox(height: 24),
               const Spacer(),
+
               CustomButton(
                 text: 'Next: Select Time Slot',
-                onPressed: () => context.push('/booking-time'),
+                onPressed: _onNext,
               ),
             ],
           ),

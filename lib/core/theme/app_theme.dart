@@ -9,14 +9,12 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.backgroundLight,
-
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.accent,
         surface: AppColors.surfaceLight,
         error: AppColors.error,
       ),
-
       textTheme: GoogleFonts.tajawalTextTheme(
         ThemeData.light().textTheme,
       ).copyWith(
@@ -39,7 +37,6 @@ class AppTheme {
           fontSize: 14,
         ),
       ),
-
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -51,7 +48,6 @@ class AppTheme {
           fontWeight: FontWeight.bold,
         ),
       ),
-
       cardTheme: CardThemeData(
         color: AppColors.surfaceLight,
         elevation: 2,
@@ -61,11 +57,11 @@ class AppTheme {
           side: const BorderSide(color: AppColors.glassBorderLight),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.glassBgLight,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.glassBorderLight),
@@ -79,7 +75,6 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -105,14 +100,12 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.backgroundDark,
-
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.accent,
         surface: AppColors.surfaceDark,
         error: AppColors.error,
       ),
-
       textTheme: GoogleFonts.tajawalTextTheme(
         ThemeData.dark().textTheme,
       ).copyWith(
@@ -135,7 +128,6 @@ class AppTheme {
           fontSize: 14,
         ),
       ),
-
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -147,7 +139,6 @@ class AppTheme {
           fontWeight: FontWeight.bold,
         ),
       ),
-
       cardTheme: CardThemeData(
         color: AppColors.surfaceDark,
         elevation: 4,
@@ -157,11 +148,11 @@ class AppTheme {
           side: const BorderSide(color: AppColors.glassBorderDark),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.glassBgDark,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.glassBorderDark),
@@ -175,7 +166,6 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,

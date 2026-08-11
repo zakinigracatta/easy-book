@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
@@ -19,14 +20,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
-  String? _profileImageUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+
+  String? _profileImageUrl =
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
   bool _isLoading = false;
 
   Future<void> _handleRegister() async {
-    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter name, email, and password.')),
+        const SnackBar(
+            content: Text('Please enter name, email, and password.')),
       );
       return;
     }
@@ -34,19 +39,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).registerCustomer(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        profileImageUrl: _profileImageUrl,
-      );
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            profileImageUrl: _profileImageUrl,
+          );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration successful! Role saved as "customer".')),
+          const SnackBar(
+              content:
+                  Text('Registration successful! Please verify your email.')),
         );
-        // Customer goes to Customer Home Dashboard
-        context.go('/home');
+        // Customer goes to Verify Email Screen
+        context.go('/verify-email');
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(e.message ??
+                  'Authentication failed. Please check your details.')),
+        );
+      }
+    } on FirebaseException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  e.message ?? 'Database error occurred during registration.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('An unexpected error occurred: ${e.toString()}')),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -86,7 +116,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.person_add_alt_1_rounded, size: 60, color: AppColors.primary),
+                const Icon(Icons.person_add_alt_1_rounded,
+                    size: 60, color: AppColors.primary),
                 const SizedBox(height: 12),
                 const Text(
                   'Create Customer Account',
@@ -97,7 +128,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const Text(
                   'Register to book services. Saved in database with role "customer".',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                  style:
+                      TextStyle(color: AppColors.textMutedDark, fontSize: 13),
                 ),
                 const SizedBox(height: 24),
 
@@ -116,7 +148,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         child: CircleAvatar(
                           backgroundColor: AppColors.primary,
                           radius: 16,
-                          child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+                          child: const Icon(Icons.camera_alt_rounded,
+                              size: 16, color: Colors.white),
                         ),
                       ),
                     ],
@@ -168,10 +201,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already have an account? ', style: TextStyle(color: AppColors.textMutedDark)),
+                    const Text('Already have an account? ',
+                        style: TextStyle(color: AppColors.textMutedDark)),
                     TextButton(
                       onPressed: () => context.push('/login'),
-                      child: const Text('Sign In', style: TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.bold)),
+                      child: const Text('Sign In',
+                          style: TextStyle(
+                              color: AppColors.primaryLight,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

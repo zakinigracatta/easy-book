@@ -1,0 +1,62 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwnerAccount() {
+      return isAuthenticated() &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    function isBusinessOwner(businessId) {
+      let biz = firestore.get(/databases/(default)/documents/businesses/$(businessId)).data;
+      return isAuthenticated() && (
+        ('owner_id' in biz && biz.owner_id == request.auth.uid) ||
+        ('ownerId' in biz && biz.ownerId == request.auth.uid)
+      );
+    }
+
+    function isValidImageFile() {
+      return request.resource.size < 5 * 1024 * 1024
+          && request.resource.contentType.matches('image/(jpeg|png|webp|gif)');
+    }
+
+    // Public Profile Assets (Logo & Cover Photo)
+    match /businesses/{businessId}/profile/{allPaths=**} {
+      allow read: if true;
+      allow write: if isBusinessOwner(businessId) && isValidImageFile();
+      allow delete: if isBusinessOwner(businessId);
+    }
+
+    // Public Business Gallery Assets
+    match /businesses/{businessId}/gallery/{imageId}/{fileName} {
+      allow read: if true;
+      allow write: if isBusinessOwner(businessId) && isValidImageFile();
+      allow delete: if isBusinessOwner(businessId);
+    }
+
+    // Public Service Images
+    match /businesses/{businessId}/services/{serviceId}/{fileName} {
+      allow read: if true;
+      allow write: if isBusinessOwner(businessId) && isValidImageFile();
+      allow delete: if isBusinessOwner(businessId);
+    }
+
+    // Public Employee Photos
+    match /businesses/{businessId}/employees/{employeeId}/{fileName} {
+      allow read: if true;
+      allow write: if isBusinessOwner(businessId) && isValidImageFile();
+      allow delete: if isBusinessOwner(businessId);
+    }
+
+    // User Profile Pictures
+    match /users/{userId}/profile/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && request.auth.uid == userId && isValidImageFile();
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}

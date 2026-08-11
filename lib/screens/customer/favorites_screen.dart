@@ -10,8 +10,22 @@ class FavoritesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final favs = [
-      {'name': 'Executive Barber Lounge', 'address': '142 Luxury Blvd', 'rating': 4.9, 'img': 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80'},
-      {'name': 'Royal Spa & Wellness', 'address': '88 Grand Ave', 'rating': 4.8, 'img': 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80'},
+      {
+        'id': 'b1',
+        'name': 'Executive Barber Lounge',
+        'address': '142 Luxury Blvd',
+        'rating': 4.9,
+        'img':
+            'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80'
+      },
+      {
+        'id': 'b2',
+        'name': 'Royal Spa & Wellness',
+        'address': '88 Grand Ave',
+        'rating': 4.8,
+        'img':
+            'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80'
+      },
     ];
 
     return Scaffold(
@@ -26,20 +40,25 @@ class FavoritesScreen extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: 14),
             child: GlassCard(
-              onTap: () => context.push('/salon-details'),
+              onTap: () => context.push('/salon/${f['id']}'),
               child: Row(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(14),
-                    child: Image.network(f['img'] as String, width: 80, height: 80, fit: BoxFit.cover),
+                    child: Image.network(f['img'] as String,
+                        width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(f['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text(f['address'] as String, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(f['name'] as String,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(f['address'] as String,
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey)),
                         const SizedBox(height: 6),
                         RatingStars(rating: f['rating'] as double),
                       ],

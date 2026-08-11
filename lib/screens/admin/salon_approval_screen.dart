@@ -9,8 +9,16 @@ class SalonApprovalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pending = [
-      {'name': 'Elite Grooming Lounge', 'owner': 'Michael Scott', 'location': 'Brooklyn, NYC'},
-      {'name': 'Serenity Beauty Studio', 'owner': 'Rachel Green', 'location': 'Manhattan, NYC'},
+      {
+        'name': 'Elite Grooming Lounge',
+        'owner': 'Michael Scott',
+        'location': 'Brooklyn, NYC'
+      },
+      {
+        'name': 'Serenity Beauty Studio',
+        'owner': 'Rachel Green',
+        'location': 'Manhattan, NYC'
+      },
     ];
 
     return PopScope(
@@ -49,16 +57,23 @@ class SalonApprovalScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(p['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(p['name']!,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
                     Text('Owner: ${p['owner']} • ${p['location']}'),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        OutlinedButton(onPressed: () {}, child: const Text('Reject', style: TextStyle(color: AppColors.error))),
+                        OutlinedButton(
+                            onPressed: () {},
+                            child: const Text('Reject',
+                                style: TextStyle(color: AppColors.error))),
                         const SizedBox(width: 8),
-                        ElevatedButton(onPressed: () {}, child: const Text('Approve Partner')),
+                        ElevatedButton(
+                            onPressed: () {},
+                            child: const Text('Approve Partner')),
                       ],
                     ),
                   ],

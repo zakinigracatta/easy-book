@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../core/constants/app_colors.dart';
+import '../../providers/app_providers.dart';
 
-class GoogleMapsExplorerScreen extends StatelessWidget {
+class GoogleMapsExplorerScreen extends ConsumerWidget {
   const GoogleMapsExplorerScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -43,7 +45,9 @@ class GoogleMapsExplorerScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.map_rounded, size: 80, color: AppColors.accent),
                     SizedBox(height: 16),
-                    Text('Google Maps Explorer Live Feed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text('Google Maps Explorer Live Feed',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -56,15 +60,22 @@ class GoogleMapsExplorerScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Executive Barber Lounge', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('Executive Barber Lounge',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
-                    const Text('0.4 miles away • 4.9 ★ (328 reviews)', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                    const Text('0.4 miles away • 4.9 ★ (328 reviews)',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textMutedDark)),
                     const SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: () async {
-                        final allowed = await requireLogin(context);
-                        if (allowed) {
+                      onPressed: () {
+                        final isLoggedIn = ref.read(authProvider) != null;
+
+                        if (isLoggedIn) {
                           context.push('/booking');
+                        } else {
+                          context.push('/login');
                         }
                       },
                       child: const Text('Book Nearby Salon'),

@@ -11,10 +11,10 @@ class BusinessBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final routes = [
       '/owner-dashboard',
+      '/owner-bookings',
       '/booking-calendar',
       '/services-management',
-      '/customer-management',
-      '/salon-management',
+      '/owner-more',
     ];
 
     return Container(
@@ -35,17 +35,21 @@ class BusinessBottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _navItem(context, 0, Icons.dashboard_rounded, 'Dashboard', routes[0]),
-          _navItem(context, 1, Icons.calendar_month_rounded, 'Bookings', routes[1]),
-          _navItem(context, 2, Icons.design_services_rounded, 'Services', routes[2]),
-          _navItem(context, 3, Icons.people_alt_rounded, 'Customers', routes[3]),
-          _navItem(context, 4, Icons.storefront_rounded, 'Salon', routes[4]),
+          _navItem(context, 0, Icons.home_rounded, 'Home', routes[0]),
+          _navItem(
+              context, 1, Icons.assignment_turned_in_rounded, 'Bookings', routes[1]),
+          _navItem(
+              context, 2, Icons.calendar_month_rounded, 'Calendar', routes[2]),
+          _navItem(
+              context, 3, Icons.design_services_rounded, 'Services', routes[3]),
+          _navItem(context, 4, Icons.grid_view_rounded, 'More', routes[4]),
         ],
       ),
     );
   }
 
-  Widget _navItem(BuildContext context, int index, IconData icon, String label, String route) {
+  Widget _navItem(BuildContext context, int index, IconData icon, String label,
+      String route) {
     final isSelected = currentIndex == index;
     return GestureDetector(
       onTap: () {
@@ -57,7 +61,9 @@ class BusinessBottomNav extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.accent.withValues(alpha: 0.2) : Colors.transparent,
+          color: isSelected
+              ? AppColors.accent.withValues(alpha: 0.2)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

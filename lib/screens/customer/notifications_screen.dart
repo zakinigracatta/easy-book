@@ -9,8 +9,17 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final notifs = [
-      {'title': 'Booking Confirmed!', 'desc': 'Your haircut at Executive Barber Lounge is scheduled for tomorrow at 10 AM.', 'time': '2 hours ago'},
-      {'title': 'Earned 150 Loyalty Points', 'desc': 'Thank you for reviewing Royal Spa & Wellness.', 'time': '1 day ago'},
+      {
+        'title': 'Booking Confirmed!',
+        'desc':
+            'Your haircut at Executive Barber Lounge is scheduled for tomorrow at 10 AM.',
+        'time': '2 hours ago'
+      },
+      {
+        'title': 'Earned 150 Loyalty Points',
+        'desc': 'Thank you for reviewing Royal Spa & Wellness.',
+        'time': '1 day ago'
+      },
     ];
 
     return PopScope(
@@ -49,16 +58,20 @@ class NotificationsScreen extends StatelessWidget {
                 child: ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: AppColors.primary,
-                    child: Icon(Icons.notifications_active_rounded, color: Colors.white, size: 20),
+                    child: Icon(Icons.notifications_active_rounded,
+                        color: Colors.white, size: 20),
                   ),
-                  title: Text(n['title']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(n['title']!,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4),
                       Text(n['desc']!),
                       const SizedBox(height: 4),
-                      Text(n['time']!, style: const TextStyle(fontSize: 11, color: AppColors.textMutedDark)),
+                      Text(n['time']!,
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textMutedDark)),
                     ],
                   ),
                 ),

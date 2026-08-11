@@ -18,9 +18,12 @@ class SalonSuccessScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle_rounded, size: 80, color: AppColors.success),
+                const Icon(Icons.check_circle_rounded,
+                    size: 80, color: AppColors.success),
                 const SizedBox(height: 16),
-                const GradientText('Registration Submitted!', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                const GradientText('Registration Submitted!',
+                    style:
+                        TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 const Text(
                   'Your business profile is under super admin review. Approval usually takes under 2 hours.',

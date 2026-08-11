@@ -18,12 +18,14 @@ class FavoritesScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (businesses) {
-          final favBusinesses = businesses.where((b) => favorites.contains(b.id)).toList();
+          final favBusinesses =
+              businesses.where((b) => favorites.contains(b.id)).toList();
           if (favBusinesses.isEmpty) {
             return const EmptyStateWidget(
               icon: Icons.favorite_border,
               title: 'No Favorites Yet',
-              message: 'Tap the heart icon on any salon to save it here for quick access.',
+              message:
+                  'Tap the heart icon on any salon to save it here for quick access.',
             );
           }
           return ListView.builder(
@@ -35,7 +37,8 @@ class FavoritesScreen extends ConsumerWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   onTap: () => context.go('/salon/${b.id}'),
-                  title: Text(b.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(b.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(b.address),
                   trailing: IconButton(
                     icon: const Icon(Icons.favorite, color: Colors.red),

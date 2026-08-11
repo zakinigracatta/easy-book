@@ -38,18 +38,30 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.admin_panel_settings_rounded, size: 70, color: AppColors.error),
+              const Icon(Icons.admin_panel_settings_rounded,
+                  size: 70, color: AppColors.error),
               const SizedBox(height: 16),
-              const Text('Super Admin Sign In', textAlign: TextAlign.center, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const Text('Super Admin Sign In',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text('Platform management, partner verification & payouts', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+              const Text('Platform management, partner verification & payouts',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 28),
               GlassCard(
                 child: Column(
                   children: [
-                    CustomTextField(controller: _emailController, label: 'Admin Email', prefixIcon: Icons.email_outlined),
+                    CustomTextField(
+                        controller: _emailController,
+                        label: 'Admin Email',
+                        prefixIcon: Icons.email_outlined),
                     const SizedBox(height: 16),
-                    CustomTextField(controller: _passwordController, label: 'Password', obscureText: true, prefixIcon: Icons.lock_outline),
+                    CustomTextField(
+                        controller: _passwordController,
+                        label: 'Password',
+                        obscureText: true,
+                        prefixIcon: Icons.lock_outline),
                     const SizedBox(height: 24),
                     CustomButton(
                       text: 'Enter Admin Center',

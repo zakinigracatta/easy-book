@@ -1,0 +1,78 @@
+--- a/lib/features/auth/signup_screen.dart
++++ b/lib/features/auth/signup_screen.dart
+@@ -1,23 +1,24 @@
+   Future<void> _handleSignup() async {
+-    if (_formKey.currentState?.validate() ?? false) {
+-      setState(() => _isLoading = true);
+-      try {
+-        await ref.read(authProvider.notifier).signup(
+-          fullName: _nameController.text,
+-          email: _emailController.text,
+-          password: _passwordController.text,
+-          phone: _phoneController.text,
+-          role: _selectedRole,
+-        );
+-        if (mounted) {
+-          if (_selectedRole == UserRole.businessOwner) {
+-            context.go('/business-dashboard');
+-          } else {
+-            context.go('/home');
+-          }
+-        }
+-      } finally {
+-        if (mounted) setState(() => _isLoading = false);
++    if (!(_formKey.currentState?.validate() ?? false)) return;
++
++    if (_selectedRole == UserRole.businessOwner) {
++      context.go('/business-register');
++      return;
++    }
++
++    setState(() => _isLoading = true);
++    try {
++      await ref.read(authProvider.notifier).signup(
++        name: _nameController.text,
++        email: _emailController.text,
++        password: _passwordController.text,
++        phone: _phoneController.text,
++      );
++
++      if (mounted) {
++        context.go('/home');
+       }
++    } finally {
++      if (mounted) setState(() => _isLoading = false);
+     }
+   }
+--- a/lib/features/customer/google_maps_explorer_screen.dart
++++ b/lib/features/customer/google_maps_explorer_screen.dart
+@@ -1,10 +1,12 @@
+ import 'package:flutter/material.dart';
++import 'package:flutter_riverpod/flutter_riverpod.dart';
+ import 'package:go_router/go_router.dart';
+ import '../../widgets/glass_card.dart';
+ import '../../core/constants/app_colors.dart';
++import '../../providers/app_providers.dart';
+ 
+-class GoogleMapsExplorerScreen extends StatelessWidget {
++class GoogleMapsExplorerScreen extends ConsumerWidget {
+   const GoogleMapsExplorerScreen({super.key});
+ 
+   @override
+-  Widget build(BuildContext context) {
++  Widget build(BuildContext context, WidgetRef ref) {
+@@ -1,8 +1,11 @@
+                     ElevatedButton(
+-                      onPressed: () async {
+-                        final allowed = await requireLogin(context);
+-                        if (allowed) {
++                      onPressed: () {
++                        final isLoggedIn = ref.read(authProvider) != null;
++
++                        if (isLoggedIn) {
+                           context.push('/booking');
++                        } else {
++                          context.push('/login');
+                         }
+                       },
+                       child: const Text('Book Nearby Salon'),

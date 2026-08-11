@@ -1,6 +1,7 @@
 class AppConstants {
   static const String appName = 'Easy Book';
-  static const String appTagline = 'Luxury Booking Experience for Salon, Beauty & Wellness';
+  static const String appTagline =
+      'Luxury Booking Experience for Salon, Beauty & Wellness';
 
   // Categories
   static const List<Map<String, String>> categories = [
@@ -20,7 +21,14 @@ class AppConstants {
 
   // Time Slots
   static const List<String> defaultTimeSlots = [
-    '09:00 AM', '10:00 AM', '11:00 AM', '12:30 PM',
-    '02:00 PM', '03:30 PM', '05:00 PM', '06:30 PM', '08:00 PM'
+    '09:00 AM',
+    '10:00 AM',
+    '11:00 AM',
+    '12:30 PM',
+    '02:00 PM',
+    '03:30 PM',
+    '05:00 PM',
+    '06:30 PM',
+    '08:00 PM'
   ];
 }

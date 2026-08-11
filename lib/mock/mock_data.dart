@@ -3,8 +3,10 @@ import '../models/business_model.dart';
 import '../models/appointment_model.dart';
 
 class MockData {
-  static const String defaultCustomerAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
-  static const String defaultSalonBanner = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+  static const String defaultCustomerAvatar =
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+  static const String defaultSalonBanner =
+      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
 
   static final UserModel sampleCustomer = UserModel(
     id: 'cust_101',
@@ -36,9 +38,11 @@ class MockData {
       address: '142 Luxury Blvd, Downtown NYC',
       rating: 4.9,
       reviewCount: 328,
-      imageUrl: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
+      imageUrl:
+          'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
       isVerified: true,
-      description: 'Premium grooming experience with luxury drinks and hot towel treatment.',
+      description:
+          'Premium grooming experience with luxury drinks and hot towel treatment.',
       ownerId: 'owner_202',
     ),
     BusinessModel(
@@ -48,7 +52,8 @@ class MockData {
       address: '88 Serenity Way, Upper West NYC',
       rating: 4.8,
       reviewCount: 210,
-      imageUrl: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80',
+      imageUrl:
+          'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80',
       isVerified: true,
       description: 'Holistic skin rejuvenation and deep tissue massages.',
       ownerId: 'owner_203',
@@ -60,9 +65,11 @@ class MockData {
       address: '45 Fashion St, Midtown NYC',
       rating: 4.95,
       reviewCount: 540,
-      imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
+      imageUrl:
+          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80',
       isVerified: true,
-      description: 'Master colorists, balayage specialists, and precision hair styling.',
+      description:
+          'Master colorists, balayage specialists, and precision hair styling.',
       ownerId: 'owner_204',
     ),
   ];

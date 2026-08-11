@@ -1,13 +1,19 @@
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/booking_model.dart';
+import '../models/service_model.dart';
+import '../models/staff_model.dart';
 
-// Auth Screens (1-5)
+// Auth Screens
 import '../screens/auth/splash_screen.dart';
 import '../screens/auth/welcome_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/auth/otp_verification_screen.dart';
+import '../screens/auth/verify_email_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
 
-// Customer Screens (6-29)
+// Customer Screens
 import '../screens/customer/home_screen.dart';
 import '../screens/customer/search_screen.dart';
 import '../screens/customer/categories_screen.dart';
@@ -19,34 +25,46 @@ import '../screens/customer/gallery_screen.dart';
 import '../screens/customer/reviews_screen.dart';
 import '../screens/customer/location_screen.dart';
 import '../screens/customer/booking_service_screen.dart';
+import '../screens/customer/booking_specialist_screen.dart';
 import '../screens/customer/booking_date_screen.dart';
 import '../screens/customer/booking_time_screen.dart';
+import '../screens/customer/booking_summary_screen.dart';
 import '../screens/customer/booking_confirmation_screen.dart';
+
 import '../screens/customer/payment_screen.dart';
 import '../screens/customer/booking_success_screen.dart';
 import '../screens/customer/my_bookings_screen.dart';
 import '../screens/customer/booking_details_screen.dart';
-import '../screens/customer/cancel_booking_screen.dart';
 import '../screens/customer/reschedule_booking_screen.dart';
 import '../screens/customer/favorites_screen.dart';
 import '../screens/customer/notifications_screen.dart';
 import '../screens/customer/chat_screen.dart';
 import '../screens/customer/customer_profile_screen.dart';
 
-// Business Owner Screens (30-40)
+// Business Owner Screens
 import '../screens/business/owner_login_screen.dart';
 import '../screens/business/owner_dashboard_screen.dart';
+import '../screens/business/owner_bookings_screen.dart';
+import '../screens/business/quick_walk_in_booking_screen.dart';
 import '../screens/business/salon_management_screen.dart';
 import '../screens/business/services_management_screen.dart';
 import '../screens/business/add_service_screen.dart';
 import '../screens/business/employee_management_screen.dart';
+import '../screens/business/add_edit_employee_screen.dart';
 import '../screens/business/employee_schedule_screen.dart';
+import '../screens/business/employee_time_off_screen.dart';
+import '../screens/business/business_working_hours_screen.dart';
+import '../screens/business/owner_gallery_screen.dart';
 import '../screens/business/booking_calendar_screen.dart';
 import '../screens/business/customer_management_screen.dart';
+import '../screens/business/owner_reviews_screen.dart';
 import '../screens/business/sales_report_screen.dart';
 import '../screens/business/promotion_management_screen.dart';
+import '../screens/business/owner_more_screen.dart';
+import '../screens/business/owner_notifications_screen.dart';
+import '../screens/business/business_register_screen.dart';
 
-// Admin Screens (41-47)
+// Admin Screens
 import '../screens/admin/admin_login_screen.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/admin/users_management_screen.dart';
@@ -55,75 +73,236 @@ import '../screens/admin/payment_management_screen.dart';
 import '../screens/admin/analytics_screen.dart';
 import '../screens/admin/reports_screen.dart';
 
-// General & Settings Screens (48-50)
+// General & Settings Screens
 import '../screens/settings/settings_screen.dart';
 import '../screens/settings/help_screen.dart';
 import '../screens/settings/about_screen.dart';
 
-import '../screens/business/business_register_screen.dart';
-
 final appRouter = GoRouter(
   initialLocation: '/welcome',
+  redirect: (context, state) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && !user.emailVerified) {
+      final loc = state.matchedLocation;
+      const allowedUnverified = [
+        '/verify-email',
+        '/welcome',
+        '/login',
+        '/register',
+        '/business-register',
+        '/owner-login',
+        '/admin-login',
+        '/splash',
+        '/forgot-password',
+      ];
+      if (!allowedUnverified.contains(loc)) {
+        return '/verify-email';
+      }
+    }
+    return null;
+  },
   routes: [
-    // Auth (1-5)
+    // Auth
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
+    GoRoute(
+        path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
-    GoRoute(path: '/business-register', builder: (context, state) => const BusinessRegisterScreen()),
-    GoRoute(path: '/otp-verification', builder: (context, state) => const OTPVerificationScreen()),
+    GoRoute(
+        path: '/register', builder: (context, state) => const RegisterScreen()),
+    GoRoute(
+        path: '/business-register',
+        builder: (context, state) => const BusinessRegisterScreen()),
+    GoRoute(
+        path: '/otp-verification',
+        builder: (context, state) => const OTPVerificationScreen()),
+    GoRoute(
+        path: '/verify-email',
+        builder: (context, state) => const VerifyEmailScreen()),
+    GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen()),
 
-    // Customer (6-29)
+    // Customer
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
-    GoRoute(path: '/categories', builder: (context, state) => const CategoriesScreen()),
-    GoRoute(path: '/salon-list', builder: (context, state) => const SalonListScreen()),
-    GoRoute(path: '/salon-details', builder: (context, state) => const SalonDetailsScreen()),
-    GoRoute(path: '/service-details', builder: (context, state) => const ServiceDetailsScreen()),
-    GoRoute(path: '/staff-profile', builder: (context, state) => const StaffProfileScreen()),
-    GoRoute(path: '/gallery', builder: (context, state) => const GalleryScreen()),
-    GoRoute(path: '/reviews', builder: (context, state) => const ReviewsScreen()),
-    GoRoute(path: '/location', builder: (context, state) => const LocationScreen()),
-    GoRoute(path: '/booking', builder: (context, state) => const BookingServiceScreen()),
-    GoRoute(path: '/booking-service', builder: (context, state) => const BookingServiceScreen()),
-    GoRoute(path: '/booking-date', builder: (context, state) => const BookingDateScreen()),
-    GoRoute(path: '/booking-time', builder: (context, state) => const BookingTimeScreen()),
-    GoRoute(path: '/booking-confirmation', builder: (context, state) => const BookingConfirmationScreen()),
-    GoRoute(path: '/payment', builder: (context, state) => const PaymentScreen()),
-    GoRoute(path: '/booking-success', builder: (context, state) => const BookingSuccessScreen()),
-    GoRoute(path: '/my-bookings', builder: (context, state) => const MyBookingsScreen()),
-    GoRoute(path: '/booking-details', builder: (context, state) => const BookingDetailsScreen()),
-    GoRoute(path: '/cancel-booking', builder: (context, state) => const CancelBookingScreen()),
-    GoRoute(path: '/reschedule-booking', builder: (context, state) => const RescheduleBookingScreen()),
-    GoRoute(path: '/favorites', builder: (context, state) => const FavoritesScreen()),
-    GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
+    GoRoute(
+        path: '/categories',
+        builder: (context, state) => const CategoriesScreen()),
+    GoRoute(
+        path: '/salon-list',
+        builder: (context, state) => const SalonListScreen()),
+    GoRoute(
+      path: '/salon-details',
+      builder: (context, state) {
+        final extraId = state.extra as String?;
+        return SalonDetailsScreen(businessId: extraId);
+      },
+    ),
+    GoRoute(
+      path: '/salon/:id',
+      builder: (context, state) {
+        final pathId = state.pathParameters['id'];
+        final extraId = state.extra as String?;
+        return SalonDetailsScreen(businessId: pathId ?? extraId);
+      },
+    ),
+    GoRoute(
+        path: '/service-details',
+        builder: (context, state) => const ServiceDetailsScreen()),
+    GoRoute(
+        path: '/staff-profile',
+        builder: (context, state) => const StaffProfileScreen()),
+    GoRoute(
+        path: '/gallery', builder: (context, state) => const GalleryScreen()),
+    GoRoute(
+        path: '/reviews', builder: (context, state) => const ReviewsScreen()),
+    GoRoute(
+        path: '/location', builder: (context, state) => const LocationScreen()),
+    GoRoute(
+        path: '/booking',
+        builder: (context, state) => const BookingServiceScreen()),
+    GoRoute(
+        path: '/booking-service',
+        builder: (context, state) => const BookingServiceScreen()),
+    GoRoute(
+        path: '/booking-specialist',
+        builder: (context, state) => const BookingSpecialistScreen()),
+    GoRoute(
+        path: '/booking-date',
+        builder: (context, state) => const BookingDateScreen()),
+    GoRoute(
+        path: '/booking-time',
+        builder: (context, state) => const BookingTimeScreen()),
+    GoRoute(
+        path: '/booking-summary',
+        builder: (context, state) => const BookingSummaryScreen()),
+    GoRoute(
+        path: '/booking-confirmation',
+        builder: (context, state) => const BookingConfirmationScreen()),
+    GoRoute(
+        path: '/payment', builder: (context, state) => const PaymentScreen()),
+    GoRoute(
+        path: '/booking-success',
+        builder: (context, state) => const BookingSuccessScreen()),
+    GoRoute(
+        path: '/my-bookings',
+        builder: (context, state) => const MyBookingsScreen()),
+    GoRoute(
+        path: '/booking-details',
+        builder: (context, state) => const BookingDetailsScreen()),
+    GoRoute(
+      path: '/reschedule-booking',
+      builder: (context, state) {
+        final booking = state.extra as BookingModel?;
+        return RescheduleBookingScreen(booking: booking);
+      },
+    ),
+    GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesScreen()),
+    GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen()),
     GoRoute(path: '/chat', builder: (context, state) => const ChatScreen()),
-    GoRoute(path: '/customer-profile', builder: (context, state) => const CustomerProfileScreen()),
+    GoRoute(
+        path: '/customer-profile',
+        builder: (context, state) => const CustomerProfileScreen()),
 
-    // Business Owner (30-40)
-    GoRoute(path: '/owner-login', builder: (context, state) => const OwnerLoginScreen()),
-    GoRoute(path: '/owner-dashboard', builder: (context, state) => const OwnerDashboardScreen()),
-    GoRoute(path: '/salon-management', builder: (context, state) => const SalonManagementScreen()),
-    GoRoute(path: '/services-management', builder: (context, state) => const ServicesManagementScreen()),
-    GoRoute(path: '/add-service', builder: (context, state) => const AddServiceScreen()),
-    GoRoute(path: '/employee-management', builder: (context, state) => const EmployeeManagementScreen()),
-    GoRoute(path: '/employee-schedule', builder: (context, state) => const EmployeeScheduleScreen()),
-    GoRoute(path: '/booking-calendar', builder: (context, state) => const BookingCalendarScreen()),
-    GoRoute(path: '/customer-management', builder: (context, state) => const CustomerManagementScreen()),
-    GoRoute(path: '/sales-report', builder: (context, state) => const SalesReportScreen()),
-    GoRoute(path: '/promotion-management', builder: (context, state) => const PromotionManagementScreen()),
+    // Business Owner Dashboard & Portal
+    GoRoute(
+        path: '/owner-login',
+        builder: (context, state) => const OwnerLoginScreen()),
+    GoRoute(
+        path: '/owner-dashboard',
+        builder: (context, state) => const OwnerDashboardScreen()),
+    GoRoute(
+        path: '/owner-bookings',
+        builder: (context, state) => const OwnerBookingsScreen()),
+    GoRoute(
+        path: '/quick-walk-in',
+        builder: (context, state) => const QuickWalkInBookingScreen()),
+    GoRoute(
+        path: '/salon-management',
+        builder: (context, state) => const SalonManagementScreen()),
+    GoRoute(
+        path: '/services-management',
+        builder: (context, state) => const ServicesManagementScreen()),
+    GoRoute(
+      path: '/add-service',
+      builder: (context, state) {
+        final service = state.extra as ServiceModel?;
+        return AddServiceScreen(initialService: service);
+      },
+    ),
+    GoRoute(
+        path: '/employee-management',
+        builder: (context, state) => const EmployeeManagementScreen()),
+    GoRoute(
+      path: '/add-employee',
+      builder: (context, state) {
+        final staff = state.extra as StaffModel?;
+        return AddEditEmployeeScreen(initialStaff: staff);
+      },
+    ),
+    GoRoute(
+        path: '/employee-schedule',
+        builder: (context, state) => const EmployeeScheduleScreen()),
+    GoRoute(
+        path: '/employee-time-off',
+        builder: (context, state) => const EmployeeTimeOffScreen()),
+    GoRoute(
+        path: '/business-hours',
+        builder: (context, state) => const BusinessWorkingHoursScreen()),
+    GoRoute(
+        path: '/owner-gallery',
+        builder: (context, state) => const OwnerGalleryScreen()),
+    GoRoute(
+        path: '/booking-calendar',
+        builder: (context, state) => const BookingCalendarScreen()),
+    GoRoute(
+        path: '/customer-management',
+        builder: (context, state) => const CustomerManagementScreen()),
+    GoRoute(
+        path: '/owner-reviews',
+        builder: (context, state) => const OwnerReviewsScreen()),
+    GoRoute(
+        path: '/sales-report',
+        builder: (context, state) => const SalesReportScreen()),
+    GoRoute(
+        path: '/promotion-management',
+        builder: (context, state) => const PromotionManagementScreen()),
+    GoRoute(
+        path: '/owner-more',
+        builder: (context, state) => const OwnerMoreScreen()),
+    GoRoute(
+        path: '/owner-notifications',
+        builder: (context, state) => const OwnerNotificationsScreen()),
 
-    // Admin (41-47)
-    GoRoute(path: '/admin-login', builder: (context, state) => const AdminLoginScreen()),
-    GoRoute(path: '/admin-dashboard', builder: (context, state) => const AdminDashboardScreen()),
-    GoRoute(path: '/users-management', builder: (context, state) => const UsersManagementScreen()),
-    GoRoute(path: '/salon-approval', builder: (context, state) => const SalonApprovalScreen()),
-    GoRoute(path: '/payment-management', builder: (context, state) => const PaymentManagementScreen()),
-    GoRoute(path: '/analytics', builder: (context, state) => const AnalyticsScreen()),
-    GoRoute(path: '/reports', builder: (context, state) => const ReportsScreen()),
+    // Admin
+    GoRoute(
+        path: '/admin-login',
+        builder: (context, state) => const AdminLoginScreen()),
+    GoRoute(
+        path: '/admin-dashboard',
+        builder: (context, state) => const AdminDashboardScreen()),
+    GoRoute(
+        path: '/users-management',
+        builder: (context, state) => const UsersManagementScreen()),
+    GoRoute(
+        path: '/salon-approval',
+        builder: (context, state) => const SalonApprovalScreen()),
+    GoRoute(
+        path: '/payment-management',
+        builder: (context, state) => const PaymentManagementScreen()),
+    GoRoute(
+        path: '/analytics',
+        builder: (context, state) => const AnalyticsScreen()),
+    GoRoute(
+        path: '/reports', builder: (context, state) => const ReportsScreen()),
 
-    // General & Settings (48-50)
-    GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+    // General & Settings
+    GoRoute(
+        path: '/settings', builder: (context, state) => const SettingsScreen()),
     GoRoute(path: '/help', builder: (context, state) => const HelpScreen()),
     GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
   ],

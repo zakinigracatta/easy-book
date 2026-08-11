@@ -9,7 +9,8 @@ import 'navigation_service.dart';
 /// Behavior:
 /// - If user is logged in: returns true
 /// - If guest: saves current intended route, navigates to /login, and returns false
-Future<bool> requireLogin(BuildContext context, {String targetRoute = '/booking-service'}) async {
+Future<bool> requireLogin(BuildContext context,
+    {String targetRoute = '/booking-service'}) async {
   bool isUserLoggedIn = false;
 
   try {

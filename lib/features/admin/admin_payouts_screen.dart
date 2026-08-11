@@ -14,11 +14,13 @@ class AdminPayoutsScreen extends StatelessWidget {
         children: [
           GlassCard(
             child: ListTile(
-              title: const Text('Executive Barber Lounge', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text('Executive Barber Lounge',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: const Text('Requested: \$2,450.00 • Stripe Connect'),
               trailing: ElevatedButton(
                 onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success),
                 child: const Text('Approve Payout'),
               ),
             ),

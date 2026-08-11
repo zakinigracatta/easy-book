@@ -26,7 +26,8 @@ class WelcomeScreen extends StatelessWidget {
                       height: 110,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.gold.withOpacity(0.4), width: 2),
+                        border: Border.all(
+                            color: AppColors.gold.withOpacity(0.4), width: 2),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.gold.withOpacity(0.25),
@@ -39,9 +40,11 @@ class WelcomeScreen extends StatelessWidget {
                         child: Image.asset(
                           'logo.png',
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
                             color: AppColors.primary,
-                            child: const Icon(Icons.content_cut_rounded, size: 50, color: Colors.white),
+                            child: const Icon(Icons.content_cut_rounded,
+                                size: 50, color: Colors.white),
                           ),
                         ),
                       ),
@@ -90,20 +93,28 @@ class WelcomeScreen extends StatelessWidget {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+                      child: const Icon(Icons.person_rounded,
+                          color: Colors.white, size: 28),
                     ),
                     const SizedBox(width: 16),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Customer Portal', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text('Customer Portal',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('Book appointments, explore top salons & manage wallet', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                          Text(
+                              'Book appointments, explore top salons & manage wallet',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMutedDark)),
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMutedDark),
+                    const Icon(Icons.arrow_forward_ios_rounded,
+                        size: 16, color: AppColors.textMutedDark),
                   ],
                 ),
               ),
@@ -123,20 +134,28 @@ class WelcomeScreen extends StatelessWidget {
                         color: AppColors.accent,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 28),
+                      child: const Icon(Icons.storefront_rounded,
+                          color: Colors.white, size: 28),
                     ),
                     const SizedBox(width: 16),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Salon & Spa Owner', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text('Salon & Spa Owner',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('Manage front-desk POS, staff schedules, services & inventory', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                          Text(
+                              'Manage front-desk POS, staff schedules, services & inventory',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMutedDark)),
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMutedDark),
+                    const Icon(Icons.arrow_forward_ios_rounded,
+                        size: 16, color: AppColors.textMutedDark),
                   ],
                 ),
               ),
@@ -156,20 +175,28 @@ class WelcomeScreen extends StatelessWidget {
                         color: AppColors.error,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 28),
+                      child: const Icon(Icons.admin_panel_settings_rounded,
+                          color: Colors.white, size: 28),
                     ),
                     const SizedBox(width: 16),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Platform Admin', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text('Platform Admin',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold)),
                           SizedBox(height: 4),
-                          Text('Platform analytics, partner approvals & payout queues', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                          Text(
+                              'Platform analytics, partner approvals & payout queues',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMutedDark)),
                         ],
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textMutedDark),
+                    const Icon(Icons.arrow_forward_ios_rounded,
+                        size: 16, color: AppColors.textMutedDark),
                   ],
                 ),
               ),
@@ -191,26 +218,39 @@ class WelcomeScreen extends StatelessWidget {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 22),
+                      child: const Icon(Icons.auto_awesome_rounded,
+                          color: Colors.white, size: 22),
                     ),
                     const SizedBox(width: 14),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Subscribe to Easy Book Pro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.primary)),
+                          Text('Subscribe to Easy Book Pro',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: AppColors.primary)),
                           SizedBox(height: 2),
-                          Text('SaaS plans from \$23/mo • Unlock all features', style: TextStyle(fontSize: 11, color: AppColors.textMutedDark)),
+                          Text('SaaS plans from \$23/mo • Unlock all features',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textMutedDark)),
                         ],
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Text('View Plans', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+                      child: const Text('View Plans',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11)),
                     ),
                   ],
                 ),

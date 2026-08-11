@@ -20,9 +20,11 @@ class WalletTransactionModel {
       id: json['id'] as String? ?? '',
       title: json['title'] as String? ?? 'Transaction',
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
-      type: json['type'] == 'debit' ? TransactionType.debit : TransactionType.credit,
-      timestamp: json['timestamp'] != null 
-          ? DateTime.parse(json['timestamp'] as String) 
+      type: json['type'] == 'debit'
+          ? TransactionType.debit
+          : TransactionType.credit,
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'] as String)
           : DateTime.now(),
     );
   }

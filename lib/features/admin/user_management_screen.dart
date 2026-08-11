@@ -13,7 +13,8 @@ class UserManagementScreen extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(child: Text('AV')),
-              title: Text('Alex Vance', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('Alex Vance',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text('Role: Customer • Status: Active'),
               trailing: Icon(Icons.more_vert),
             ),
@@ -21,7 +22,8 @@ class UserManagementScreen extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(child: Text('MV')),
-              title: Text('Marcus Vance', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('Marcus Vance',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text('Role: Business Owner • Status: Active'),
               trailing: Icon(Icons.more_vert),
             ),

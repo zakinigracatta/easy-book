@@ -1,0 +1,31 @@
+[1mdiff --git a/firebase.json b/firebase.json[m
+[1mindex 9202b61..d3ebf0d 100644[m
+[1m--- a/firebase.json[m
+[1m+++ b/firebase.json[m
+[36m@@ -1 +1,24 @@[m
+[31m-{"flutter":{"platforms":{"android":{"default":{"projectId":"easy-book-zaki","appId":"1:669700001010:android:27b759ec2a883f7347946b","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"easy-book-zaki","configurations":{"android":"1:669700001010:android:27b759ec2a883f7347946b"}}}}}}[m
+\ No newline at end of file[m
+[32m+[m[32m﻿{[m
+[32m+[m[32m    "flutter":  {[m
+[32m+[m[32m                    "platforms":  {[m
+[32m+[m[32m                                      "android":  {[m
+[32m+[m[32m                                                      "default":  {[m
+[32m+[m[32m                                                                      "projectId":  "easy-book-zaki",[m
+[32m+[m[32m                                                                      "appId":  "1:669700001010:android:27b759ec2a883f7347946b",[m
+[32m+[m[32m                                                                      "fileOutput":  "android/app/google-services.json"[m
+[32m+[m[32m                                                                  }[m
+[32m+[m[32m                                                  },[m
+[32m+[m[32m                                      "dart":  {[m
+[32m+[m[32m                                                   "lib/firebase_options.dart":  {[m
+[32m+[m[32m                                                                                     "projectId":  "easy-book-zaki",[m
+[32m+[m[32m                                                                                     "configurations":  {[m
+[32m+[m[32m                                                                                                            "android":  "1:669700001010:android:27b759ec2a883f7347946b"[m
+[32m+[m[32m                                                                                                        }[m
+[32m+[m[32m                                                                                 }[m
+[32m+[m[32m                                               }[m
+[32m+[m[32m                                  }[m
+[32m+[m[32m                },[m
+[32m+[m[32m    "firestore":  {[m
+[32m+[m[32m                      "rules":  "firestore.rules"[m
+[32m+[m[32m                  }[m
+[32m+[m[32m}[m

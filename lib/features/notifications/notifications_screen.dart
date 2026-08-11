@@ -22,7 +22,8 @@ class NotificationsScreen extends StatelessWidget {
                 backgroundColor: Color(0xFF6C3EF4),
                 child: Icon(Icons.notifications, color: Colors.white, size: 20),
               ),
-              title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(n.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text(n.body),
             ),
           );

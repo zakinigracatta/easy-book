@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/business_bottom_nav.dart';
+import '../../widgets/business/owner_empty_state.dart';
+import '../../providers/owner_providers.dart';
+import 'customer_profile_modal.dart';
 
-class CustomerManagementScreen extends StatelessWidget {
+class CustomerManagementScreen extends ConsumerStatefulWidget {
   const CustomerManagementScreen({super.key});
 
   @override
+  ConsumerState<CustomerManagementScreen> createState() =>
+      _CustomerManagementScreenState();
+}
+
+class _CustomerManagementScreenState
+    extends ConsumerState<CustomerManagementScreen> {
+  String _searchQuery = '';
+
+  @override
   Widget build(BuildContext context) {
-    final clients = [
-      {'name': 'Ahmed Mohamed', 'visits': '12 Visits', 'total': '\$780.00 Spent'},
-      {'name': 'Sarah Jenkins', 'visits': '8 Visits', 'total': '\$520.00 Spent'},
-    ];
+    final customersAsync = ref.watch(ownerCustomersProvider);
 
     return PopScope(
       canPop: context.canPop(),
@@ -36,26 +47,136 @@ class CustomerManagementScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Customer Relationship Database'),
+          title: const Text('Customer Database & CRM'),
         ),
-        body: ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: clients.length,
-          itemBuilder: (context, index) {
-            final c = clients[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: GlassCard(
-                child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
-                  title: Text(c['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text('${c['visits']} • ${c['total']}'),
+        body: Column(
+          children: [
+            // Search Input
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              child: TextField(
+                onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                decoration: InputDecoration(
+                  hintText: 'Search clients by name or phone...',
+                  hintStyle: const TextStyle(
+                      fontSize: 13, color: AppColors.textMutedDark),
+                  prefixIcon: const Icon(Icons.search_rounded,
+                      color: AppColors.textMutedDark),
+                  filled: true,
+                  fillColor: AppColors.cardDark,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: AppColors.glassBorderDark),
+                  ),
                 ),
               ),
-            );
-          },
+            ),
+
+            // Customers List
+            Expanded(
+              child: customersAsync.when(
+                data: (customers) {
+                  final filtered = customers.where((c) {
+                    return c.name.toLowerCase().contains(_searchQuery) ||
+                        c.phone.toLowerCase().contains(_searchQuery);
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    return OwnerEmptyStateWidget(
+                      icon: Icons.people_outline_rounded,
+                      title: 'No Customers Found',
+                      description:
+                          'No customer records match your current search query.',
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final c = filtered[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: GlassCard(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (ctx) =>
+                                  CustomerProfileModal(customer: c),
+                            );
+                          },
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor:
+                                  AppColors.primary.withValues(alpha: 0.2),
+                              child: Text(
+                                c.name[0].toUpperCase(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryLight,
+                                ),
+                              ),
+                            ),
+                            title: Text(
+                              c.name,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: AppColors.textPrimaryDark),
+                            ),
+                            subtitle: Text(
+                              '${c.phone} • ${c.completedVisits} visits',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textMutedDark),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'AED ${c.totalSpent.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.success,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                if (c.noShowCount > 0) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${c.noShowCount} No-Shows',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary)),
+                error: (_, __) => const OwnerEmptyStateWidget(
+                  icon: Icons.error_outline_rounded,
+                  title: 'Unable to Load Customers',
+                  description: 'Failed to retrieve customer CRM database.',
+                ),
+              ),
+            ),
+          ],
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 3),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
       ),
     );
   }

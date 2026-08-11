@@ -9,8 +9,18 @@ class DealsOffersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final deals = [
-      {'title': 'Summer Glow Promo', 'discount': '30% OFF', 'code': 'SUMMER30', 'desc': 'Valid on all skincare & facial packages.'},
-      {'title': 'First Booking Special', 'discount': '20% OFF', 'code': 'WELCOME20', 'desc': 'For new customer appointments.'},
+      {
+        'title': 'Summer Glow Promo',
+        'discount': '30% OFF',
+        'code': 'SUMMER30',
+        'desc': 'Valid on all skincare & facial packages.'
+      },
+      {
+        'title': 'First Booking Special',
+        'discount': '20% OFF',
+        'code': 'WELCOME20',
+        'desc': 'For new customer appointments.'
+      },
     ];
 
     return PopScope(
@@ -52,22 +62,37 @@ class DealsOffersScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(d['title']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(d['title']!,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: AppColors.error, borderRadius: BorderRadius.circular(8)),
-                          child: Text(d['discount']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                              color: AppColors.error,
+                              borderRadius: BorderRadius.circular(8)),
+                          child: Text(d['discount']!,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(d['desc']!, style: const TextStyle(fontSize: 14, color: AppColors.textMutedDark)),
+                    Text(d['desc']!,
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.textMutedDark)),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('CODE: ${d['code']!}', style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-                        TextButton(onPressed: () {}, child: const Text('Copy Promo')),
+                        Text('CODE: ${d['code']!}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2)),
+                        TextButton(
+                            onPressed: () {}, child: const Text('Copy Promo')),
                       ],
                     ),
                   ],

@@ -46,7 +46,8 @@ class SalonDetailScreen extends ConsumerWidget {
                   leading: IconButton(
                     icon: const CircleAvatar(
                       backgroundColor: Colors.black45,
-                      child: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                      child:
+                          Icon(Icons.arrow_back_rounded, color: Colors.white),
                     ),
                     onPressed: () {
                       if (context.canPop()) {
@@ -66,13 +67,15 @@ class SalonDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       onPressed: () {
-                        final currentFavs = Set<String>.from(ref.read(favoritesProvider));
+                        final currentFavs =
+                            Set<String>.from(ref.read(favoritesProvider));
                         if (isFav) {
                           currentFavs.remove(salonId);
                         } else {
                           currentFavs.add(salonId);
                         }
-                        ref.read(favoritesProvider.notifier).state = currentFavs;
+                        ref.read(favoritesProvider.notifier).state =
+                            currentFavs;
                       },
                     ),
                   ],
@@ -94,10 +97,14 @@ class SalonDetailScreen extends ConsumerWidget {
                           children: [
                             Text(
                               salon.name,
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontSize: 24),
                             ),
                             if (salon.isVerified)
-                              const LuxuryBadge(text: 'VERIFIED', icon: Icons.verified),
+                              const LuxuryBadge(
+                                  text: 'VERIFIED', icon: Icons.verified),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -112,52 +119,66 @@ class SalonDetailScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Text(
                               '${salon.rating} (${salon.reviewCount} reviews)',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
                         const Divider(height: 32),
                         const Text(
                           'Services Menu',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        _buildServiceItem(
-                          context: context,
-                          name: 'Luxury Haircut & Beard Sculpting',
-                          duration: '45 mins',
-                          price: 65.0,
-                          onBook: () async {
-                            final allowed = await requireLogin(context);
-                            if (allowed) {
-                              context.push('/booking-service');
-                            }
-                          },
-                        ),
-                        _buildServiceItem(
-                          context: context,
-                          name: 'Hot Towel Royal Shave',
-                          duration: '30 mins',
-                          price: 45.0,
-                          onBook: () async {
-                            final allowed = await requireLogin(context);
-                            if (allowed) {
-                              context.push('/booking-service');
-                            }
-                          },
-                        ),
-                        _buildServiceItem(
-                          context: context,
-                          name: 'Deep Tissue Massage & Spa',
-                          duration: '60 mins',
-                          price: 110.0,
-                          onBook: () async {
-                            final allowed = await requireLogin(context);
-                            if (allowed) {
-                              context.push('/booking-service');
-                            }
-                          },
-                        ),
+                        ref.watch(servicesProvider(salon.id)).when(
+                              loading: () => const Center(
+                                  child: CircularProgressIndicator()),
+                              error: (err, _) => Text(
+                                  'Error loading services: $err',
+                                  style: const TextStyle(color: Colors.red)),
+                              data: (services) {
+                                if (services.isEmpty) {
+                                  return const Text(
+                                      'No services listed for this salon.',
+                                      style: TextStyle(color: Colors.grey));
+                                }
+                                return Column(
+                                  children: services.map((svc) {
+                                    return _buildServiceItem(
+                                      context: context,
+                                      name: svc.name,
+                                      duration: svc.duration,
+                                      price: svc.price,
+                                      onBook: () async {
+                                        final allowed =
+                                            await requireLogin(context);
+                                        if (allowed && context.mounted) {
+                                          ref
+                                                  .read(bookingDraftProvider
+                                                      .notifier)
+                                                  .state =
+                                              ref
+                                                  .read(bookingDraftProvider)
+                                                  .copyWith(
+                                                    businessId: salon.id,
+                                                    businessName: salon.name,
+                                                    serviceId: svc.id,
+                                                    serviceName: svc.name,
+                                                    servicePrice: svc.price,
+                                                    serviceDuration:
+                                                        svc.duration,
+                                                    serviceDurationMinutes:
+                                                        svc.durationMinutes,
+                                                  );
+                                          context.push('/booking-service');
+                                        }
+                                      },
+                                    );
+                                  }).toList(),
+                                );
+                              },
+                            ),
                       ],
                     ),
                   ),
@@ -192,9 +213,13 @@ class SalonDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text(name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15)),
                 const SizedBox(height: 4),
-                Text(duration, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                Text(duration,
+                    style:
+                        TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                 const SizedBox(height: 6),
                 Text(
                   '\$$price',

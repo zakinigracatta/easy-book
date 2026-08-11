@@ -15,7 +15,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'alex.vance@example.com');
+  final _emailController =
+      TextEditingController(text: 'alex.vance@example.com');
   final _passwordController = TextEditingController(text: 'password123');
   bool _isLoading = false;
 
@@ -24,9 +25,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       setState(() => _isLoading = true);
       try {
         await ref.read(authProvider.notifier).login(
-          _emailController.text,
-          _passwordController.text,
-        );
+              _emailController.text,
+              _passwordController.text,
+            );
         if (mounted) {
           context.go('/home');
         }
@@ -51,7 +52,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
                 Text(
                   'Welcome Back',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28),
+                  style: Theme.of(context)
+                      .textTheme
+                      .displayLarge
+                      ?.copyWith(fontSize: 28),
                 ),
                 const SizedBox(height: 8),
                 Text(

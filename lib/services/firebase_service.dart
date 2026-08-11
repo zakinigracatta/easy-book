@@ -18,7 +18,8 @@ class FirebaseService {
   static const String reviewsCollection = 'reviews';
 
   // --- Auth Operations ---
-  Future<UserModel> signInWithEmailAndPassword(String email, String password, {UserRole? requestedRole}) async {
+  Future<UserModel> signInWithEmailAndPassword(String email, String password,
+      {UserRole? requestedRole}) async {
     if (useLiveFirebase) {
       // TODO: Replace with await FirebaseAuth.instance.signInWithEmailAndPassword(...)
       // and read document from FirebaseFirestore.instance.collection('users').doc(uid).get()
@@ -26,7 +27,9 @@ class FirebaseService {
     }
 
     await Future.delayed(const Duration(milliseconds: 400));
-    final isOwner = requestedRole == UserRole.owner || email.contains('owner') || email.contains('business');
+    final isOwner = requestedRole == UserRole.owner ||
+        email.contains('owner') ||
+        email.contains('business');
     return isOwner ? MockData.sampleOwner : MockData.sampleCustomer;
   }
 
@@ -98,20 +101,29 @@ class FirebaseService {
   }
 
   // --- Firestore Businesses Query ---
-  Future<List<BusinessModel>> getBusinesses({String? category, String? query}) async {
+  Future<List<BusinessModel>> getBusinesses(
+      {String? category, String? query}) async {
     await Future.delayed(const Duration(milliseconds: 300));
     var list = MockData.businesses;
     if (category != null && category != 'all') {
-      list = list.where((b) => b.category.toLowerCase().contains(category.toLowerCase())).toList();
+      list = list
+          .where(
+              (b) => b.category.toLowerCase().contains(category.toLowerCase()))
+          .toList();
     }
     if (query != null && query.isNotEmpty) {
-      list = list.where((b) => b.name.toLowerCase().contains(query.toLowerCase()) || b.address.toLowerCase().contains(query.toLowerCase())).toList();
+      list = list
+          .where((b) =>
+              b.name.toLowerCase().contains(query.toLowerCase()) ||
+              b.address.toLowerCase().contains(query.toLowerCase()))
+          .toList();
     }
     return list;
   }
 
   // --- Firestore Appointments Query ---
-  Future<List<AppointmentModel>> getCustomerAppointments(String customerId) async {
+  Future<List<AppointmentModel>> getCustomerAppointments(
+      String customerId) async {
     await Future.delayed(const Duration(milliseconds: 300));
     return MockData.appointments;
   }

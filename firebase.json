@@ -1,1 +1,28 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"easy-book-zaki","appId":"1:669700001010:android:27b759ec2a883f7347946b","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"easy-book-zaki","configurations":{"android":"1:669700001010:android:27b759ec2a883f7347946b"}}}}}}
+{
+    "flutter":  {
+                    "platforms":  {
+                                      "android":  {
+                                                      "default":  {
+                                                                      "projectId":  "easy-book-zaki",
+                                                                      "appId":  "1:669700001010:android:27b759ec2a883f7347946b",
+                                                                      "fileOutput":  "android/app/google-services.json"
+                                                                  }
+                                                  },
+                                      "dart":  {
+                                                   "lib/firebase_options.dart":  {
+                                                                                     "projectId":  "easy-book-zaki",
+                                                                                     "configurations":  {
+                                                                                                            "android":  "1:669700001010:android:27b759ec2a883f7347946b"
+                                                                                                        }
+                                                                                 }
+                                               }
+                                  }
+                },
+    "firestore":  {
+                      "rules":  "firestore.rules",
+                      "indexes": "firestore.indexes.json"
+                  },
+    "storage":    {
+                      "rules":  "storage.rules"
+                  }
+}
