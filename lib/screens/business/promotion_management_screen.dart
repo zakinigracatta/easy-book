@@ -287,9 +287,10 @@ class PromotionManagementScreen extends ConsumerWidget {
               onPressed: () async {
                 if (titleController.text.trim().isEmpty) return;
 
+                final bizId = ref.read(currentBusinessIdProvider).value ?? '';
                 final newOffer = OfferModel(
                   id: 'off_${DateTime.now().millisecondsSinceEpoch}',
-                  businessId: 'b1',
+                  businessId: bizId,
                   title: titleController.text.trim(),
                   description: descController.text.trim(),
                   discountType: DiscountType.percentage,

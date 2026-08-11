@@ -21,6 +21,22 @@ class FirebaseStorageService {
   FirebaseStorageService([FirebaseStorage? storage])
       : _storage = storage ?? FirebaseStorage.instance;
 
+  static String resolveMimeType(String ext) {
+    switch (ext.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      default:
+        return 'image/jpeg';
+    }
+  }
+
   /// Uploads an image file to real Firebase Storage destination path and returns the Storage download URL.
   Future<String> uploadImage({
     required String businessId,
@@ -28,7 +44,6 @@ class FirebaseStorageService {
     required String filePathOrUrl,
     String? targetId,
   }) async {
-    // If it is already a network URL, return it directly
     if (filePathOrUrl.startsWith('http://') ||
         filePathOrUrl.startsWith('https://')) {
       return filePathOrUrl;
@@ -60,12 +75,14 @@ class FirebaseStorageService {
       fileName: fileName,
     );
 
-    debugPrint('UPLOADING_IMAGE_TO_STORAGE: $path (size: ${fileSize}B)');
+    final mimeType = resolveMimeType(ext);
+    debugPrint(
+        'UPLOADING_IMAGE_TO_STORAGE: $path (mime: $mimeType, size: ${fileSize}B)');
 
     try {
       final ref = _storage.ref().child(path);
       final metadata = SettableMetadata(
-        contentType: 'image/$ext',
+        contentType: mimeType,
         customMetadata: {
           'businessId': businessId,
           'targetType': targetType.name,
@@ -78,11 +95,12 @@ class FirebaseStorageService {
       return downloadUrl;
     } on FirebaseException catch (e) {
       debugPrint('FIREBASE_STORAGE_ERROR: ${e.code} - ${e.message}');
-      throw DomainException('Failed to upload image: ${e.message ?? e.code}');
+      throw DomainException(
+          'Failed to upload image. Please check your image size and network connection.');
     } catch (e) {
       debugPrint('STORAGE_UPLOAD_ERROR: $e');
       throw DomainException(
-          'An unexpected error occurred during image upload.');
+          'An unexpected error occurred during image upload. Please try again.');
     }
   }
 

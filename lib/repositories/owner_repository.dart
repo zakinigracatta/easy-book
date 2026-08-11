@@ -254,10 +254,14 @@ class OwnerRepositoryImpl implements OwnerRepository {
 
   @override
   Future<void> saveEmployeeTimeOff(EmployeeTimeOffModel timeOff) async {
+    final bizId = timeOff.businessId;
+    if (bizId == null || bizId.isEmpty) {
+      throw DomainException('Business ID is required for employee time off.');
+    }
     try {
       await _firestore
           .collection('businesses')
-          .doc(timeOff.businessId ?? 'b1')
+          .doc(bizId)
           .collection('timeOffs')
           .doc(timeOff.id)
           .set(timeOff.toJson(), SetOptions(merge: true));

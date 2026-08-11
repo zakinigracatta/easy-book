@@ -139,26 +139,29 @@ service cloud.firestore {
       }
     }
 
-    // Slot Locks Collection (Public Non-Sensitive Availability Querying)
+    // Slot Locks Collection (Privacy-Preserving Non-Sensitive Availability Locks)
     match /booking_slots/{slotId} {
       allow read, get, list: if isAuthenticated();
 
       allow create: if isAuthenticated()
                     && request.resource.data.slotId == slotId
-                    && (request.resource.data.customerId == request.auth.uid || isBusinessOwner(request.resource.data.businessId))
                     && isValidTimestampBinding(request.resource.data)
-                    && existsAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId));
+                    && existsAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId))
+                    && (
+                      getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.customerId == request.auth.uid ||
+                      isBusinessOwner(request.resource.data.businessId)
+                    );
 
       allow delete: if isAuthenticated()
-                    && (resource.data.customerId == request.auth.uid || isBusinessOwner(resource.data.businessId))
                     && (
+                      isBusinessOwner(resource.data.businessId) ||
                       (
-                        existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId))
-                        && getAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.status == 'cancelled'
-                      )
-                      ||
+                        existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)) &&
+                        getAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.customerId == request.auth.uid
+                      ) ||
                       (
-                        existsAfter(/databases/$(database)/documents/bookings/$(resource.data.bookingId))
+                        exists(/databases/$(database)/documents/bookings/$(resource.data.bookingId)) &&
+                        get(/databases/$(database)/documents/bookings/$(resource.data.bookingId)).data.customerId == request.auth.uid
                       )
                     );
     }
@@ -184,7 +187,7 @@ service cloud.firestore {
                     && (
                       (
                         resource.data.customerId == request.auth.uid
-                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason', 'cancelledAt', 'updatedAt'])
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason', 'cancelledAt', 'cancelledBy', 'updatedAt'])
                         && request.resource.data.status == 'cancelled'
                       )
                       ||

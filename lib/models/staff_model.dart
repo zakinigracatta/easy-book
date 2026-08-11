@@ -9,6 +9,9 @@ class StaffModel {
   final int experienceYears;
   final List<String> serviceIds;
   final bool isActive;
+  final String? shiftStart; // e.g. '09:00 AM'
+  final String? shiftEnd; // e.g. '06:00 PM'
+  final List<int>? workingDays; // 1 = Mon, 7 = Sun
 
   StaffModel({
     required this.id,
@@ -21,12 +24,22 @@ class StaffModel {
     this.experienceYears = 5,
     this.serviceIds = const [],
     this.isActive = true,
+    this.shiftStart,
+    this.shiftEnd,
+    this.workingDays,
   });
 
   factory StaffModel.fromJson(Map<String, dynamic> json) {
     List<String> parseServices(dynamic s) {
       if (s is List) return s.map((e) => e.toString()).toList();
       return [];
+    }
+
+    List<int>? parseDays(dynamic d) {
+      if (d is List) {
+        return d.map((e) => int.tryParse(e.toString()) ?? 1).toList();
+      }
+      return null;
     }
 
     return StaffModel(
@@ -47,6 +60,10 @@ class StaffModel {
           5,
       serviceIds: parseServices(json['service_ids'] ?? json['serviceIds']),
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
+      shiftStart:
+          json['shift_start'] as String? ?? json['shiftStart'] as String?,
+      shiftEnd: json['shift_end'] as String? ?? json['shiftEnd'] as String?,
+      workingDays: parseDays(json['working_days'] ?? json['workingDays']),
     );
   }
 
@@ -62,6 +79,9 @@ class StaffModel {
       'experience_years': experienceYears,
       'service_ids': serviceIds,
       'is_active': isActive,
+      if (shiftStart != null) 'shift_start': shiftStart,
+      if (shiftEnd != null) 'shift_end': shiftEnd,
+      if (workingDays != null) 'working_days': workingDays,
     };
   }
 }

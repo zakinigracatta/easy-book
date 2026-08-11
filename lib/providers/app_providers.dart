@@ -58,6 +58,17 @@ final availableSlotsEngineProvider = FutureProvider.family<
       DateTime date,
     })>((ref, arg) async {
   final engine = ref.watch(availabilityEngineProvider);
+  List<EmployeeTimeOffModel> timeOffs = [];
+  try {
+    final snap = await FirebaseFirestore.instance
+        .collection('businesses')
+        .doc(arg.business.id)
+        .collection('timeOffs')
+        .get();
+    timeOffs =
+        snap.docs.map((d) => EmployeeTimeOffModel.fromJson(d.data())).toList();
+  } catch (_) {}
+
   return engine.computeAvailableSlots(
     business: arg.business,
     selectedServices: arg.selectedServices,
@@ -65,6 +76,7 @@ final availableSlotsEngineProvider = FutureProvider.family<
     specialistId: arg.specialistId,
     anySpecialist: arg.anySpecialist,
     date: arg.date,
+    employeeTimeOffs: timeOffs,
   );
 });
 

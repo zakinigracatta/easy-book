@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/booking_model.dart';
+import '../models/business_model.dart';
+import '../models/service_model.dart';
 import '../core/domain_exceptions.dart';
 
 class BookingService {
@@ -56,20 +58,6 @@ class BookingService {
     // 1. Enforce 15-Minute Canonical Slot Alignment
     validateCanonical15MinAlignment(booking.startDateTime);
 
-    if (booking.endDateTime.isBefore(booking.startDateTime) ||
-        booking.endDateTime.isAtSameMomentAs(booking.startDateTime)) {
-      throw DomainException('Booking end time must be after start time.');
-    }
-
-    final primarySlotLockId =
-        '${booking.businessId}_${booking.staffId}_${booking.startDateTime.millisecondsSinceEpoch}';
-    final intervalLockIds = generateIntervalSlotLockIds(
-      booking.businessId,
-      booking.staffId,
-      booking.startDateTime,
-      booking.endDateTime,
-    );
-
     final bookingDocRef = booking.id.isNotEmpty
         ? _firestore.collection('bookings').doc(booking.id)
         : _firestore.collection('bookings').doc();
@@ -77,31 +65,62 @@ class BookingService {
     final now = DateTime.now();
     final isWalkIn = booking.bookingSource == 'walkIn';
 
-    final toSave = BookingModel(
-      id: bookingDocRef.id,
-      customerId: booking.customerId,
-      customerName: booking.customerName,
-      customerPhone: booking.customerPhone,
-      businessId: booking.businessId,
-      businessName: booking.businessName,
-      serviceId: booking.serviceId,
-      serviceName: booking.serviceName,
-      servicePrice: booking.servicePrice,
-      staffId: booking.staffId,
-      staffName: booking.staffName,
-      startDateTime: booking.startDateTime,
-      endDateTime: booking.endDateTime,
-      status: isWalkIn ? BookingStatus.confirmed : BookingStatus.pending,
-      bookingSource: booking.bookingSource,
-      notes: booking.notes,
-      slotLockId: primarySlotLockId,
-      createdAt: now,
-      updatedAt: now,
-    );
-
     try {
-      // Atomic Transaction: Lock All 15-Minute Interval Buckets + Create Booking
+      late BookingModel toSave;
+
+      // Atomic Transaction: Validate Authoritative Business, Service, Staff + Slot Locks + Create Booking
       await _firestore.runTransaction((transaction) async {
+        // Blocker 5 & 6: Authoritative Business State Check
+        final bizSnap = await transaction
+            .get(_firestore.collection('businesses').doc(booking.businessId));
+        if (!bizSnap.exists || bizSnap.data() == null) {
+          throw BusinessClosedException('Business not found or inactive.');
+        }
+
+        final bizData = bizSnap.data()!;
+        final bizModel = BusinessModel.fromJson(bizData);
+        if (!bizModel.isActive ||
+            !bizModel.acceptingBookings ||
+            bizModel.businessStatus != 'open') {
+          throw BusinessClosedException(
+              'Business is currently closed or not accepting online bookings.');
+        }
+
+        // Authoritative Service Snapshot & Duration Check (Blocker 3 & 4)
+        final srvSnap = await transaction.get(_firestore
+            .collection('businesses')
+            .doc(booking.businessId)
+            .collection('services')
+            .doc(booking.serviceId));
+
+        double authoritativePrice = booking.servicePrice;
+        int durationMinutes = 30;
+
+        if (srvSnap.exists && srvSnap.data() != null) {
+          final srvData = srvSnap.data()!;
+          final srvModel = ServiceModel.fromJson(srvData);
+          if (!srvModel.isActive) {
+            throw ServiceUnavailableException(
+                'Selected service is currently inactive.');
+          }
+          authoritativePrice = srvModel.effectivePrice;
+          durationMinutes =
+              srvModel.durationMinutes > 0 ? srvModel.durationMinutes : 30;
+        }
+
+        final calculatedEndDateTime =
+            booking.startDateTime.add(Duration(minutes: durationMinutes));
+
+        final primarySlotLockId =
+            '${booking.businessId}_${booking.staffId}_${booking.startDateTime.millisecondsSinceEpoch}';
+        final intervalLockIds = generateIntervalSlotLockIds(
+          booking.businessId,
+          booking.staffId,
+          booking.startDateTime,
+          calculatedEndDateTime,
+        );
+
+        // Check Lock Availability
         for (final lockId in intervalLockIds) {
           final slotSnap = await transaction
               .get(_firestore.collection('booking_slots').doc(lockId));
@@ -111,6 +130,30 @@ class BookingService {
           }
         }
 
+        // Construct Authoritative Booking Document Snapshot
+        toSave = BookingModel(
+          id: bookingDocRef.id,
+          customerId: booking.customerId,
+          customerName: booking.customerName,
+          customerPhone: booking.customerPhone,
+          businessId: booking.businessId,
+          businessName: booking.businessName,
+          serviceId: booking.serviceId,
+          serviceName: booking.serviceName,
+          servicePrice: authoritativePrice,
+          staffId: booking.staffId,
+          staffName: booking.staffName,
+          startDateTime: booking.startDateTime,
+          endDateTime: calculatedEndDateTime,
+          status: isWalkIn ? BookingStatus.confirmed : BookingStatus.pending,
+          bookingSource: booking.bookingSource,
+          notes: booking.notes,
+          slotLockId: primarySlotLockId,
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        // Write non-sensitive slot locks
         const int bucketMs = 15 * 60 * 1000;
         final startMs = booking.startDateTime.millisecondsSinceEpoch;
 
@@ -132,6 +175,7 @@ class BookingService {
           });
         }
 
+        // Write booking document
         transaction.set(bookingDocRef, toSave.toFirestore());
       });
 

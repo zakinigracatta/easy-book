@@ -31,6 +31,9 @@ class ServiceModel {
     this.currency = 'AED',
   });
 
+  double get effectivePrice =>
+      (discountPrice != null && discountPrice! > 0) ? discountPrice! : price;
+
   factory ServiceModel.fromJson(Map<String, dynamic> json) {
     int parseDurationMinutes(dynamic raw) {
       if (raw is num) return raw.toInt();

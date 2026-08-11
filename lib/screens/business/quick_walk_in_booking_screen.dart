@@ -39,8 +39,10 @@ class _QuickWalkInBookingScreenState
     final employeesAsync = ref.watch(ownerEmployeesProvider);
     final businessAsync = ref.watch(ownerBusinessProvider);
 
-    final bizName = businessAsync.value?.name ?? 'Style Barber Lounge';
-    final bizId = businessAsync.value?.id ?? 'b1';
+    final bizName = businessAsync.value?.name ?? 'Business';
+    final bizId = businessAsync.value?.id ??
+        ref.read(currentBusinessIdProvider).value ??
+        '';
 
     return PopScope(
       canPop: context.canPop(),

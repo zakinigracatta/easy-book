@@ -42,7 +42,7 @@ final currentBusinessIdProvider = FutureProvider<String>((ref) async {
     return snapLegacy.docs.first.id;
   }
 
-  return user.uid;
+  return '';
 });
 
 // Owner Business Notifier

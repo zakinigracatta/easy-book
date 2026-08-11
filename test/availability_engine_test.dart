@@ -5,6 +5,7 @@ import 'package:easy_book/models/service_model.dart';
 import 'package:easy_book/models/staff_model.dart';
 import 'package:easy_book/models/working_hours_model.dart';
 import 'package:easy_book/models/employee_time_off_model.dart';
+import 'package:easy_book/models/staff_schedule_model.dart';
 
 void main() {
   late BookingAvailabilityEngine engine;
@@ -26,6 +27,8 @@ void main() {
       ownerId: 'owner_1',
       workingHours: WorkingHoursModel.defaultSchedule(),
       isActive: true,
+      businessStatus: 'open',
+      acceptingBookings: true,
     );
 
     testService = ServiceModel(
@@ -142,10 +145,74 @@ void main() {
         nowOverride: now,
       );
 
-      // Lead time cutoff is 10:30 AM (now + 30 mins)
       final earlySlots =
           slots.where((s) => s.startAt.isBefore(DateTime(2026, 8, 17, 10, 30)));
       expect(earlySlots.isEmpty, isTrue);
+    });
+
+    test('6. Enforces real employee shift boundaries (Blocker 9)', () async {
+      final shiftStaff = StaffModel(
+        id: 'st_shift',
+        businessId: 'biz_1',
+        name: 'Shift Barber',
+        roleTitle: 'Barber',
+        avatarUrl: '',
+        rating: 5.0,
+        shiftStart: '12:00 PM',
+        shiftEnd: '06:00 PM',
+        isActive: true,
+      );
+
+      final targetDate = DateTime(2026, 8, 17);
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness,
+        selectedServices: [testService],
+        allStaff: [shiftStaff],
+        date: targetDate,
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots.first.timeString, equals('12:00 PM'));
+      expect(slots.last.startAt.isBefore(DateTime(2026, 8, 17, 18, 0)), isTrue);
+    });
+
+    test(
+        '7. Returns empty list if acceptingBookings is false or status is closed (Blocker 5)',
+        () async {
+      final pausedBiz = testBusiness.copyWith(acceptingBookings: false);
+      final slots = await engine.computeAvailableSlots(
+        business: pausedBiz,
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots.isEmpty, isTrue);
+    });
+
+    test('8. Filters out slots during employee staff breaks (Blocker 10)',
+        () async {
+      final brk = StaffBreakModel(
+        staffId: 'st_1',
+        startTime: '01:00 PM',
+        endTime: '02:00 PM',
+      );
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness,
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+        staffBreaks: [brk],
+      );
+
+      final breakSlots = slots.where((s) {
+        return s.startAt.hour == 13 ||
+            (s.startAt.hour == 13 && s.startAt.minute == 30);
+      });
+      expect(breakSlots.isEmpty, isTrue);
     });
   });
 }

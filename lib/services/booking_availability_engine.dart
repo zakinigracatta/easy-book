@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../models/business_model.dart';
@@ -6,6 +7,7 @@ import '../models/staff_model.dart';
 import '../models/staff_schedule_model.dart';
 import '../models/available_slot.dart';
 import '../models/employee_time_off_model.dart';
+import '../core/domain_exceptions.dart';
 
 class BookingAvailabilityEngine {
   final FirebaseFirestore? _firestore;
@@ -55,7 +57,7 @@ class BookingAvailabilityEngine {
     List<StaffBreakModel> staffBreaks = const [],
     List<EmployeeTimeOffModel> employeeTimeOffs = const [],
   }) async {
-    // 1. Business Operational & Accepting Bookings Check
+    // 1. Business Operational & Accepting Bookings Check (Blocker 5)
     if (!business.isActive ||
         !business.acceptingBookings ||
         business.businessStatus != 'open' ||
@@ -135,8 +137,15 @@ class BookingAvailabilityEngine {
               occupiedBucketsMap[staff.id]!.add(ts);
             }
           }
-        } catch (_) {
-          // Fallback to local evaluation if offline
+        } on FirebaseException catch (e) {
+          // Blocker 11: Do NOT swallow error and claim slots are free
+          debugPrint(
+              'AVAILABILITY_SLOTS_FETCH_ERROR: ${e.code} - ${e.message}');
+          throw DomainException(
+              'Unable to confirm real-time slot availability. Please try again.');
+        } catch (e) {
+          debugPrint('AVAILABILITY_ENGINE_ERROR: $e');
+          throw DomainException('Unable to verify slot availability.');
         }
       }
     }
@@ -176,6 +185,7 @@ class BookingAvailabilityEngine {
           employeeTimeOffs: employeeTimeOffs,
           bOpenMinutes: bOpenMinutes,
           bCloseMinutes: bCloseMinutes,
+          targetDateWeekday: date.weekday,
         )) {
           availableStaffForThisSlot.add(staff.id);
         }
@@ -207,14 +217,27 @@ class BookingAvailabilityEngine {
     required List<EmployeeTimeOffModel> employeeTimeOffs,
     required int bOpenMinutes,
     required int bCloseMinutes,
+    required int targetDateWeekday,
   }) {
     final candStartMs = candStart.millisecondsSinceEpoch;
     final candEndMs = candEnd.millisecondsSinceEpoch;
 
-    // 1. Employee Shift Boundaries Check (Objective 15)
+    // Blocker 9: Check Employee Shift Boundaries and Working Days
+    if (staff.workingDays != null &&
+        !staff.workingDays!.contains(targetDateWeekday)) {
+      return false;
+    }
+
+    final staffShiftStartMin = staff.shiftStart != null
+        ? _parseTimeStringToMinutes(staff.shiftStart!)
+        : bOpenMinutes;
+    final staffShiftEndMin = staff.shiftEnd != null
+        ? _parseTimeStringToMinutes(staff.shiftEnd!)
+        : bCloseMinutes;
+
     final candStartMin = candStart.hour * 60 + candStart.minute;
     final candEndMin = candStartMin + totalDurationMinutes;
-    if (candStartMin < bOpenMinutes || candEndMin > bCloseMinutes) {
+    if (candStartMin < staffShiftStartMin || candEndMin > staffShiftEndMin) {
       return false;
     }
 
@@ -246,13 +269,12 @@ class BookingAvailabilityEngine {
       }
     }
 
-    // 5. Check Staff Breaks (Multiple Breaks Supported - Objective 16)
+    // 5. Check Staff Breaks (Multiple Breaks Supported)
     for (final brk in staffBreaks) {
       if (brk.staffId == staff.id) {
         final bStartMin = _parseTimeStringToMinutes(brk.startTime);
         final bEndMin = _parseTimeStringToMinutes(brk.endTime);
 
-        // Overlap condition: candStart < breakEnd && candEnd > breakStart
         if (candStartMin < bEndMin && candEndMin > bStartMin) {
           return false;
         }

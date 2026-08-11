@@ -303,9 +303,10 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
               style:
                   ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
               onPressed: () {
+                final bizId = ref.read(currentBusinessIdProvider).value ?? '';
                 final newImg = GalleryImageModel(
                   id: 'img_${DateTime.now().millisecondsSinceEpoch}',
-                  businessId: 'b1',
+                  businessId: bizId,
                   imageUrl: urlController.text.trim(),
                   category: category,
                   caption: captionController.text.trim(),
