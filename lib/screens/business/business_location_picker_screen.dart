@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import '../../theme/app_colors.dart';
 
 class BusinessLocationArgs {
@@ -40,9 +41,8 @@ class _BusinessLocationPickerScreenState
     extends State<BusinessLocationPickerScreen> {
   static const _dubai = LatLng(25.2048, 55.2708);
 
-  GoogleMapController? _controller;
+  final MapController _controller = MapController();
   late LatLng _selected;
-  bool _locationPermissionGranted = false;
   bool _locating = false;
 
   @override
@@ -57,7 +57,7 @@ class _BusinessLocationPickerScreenState
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -73,15 +73,27 @@ class _BusinessLocationPickerScreenState
       ),
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(target: _selected, zoom: 16),
-            onMapCreated: (controller) => _controller = controller,
-            onCameraMove: (position) => _selected = position.target,
-            myLocationEnabled: _locationPermissionGranted,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapToolbarEnabled: false,
-            compassEnabled: true,
+          FlutterMap(
+            mapController: _controller,
+            options: MapOptions(
+              initialCenter: _selected,
+              initialZoom: 16,
+              minZoom: 3,
+              maxZoom: 19,
+              onPositionChanged: (camera, _) {
+                _selected = camera.center;
+              },
+            ),
+            children: const [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'ae.easybook.app',
+                maxNativeZoom: 19,
+              ),
+              SimpleAttributionWidget(
+                source: Text('OpenStreetMap contributors'),
+              ),
+            ],
           ),
           const IgnorePointer(
             child: Center(
@@ -203,12 +215,7 @@ class _BusinessLocationPickerScreenState
       );
       final target = LatLng(position.latitude, position.longitude);
       _selected = target;
-      _locationPermissionGranted = true;
-      await _controller?.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(target: target, zoom: 18),
-        ),
-      );
+      _controller.move(target, 18);
       if (mounted) setState(() {});
     } catch (e) {
       if (mounted) {
