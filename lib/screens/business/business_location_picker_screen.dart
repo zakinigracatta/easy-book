@@ -84,13 +84,13 @@ class _BusinessLocationPickerScreenState
                 _selected = camera.center;
               },
             ),
-            children: const [
+            children: [
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'ae.easybook.app',
                 maxNativeZoom: 19,
               ),
-              SimpleAttributionWidget(
+              const SimpleAttributionWidget(
                 source: Text('OpenStreetMap contributors'),
               ),
             ],
