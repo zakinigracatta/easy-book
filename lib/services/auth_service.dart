@@ -17,6 +17,9 @@ class AuthService {
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('users');
 
+  CollectionReference<Map<String, dynamic>> get _businesses =>
+      _firestore.collection('businesses');
+
   User? get currentFirebaseUser => _auth.currentUser;
 
   Stream<UserModel?> authStateChanges() {
@@ -146,6 +149,7 @@ class AuthService {
     try {
       await firebaseUser.updateDisplayName(businessName.trim());
       await _saveProfile(user);
+      await _ensureOwnerBusiness(user);
 
       if (!firebaseUser.emailVerified) {
         await firebaseUser.sendEmailVerification();
@@ -202,7 +206,18 @@ class AuthService {
           .toString()
           .trim()
           .toLowerCase();
-      return UserModel.fromJson(data);
+      final user = UserModel.fromJson(data);
+
+      if (_isOwner(user.role)) {
+        try {
+          await _ensureOwnerBusiness(user);
+        } catch (e) {
+          debugPrint(
+              'Unable to repair owner business link for uid=${user.id}: $e');
+        }
+      }
+
+      return user;
     }
 
     return UserModel(
@@ -233,9 +248,71 @@ class AuthService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> _ensureOwnerBusiness(UserModel user) async {
+    if (!_isOwner(user.role) || user.id.isEmpty) return;
+
+    final deterministicRef = _businesses.doc(user.id);
+    final deterministicDoc = await deterministicRef.get();
+    if (deterministicDoc.exists) return;
+
+    final modernMatch = await _businesses
+        .where('ownerId', isEqualTo: user.id)
+        .limit(1)
+        .get();
+    if (modernMatch.docs.isNotEmpty) return;
+
+    final legacyMatch = await _businesses
+        .where('owner_id', isEqualTo: user.id)
+        .limit(1)
+        .get();
+    if (legacyMatch.docs.isNotEmpty) return;
+
+    final rawBusinessName = user.businessName?.trim() ?? '';
+    final rawFullName = user.fullName.trim();
+    final businessName = rawBusinessName.isNotEmpty
+        ? rawBusinessName
+        : (rawFullName.isNotEmpty ? rawFullName : 'Easy Book Business');
+    final category = user.category?.trim() ?? '';
+    final location = user.location?.trim() ?? '';
+    final imageUrl = user.businessImageUrl?.trim() ?? '';
+
+    debugPrint('Creating missing business record for owner uid=${user.id}');
+
+    await deterministicRef.set({
+      'id': user.id,
+      'name': businessName,
+      'category': category.isNotEmpty ? category : 'Salon',
+      'address': location,
+      'rating': 0.0,
+      'review_count': 0,
+      'image_url': imageUrl,
+      'is_verified': false,
+      'description': '',
+      'ownerId': user.id,
+      'owner_id': user.id,
+      'latitude': 0.0,
+      'longitude': 0.0,
+      'amenities': <String>[],
+      'phone': user.phone.trim(),
+      'gallery_urls': <String>[],
+      'isActive': true,
+      'is_active': true,
+      'businessStatus': 'open',
+      'business_status': 'open',
+      'acceptingBookings': true,
+      'accepting_bookings': true,
+      'created_at': FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  bool _isOwner(UserRole role) {
+    return role == UserRole.owner || role == UserRole.businessOwner;
+  }
+
   bool _matchesRequestedRole(UserRole actual, UserRole requested) {
-    if (requested == UserRole.owner || requested == UserRole.businessOwner) {
-      return actual == UserRole.owner || actual == UserRole.businessOwner;
+    if (_isOwner(requested)) {
+      return _isOwner(actual);
     }
 
     return actual == requested;
