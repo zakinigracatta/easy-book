@@ -17,6 +17,9 @@ class AuthService {
   CollectionReference<Map<String, dynamic>> get _users =>
       _firestore.collection('users');
 
+  CollectionReference<Map<String, dynamic>> get _businesses =>
+      _firestore.collection('businesses');
+
   User? get currentFirebaseUser => _auth.currentUser;
 
   Stream<UserModel?> authStateChanges() {
@@ -146,6 +149,7 @@ class AuthService {
     try {
       await firebaseUser.updateDisplayName(businessName.trim());
       await _saveProfile(user);
+      await _ensureBusinessForOwner(user);
 
       if (!firebaseUser.emailVerified) {
         await firebaseUser.sendEmailVerification();
@@ -202,7 +206,10 @@ class AuthService {
           .toString()
           .trim()
           .toLowerCase();
-      return UserModel.fromJson(data);
+
+      final user = UserModel.fromJson(data);
+      await _ensureBusinessForOwner(user);
+      return user;
     }
 
     return UserModel(
@@ -215,6 +222,55 @@ class AuthService {
       role: UserRole.customer,
       walletBalance: 0.0,
     );
+  }
+
+  Future<void> _ensureBusinessForOwner(UserModel user) async {
+    if (user.role != UserRole.owner && user.role != UserRole.businessOwner) {
+      return;
+    }
+
+    final ownerIdQuery =
+        await _businesses.where('ownerId', isEqualTo: user.id).limit(1).get();
+    if (ownerIdQuery.docs.isNotEmpty) {
+      return;
+    }
+
+    final legacyOwnerIdQuery =
+        await _businesses.where('owner_id', isEqualTo: user.id).limit(1).get();
+    if (legacyOwnerIdQuery.docs.isNotEmpty) {
+      return;
+    }
+
+    final businessName = (user.businessName?.trim().isNotEmpty ?? false)
+        ? user.businessName!.trim()
+        : user.fullName.trim();
+
+    await _businesses.doc(user.id).set({
+      'id': user.id,
+      'name': businessName,
+      'category': user.category?.trim().isNotEmpty == true
+          ? user.category!.trim()
+          : 'Salon',
+      'address': user.location?.trim() ?? '',
+      'phone': user.phone.trim(),
+      'image_url': user.businessImageUrl ?? '',
+      // Keep both owner field styles for legacy/current compatibility.
+      'ownerId': user.id,
+      'owner_id': user.id,
+      'rating': 0.0,
+      'review_count': 0,
+      'is_verified': true,
+      'description': '',
+      'latitude': 0.0,
+      'longitude': 0.0,
+      'gallery_urls': <String>[],
+      'amenities': <String>[],
+      'is_active': true,
+      'business_status': 'open',
+      'accepting_bookings': true,
+      'created_at': FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+    });
   }
 
   Future<void> _saveProfile(UserModel user) async {

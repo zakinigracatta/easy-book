@@ -46,9 +46,13 @@ export async function validateBookingRequirements(
     );
   }
   const bizData = bizSnap.data() || {};
-  const isActive = bizData.isActive !== false;
-  const acceptingBookings = bizData.acceptingBookings !== false;
-  const businessStatus = bizData.businessStatus || 'open';
+  // Support both Firestore schemas. Prefer snake_case because Flutter models
+  // currently persist these fields in snake_case.
+  const isActive = (bizData.is_active ?? bizData.isActive) !== false;
+  const acceptingBookings =
+    (bizData.accepting_bookings ?? bizData.acceptingBookings) !== false;
+  const businessStatus =
+    bizData.business_status ?? bizData.businessStatus ?? 'open';
 
   if (!isActive || !acceptingBookings || businessStatus !== 'open') {
     throw new HttpsError(
@@ -71,10 +75,14 @@ export async function validateBookingRequirements(
     );
   }
   const srvData = srvSnap.data() || {};
-  if (srvData.isActive === false) {
+  const serviceIsActive = (srvData.is_active ?? srvData.isActive) !== false;
+  const serviceIsBookable =
+    (srvData.is_bookable ?? srvData.isBookable) !== false;
+
+  if (!serviceIsActive || !serviceIsBookable) {
     throw new HttpsError(
       'failed-precondition',
-      'SERVICE_INACTIVE: Selected service is not currently active.'
+      'SERVICE_INACTIVE: Selected service is not currently active or bookable.'
     );
   }
 
@@ -108,7 +116,8 @@ export async function validateBookingRequirements(
     );
   }
   const staffData = staffSnap.data() || {};
-  if (staffData.isActive === false) {
+  const staffIsActive = (staffData.is_active ?? staffData.isActive) !== false;
+  if (!staffIsActive) {
     throw new HttpsError(
       'failed-precondition',
       'STAFF_INACTIVE: Staff member is currently inactive.'

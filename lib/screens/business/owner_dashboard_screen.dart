@@ -42,6 +42,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
+              ref.invalidate(currentBusinessIdProvider);
               ref.invalidate(ownerBusinessProvider);
               ref.invalidate(ownerBookingsProvider);
               ref.invalidate(ownerNotificationsProvider);
@@ -56,7 +57,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     data: (biz) => _buildHeader(
                         context, ref, biz, unreadNotificationsCount),
                     loading: () => _buildHeaderSkeleton(context),
-                    error: (_, __) => _buildHeaderSkeleton(context),
+                    error: (err, __) => _buildHeaderError(context, ref, err),
                   ),
 
                   const SizedBox(height: 20),
@@ -121,7 +122,9 @@ class OwnerDashboardScreen extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, WidgetRef ref, dynamic biz,
       int unreadNotificationsCount) {
-    final isOpen = biz.isActive;
+    final isOpen = biz.isActive &&
+        biz.businessStatus == 'open' &&
+        biz.acceptingBookings;
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
@@ -199,7 +202,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     GestureDetector(
                       onTap: () => ref
                           .read(ownerBusinessProvider.notifier)
-                          .toggleAcceptingBookings(!isOpen),
+                          .toggleAcceptingBookings(!biz.acceptingBookings),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 2),
@@ -292,6 +295,53 @@ class OwnerDashboardScreen extends ConsumerWidget {
                         fontSize: 12, color: AppColors.textMutedDark)),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderError(BuildContext context, WidgetRef ref, Object err) {
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 26,
+            backgroundColor: AppColors.glassBorderDark,
+            child: Icon(Icons.storefront_rounded, color: AppColors.gold, size: 28),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'No Business Profile Found',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimaryDark,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Complete your business registration to manage bookings.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMutedDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+            onPressed: () {
+              ref.invalidate(currentBusinessIdProvider);
+              ref.invalidate(ownerBusinessProvider);
+              ref.invalidate(ownerBookingsProvider);
+            },
           ),
         ],
       ),
