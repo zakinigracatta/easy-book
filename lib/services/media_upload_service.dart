@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -41,24 +42,25 @@ class MediaUploadService {
     int maxCount = 8,
     void Function(int current, int total, double fileProgress)? onProgress,
   }) async {
+    if (maxCount <= 0) return const [];
+
     final files = await _picker.pickMultiImage(
       imageQuality: 88,
       maxWidth: 2200,
       maxHeight: 2200,
+      limit: maxCount,
       requestFullMetadata: false,
     );
     if (files.isEmpty) return const [];
 
-    final selected = files.take(maxCount).toList();
     final urls = <String>[];
-
-    for (var i = 0; i < selected.length; i++) {
+    for (var i = 0; i < files.length; i++) {
       final url = await uploadXFile(
-        selected[i],
+        files[i],
         storageFolder: storageFolder,
         onProgress: (progress) => onProgress?.call(
           i + 1,
-          selected.length,
+          files.length,
           progress,
         ),
       );
@@ -90,7 +92,8 @@ class MediaUploadService {
     }
 
     final extension = _safeExtension(file.name);
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$extension';
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$extension';
     final ref = _storage.ref().child('$cleanFolder/$fileName');
 
     final task = ref.putData(
@@ -117,7 +120,6 @@ class MediaUploadService {
     try {
       await _storage.refFromURL(url).delete();
     } on FirebaseException catch (e) {
-      // Deleting an already-missing object should not block profile updates.
       if (e.code != 'object-not-found') rethrow;
     }
   }
