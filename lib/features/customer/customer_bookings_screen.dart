@@ -63,6 +63,8 @@ class CustomerBookingsScreen extends ConsumerWidget {
                               BookingStatus.pending => const Color(0xFFF59E0B),
                               BookingStatus.confirmed =>
                                 const Color(0xFF3B82F6),
+                              BookingStatus.arrived =>
+                                const Color(0xFF8B5CF6),
                               BookingStatus.completed =>
                                 const Color(0xFF10B981),
                               BookingStatus.cancelled => Colors.red,
