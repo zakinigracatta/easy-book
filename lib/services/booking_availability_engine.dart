@@ -9,6 +9,11 @@ import '../models/available_slot.dart';
 import '../models/employee_time_off_model.dart';
 import '../core/domain_exceptions.dart';
 
+// app_providers.dart already imports this engine; re-export the two availability
+// dependencies it consumes so legacy provider code remains source-compatible.
+export 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
+export '../models/employee_time_off_model.dart' show EmployeeTimeOffModel;
+
 class BookingAvailabilityEngine {
   final FirebaseFirestore? _firestore;
 
