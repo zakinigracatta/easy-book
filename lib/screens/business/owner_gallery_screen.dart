@@ -7,6 +7,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/gallery_image_model.dart';
+import '../../services/media_upload_service.dart';
 
 class OwnerGalleryScreen extends ConsumerStatefulWidget {
   const OwnerGalleryScreen({super.key});
@@ -16,101 +17,95 @@ class OwnerGalleryScreen extends ConsumerStatefulWidget {
 }
 
 class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
+  static const _categories = [
+    ('all', 'All Photos'),
+    ('interior', 'Interior'),
+    ('exterior', 'Exterior'),
+    ('service', 'Service'),
+    ('portfolio', 'Portfolio'),
+    ('beforeAfter', 'Before & After'),
+    ('other', 'Other'),
+  ];
+
+  final _media = MediaUploadService();
   String _selectedCategory = 'all';
+  double? _uploadProgress;
+  String _uploadStatus = '';
 
   @override
   Widget build(BuildContext context) {
     final galleryAsync = ref.watch(ownerGalleryProvider);
 
-    final categories = [
-      {'id': 'all', 'label': 'All Photos'},
-      {'id': 'interior', 'label': 'Interior'},
-      {'id': 'exterior', 'label': 'Exterior'},
-      {'id': 'service', 'label': 'Service'},
-      {'id': 'portfolio', 'label': 'Portfolio'},
-      {'id': 'beforeAfter', 'label': 'Before & After'},
-    ];
-
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/owner-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/owner-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
+          title: const Text('Business Photos & Gallery'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/owner-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
-          title: const Text('Business Photos & Gallery'),
           actions: [
             IconButton(
               icon: const Icon(Icons.add_a_photo_rounded),
-              tooltip: 'Add Photo',
-              onPressed: () => _showAddPhotoDialog(context),
+              tooltip: 'Upload Photos',
+              onPressed: _uploadProgress == null ? _showUploadDialog : null,
             ),
           ],
         ),
         body: Column(
           children: [
-            // Category Filter Chips
+            if (_uploadProgress != null)
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
+                color: AppColors.cardDark,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LinearProgressIndicator(value: _uploadProgress),
+                    const SizedBox(height: 5),
+                    Text(
+                      _uploadStatus,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textMutedDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
-                children: categories.map((c) {
-                  final isSelected = _selectedCategory == c['id'];
+                children: _categories.map((entry) {
+                  final isSelected = _selectedCategory == entry.$1;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
                       selected: isSelected,
-                      label: Text(c['label']!),
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                        color:
-                            isSelected ? Colors.white : AppColors.textMutedDark,
-                      ),
+                      label: Text(entry.$2),
                       selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.cardDark,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.glassBorderDark,
-                        ),
-                      ),
-                      onSelected: (_) {
-                        setState(() => _selectedCategory = c['id']!);
-                      },
+                      onSelected: (_) =>
+                          setState(() => _selectedCategory = entry.$1),
                     ),
                   );
                 }).toList(),
               ),
             ),
-
-            // Gallery Grid View
             Expanded(
               child: galleryAsync.when(
                 data: (images) {
                   final filtered = _selectedCategory == 'all'
                       ? images
                       : images
-                          .where((i) => i.category == _selectedCategory)
+                          .where((image) => image.category == _selectedCategory)
                           .toList();
 
                   if (filtered.isEmpty) {
@@ -118,9 +113,9 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                       icon: Icons.photo_library_rounded,
                       title: 'No Photos Yet',
                       description:
-                          'Show customers what makes your business special.',
-                      actionLabel: 'Add First Photo',
-                      onActionTap: () => _showAddPhotoDialog(context),
+                          'Upload real photos so customers can see your space and work.',
+                      actionLabel: 'Upload Photos',
+                      onActionTap: _showUploadDialog,
                     );
                   }
 
@@ -131,97 +126,20 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 0.85,
+                      childAspectRatio: 0.82,
                     ),
                     itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final img = filtered[index];
-                      return GlassCard(
-                        padding: EdgeInsets.zero,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.vertical(
-                                          top: Radius.circular(16)),
-                                      image: DecorationImage(
-                                        image: NetworkImage(img.imageUrl),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: CircleAvatar(
-                                      radius: 14,
-                                      backgroundColor:
-                                          Colors.black.withValues(alpha: 0.6),
-                                      child: IconButton(
-                                        icon: const Icon(Icons.delete_rounded,
-                                            size: 12, color: Colors.white),
-                                        onPressed: () {
-                                          ref
-                                              .read(
-                                                  ownerGalleryProvider.notifier)
-                                              .deleteGalleryImage(img.id);
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    bottom: 8,
-                                    left: 8,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            Colors.black.withValues(alpha: 0.6),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        img.category.toUpperCase(),
-                                        style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (img.caption.isNotEmpty) ...[
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  img.caption,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textPrimaryDark,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      );
-                    },
+                    itemBuilder: (context, index) =>
+                        _buildPhotoCard(filtered[index]),
                   );
                 },
                 loading: () => const Center(
-                    child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (_, __) => const OwnerEmptyStateWidget(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+                error: (error, _) => OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Gallery',
-                  description: 'Failed to retrieve business photos.',
+                  description: error.toString(),
                 ),
               ),
             ),
@@ -232,102 +150,256 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
     );
   }
 
-  void _showAddPhotoDialog(BuildContext context) {
-    final urlController = TextEditingController(
-      text:
-          'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80',
-    );
-    final captionController = TextEditingController();
-    String category = 'portfolio';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.cardDark,
-          title: const Text('Add Business Photo',
-              style: TextStyle(color: AppColors.textPrimaryDark)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+  Widget _buildPhotoCard(GalleryImageModel image) {
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                TextField(
-                  controller: urlController,
-                  decoration: const InputDecoration(
-                    labelText: 'Image URL',
-                    prefixIcon: Icon(Icons.link_rounded),
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: Image.network(
+                    image.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Center(
+                      child: Icon(Icons.broken_image_outlined),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: category,
-                  decoration: const InputDecoration(
-                    labelText: 'Photo Category',
-                    prefixIcon: Icon(Icons.category_rounded),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton.filledTonal(
+                    tooltip: 'Delete photo',
+                    onPressed: () => _confirmDelete(image),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
                   ),
-                  dropdownColor: AppColors.cardDark,
-                  items: const [
-                    DropdownMenuItem(
-                        value: 'interior', child: Text('Interior')),
-                    DropdownMenuItem(
-                        value: 'exterior', child: Text('Exterior')),
-                    DropdownMenuItem(value: 'service', child: Text('Service')),
-                    DropdownMenuItem(
-                        value: 'portfolio', child: Text('Portfolio')),
-                    DropdownMenuItem(
-                        value: 'beforeAfter', child: Text('Before & After')),
-                    DropdownMenuItem(value: 'other', child: Text('Other')),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) setDialogState(() => category = val);
-                  },
                 ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: captionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Caption / Description',
-                    prefixIcon: Icon(Icons.notes_rounded),
+                Positioned(
+                  bottom: 8,
+                  left: 8,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Text(
+                      _categoryLabel(image.category),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+          if (image.caption.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(9),
+              child: Text(
+                image.caption,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textPrimaryDark,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showUploadDialog() async {
+    String category = 'portfolio';
+    final captionController = TextEditingController();
+
+    final result = await showDialog<({String category, String caption})>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Upload Business Photos'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                value: category,
+                decoration: const InputDecoration(
+                  labelText: 'Photo category',
+                  prefixIcon: Icon(Icons.category_outlined),
+                ),
+                items: _categories
+                    .where((entry) => entry.$1 != 'all')
+                    .map(
+                      (entry) => DropdownMenuItem(
+                        value: entry.$1,
+                        child: Text(entry.$2),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setDialogState(() => category = value);
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: captionController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Caption (optional)',
+                  prefixIcon: Icon(Icons.notes_rounded),
+                  helperText: 'The caption will be applied to this upload batch.',
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'You can select up to 10 photos at once.',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textMutedDark,
+                ),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel',
-                  style: TextStyle(color: AppColors.textMutedDark)),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
             ),
-            ElevatedButton(
-              style:
-                  ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: () {
-                final bizId = ref.read(currentBusinessIdProvider).value ?? '';
-                final newImg = GalleryImageModel(
-                  id: 'img_${DateTime.now().millisecondsSinceEpoch}',
-                  businessId: bizId,
-                  imageUrl: urlController.text.trim(),
-                  category: category,
-                  caption: captionController.text.trim(),
-                );
-
-                ref.read(ownerGalleryProvider.notifier).addGalleryImage(newImg);
-
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Photo added to gallery!'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              },
-              child: const Text('Upload Photo',
-                  style: TextStyle(color: Colors.white)),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(
+                dialogContext,
+                (category: category, caption: captionController.text.trim()),
+              ),
+              icon: const Icon(Icons.photo_library_outlined),
+              label: const Text('Choose Photos'),
             ),
           ],
         ),
       ),
     );
+    captionController.dispose();
+
+    if (result == null || !mounted) return;
+    await _uploadPhotos(result.category, result.caption);
+  }
+
+  Future<void> _uploadPhotos(String category, String caption) async {
+    try {
+      final businessId = await ref.read(currentBusinessIdProvider.future);
+      if (businessId.isEmpty) throw StateError('Business ID is not available.');
+
+      final batchId = 'gallery_${DateTime.now().millisecondsSinceEpoch}';
+      setState(() {
+        _uploadProgress = 0;
+        _uploadStatus = 'Choose photos from your device…';
+      });
+
+      final urls = await _media.pickAndUploadMultipleImages(
+        storageFolder: 'businesses/$businessId/gallery/$batchId',
+        maxCount: 10,
+        onProgress: (current, total, progress) {
+          if (!mounted) return;
+          setState(() {
+            _uploadProgress = progress;
+            _uploadStatus =
+                'Uploading photo $current of $total • ${(progress * 100).round()}%';
+          });
+        },
+      );
+
+      for (var i = 0; i < urls.length; i++) {
+        final image = GalleryImageModel(
+          id: '${batchId}_$i',
+          businessId: businessId,
+          imageUrl: urls[i],
+          category: category,
+          caption: caption,
+          sortOrder: DateTime.now().millisecondsSinceEpoch + i,
+        );
+        await ref.read(ownerGalleryProvider.notifier).addGalleryImage(image);
+      }
+
+      if (urls.isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${urls.length} photo(s) uploaded successfully.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Photo upload failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _uploadProgress = null;
+          _uploadStatus = '';
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(GalleryImageModel image) async {
+    final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete photo?'),
+            content: const Text(
+              'This will permanently remove the photo from the business gallery.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) return;
+
+    try {
+      await _media.deleteByUrl(image.imageUrl);
+      await ref
+          .read(ownerGalleryProvider.notifier)
+          .deleteGalleryImage(image.id);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not delete photo: $e')),
+        );
+      }
+    }
+  }
+
+  String _categoryLabel(String id) {
+    for (final entry in _categories) {
+      if (entry.$1 == id) return entry.$2;
+    }
+    return 'Other';
   }
 }
