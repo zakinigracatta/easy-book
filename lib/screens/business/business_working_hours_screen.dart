@@ -264,7 +264,10 @@ class _BusinessWorkingHoursScreenState
     final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
     if (isPm && hour < 12) hour += 12;
     if (isAm && hour == 12) hour = 0;
-    return TimeOfDay(hour: hour.clamp(0, 23), minute: minute.clamp(0, 59));
+    return TimeOfDay(
+      hour: hour.clamp(0, 23).toInt(),
+      minute: minute.clamp(0, 59).toInt(),
+    );
   }
 
   String _formatTime(TimeOfDay time) {
