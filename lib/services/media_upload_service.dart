@@ -116,12 +116,22 @@ class MediaUploadService {
   }
 
   Future<void> deleteByUrl(String? url) async {
-    if (url == null || url.trim().isEmpty) return;
+    final value = url?.trim() ?? '';
+    if (value.isEmpty || !_isFirebaseStorageUrl(value)) return;
+
     try {
-      await _storage.refFromURL(url).delete();
+      await _storage.refFromURL(value).delete();
     } on FirebaseException catch (e) {
       if (e.code != 'object-not-found') rethrow;
     }
+  }
+
+  bool _isFirebaseStorageUrl(String value) {
+    if (value.startsWith('gs://')) return true;
+    final uri = Uri.tryParse(value);
+    if (uri == null) return false;
+    return uri.host == 'firebasestorage.googleapis.com' ||
+        uri.host == 'storage.googleapis.com';
   }
 
   String _safeExtension(String name) {
