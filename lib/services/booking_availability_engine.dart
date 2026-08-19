@@ -28,7 +28,6 @@ class BookingAvailabilityEngine {
     }
   }
 
-  /// Filters staff who can perform ALL of the selected services.
   static List<StaffModel> filterEligibleStaff(
     List<StaffModel> allStaff,
     List<ServiceModel> selectedServices,
@@ -43,8 +42,6 @@ class BookingAvailabilityEngine {
     }).toList();
   }
 
-  /// Calculates available slots for a given business, selected services, specialist (or any specialist), and date.
-  /// Customer availability queries non-sensitive booking_slots to preserve customer privacy.
   Future<List<AvailableSlot>> computeAvailableSlots({
     required BusinessModel business,
     required List<ServiceModel> selectedServices,
@@ -57,7 +54,6 @@ class BookingAvailabilityEngine {
     List<StaffBreakModel> staffBreaks = const [],
     List<EmployeeTimeOffModel> employeeTimeOffs = const [],
   }) async {
-    // 1. Business Operational & Accepting Bookings Check (Blocker 5)
     if (!business.isActive ||
         !business.acceptingBookings ||
         business.businessStatus != 'open' ||
@@ -66,8 +62,6 @@ class BookingAvailabilityEngine {
     }
 
     final now = nowOverride ?? DateTime.now();
-
-    // 2. Horizon Check (maxAdvanceBookingDays & Past Date Check)
     final maxDate = DateTime(now.year, now.month, now.day)
         .add(const Duration(days: maxAdvanceBookingDays));
     final targetDateOnly = DateTime(date.year, date.month, date.day);
@@ -76,8 +70,7 @@ class BookingAvailabilityEngine {
       return [];
     }
 
-    // 3. Business Working Hours Check
-    final dayNames = [
+    const dayNames = [
       'Monday',
       'Tuesday',
       'Wednesday',
@@ -89,17 +82,12 @@ class BookingAvailabilityEngine {
     final dayName = dayNames[date.weekday - 1];
     final dailyHours = business.workingHours.schedule[dayName];
 
-    if (dailyHours == null || dailyHours.isClosed) {
-      return []; // Closed day
-    }
+    if (dailyHours == null || dailyHours.isClosed) return [];
 
-    // Parse business open/close time
     final bOpenMinutes = _parseTimeStringToMinutes(dailyHours.openTime);
     final bCloseMinutes = _parseTimeStringToMinutes(dailyHours.closeTime);
-
     if (bCloseMinutes <= bOpenMinutes) return [];
 
-    // 4. Filter Eligible Staff
     final eligibleStaff = filterEligibleStaff(allStaff, selectedServices);
     if (eligibleStaff.isEmpty) return [];
 
@@ -107,20 +95,15 @@ class BookingAvailabilityEngine {
         (specialistId != null && specialistId.isNotEmpty && !anySpecialist)
             ? eligibleStaff.where((s) => s.id == specialistId).toList()
             : eligibleStaff;
-
     if (targetStaffList.isEmpty) return [];
 
-    // Total Continuous Service Duration
     final totalDurationMinutes = selectedServices.fold(
         0, (runningTotal, s) => runningTotal + s.durationMinutes);
     if (totalDurationMinutes <= 0) return [];
 
-    // 5. Query Non-Sensitive booking_slots Collection (Privacy Preserving)
     final occupiedBucketsMap = <String, Set<int>>{};
-
     for (final staff in targetStaffList) {
       occupiedBucketsMap[staff.id] = {};
-
       final db = _db;
       if (db != null) {
         try {
@@ -133,12 +116,9 @@ class BookingAvailabilityEngine {
           for (final doc in lockSnap.docs) {
             final data = doc.data();
             final ts = (data['startTimestamp'] as num?)?.toInt();
-            if (ts != null) {
-              occupiedBucketsMap[staff.id]!.add(ts);
-            }
+            if (ts != null) occupiedBucketsMap[staff.id]!.add(ts);
           }
         } on FirebaseException catch (e) {
-          // Blocker 11: Do NOT swallow error and claim slots are free
           debugPrint(
               'AVAILABILITY_SLOTS_FETCH_ERROR: ${e.code} - ${e.message}');
           throw DomainException(
@@ -150,7 +130,6 @@ class BookingAvailabilityEngine {
       }
     }
 
-    // 6. Generate Candidate Start Times (Canonical 15-Minute Alignment)
     final resultSlots = <AvailableSlot>[];
     final isToday =
         date.year == now.year && date.month == now.month && date.day == now.day;
@@ -162,17 +141,12 @@ class BookingAvailabilityEngine {
         minutes += defaultStepMinutes) {
       final hour = minutes ~/ 60;
       final min = minutes % 60;
-
       final candStart = DateTime(date.year, date.month, date.day, hour, min);
       final candEnd = candStart.add(Duration(minutes: totalDurationMinutes));
 
-      // Lead time check for today
-      if (isToday && candStart.isBefore(leadTimeCutoff)) {
-        continue;
-      }
+      if (isToday && candStart.isBefore(leadTimeCutoff)) continue;
 
       final availableStaffForThisSlot = <String>[];
-
       for (final staff in targetStaffList) {
         if (_isStaffAvailableForSlot(
           staff: staff,
@@ -186,17 +160,17 @@ class BookingAvailabilityEngine {
           bOpenMinutes: bOpenMinutes,
           bCloseMinutes: bCloseMinutes,
           targetDateWeekday: date.weekday,
+          targetDayName: dayName,
         )) {
           availableStaffForThisSlot.add(staff.id);
         }
       }
 
       if (availableStaffForThisSlot.isNotEmpty) {
-        final timeStr = DateFormat('hh:mm a').format(candStart);
         resultSlots.add(AvailableSlot(
           startAt: candStart,
           endAt: candEnd,
-          timeString: timeStr,
+          timeString: DateFormat('hh:mm a').format(candStart),
           availableStaffIds: availableStaffForThisSlot,
           period: AvailableSlot.derivePeriod(candStart),
         ));
@@ -218,66 +192,71 @@ class BookingAvailabilityEngine {
     required int bOpenMinutes,
     required int bCloseMinutes,
     required int targetDateWeekday,
+    required String targetDayName,
   }) {
     final candStartMs = candStart.millisecondsSinceEpoch;
     final candEndMs = candEnd.millisecondsSinceEpoch;
+    final candStartMin = candStart.hour * 60 + candStart.minute;
+    final candEndMin = candStartMin + totalDurationMinutes;
 
-    // Blocker 9: Check Employee Shift Boundaries and Working Days
-    if (staff.workingDays != null &&
+    final perDaySchedule = staff.weeklySchedule[targetDayName];
+    if (perDaySchedule != null) {
+      if (!perDaySchedule.isWorking) return false;
+    } else if (staff.workingDays != null &&
         !staff.workingDays!.contains(targetDateWeekday)) {
       return false;
     }
 
-    final staffShiftStartMin = staff.shiftStart != null
-        ? _parseTimeStringToMinutes(staff.shiftStart!)
-        : bOpenMinutes;
-    final staffShiftEndMin = staff.shiftEnd != null
-        ? _parseTimeStringToMinutes(staff.shiftEnd!)
-        : bCloseMinutes;
+    final staffShiftStartMin = perDaySchedule != null
+        ? _parseTimeStringToMinutes(perDaySchedule.openTime)
+        : (staff.shiftStart != null
+            ? _parseTimeStringToMinutes(staff.shiftStart!)
+            : bOpenMinutes);
+    final staffShiftEndMin = perDaySchedule != null
+        ? _parseTimeStringToMinutes(perDaySchedule.closeTime)
+        : (staff.shiftEnd != null
+            ? _parseTimeStringToMinutes(staff.shiftEnd!)
+            : bCloseMinutes);
 
-    final candStartMin = candStart.hour * 60 + candStart.minute;
-    final candEndMin = candStartMin + totalDurationMinutes;
     if (candStartMin < staffShiftStartMin || candEndMin > staffShiftEndMin) {
       return false;
     }
 
-    // 2. Check 15-minute Slot Lock Buckets
-    const stepMs = defaultStepMinutes * 60 * 1000;
-    for (int t = candStartMs; t < candEndMs; t += stepMs) {
-      if (occupiedBuckets.contains(t)) {
+    if (perDaySchedule?.breakStart != null &&
+        perDaySchedule?.breakEnd != null) {
+      final breakStartMin =
+          _parseTimeStringToMinutes(perDaySchedule!.breakStart!);
+      final breakEndMin = _parseTimeStringToMinutes(perDaySchedule.breakEnd!);
+      if (candStartMin < breakEndMin && candEndMin > breakStartMin) {
         return false;
       }
     }
 
-    // 3. Check Employee Time-Offs (Leave / Vacation)
+    const stepMs = defaultStepMinutes * 60 * 1000;
+    for (int t = candStartMs; t < candEndMs; t += stepMs) {
+      if (occupiedBuckets.contains(t)) return false;
+    }
+
     for (final toff in employeeTimeOffs) {
       if (toff.employeeId == staff.id) {
         final toffStartMs = toff.startDate.millisecondsSinceEpoch;
         final toffEndMs = toff.endDate.millisecondsSinceEpoch;
-        if (candStartMs < toffEndMs && candEndMs > toffStartMs) {
-          return false;
-        }
+        if (candStartMs < toffEndMs && candEndMs > toffStartMs) return false;
       }
     }
 
-    // 4. Check Blocked Periods
     for (final bp in blockedPeriods) {
-      if (bp.staffId == null || bp.staffId == staff.id) {
-        if (bp.overlaps(candStart, candEnd)) {
-          return false;
-        }
+      if ((bp.staffId == null || bp.staffId == staff.id) &&
+          bp.overlaps(candStart, candEnd)) {
+        return false;
       }
     }
 
-    // 5. Check Staff Breaks (Multiple Breaks Supported)
     for (final brk in staffBreaks) {
       if (brk.staffId == staff.id) {
         final bStartMin = _parseTimeStringToMinutes(brk.startTime);
         final bEndMin = _parseTimeStringToMinutes(brk.endTime);
-
-        if (candStartMin < bEndMin && candEndMin > bStartMin) {
-          return false;
-        }
+        if (candStartMin < bEndMin && candEndMin > bStartMin) return false;
       }
     }
 
@@ -287,12 +266,12 @@ class BookingAvailabilityEngine {
   static int _parseTimeStringToMinutes(String raw) {
     try {
       final clean = raw.trim();
-      bool isPm = clean.toUpperCase().contains('PM');
-      bool isAm = clean.toUpperCase().contains('AM');
+      final isPm = clean.toUpperCase().contains('PM');
+      final isAm = clean.toUpperCase().contains('AM');
       final numbersStr = clean.replaceAll(RegExp(r'[^\d:]'), '');
       final parts = numbersStr.split(':');
-      int hour = int.parse(parts[0]);
-      int minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+      var hour = int.parse(parts[0]);
+      final minute = parts.length > 1 ? int.parse(parts[1]) : 0;
       if (isPm && hour < 12) hour += 12;
       if (isAm && hour == 12) hour = 0;
       return hour * 60 + minute;
