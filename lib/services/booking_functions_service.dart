@@ -9,6 +9,17 @@ class BookingFunctionsService {
   BookingFunctionsService([FirebaseFunctions? functions])
       : _functions = functions ?? FirebaseFunctions.instance;
 
+  String _isoWithOffset(DateTime value) {
+    if (value.isUtc) return value.toIso8601String();
+    final base = value.toIso8601String();
+    final offset = value.timeZoneOffset;
+    final sign = offset.isNegative ? '-' : '+';
+    final totalMinutes = offset.inMinutes.abs();
+    final hours = (totalMinutes ~/ 60).toString().padLeft(2, '0');
+    final minutes = (totalMinutes % 60).toString().padLeft(2, '0');
+    return '$base$sign$hours:$minutes';
+  }
+
   /// Invokes trusted backend createBooking Cloud Function.
   Future<BookingModel> createBooking({
     required String businessId,
@@ -25,36 +36,31 @@ class BookingFunctionsService {
         'businessId': businessId,
         'serviceId': serviceId,
         'staffId': staffId,
-        'requestedStartAt': requestedStartAt.toIso8601String(),
+        'requestedStartAt': _isoWithOffset(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
         'notes': notes,
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
-      final bookingId = resData['bookingId'] as String;
-      final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
-
       return BookingModel(
-        id: bookingId,
-        customerId: '',
-        customerName: customerName,
-        customerPhone: customerPhone,
-        businessId: businessId,
-        businessName: '',
-        serviceId: serviceId,
-        serviceName: '',
-        servicePrice: servicePrice,
-        staffId: staffId,
-        staffName: '',
-        startDateTime: requestedStartAt,
-        endDateTime: endDateTime,
+        id: resData['bookingId'] as String,
+        customerId: resData['customerId'] as String? ?? '',
+        customerName: resData['customerName'] as String? ?? customerName,
+        customerPhone: resData['customerPhone'] as String? ?? customerPhone,
+        businessId: resData['businessId'] as String? ?? businessId,
+        businessName: resData['businessName'] as String? ?? '',
+        serviceId: resData['serviceId'] as String? ?? serviceId,
+        serviceName: resData['serviceName'] as String? ?? '',
+        servicePrice: (resData['servicePrice'] as num).toDouble(),
+        staffId: resData['staffId'] as String? ?? staffId,
+        staffName: resData['staffName'] as String? ?? '',
+        startDateTime: DateTime.parse(resData['startDateTime'] as String).toLocal(),
+        endDateTime: DateTime.parse(resData['endDateTime'] as String).toLocal(),
         status: BookingStatus.pending,
-        bookingSource: 'app',
-        notes: notes,
-        slotLockId:
-            '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+        bookingSource: resData['bookingSource'] as String? ?? 'app',
+        notes: resData['notes'] as String? ?? notes,
+        slotLockId: resData['slotLockId'] as String?,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -85,7 +91,7 @@ class BookingFunctionsService {
         'businessId': businessId,
         'serviceId': serviceId,
         'staffId': staffId,
-        'requestedStartAt': requestedStartAt.toIso8601String(),
+        'requestedStartAt': _isoWithOffset(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
         'notes': notes,
@@ -94,7 +100,7 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
@@ -162,11 +168,11 @@ class BookingFunctionsService {
       final callable = _functions.httpsCallable('rescheduleBooking');
       final response = await callable.call({
         'bookingId': bookingId,
-        'newRequestedStartAt': newRequestedStartAt.toIso8601String(),
+        'newRequestedStartAt': _isoWithOffset(newRequestedStartAt),
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
