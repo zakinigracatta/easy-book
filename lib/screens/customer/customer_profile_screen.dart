@@ -8,6 +8,7 @@ import '../../providers/customer_profile_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/customer_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
+import 'edit_customer_profile_screen.dart';
 
 class CustomerProfileScreen extends ConsumerWidget {
   const CustomerProfileScreen({super.key});
@@ -46,7 +47,7 @@ class CustomerProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildUserCard(context, user),
+                  _buildUserCard(context, ref, user),
                   const SizedBox(height: 16),
                   _buildAccountSummary(user),
                   const SizedBox(height: 20),
@@ -54,7 +55,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                     context,
                     Icons.edit_rounded,
                     'Edit Profile',
-                    () => context.push('/edit-profile'),
+                    () => _openEditProfile(context, ref),
                   ),
                   _profileOption(
                     context,
@@ -126,7 +127,7 @@ class CustomerProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, UserModel user) {
+  Widget _buildUserCard(BuildContext context, WidgetRef ref, UserModel user) {
     return GlassCard(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -173,7 +174,7 @@ class CustomerProfileScreen extends ConsumerWidget {
           ),
           IconButton(
             tooltip: 'Edit profile',
-            onPressed: () => context.push('/edit-profile'),
+            onPressed: () => _openEditProfile(context, ref),
             icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
           ),
         ],
@@ -270,6 +271,15 @@ class CustomerProfileScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openEditProfile(BuildContext context, WidgetRef ref) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => const EditCustomerProfileScreen()),
+    );
+    if (context.mounted) {
+      ref.invalidate(customerProfileProvider);
+    }
   }
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
