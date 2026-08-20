@@ -251,7 +251,24 @@ class AuthService {
 
     final deterministicRef = _businesses.doc(user.id);
     final deterministicDoc = await deterministicRef.get();
-    if (deterministicDoc.exists) return;
+    if (deterministicDoc.exists) {
+      final data = deterministicDoc.data() ?? const <String, dynamic>{};
+      final ownerId = data['ownerId']?.toString();
+      final legacyOwnerId = data['owner_id']?.toString();
+      final documentId = data['id']?.toString();
+
+      if (ownerId != user.id ||
+          legacyOwnerId != user.id ||
+          documentId != user.id) {
+        await deterministicRef.set({
+          'id': user.id,
+          'ownerId': user.id,
+          'owner_id': user.id,
+          'updated_at': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+      return;
+    }
 
     final modernMatch = await _businesses
         .where('ownerId', isEqualTo: user.id)
