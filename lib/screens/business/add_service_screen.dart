@@ -8,6 +8,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/business/business_image_picker.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/service_model.dart';
+import '../../services/media_upload_service.dart';
 
 class AddServiceScreen extends ConsumerStatefulWidget {
   final ServiceModel? initialService;
@@ -20,6 +21,8 @@ class AddServiceScreen extends ConsumerStatefulWidget {
 
 class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _media = MediaUploadService();
+  late final String _serviceId;
   late TextEditingController _nameController;
   late TextEditingController _categoryController;
   late TextEditingController _descriptionController;
@@ -30,6 +33,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   int _selectedDurationMinutes = 30;
   bool _isActive = true;
   bool _isLoading = false;
+  double? _uploadProgress;
 
   final List<int> _durationOptions = [15, 20, 30, 45, 60, 90, 120];
 
@@ -37,6 +41,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   void initState() {
     super.initState();
     final s = widget.initialService;
+    _serviceId = s?.id ?? 'srv_${DateTime.now().millisecondsSinceEpoch}';
     _nameController = TextEditingController(text: s?.name ?? '');
     _categoryController =
         TextEditingController(text: s?.categoryName ?? 'Hair Services');
@@ -49,6 +54,17 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
     _selectedDurationMinutes = s?.durationMinutes ?? 30;
     _isActive = s?.isActive ?? true;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _categoryController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _discountController.dispose();
+    _imageUrlController.dispose();
+    super.dispose();
   }
 
   @override
@@ -91,7 +107,6 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Service Name Field
                       CustomTextField(
                         controller: _nameController,
                         label: 'Service Name *',
@@ -103,19 +118,13 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 14),
-
-                      // Category Field
                       CustomTextField(
                         controller: _categoryController,
                         label: 'Category (e.g. Hair, Beard, Facial, Massage)',
                         prefixIcon: Icons.category_rounded,
                       ),
-
                       const SizedBox(height: 14),
-
-                      // Price & Discount Price Fields
                       Row(
                         children: [
                           Expanded(
@@ -148,10 +157,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 14),
-
-                      // Duration Dropdown in minutes
                       DropdownButtonFormField<int>(
                         value:
                             _durationOptions.contains(_selectedDurationMinutes)
@@ -189,37 +195,36 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                           }
                         },
                       ),
-
                       const SizedBox(height: 14),
-
-                      // Description Field
                       CustomTextField(
                         controller: _descriptionController,
                         label: 'Description',
                         prefixIcon: Icons.notes_rounded,
                         maxLines: 3,
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Image URL Picker Widget
                       BusinessImagePicker(
                         label: 'Service Image',
                         currentImageUrl: _imageUrlController.text,
-                        onPickImage: () {
-                          _imageUrlController.text =
-                              'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80';
-                          setState(() {});
-                        },
-                        onDeleteImage: () {
-                          _imageUrlController.clear();
-                          setState(() {});
-                        },
+                        onPickImage: _pickServiceImage,
+                        onDeleteImage: _imageUrlController.text.isEmpty
+                            ? null
+                            : _deleteServiceImage,
+                        isLoading: _uploadProgress != null,
                       ),
-
+                      if (_uploadProgress != null) ...[
+                        const SizedBox(height: 8),
+                        LinearProgressIndicator(value: _uploadProgress),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Uploading ${(100 * _uploadProgress!).round()}%',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textMutedDark,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 16),
-
-                      // Availability Switch
                       SwitchListTile(
                         value: _isActive,
                         activeColor: AppColors.primary,
@@ -238,10 +243,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         ),
                         onChanged: (val) => setState(() => _isActive = val),
                       ),
-
                       const SizedBox(height: 24),
-
-                      // Save / Submit Button
                       CustomButton(
                         text: isEditing
                             ? 'Update Service'
@@ -260,6 +262,60 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
     );
   }
 
+  Future<String> _businessId() async {
+    final id = await ref.read(currentBusinessIdProvider.future);
+    if (id.isEmpty) throw StateError('Business ID is not available.');
+    return id;
+  }
+
+  Future<void> _pickServiceImage() async {
+    try {
+      final businessId = await _businessId();
+      setState(() => _uploadProgress = 0);
+      final url = await _media.pickAndUploadImage(
+        storageFolder: 'businesses/$businessId/services/$_serviceId',
+        onProgress: (progress) {
+          if (mounted) setState(() => _uploadProgress = progress);
+        },
+      );
+      if (url == null || !mounted) return;
+
+      final oldUrl = _imageUrlController.text.trim();
+      setState(() => _imageUrlController.text = url);
+      if (oldUrl.isNotEmpty && oldUrl != url) {
+        await _media.deleteByUrl(oldUrl);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Image upload failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadProgress = null);
+    }
+  }
+
+  Future<void> _deleteServiceImage() async {
+    final url = _imageUrlController.text.trim();
+    setState(() => _imageUrlController.clear());
+    try {
+      await _media.deleteByUrl(url);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not delete image: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _saveService() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -270,12 +326,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       final discountPrice = _discountController.text.trim().isNotEmpty
           ? double.tryParse(_discountController.text.trim())
           : null;
-
-      final bizId = ref.read(currentBusinessIdProvider).value ?? '';
+      final bizId = await _businessId();
 
       final service = ServiceModel(
-        id: widget.initialService?.id ??
-            'srv_${DateTime.now().millisecondsSinceEpoch}',
+        id: _serviceId,
         salonId: bizId,
         name: _nameController.text.trim(),
         price: price,
