@@ -17,6 +17,13 @@ final ownerRepositoryProvider = Provider<OwnerRepository>((ref) {
   return OwnerRepositoryImpl();
 });
 
+String _businessIdOrEmpty(AsyncValue<String> value) {
+  return value.maybeWhen(
+    data: (businessId) => businessId,
+    orElse: () => '',
+  );
+}
+
 // Objective 21: Real Owner Business ID Resolution
 final currentBusinessIdProvider = FutureProvider<String>((ref) async {
   final user = FirebaseAuth.instance.currentUser;
@@ -98,7 +105,10 @@ class OwnerBusinessNotifier extends StateNotifier<AsyncValue<BusinessModel>> {
   }
 
   Future<void> toggleAcceptingBookings(bool accepts) async {
-    final current = state.value;
+    final current = state.maybeWhen(
+      data: (business) => business,
+      orElse: () => null,
+    );
     if (current != null) {
       final updated = current.copyWith(acceptingBookings: accepts);
       await updateBusiness(updated);
@@ -110,8 +120,7 @@ final ownerBusinessProvider =
     StateNotifierProvider<OwnerBusinessNotifier, AsyncValue<BusinessModel>>(
         (ref) {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   return OwnerBusinessNotifier(repo, bizId);
 });
 
@@ -160,8 +169,7 @@ class OwnerBookingsNotifier
 final ownerBookingsProvider = StateNotifierProvider<OwnerBookingsNotifier,
     AsyncValue<List<BookingModel>>>((ref) {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   return OwnerBookingsNotifier(repo, bizId);
 });
 
@@ -286,8 +294,7 @@ class OwnerServicesNotifier
 final ownerServicesProvider = StateNotifierProvider<OwnerServicesNotifier,
     AsyncValue<List<ServiceModel>>>((ref) {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   return OwnerServicesNotifier(repo, bizId);
 });
 
@@ -336,8 +343,7 @@ final ownerEmployeesProvider =
     StateNotifierProvider<OwnerEmployeesNotifier, AsyncValue<List<StaffModel>>>(
         (ref) {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   return OwnerEmployeesNotifier(repo, bizId);
 });
 
@@ -345,8 +351,7 @@ final ownerEmployeesProvider =
 final ownerTimeOffsProvider =
     FutureProvider<List<EmployeeTimeOffModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   if (bizId.isEmpty) return [];
   return repo.fetchEmployeeTimeOffs(bizId);
 });
@@ -395,16 +400,14 @@ class OwnerGalleryNotifier
 final ownerGalleryProvider = StateNotifierProvider<OwnerGalleryNotifier,
     AsyncValue<List<GalleryImageModel>>>((ref) {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   return OwnerGalleryNotifier(repo, bizId);
 });
 
 // Owner Reviews Provider
 final ownerReviewsProvider = FutureProvider<List<ReviewModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerReviews(bizId);
 });
@@ -412,8 +415,7 @@ final ownerReviewsProvider = FutureProvider<List<ReviewModel>>((ref) async {
 // Owner Offers Provider
 final ownerOffersProvider = FutureProvider<List<OfferModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerOffers(bizId);
 });
@@ -422,8 +424,7 @@ final ownerOffersProvider = FutureProvider<List<OfferModel>>((ref) async {
 final ownerCustomersProvider =
     FutureProvider<List<CustomerProfileModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerCustomers(bizId);
 });
@@ -432,8 +433,7 @@ final ownerCustomersProvider =
 final ownerNotificationsProvider =
     FutureProvider<List<OwnerNotificationModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = _businessIdOrEmpty(ref.watch(currentBusinessIdProvider));
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerNotifications(bizId);
 });
