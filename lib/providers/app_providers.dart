@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/business_model.dart';
 import '../models/booking_model.dart';
 import '../models/chat_model.dart';
@@ -9,7 +8,6 @@ import '../models/service_model.dart';
 import '../models/staff_model.dart';
 import '../models/review_model.dart';
 import '../models/available_slot.dart';
-import '../models/employee_time_off_model.dart';
 import '../services/auth_service.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/business_repository.dart';
@@ -49,6 +47,12 @@ final availableSlotsProvider = FutureProvider.family<
 });
 
 // Engine Powered Available Slots Provider
+//
+// Employee leave records stay private to the business owner. The customer UI
+// computes candidate slots from public business/staff schedules, while the
+// trusted booking backend performs the authoritative leave revalidation before
+// it creates any booking. This avoids exposing private time-off reasons/notes
+// and removes intentional Firestore permission-denied noise from customer apps.
 final availableSlotsEngineProvider = FutureProvider.family<
     List<AvailableSlot>,
     ({
@@ -60,16 +64,6 @@ final availableSlotsEngineProvider = FutureProvider.family<
       DateTime date,
     })>((ref, arg) async {
   final engine = ref.watch(availabilityEngineProvider);
-  List<EmployeeTimeOffModel> timeOffs = [];
-  try {
-    final snap = await FirebaseFirestore.instance
-        .collection('businesses')
-        .doc(arg.business.id)
-        .collection('timeOffs')
-        .get();
-    timeOffs =
-        snap.docs.map((d) => EmployeeTimeOffModel.fromJson(d.data())).toList();
-  } catch (_) {}
 
   return engine.computeAvailableSlots(
     business: arg.business,
@@ -78,7 +72,6 @@ final availableSlotsEngineProvider = FutureProvider.family<
     specialistId: arg.specialistId,
     anySpecialist: arg.anySpecialist,
     date: arg.date,
-    employeeTimeOffs: timeOffs,
   );
 });
 
