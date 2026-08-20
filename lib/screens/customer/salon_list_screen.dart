@@ -1,42 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../models/business_model.dart';
+import '../../providers/app_providers.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
 
-class SalonListScreen extends StatelessWidget {
+class SalonListScreen extends ConsumerWidget {
   const SalonListScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final salons = [
-      {
-        'id': 'b1',
-        'name': 'Executive Barber Lounge',
-        'address': '142 Luxury Blvd',
-        'rating': 4.9,
-        'reviews': 328,
-        'img':
-            'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80'
-      },
-      {
-        'id': 'b2',
-        'name': 'Royal Spa & Wellness',
-        'address': '88 Grand Ave',
-        'rating': 4.8,
-        'reviews': 210,
-        'img':
-            'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80'
-      },
-      {
-        'id': 'b3',
-        'name': 'Elegance Hair Couture',
-        'address': '45 Fashion St',
-        'rating': 4.7,
-        'reviews': 185,
-        'img':
-            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80'
-      },
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final businessesAsync = ref.watch(businessesProvider);
 
     return PopScope(
       canPop: context.canPop(),
@@ -61,55 +38,182 @@ class SalonListScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Top Salons & Spas'),
+          title: const Text('Salons & Spas'),
         ),
-        body: ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: salons.length,
-          itemBuilder: (context, index) {
-            final s = salons[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: GlassCard(
-                onTap: () => context.push('/salon/${s['id']}'),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Image.network(s['img'] as String,
-                          width: 90, height: 90, fit: BoxFit.cover),
+        body: businessesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.cloud_off_rounded,
+                    size: 46,
+                    color: AppColors.textMutedDark,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Could not load businesses.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textMutedDark),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => ref.invalidate(businessesProvider),
+                    child: const Text('Try Again'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          data: (businesses) {
+            final visibleBusinesses =
+                businesses.where((business) => business.isActive).toList();
+
+            if (visibleBusinesses.isEmpty) {
+              return RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(businessesProvider);
+                  await ref.read(businessesProvider.future);
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  children: const [
+                    SizedBox(height: 120),
+                    Icon(
+                      Icons.storefront_outlined,
+                      size: 52,
+                      color: AppColors.textMutedDark,
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(s['name'] as String,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
-                          const SizedBox(height: 4),
-                          Text(s['address'] as String,
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.grey)),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              RatingStars(rating: s['rating'] as double),
-                              const SizedBox(width: 6),
-                              Text('${s['rating']} (${s['reviews']})',
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ],
+                    SizedBox(height: 12),
+                    Text(
+                      'No businesses are available yet.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textMutedDark),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(businessesProvider);
+                await ref.read(businessesProvider.future);
+              },
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                itemCount: visibleBusinesses.length,
+                itemBuilder: (context, index) {
+                  final business = visibleBusinesses[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _businessCard(context, business),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  static Widget _businessCard(
+    BuildContext context,
+    BusinessModel business,
+  ) {
+    final address = business.address.trim().isEmpty
+        ? business.category
+        : business.address.trim();
+
+    return GlassCard(
+      onTap: () => context.push('/salon/${business.id}'),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: _businessImage(business),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  business.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  address,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMutedDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    RatingStars(rating: business.rating),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _businessImage(BusinessModel business) {
+    if (business.imageUrl.trim().isEmpty) {
+      return Container(
+        width: 90,
+        height: 90,
+        color: AppColors.glassBgDark,
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.storefront_rounded,
+          size: 34,
+          color: AppColors.textMutedDark,
+        ),
+      );
+    }
+
+    return Image.network(
+      business.imageUrl,
+      width: 90,
+      height: 90,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        width: 90,
+        height: 90,
+        color: AppColors.glassBgDark,
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.storefront_rounded,
+          size: 34,
+          color: AppColors.textMutedDark,
         ),
       ),
     );

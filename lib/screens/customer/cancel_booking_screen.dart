@@ -95,7 +95,7 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
                     Text(
-                        'Full refund will be credited to your Easy Book Wallet.',
+                        'The appointment will be cancelled and the time slot will become available again.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textMutedDark)),
                   ],

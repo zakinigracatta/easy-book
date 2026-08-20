@@ -9,6 +9,59 @@ class BookingFunctionsService {
   BookingFunctionsService([FirebaseFunctions? functions])
       : _functions = functions ?? FirebaseFunctions.instance;
 
+  String _isoWithOffset(DateTime value) {
+    if (value.isUtc) return value.toIso8601String();
+    final base = value.toIso8601String();
+    final offset = value.timeZoneOffset;
+    final sign = offset.isNegative ? '-' : '+';
+    final totalMinutes = offset.inMinutes.abs();
+    final hours = (totalMinutes ~/ 60).toString().padLeft(2, '0');
+    final minutes = (totalMinutes % 60).toString().padLeft(2, '0');
+    return '$base$sign$hours:$minutes';
+  }
+
+  Map<String, dynamic> _responseMap(dynamic raw) {
+    if (raw is Map) {
+      return Map<String, dynamic>.from(raw);
+    }
+    throw DomainException('Unexpected response from the booking server.');
+  }
+
+  String _stringValue(dynamic value, [String fallback = '']) {
+    final text = value?.toString().trim();
+    return (text == null || text.isEmpty) ? fallback : text;
+  }
+
+  double _doubleValue(dynamic value, [double fallback = 0.0]) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  int _intValue(dynamic value, [int fallback = 0]) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  DateTime _dateValue(dynamic value, DateTime fallback) {
+    if (value is DateTime) return value.toLocal();
+    final parsed = DateTime.tryParse(value?.toString() ?? '');
+    return (parsed ?? fallback).toLocal();
+  }
+
+  BookingStatus _statusValue(dynamic value, BookingStatus fallback) {
+    final raw = value?.toString();
+    if (raw == null || raw.isEmpty) return fallback;
+    return BookingStatus.values.firstWhere(
+      (status) => status.name == raw,
+      orElse: () => fallback,
+    );
+  }
+
+  String? _nullableString(dynamic value) {
+    final text = value?.toString().trim();
+    return (text == null || text.isEmpty) ? null : text;
+  }
+
   /// Invokes trusted backend createBooking Cloud Function.
   Future<BookingModel> createBooking({
     required String businessId,
@@ -25,36 +78,54 @@ class BookingFunctionsService {
         'businessId': businessId,
         'serviceId': serviceId,
         'staffId': staffId,
-        'requestedStartAt': requestedStartAt.toIso8601String(),
+        'requestedStartAt': _isoWithOffset(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
         'notes': notes,
       });
 
-      final resData = Map<String, dynamic>.from(response.data as Map);
-      final bookingId = resData['bookingId'] as String;
-      final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final resData = _responseMap(response.data);
+      if (kDebugMode) {
+        debugPrint('CREATE_BOOKING_RESPONSE_KEYS: ${resData.keys.toList()}');
+      }
+
+      final bookingId = _stringValue(resData['bookingId']);
+      if (bookingId.isEmpty) {
+        throw DomainException(
+          'The booking server did not return a booking reference. Check My Bookings before trying again.',
+        );
+      }
+
+      final durationMinutes = _intValue(resData['durationMinutes'], 30);
+      final safeDuration = durationMinutes > 0 ? durationMinutes : 30;
+      final startDateTime =
+          _dateValue(resData['startDateTime'], requestedStartAt);
+      final endDateTime = _dateValue(
+        resData['endDateTime'],
+        startDateTime.add(Duration(minutes: safeDuration)),
+      );
+      final slotLockId = _nullableString(resData['slotLockId']) ??
+          '${businessId}_${staffId}_${startDateTime.millisecondsSinceEpoch}';
 
       return BookingModel(
         id: bookingId,
-        customerId: '',
-        customerName: customerName,
-        customerPhone: customerPhone,
-        businessId: businessId,
-        businessName: '',
-        serviceId: serviceId,
-        serviceName: '',
-        servicePrice: servicePrice,
-        staffId: staffId,
-        staffName: '',
-        startDateTime: requestedStartAt,
+        customerId: _stringValue(resData['customerId']),
+        customerName: _stringValue(resData['customerName'], customerName),
+        customerPhone:
+            _stringValue(resData['customerPhone'], customerPhone),
+        businessId: _stringValue(resData['businessId'], businessId),
+        businessName: _stringValue(resData['businessName']),
+        serviceId: _stringValue(resData['serviceId'], serviceId),
+        serviceName: _stringValue(resData['serviceName']),
+        servicePrice: _doubleValue(resData['servicePrice']),
+        staffId: _stringValue(resData['staffId'], staffId),
+        staffName: _stringValue(resData['staffName']),
+        startDateTime: startDateTime,
         endDateTime: endDateTime,
-        status: BookingStatus.pending,
-        bookingSource: 'app',
-        notes: notes,
-        slotLockId:
-            '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+        status: _statusValue(resData['status'], BookingStatus.pending),
+        bookingSource: _stringValue(resData['bookingSource'], 'app'),
+        notes: _stringValue(resData['notes'], notes),
+        slotLockId: slotLockId,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -85,36 +156,54 @@ class BookingFunctionsService {
         'businessId': businessId,
         'serviceId': serviceId,
         'staffId': staffId,
-        'requestedStartAt': requestedStartAt.toIso8601String(),
+        'requestedStartAt': _isoWithOffset(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
         'notes': notes,
       });
 
-      final resData = Map<String, dynamic>.from(response.data as Map);
-      final bookingId = resData['bookingId'] as String;
-      final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final resData = _responseMap(response.data);
+      if (kDebugMode) {
+        debugPrint('CREATE_WALK_IN_RESPONSE_KEYS: ${resData.keys.toList()}');
+      }
+
+      final bookingId = _stringValue(resData['bookingId']);
+      if (bookingId.isEmpty) {
+        throw DomainException(
+          'The booking server did not return a walk-in booking reference.',
+        );
+      }
+
+      final durationMinutes = _intValue(resData['durationMinutes'], 30);
+      final safeDuration = durationMinutes > 0 ? durationMinutes : 30;
+      final startDateTime =
+          _dateValue(resData['startDateTime'], requestedStartAt);
+      final endDateTime = _dateValue(
+        resData['endDateTime'],
+        startDateTime.add(Duration(minutes: safeDuration)),
+      );
+      final slotLockId = _nullableString(resData['slotLockId']) ??
+          '${businessId}_${staffId}_${startDateTime.millisecondsSinceEpoch}';
 
       return BookingModel(
         id: bookingId,
-        customerId: '',
-        customerName: customerName,
-        customerPhone: customerPhone,
-        businessId: businessId,
-        businessName: '',
-        serviceId: serviceId,
-        serviceName: '',
-        servicePrice: servicePrice,
-        staffId: staffId,
-        staffName: '',
-        startDateTime: requestedStartAt,
+        customerId: _stringValue(resData['customerId']),
+        customerName: _stringValue(resData['customerName'], customerName),
+        customerPhone:
+            _stringValue(resData['customerPhone'], customerPhone),
+        businessId: _stringValue(resData['businessId'], businessId),
+        businessName: _stringValue(resData['businessName']),
+        serviceId: _stringValue(resData['serviceId'], serviceId),
+        serviceName: _stringValue(resData['serviceName']),
+        servicePrice: _doubleValue(resData['servicePrice']),
+        staffId: _stringValue(resData['staffId'], staffId),
+        staffName: _stringValue(resData['staffName']),
+        startDateTime: startDateTime,
         endDateTime: endDateTime,
-        status: BookingStatus.confirmed,
-        bookingSource: 'walkIn',
-        notes: notes,
-        slotLockId:
-            '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+        status: _statusValue(resData['status'], BookingStatus.confirmed),
+        bookingSource: _stringValue(resData['bookingSource'], 'walkIn'),
+        notes: _stringValue(resData['notes'], notes),
+        slotLockId: slotLockId,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -129,7 +218,7 @@ class BookingFunctionsService {
     }
   }
 
-  /// Invokes trusted backend cancelBooking Cloud Function.
+  /// Canonical cancellation path via trusted Callable Cloud Function.
   Future<bool> cancelBooking({
     required String bookingId,
     String? cancelReason,
@@ -142,8 +231,9 @@ class BookingFunctionsService {
           'cancelReason': cancelReason,
       });
 
-      final resData = Map<String, dynamic>.from(response.data as Map);
-      return resData['success'] as bool? ?? true;
+      final resData = _responseMap(response.data);
+      final success = resData['success'];
+      return success is bool ? success : true;
     } on FirebaseFunctionsException catch (e) {
       debugPrint('CANCEL_BOOKING_FUNCTION_ERROR: ${e.code} - ${e.message}');
       throw _mapFunctionException(e);
@@ -153,7 +243,7 @@ class BookingFunctionsService {
     }
   }
 
-  /// Invokes trusted backend rescheduleBooking Cloud Function.
+  /// Reschedules an existing booking via trusted Callable Cloud Function.
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newRequestedStartAt,
@@ -162,28 +252,36 @@ class BookingFunctionsService {
       final callable = _functions.httpsCallable('rescheduleBooking');
       final response = await callable.call({
         'bookingId': bookingId,
-        'newRequestedStartAt': newRequestedStartAt.toIso8601String(),
+        'newRequestedStartAt': _isoWithOffset(newRequestedStartAt),
       });
 
-      final resData = Map<String, dynamic>.from(response.data as Map);
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final resData = _responseMap(response.data);
+      final durationMinutes = _intValue(resData['durationMinutes'], 30);
+      final safeDuration = durationMinutes > 0 ? durationMinutes : 30;
+      final startDateTime =
+          _dateValue(resData['startDateTime'], newRequestedStartAt);
+      final endDateTime = _dateValue(
+        resData['endDateTime'],
+        startDateTime.add(Duration(minutes: safeDuration)),
+      );
 
       return BookingModel(
-        id: bookingId,
-        customerId: '',
-        customerName: '',
-        customerPhone: '',
-        businessId: '',
-        businessName: '',
-        serviceId: '',
-        serviceName: '',
-        servicePrice: 0.0,
-        staffId: '',
-        staffName: '',
-        startDateTime: newRequestedStartAt,
+        id: _stringValue(resData['bookingId'], bookingId),
+        customerId: _stringValue(resData['customerId']),
+        customerName: _stringValue(resData['customerName']),
+        customerPhone: _stringValue(resData['customerPhone']),
+        businessId: _stringValue(resData['businessId']),
+        businessName: _stringValue(resData['businessName']),
+        serviceId: _stringValue(resData['serviceId']),
+        serviceName: _stringValue(resData['serviceName']),
+        servicePrice: _doubleValue(resData['servicePrice']),
+        staffId: _stringValue(resData['staffId']),
+        staffName: _stringValue(resData['staffName']),
+        startDateTime: startDateTime,
         endDateTime: endDateTime,
-        status: BookingStatus.pending,
-        bookingSource: 'app',
+        status: _statusValue(resData['status'], BookingStatus.pending),
+        bookingSource: _stringValue(resData['bookingSource'], 'app'),
+        slotLockId: _nullableString(resData['slotLockId']),
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -197,7 +295,7 @@ class BookingFunctionsService {
     }
   }
 
-  /// Invokes trusted backend updateBookingStatus Cloud Function for owner status transitions.
+  /// Updates booking status via trusted Callable Cloud Function for owners.
   Future<bool> updateBookingStatus({
     required String bookingId,
     required BookingStatus newStatus,
@@ -209,8 +307,9 @@ class BookingFunctionsService {
         'newStatus': newStatus.name,
       });
 
-      final resData = Map<String, dynamic>.from(response.data as Map);
-      return resData['success'] as bool? ?? true;
+      final resData = _responseMap(response.data);
+      final success = resData['success'];
+      return success is bool ? success : true;
     } on FirebaseFunctionsException catch (e) {
       debugPrint('UPDATE_STATUS_FUNCTION_ERROR: ${e.code} - ${e.message}');
       throw _mapFunctionException(e);

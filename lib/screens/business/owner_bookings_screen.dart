@@ -6,7 +6,6 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
-import '../../models/booking_model.dart';
 
 class OwnerBookingsScreen extends ConsumerWidget {
   const OwnerBookingsScreen({super.key});
@@ -61,7 +60,6 @@ class OwnerBookingsScreen extends ConsumerWidget {
         ),
         body: Column(
           children: [
-            // Search Input
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: TextField(
@@ -103,8 +101,6 @@ class OwnerBookingsScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Horizontal Filter Chips
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -141,10 +137,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                 }).toList(),
               ),
             ),
-
             const SizedBox(height: 8),
-
-            // Bookings List View
             Expanded(
               child: bookingsAsync.when(
                 data: (_) {
@@ -159,30 +152,48 @@ class OwnerBookingsScreen extends ConsumerWidget {
                     );
                   }
 
-                  return ListView.builder(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: filteredBookings.length,
-                    itemBuilder: (context, index) {
-                      final booking = filteredBookings[index];
-                      return OwnerBookingCard(
-                        booking: booking,
-                        onStatusChanged: (newStatus) {
-                          ref
-                              .read(ownerBookingsProvider.notifier)
-                              .updateStatus(booking.id, newStatus);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'Updated booking status to ${newStatus.name.toUpperCase()}'),
-                              backgroundColor: AppColors.primary,
-                            ),
-                          );
-                        },
-                        onRescheduleTap: () =>
-                            context.push('/booking-calendar'),
-                      );
-                    },
+                  return RefreshIndicator(
+                    onRefresh: () => ref
+                        .read(ownerBookingsProvider.notifier)
+                        .loadBookings(),
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      itemCount: filteredBookings.length,
+                      itemBuilder: (context, index) {
+                        final booking = filteredBookings[index];
+                        return OwnerBookingCard(
+                          booking: booking,
+                          onStatusChanged: (newStatus) async {
+                            try {
+                              await ref
+                                  .read(ownerBookingsProvider.notifier)
+                                  .updateStatus(booking.id, newStatus);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Booking status updated to ${newStatus.name.toUpperCase()}.'),
+                                  backgroundColor: AppColors.success,
+                                ),
+                              );
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Could not update booking status: ${e.toString().replaceFirst('Exception: ', '')}'),
+                                  backgroundColor: AppColors.error,
+                                ),
+                              );
+                            }
+                          },
+                          onRescheduleTap: () =>
+                              context.push('/booking-calendar'),
+                        );
+                      },
+                    ),
                   );
                 },
                 loading: () => const Center(
