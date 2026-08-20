@@ -100,8 +100,14 @@ class OwnerBusinessNotifier extends StateNotifier<AsyncValue<BusinessModel>> {
   }
 
   Future<void> updateBusiness(BusinessModel updated) async {
-    state = AsyncValue.data(updated);
+    // Persist first. The UI must never advertise OPEN/updated data that the
+    // authoritative Firestore document did not actually accept.
     await _repo.updateOwnerBusiness(updated);
+
+    // Reload the authoritative record after the write so legacy aliases and
+    // server-side values are reflected in the UI before reporting success.
+    final persisted = await _repo.fetchOwnerBusiness(updated.id);
+    state = AsyncValue.data(persisted);
   }
 
   Future<void> toggleAcceptingBookings(bool accepts) async {
