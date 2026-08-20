@@ -149,7 +149,7 @@ class AuthService {
     try {
       await firebaseUser.updateDisplayName(businessName.trim());
       await _saveProfile(user);
-      await _ensureBusinessForOwner(user);
+      await _ensureOwnerBusiness(user);
 
       if (!firebaseUser.emailVerified) {
         await firebaseUser.sendEmailVerification();
@@ -206,9 +206,17 @@ class AuthService {
           .toString()
           .trim()
           .toLowerCase();
-
       final user = UserModel.fromJson(data);
-      await _ensureBusinessForOwner(user);
+
+      if (_isOwner(user.role)) {
+        try {
+          await _ensureOwnerBusiness(user);
+        } catch (e) {
+          debugPrint(
+              'Unable to repair owner business link for uid=${user.id}: $e');
+        }
+      }
+
       return user;
     }
 
@@ -222,55 +230,6 @@ class AuthService {
       role: UserRole.customer,
       walletBalance: 0.0,
     );
-  }
-
-  Future<void> _ensureBusinessForOwner(UserModel user) async {
-    if (user.role != UserRole.owner && user.role != UserRole.businessOwner) {
-      return;
-    }
-
-    final ownerIdQuery =
-        await _businesses.where('ownerId', isEqualTo: user.id).limit(1).get();
-    if (ownerIdQuery.docs.isNotEmpty) {
-      return;
-    }
-
-    final legacyOwnerIdQuery =
-        await _businesses.where('owner_id', isEqualTo: user.id).limit(1).get();
-    if (legacyOwnerIdQuery.docs.isNotEmpty) {
-      return;
-    }
-
-    final businessName = (user.businessName?.trim().isNotEmpty ?? false)
-        ? user.businessName!.trim()
-        : user.fullName.trim();
-
-    await _businesses.doc(user.id).set({
-      'id': user.id,
-      'name': businessName,
-      'category': user.category?.trim().isNotEmpty == true
-          ? user.category!.trim()
-          : 'Salon',
-      'address': user.location?.trim() ?? '',
-      'phone': user.phone.trim(),
-      'image_url': user.businessImageUrl ?? '',
-      // Keep both owner field styles for legacy/current compatibility.
-      'ownerId': user.id,
-      'owner_id': user.id,
-      'rating': 0.0,
-      'review_count': 0,
-      'is_verified': true,
-      'description': '',
-      'latitude': 0.0,
-      'longitude': 0.0,
-      'gallery_urls': <String>[],
-      'amenities': <String>[],
-      'is_active': true,
-      'business_status': 'open',
-      'accepting_bookings': true,
-      'created_at': FieldValue.serverTimestamp(),
-      'updated_at': FieldValue.serverTimestamp(),
-    });
   }
 
   Future<void> _saveProfile(UserModel user) async {
@@ -289,9 +248,71 @@ class AuthService {
     }, SetOptions(merge: true));
   }
 
+  Future<void> _ensureOwnerBusiness(UserModel user) async {
+    if (!_isOwner(user.role) || user.id.isEmpty) return;
+
+    final deterministicRef = _businesses.doc(user.id);
+    final deterministicDoc = await deterministicRef.get();
+    if (deterministicDoc.exists) return;
+
+    final modernMatch = await _businesses
+        .where('ownerId', isEqualTo: user.id)
+        .limit(1)
+        .get();
+    if (modernMatch.docs.isNotEmpty) return;
+
+    final legacyMatch = await _businesses
+        .where('owner_id', isEqualTo: user.id)
+        .limit(1)
+        .get();
+    if (legacyMatch.docs.isNotEmpty) return;
+
+    final rawBusinessName = user.businessName?.trim() ?? '';
+    final rawFullName = user.fullName.trim();
+    final businessName = rawBusinessName.isNotEmpty
+        ? rawBusinessName
+        : (rawFullName.isNotEmpty ? rawFullName : 'Easy Book Business');
+    final category = user.category?.trim() ?? '';
+    final location = user.location?.trim() ?? '';
+    final imageUrl = user.businessImageUrl?.trim() ?? '';
+
+    debugPrint('Creating missing business record for owner uid=${user.id}');
+
+    await deterministicRef.set({
+      'id': user.id,
+      'name': businessName,
+      'category': category.isNotEmpty ? category : 'Salon',
+      'address': location,
+      'rating': 0.0,
+      'review_count': 0,
+      'image_url': imageUrl,
+      'is_verified': false,
+      'description': '',
+      'ownerId': user.id,
+      'owner_id': user.id,
+      'latitude': 0.0,
+      'longitude': 0.0,
+      'amenities': <String>[],
+      'phone': user.phone.trim(),
+      'gallery_urls': <String>[],
+      'isActive': true,
+      'is_active': true,
+      'businessStatus': 'open',
+      'business_status': 'open',
+      'acceptingBookings': true,
+      'accepting_bookings': true,
+      'created_at': FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  bool _isOwner(UserRole role) {
+    return role == UserRole.owner || role == UserRole.businessOwner;
+  }
+
   bool _matchesRequestedRole(UserRole actual, UserRole requested) {
-    if (requested == UserRole.owner || requested == UserRole.businessOwner) {
-      return actual == UserRole.owner || actual == UserRole.businessOwner;
+    if (_isOwner(requested)) {
+      return _isOwner(actual);
     }
 
     return actual == requested;
