@@ -130,9 +130,12 @@ export async function validateBookingRequirements(
   businessId: string,
   serviceId: string,
   staffId: string,
-  requestedStartAt: Date
+  requestedStartAt: Date,
+  enforceCustomerBookingWindow = true
 ): Promise<ValidatedBookingContext> {
-  validateBookingWindow(requestedStartAt);
+  if (enforceCustomerBookingWindow) {
+    validateBookingWindow(requestedStartAt);
+  }
 
   const bizRef = db.collection('businesses').doc(businessId);
   const bizSnap = await transaction.get(bizRef);
