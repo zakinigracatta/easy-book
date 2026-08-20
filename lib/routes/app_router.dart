@@ -33,12 +33,12 @@ import '../screens/customer/booking_date_screen.dart';
 import '../screens/customer/booking_time_screen.dart';
 import '../screens/customer/booking_summary_screen.dart';
 import '../screens/customer/booking_confirmation_screen.dart';
-
 import '../screens/customer/payment_screen.dart';
 import '../screens/customer/booking_success_screen.dart';
 import '../screens/customer/my_bookings_screen.dart';
 import '../screens/customer/booking_details_screen.dart';
 import '../screens/customer/reschedule_booking_screen.dart';
+import '../screens/customer/cancel_booking_screen.dart';
 import '../screens/customer/favorites_screen.dart';
 import '../screens/customer/notifications_screen.dart';
 import '../screens/customer/chat_screen.dart';
@@ -110,7 +110,6 @@ final appRouter = GoRouter(
       currentUserModel = container.read(authProvider);
     } catch (_) {}
 
-    // Direct route protection for owner routes
     const ownerProtectedRoutes = [
       '/owner-dashboard',
       '/owner-bookings',
@@ -134,9 +133,7 @@ final appRouter = GoRouter(
     ];
 
     if (ownerProtectedRoutes.contains(loc)) {
-      if (user == null) {
-        return '/owner-login';
-      }
+      if (user == null) return '/owner-login';
       if (currentUserModel != null &&
           currentUserModel.role != UserRole.owner &&
           currentUserModel.role != UserRole.businessOwner) {
@@ -144,7 +141,6 @@ final appRouter = GoRouter(
       }
     }
 
-    // Direct route protection for admin routes
     const adminProtectedRoutes = [
       '/admin-dashboard',
       '/users-management',
@@ -155,20 +151,17 @@ final appRouter = GoRouter(
     ];
 
     if (adminProtectedRoutes.contains(loc)) {
-      if (user == null) {
-        return '/admin-login';
-      }
-      if (currentUserModel != null &&
-          currentUserModel.role != UserRole.admin) {
+      if (user == null) return '/admin-login';
+      if (currentUserModel != null && currentUserModel.role != UserRole.admin) {
         return '/home';
       }
     }
 
-    // Direct route protection for customer protected routes
     const customerProtectedRoutes = [
       '/my-bookings',
       '/booking-details',
       '/reschedule-booking',
+      '/cancel-booking',
       '/favorites',
       '/customer-profile',
       '/chat',
@@ -181,13 +174,10 @@ final appRouter = GoRouter(
     return null;
   },
   routes: [
-    // Auth
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(
-        path: '/welcome', builder: (context, state) => const WelcomeScreen()),
+    GoRoute(path: '/welcome', builder: (context, state) => const WelcomeScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(
-        path: '/register', builder: (context, state) => const RegisterScreen()),
+    GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
     GoRoute(
         path: '/business-register',
         builder: (context, state) => const BusinessRegisterScreen()),
@@ -201,15 +191,10 @@ final appRouter = GoRouter(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen()),
 
-    // Customer
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
-    GoRoute(
-        path: '/categories',
-        builder: (context, state) => const CategoriesScreen()),
-    GoRoute(
-        path: '/salon-list',
-        builder: (context, state) => const SalonListScreen()),
+    GoRoute(path: '/categories', builder: (context, state) => const CategoriesScreen()),
+    GoRoute(path: '/salon-list', builder: (context, state) => const SalonListScreen()),
     GoRoute(
       path: '/salon-details',
       builder: (context, state) {
@@ -231,15 +216,10 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/staff-profile',
         builder: (context, state) => const StaffProfileScreen()),
-    GoRoute(
-        path: '/gallery', builder: (context, state) => const GalleryScreen()),
-    GoRoute(
-        path: '/reviews', builder: (context, state) => const ReviewsScreen()),
-    GoRoute(
-        path: '/location', builder: (context, state) => const LocationScreen()),
-    GoRoute(
-        path: '/booking',
-        builder: (context, state) => const BookingServiceScreen()),
+    GoRoute(path: '/gallery', builder: (context, state) => const GalleryScreen()),
+    GoRoute(path: '/reviews', builder: (context, state) => const ReviewsScreen()),
+    GoRoute(path: '/location', builder: (context, state) => const LocationScreen()),
+    GoRoute(path: '/booking', builder: (context, state) => const BookingServiceScreen()),
     GoRoute(
         path: '/booking-service',
         builder: (context, state) => const BookingServiceScreen()),
@@ -258,27 +238,35 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/booking-confirmation',
         builder: (context, state) => const BookingConfirmationScreen()),
+    GoRoute(path: '/payment', builder: (context, state) => const PaymentScreen()),
     GoRoute(
-        path: '/payment', builder: (context, state) => const PaymentScreen()),
-    GoRoute(
-        path: '/booking-success',
-        builder: (context, state) => const BookingSuccessScreen()),
+      path: '/booking-success',
+      builder: (context, state) => BookingSuccessScreen(
+        booking: state.extra is BookingModel ? state.extra as BookingModel : null,
+      ),
+    ),
     GoRoute(
         path: '/my-bookings',
         builder: (context, state) => const MyBookingsScreen()),
     GoRoute(
-        path: '/booking-details',
-        builder: (context, state) => const BookingDetailsScreen()),
-    GoRoute(
-      path: '/reschedule-booking',
-      builder: (context, state) {
-        final booking = state.extra as BookingModel?;
-        return RescheduleBookingScreen(booking: booking);
-      },
+      path: '/booking-details',
+      builder: (context, state) => BookingDetailsScreen(
+        booking: state.extra is BookingModel ? state.extra as BookingModel : null,
+      ),
     ),
     GoRoute(
-        path: '/favorites',
-        builder: (context, state) => const FavoritesScreen()),
+      path: '/reschedule-booking',
+      builder: (context, state) => RescheduleBookingScreen(
+        booking: state.extra is BookingModel ? state.extra as BookingModel : null,
+      ),
+    ),
+    GoRoute(
+      path: '/cancel-booking',
+      builder: (context, state) => CancelBookingScreen(
+        bookingId: state.extra is String ? state.extra as String : null,
+      ),
+    ),
+    GoRoute(path: '/favorites', builder: (context, state) => const FavoritesScreen()),
     GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen()),
@@ -287,7 +275,6 @@ final appRouter = GoRouter(
         path: '/customer-profile',
         builder: (context, state) => const CustomerProfileScreen()),
 
-    // Business Owner Dashboard & Portal
     GoRoute(
         path: '/owner-login',
         builder: (context, state) => const OwnerLoginScreen()),
@@ -357,7 +344,6 @@ final appRouter = GoRouter(
         path: '/owner-notifications',
         builder: (context, state) => const OwnerNotificationsScreen()),
 
-    // Admin
     GoRoute(
         path: '/admin-login',
         builder: (context, state) => const AdminLoginScreen()),
@@ -373,15 +359,10 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/payment-management',
         builder: (context, state) => const PaymentManagementScreen()),
-    GoRoute(
-        path: '/analytics',
-        builder: (context, state) => const AnalyticsScreen()),
-    GoRoute(
-        path: '/reports', builder: (context, state) => const ReportsScreen()),
+    GoRoute(path: '/analytics', builder: (context, state) => const AnalyticsScreen()),
+    GoRoute(path: '/reports', builder: (context, state) => const ReportsScreen()),
 
-    // General & Settings
-    GoRoute(
-        path: '/settings', builder: (context, state) => const SettingsScreen()),
+    GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
     GoRoute(path: '/help', builder: (context, state) => const HelpScreen()),
     GoRoute(path: '/about', builder: (context, state) => const AboutScreen()),
   ],
