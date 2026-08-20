@@ -22,16 +22,7 @@ class CustomerProfileService {
     final raw = doc.data();
 
     if (!doc.exists || raw == null) {
-      return UserModel(
-        id: firebaseUser.uid,
-        email: (firebaseUser.email ?? '').trim().toLowerCase(),
-        fullName: firebaseUser.displayName?.trim().isNotEmpty == true
-            ? firebaseUser.displayName!.trim()
-            : 'Easy Book User',
-        phone: firebaseUser.phoneNumber ?? '',
-        avatarUrl: firebaseUser.photoURL,
-        role: UserRole.customer,
-      );
+      return _fallbackCustomer(firebaseUser);
     }
 
     final data = Map<String, dynamic>.from(raw)
@@ -81,42 +72,87 @@ class CustomerProfileService {
     final userRef = _firestore.collection('users').doc(firebaseUser.uid);
     final snapshot = await userRef.get();
     final raw = snapshot.data();
-    if (!snapshot.exists || raw == null) {
-      throw StateError('Your customer profile could not be found.');
-    }
 
-    final data = Map<String, dynamic>.from(raw)
-      ..['id'] = firebaseUser.uid
-      ..['email'] = (firebaseUser.email ?? raw['email'] ?? '')
-          .toString()
-          .trim()
-          .toLowerCase();
-    final current = UserModel.fromJson(data);
+    final UserModel current;
+    final bool isLegacyProfileMissing;
+
+    if (!snapshot.exists || raw == null) {
+      // Older accounts can exist in Firebase Auth without a Firestore profile.
+      // They were previously readable through the Auth fallback but impossible
+      // to edit because update() requires an existing document. Treat this as a
+      // legacy customer account and create its canonical profile on first save.
+      current = _fallbackCustomer(firebaseUser);
+      isLegacyProfileMissing = true;
+    } else {
+      final data = Map<String, dynamic>.from(raw)
+        ..['id'] = firebaseUser.uid
+        ..['email'] = (firebaseUser.email ?? raw['email'] ?? '')
+            .toString()
+            .trim()
+            .toLowerCase();
+      current = UserModel.fromJson(data);
+      isLegacyProfileMissing = false;
+    }
 
     if (current.role != UserRole.customer) {
       throw StateError('Only customer accounts can be edited from this screen.');
     }
 
-    final updates = <String, dynamic>{
-      'full_name': cleanName,
-      'phone': cleanPhone,
-      'updated_at': FieldValue.serverTimestamp(),
-    };
-
     String? nextAvatar = current.avatarUrl;
     if (clearAvatar) {
-      updates['avatar_url'] = FieldValue.delete();
-      updates['profile_image'] = FieldValue.delete();
       nextAvatar = null;
     } else if (avatarUrl != null && avatarUrl.trim().isNotEmpty) {
       nextAvatar = avatarUrl.trim();
-      updates['avatar_url'] = nextAvatar;
-      updates['profile_image'] = nextAvatar;
     }
 
-    // Firestore is the canonical app profile. Only update the in-memory/auth
-    // mirrors after this write succeeds.
-    await userRef.update(updates);
+    if (isLegacyProfileMissing) {
+      final email = (firebaseUser.email ?? '').trim().toLowerCase();
+      if (email.isEmpty) {
+        throw FirebaseAuthException(
+          code: 'missing-email',
+          message: 'This account has no verified email address.',
+        );
+      }
+
+      final newProfile = UserModel(
+        id: firebaseUser.uid,
+        email: email,
+        fullName: cleanName,
+        phone: cleanPhone,
+        avatarUrl: nextAvatar,
+        role: UserRole.customer,
+        walletBalance: current.walletBalance,
+        favoriteBusinessIds: current.favoriteBusinessIds,
+      );
+      final createData = newProfile.toJson()
+        ..removeWhere((key, value) => value == null);
+
+      await userRef.set({
+        ...createData,
+        if (nextAvatar != null && nextAvatar.isNotEmpty)
+          'profile_image': nextAvatar,
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+    } else {
+      final updates = <String, dynamic>{
+        'full_name': cleanName,
+        'phone': cleanPhone,
+        'updated_at': FieldValue.serverTimestamp(),
+      };
+
+      if (clearAvatar) {
+        updates['avatar_url'] = FieldValue.delete();
+        updates['profile_image'] = FieldValue.delete();
+      } else if (nextAvatar != null && nextAvatar.isNotEmpty) {
+        updates['avatar_url'] = nextAvatar;
+        updates['profile_image'] = nextAvatar;
+      }
+
+      // Firestore is the canonical app profile. Only update the in-memory/auth
+      // mirrors after this write succeeds.
+      await userRef.update(updates);
+    }
 
     try {
       await firebaseUser.updateDisplayName(cleanName);
@@ -135,7 +171,7 @@ class CustomerProfileService {
 
     return UserModel(
       id: current.id,
-      email: current.email,
+      email: (firebaseUser.email ?? current.email).trim().toLowerCase(),
       fullName: cleanName,
       phone: cleanPhone,
       avatarUrl: nextAvatar,
@@ -146,6 +182,20 @@ class CustomerProfileService {
       category: current.category,
       location: current.location,
       businessImageUrl: current.businessImageUrl,
+    );
+  }
+
+  UserModel _fallbackCustomer(User firebaseUser) {
+    return UserModel(
+      id: firebaseUser.uid,
+      email: (firebaseUser.email ?? '').trim().toLowerCase(),
+      fullName: firebaseUser.displayName?.trim().isNotEmpty == true
+          ? firebaseUser.displayName!.trim()
+          : 'Easy Book User',
+      phone: firebaseUser.phoneNumber ?? '',
+      avatarUrl: firebaseUser.photoURL,
+      role: UserRole.customer,
+      walletBalance: 0.0,
     );
   }
 }
