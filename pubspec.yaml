@@ -37,6 +37,7 @@ dependencies:
 
   dio: ^5.4.3+1
   cached_network_image: ^3.3.1
+  url_launcher: ^6.3.2
 
   # Owner Management V2: real media uploads and precise business location.
   image_picker: ^1.2.3
