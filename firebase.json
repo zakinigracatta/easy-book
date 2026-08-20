@@ -4,7 +4,7 @@
       "android": {
         "default": {
           "projectId": "easy-book-zaki",
-          "appId": "1:669700001010:android:27b759ec2a883f7347946b",
+          "appId": "1:669700001010:android:a47c10c1fe440d6a47946b",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -12,7 +12,7 @@
         "lib/firebase_options.dart": {
           "projectId": "easy-book-zaki",
           "configurations": {
-            "android": "1:669700001010:android:27b759ec2a883f7347946b"
+            "android": "1:669700001010:android:a47c10c1fe440d6a47946b"
           }
         }
       }
