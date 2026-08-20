@@ -17,11 +17,16 @@ service cloud.firestore {
     }
 
     function isBusinessOwner(businessId) {
-      return isAuthenticated() &&
-        exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+      return isOwnerAccount() &&
         (
-          ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
-          ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+          businessId == request.auth.uid ||
+          (
+            exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+            (
+              ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
+              ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+            )
+          )
         );
     }
 
@@ -63,7 +68,8 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if isOwnerAccount() &&
-        (request.resource.data.ownerId == request.auth.uid ||
+        (businessId == request.auth.uid ||
+         request.resource.data.ownerId == request.auth.uid ||
          request.resource.data.owner_id == request.auth.uid);
 
       allow update: if isBusinessOwner(businessId);
