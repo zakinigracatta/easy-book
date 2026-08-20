@@ -94,6 +94,16 @@ service cloud.firestore {
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
+      // Customer Reviews: public read; owner can only add/edit the business reply fields.
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create, delete: if false;
+        allow update: if isBusinessOwner(businessId)
+                      && resource != null
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['businessReply', 'businessReplyAt']);
+      }
+
       // Owner Notifications Subcollection
       match /notifications/{notificationId} {
         allow read, update: if isBusinessOwner(businessId);

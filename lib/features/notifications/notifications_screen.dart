@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../services/notification_service.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final notifications = NotificationService.getMockNotifications();
+    const notifications = [
+      (
+        title: 'Booking Confirmed',
+        body: 'Your latest appointment has been confirmed.'
+      ),
+      (
+        title: 'Easy Book',
+        body: 'Live booking updates will appear here when available.'
+      ),
+    ];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Notifications')),
@@ -14,7 +22,7 @@ class NotificationsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         itemCount: notifications.length,
         itemBuilder: (context, index) {
-          final n = notifications[index];
+          final notification = notifications[index];
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
             child: ListTile(
@@ -22,9 +30,11 @@ class NotificationsScreen extends StatelessWidget {
                 backgroundColor: Color(0xFF6C3EF4),
                 child: Icon(Icons.notifications, color: Colors.white, size: 20),
               ),
-              title: Text(n.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(n.body),
+              title: Text(
+                notification.title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(notification.body),
             ),
           );
         },

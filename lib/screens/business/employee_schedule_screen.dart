@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
-import '../../widgets/business_bottom_nav.dart';
+import '../../widgets/custom_button.dart';
 import '../../providers/owner_providers.dart';
+import '../../models/staff_model.dart';
+import '../../models/staff_schedule_model.dart';
 
 class EmployeeScheduleScreen extends ConsumerStatefulWidget {
   const EmployeeScheduleScreen({super.key});
@@ -16,65 +18,19 @@ class EmployeeScheduleScreen extends ConsumerStatefulWidget {
 
 class _EmployeeScheduleScreenState
     extends ConsumerState<EmployeeScheduleScreen> {
-  final Map<
-      String,
-      ({
-        bool isWorking,
-        String open,
-        String close,
-        String breakStart,
-        String breakEnd
-      })> _weeklySchedule = {
-    'Monday': (
-      isWorking: true,
-      open: '09:00 AM',
-      close: '08:00 PM',
-      breakStart: '01:00 PM',
-      breakEnd: '02:00 PM'
-    ),
-    'Tuesday': (
-      isWorking: true,
-      open: '09:00 AM',
-      close: '08:00 PM',
-      breakStart: '01:00 PM',
-      breakEnd: '02:00 PM'
-    ),
-    'Wednesday': (
-      isWorking: true,
-      open: '09:00 AM',
-      close: '08:00 PM',
-      breakStart: '01:00 PM',
-      breakEnd: '02:00 PM'
-    ),
-    'Thursday': (
-      isWorking: true,
-      open: '09:00 AM',
-      close: '08:00 PM',
-      breakStart: '01:00 PM',
-      breakEnd: '02:00 PM'
-    ),
-    'Friday': (
-      isWorking: true,
-      open: '02:00 PM',
-      close: '11:00 PM',
-      breakStart: '05:00 PM',
-      breakEnd: '06:00 PM'
-    ),
-    'Saturday': (
-      isWorking: true,
-      open: '10:00 AM',
-      close: '09:00 PM',
-      breakStart: '02:00 PM',
-      breakEnd: '03:00 PM'
-    ),
-    'Sunday': (
-      isWorking: false,
-      open: '09:00 AM',
-      close: '05:00 PM',
-      breakStart: '01:00 PM',
-      breakEnd: '02:00 PM'
-    ),
-  };
+  static const _days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+
+  String? _selectedStaffId;
+  final Map<String, StaffWorkingHours> _schedule = {};
+  bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -84,26 +40,17 @@ class _EmployeeScheduleScreenState
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/owner-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/owner-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
+          title: const Text('Employee Working Hours'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/owner-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
-          title: const Text('Employee Working Hours & Breaks'),
           actions: [
             IconButton(
               icon: const Icon(Icons.event_busy_rounded),
@@ -112,169 +59,370 @@ class _EmployeeScheduleScreenState
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Employee Selector Header
-              employeesAsync.when(
-                data: (staffList) {
-                  return GlassCard(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.badge_rounded,
-                            color: AppColors.primaryLight),
-                        const SizedBox(width: 10),
-                        const Text(
-                          'Staff Member: ',
-                          style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textMutedDark),
-                        ),
-                        Expanded(
-                          child: Text(
-                            staffList.isNotEmpty
-                                ? staffList.first.name
-                                : 'All Specialists',
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimaryDark),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () => context.push('/employee-time-off'),
-                          child: const Text('Time Off',
-                              style: TextStyle(
-                                  color: AppColors.accent,
-                                  fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-
-              const SizedBox(height: 16),
-
-              const Text(
-                'Weekly Shifts & Break Times',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimaryDark,
+        body: employeesAsync.when(
+          data: (staffList) {
+            if (staffList.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text('Add an employee before configuring working hours.'),
                 ),
-              ),
-              const SizedBox(height: 10),
+              );
+            }
 
-              // Weekdays List
-              ..._weeklySchedule.entries.map((entry) {
-                final day = entry.key;
-                final data = entry.value;
-
-                return GlassCard(
-                  padding: const EdgeInsets.all(14),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                day,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimaryDark,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: data.isWorking
-                                      ? AppColors.success
-                                          .withValues(alpha: 0.15)
-                                      : AppColors.error.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  data.isWorking ? 'Working' : 'Day Off',
-                                  style: TextStyle(
-                                    color: data.isWorking
-                                        ? AppColors.success
-                                        : AppColors.error,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Switch(
-                            value: data.isWorking,
-                            activeColor: AppColors.primary,
-                            onChanged: (val) {
-                              setState(() {
-                                _weeklySchedule[day] = (
-                                  isWorking: val,
-                                  open: data.open,
-                                  close: data.close,
-                                  breakStart: data.breakStart,
-                                  breakEnd: data.breakEnd,
-                                );
-                              });
-                            },
-                          ),
-                        ],
+            final selected = _resolveSelectedStaff(staffList);
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GlassCard(
+                    padding: const EdgeInsets.all(14),
+                    child: DropdownButtonFormField<String>(
+                      value: selected.id,
+                      decoration: const InputDecoration(
+                        labelText: 'Staff member',
+                        prefixIcon: Icon(Icons.badge_rounded),
                       ),
-                      if (data.isWorking) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.access_time_filled_rounded,
-                                size: 14, color: AppColors.primaryLight),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Shift: ${data.open} – ${data.close}',
-                              style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textPrimaryDark,
-                                  fontWeight: FontWeight.w600),
+                      items: staffList
+                          .map(
+                            (staff) => DropdownMenuItem(
+                              value: staff.id,
+                              child: Text(staff.name),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.free_breakfast_rounded,
-                                size: 14, color: AppColors.gold),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Break: ${data.breakStart} – ${data.breakEnd}',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textMutedDark),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
+                          )
+                          .toList(),
+                      onChanged: (id) {
+                        if (id == null) return;
+                        final staff = staffList.firstWhere((s) => s.id == id);
+                        setState(() {
+                          _selectedStaffId = id;
+                          _loadSchedule(staff, force: true);
+                        });
+                      },
+                    ),
                   ),
-                );
-              }),
-            ],
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Weekly schedule',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimaryDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'These hours directly control when customers can book this employee.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMutedDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ..._days.map(_buildDayCard),
+                  const SizedBox(height: 8),
+                  CustomButton(
+                    text: 'Save Employee Schedule',
+                    isLoading: _isSaving,
+                    onPressed: () => _save(selected),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
           ),
+          error: (error, _) => Center(child: Text('Unable to load staff: $error')),
         ),
       ),
     );
   }
+
+  StaffModel _resolveSelectedStaff(List<StaffModel> staffList) {
+    StaffModel selected;
+    if (_selectedStaffId == null ||
+        !staffList.any((s) => s.id == _selectedStaffId)) {
+      selected = staffList.first;
+      _selectedStaffId = selected.id;
+      _loadSchedule(selected);
+    } else {
+      selected = staffList.firstWhere((s) => s.id == _selectedStaffId);
+      if (_schedule.isEmpty) _loadSchedule(selected);
+    }
+    return selected;
+  }
+
+  void _loadSchedule(StaffModel staff, {bool force = false}) {
+    if (_schedule.isNotEmpty && !force) return;
+    _schedule.clear();
+
+    for (var i = 0; i < _days.length; i++) {
+      final day = _days[i];
+      final existing = staff.weeklySchedule[day];
+      if (existing != null) {
+        _schedule[day] = existing;
+        continue;
+      }
+
+      final weekday = i + 1;
+      final working = staff.workingDays == null ||
+          staff.workingDays!.isEmpty ||
+          staff.workingDays!.contains(weekday);
+      _schedule[day] = StaffWorkingHours(
+        dayName: day,
+        openTime: staff.shiftStart ?? '09:00 AM',
+        closeTime: staff.shiftEnd ?? '06:00 PM',
+        isWorking: working,
+        breakStart: working ? '01:00 PM' : null,
+        breakEnd: working ? '02:00 PM' : null,
+      );
+    }
+  }
+
+  Widget _buildDayCard(String day) {
+    final hours = _schedule[day]!;
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  day,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimaryDark,
+                  ),
+                ),
+              ),
+              Text(
+                hours.isWorking ? 'Working' : 'Day Off',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: hours.isWorking ? AppColors.success : AppColors.error,
+                ),
+              ),
+              Switch(
+                value: hours.isWorking,
+                activeColor: AppColors.primary,
+                onChanged: (value) {
+                  setState(() {
+                    _schedule[day] = hours.copyWith(isWorking: value);
+                  });
+                },
+              ),
+            ],
+          ),
+          if (hours.isWorking) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _ScheduleTimeButton(
+                    label: 'Shift starts',
+                    value: hours.openTime,
+                    icon: Icons.login_rounded,
+                    onTap: () => _pickTime(day, _TimeField.shiftStart),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _ScheduleTimeButton(
+                    label: 'Shift ends',
+                    value: hours.closeTime,
+                    icon: Icons.logout_rounded,
+                    onTap: () => _pickTime(day, _TimeField.shiftEnd),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _ScheduleTimeButton(
+                    label: 'Break starts',
+                    value: hours.breakStart ?? '01:00 PM',
+                    icon: Icons.free_breakfast_rounded,
+                    onTap: () => _pickTime(day, _TimeField.breakStart),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _ScheduleTimeButton(
+                    label: 'Break ends',
+                    value: hours.breakEnd ?? '02:00 PM',
+                    icon: Icons.play_arrow_rounded,
+                    onTap: () => _pickTime(day, _TimeField.breakEnd),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickTime(String day, _TimeField field) async {
+    final current = _schedule[day]!;
+    final raw = switch (field) {
+      _TimeField.shiftStart => current.openTime,
+      _TimeField.shiftEnd => current.closeTime,
+      _TimeField.breakStart => current.breakStart ?? '01:00 PM',
+      _TimeField.breakEnd => current.breakEnd ?? '02:00 PM',
+    };
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _parseTime(raw),
+    );
+    if (picked == null || !mounted) return;
+
+    final value = _formatTime(picked);
+    setState(() {
+      _schedule[day] = StaffWorkingHours(
+        dayName: day,
+        openTime: field == _TimeField.shiftStart ? value : current.openTime,
+        closeTime: field == _TimeField.shiftEnd ? value : current.closeTime,
+        isWorking: current.isWorking,
+        breakStart:
+            field == _TimeField.breakStart ? value : current.breakStart,
+        breakEnd: field == _TimeField.breakEnd ? value : current.breakEnd,
+      );
+    });
+  }
+
+  Future<void> _save(StaffModel staff) async {
+    setState(() => _isSaving = true);
+    try {
+      final workingDays = <int>[];
+      for (var i = 0; i < _days.length; i++) {
+        if (_schedule[_days[i]]?.isWorking == true) workingDays.add(i + 1);
+      }
+
+      final firstWorking = _days
+          .map((day) => _schedule[day]!)
+          .where((hours) => hours.isWorking)
+          .cast<StaffWorkingHours?>()
+          .firstOrNull;
+
+      final updated = staff.copyWith(
+        weeklySchedule: Map.of(_schedule),
+        workingDays: workingDays,
+        shiftStart: firstWorking?.openTime ?? staff.shiftStart,
+        shiftEnd: firstWorking?.closeTime ?? staff.shiftEnd,
+      );
+
+      await ref.read(ownerEmployeesProvider.notifier).saveEmployee(updated);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${staff.name} schedule updated.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save employee schedule: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  TimeOfDay _parseTime(String raw) {
+    final clean = raw.trim().toUpperCase();
+    final isPm = clean.contains('PM');
+    final isAm = clean.contains('AM');
+    final numeric = clean.replaceAll(RegExp(r'[^\d:]'), '');
+    final parts = numeric.split(':');
+    var hour = int.tryParse(parts.first) ?? 9;
+    final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
+    if (isPm && hour < 12) hour += 12;
+    if (isAm && hour == 12) hour = 0;
+    return TimeOfDay(
+      hour: hour.clamp(0, 23).toInt(),
+      minute: minute.clamp(0, 59).toInt(),
+    );
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '${hour.toString().padLeft(2, '0')}:$minute $period';
+  }
+}
+
+enum _TimeField { shiftStart, shiftEnd, breakStart, breakEnd }
+
+class _ScheduleTimeButton extends StatelessWidget {
+  const _ScheduleTimeButton({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(11),
+        decoration: BoxDecoration(
+          color: AppColors.glassBgDark,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.glassBorderDark),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 17, color: AppColors.primaryLight),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: const TextStyle(
+                          fontSize: 9, color: AppColors.textMutedDark)),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimaryDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+extension _FirstOrNull<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
 }

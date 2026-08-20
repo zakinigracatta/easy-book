@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "ae.easybook.app"
-        minSdk = flutter.minSdkVersion
+        minSdk = maxOf(flutter.minSdkVersion, 24)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

@@ -94,6 +94,7 @@ class MockData {
       name: 'Royal Haircut & Beard Sculpting',
       price: 65.0,
       duration: '45 mins',
+      durationMinutes: 45,
       description:
           'Hair wash, precision haircut, beard sculpt and hot towel treatment.',
     ),
@@ -103,6 +104,7 @@ class MockData {
       name: 'Hot Towel Royal Shave',
       price: 45.0,
       duration: '30 mins',
+      durationMinutes: 30,
       description:
           'Classic straight razor shave with essential oils and hot wrap.',
     ),
@@ -112,6 +114,7 @@ class MockData {
       name: 'Deep Tissue Spa Massage',
       price: 90.0,
       duration: '60 mins',
+      durationMinutes: 60,
       description: 'Therapeutic full body massage for muscular tension relief.',
     ),
   ];
