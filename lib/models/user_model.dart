@@ -29,13 +29,22 @@ class UserModel {
     this.businessImageUrl,
   });
 
-  String get roleString =>
-      role == UserRole.owner || role == UserRole.businessOwner
-          ? 'owner'
-          : 'customer';
+  String get roleString {
+    if (role == UserRole.admin) return 'admin';
+    if (role == UserRole.owner || role == UserRole.businessOwner) return 'owner';
+    return 'customer';
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     final roleStr = json['role'] as String? ?? 'customer';
+    final UserRole parsedRole;
+    if (roleStr == 'admin') {
+      parsedRole = UserRole.admin;
+    } else if (roleStr == 'owner' || roleStr == 'businessOwner') {
+      parsedRole = UserRole.owner;
+    } else {
+      parsedRole = UserRole.customer;
+    }
     return UserModel(
       id: json['id'] as String? ?? '',
       email: json['email'] as String? ?? '',
@@ -45,9 +54,7 @@ class UserModel {
       phone: json['phone'] as String? ?? '',
       avatarUrl:
           json['avatar_url'] as String? ?? json['profile_image'] as String?,
-      role: roleStr == 'owner' || roleStr == 'businessOwner'
-          ? UserRole.owner
-          : UserRole.customer,
+      role: parsedRole,
       walletBalance: (json['wallet_balance'] as num?)?.toDouble() ?? 0.0,
       favoriteBusinessIds:
           List<String>.from(json['favorite_business_ids'] ?? []),

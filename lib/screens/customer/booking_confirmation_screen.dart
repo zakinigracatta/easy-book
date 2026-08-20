@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -82,14 +83,9 @@ class _BookingConfirmationScreenState
     final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
     final slotLockId = '${draft.businessId}_${draft.staffId}_$startTimestamp';
 
-    debugPrint('BOOKING_CREATE_START');
-    debugPrint('customerId: ${currentUser.uid}');
-    debugPrint('businessId: ${draft.businessId}');
-    debugPrint('serviceId: ${draft.serviceId}');
-    debugPrint('staffId: ${draft.staffId}');
-    debugPrint('startDateTime: ${startDateTime.toIso8601String()}');
-    debugPrint('startTimestamp: $startTimestamp');
-    debugPrint('slotLockId: $slotLockId');
+    if (kDebugMode) {
+      debugPrint('BOOKING_CREATE_START');
+    }
 
     final booking = BookingModel(
       id: '',

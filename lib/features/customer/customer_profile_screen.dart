@@ -4,11 +4,14 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../core/constants/app_colors.dart';
 
-class CustomerProfileScreen extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/auth_provider.dart';
+
+class CustomerProfileScreen extends ConsumerWidget {
   const CustomerProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final menuItems = [
       {
         'icon': Icons.favorite_rounded,
@@ -45,6 +48,16 @@ class CustomerProfileScreen extends StatelessWidget {
         'icon': Icons.settings_rounded,
         'label': 'App Settings',
         'route': '/settings'
+      },
+      {
+        'icon': Icons.storefront_rounded,
+        'label': 'Business Partner Portal',
+        'route': '/owner-login'
+      },
+      {
+        'icon': Icons.admin_panel_settings_rounded,
+        'label': 'Administrator Portal',
+        'route': '/admin-login'
       },
     ];
 
@@ -358,7 +371,12 @@ class CustomerProfileScreen extends StatelessWidget {
 
               // Logout Button
               GlassCard(
-                onTap: () => context.go('/welcome'),
+                onTap: () async {
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) {
+                    context.go('/home');
+                  }
+                },
                 borderColor: AppColors.error.withOpacity(0.4),
                 child: const Row(
                   children: [

@@ -1,8 +1,11 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/booking_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
+import '../models/user_model.dart';
+import '../providers/auth_provider.dart';
 
 // Auth Screens
 import '../screens/auth/splash_screen.dart';
@@ -79,11 +82,12 @@ import '../screens/settings/help_screen.dart';
 import '../screens/settings/about_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/welcome',
+  initialLocation: '/splash',
   redirect: (context, state) {
     final user = FirebaseAuth.instance.currentUser;
+    final loc = state.matchedLocation;
+
     if (user != null && !user.emailVerified) {
-      final loc = state.matchedLocation;
       const allowedUnverified = [
         '/verify-email',
         '/welcome',
@@ -99,6 +103,81 @@ final appRouter = GoRouter(
         return '/verify-email';
       }
     }
+
+    UserModel? currentUserModel;
+    try {
+      final container = ProviderScope.containerOf(context, listen: false);
+      currentUserModel = container.read(authProvider);
+    } catch (_) {}
+
+    // Direct route protection for owner routes
+    const ownerProtectedRoutes = [
+      '/owner-dashboard',
+      '/owner-bookings',
+      '/quick-walk-in',
+      '/salon-management',
+      '/services-management',
+      '/add-service',
+      '/employee-management',
+      '/add-employee',
+      '/employee-schedule',
+      '/employee-time-off',
+      '/business-hours',
+      '/owner-gallery',
+      '/booking-calendar',
+      '/customer-management',
+      '/owner-reviews',
+      '/sales-report',
+      '/promotion-management',
+      '/owner-more',
+      '/owner-notifications',
+    ];
+
+    if (ownerProtectedRoutes.contains(loc)) {
+      if (user == null) {
+        return '/owner-login';
+      }
+      if (currentUserModel != null &&
+          currentUserModel.role != UserRole.owner &&
+          currentUserModel.role != UserRole.businessOwner) {
+        return '/home';
+      }
+    }
+
+    // Direct route protection for admin routes
+    const adminProtectedRoutes = [
+      '/admin-dashboard',
+      '/users-management',
+      '/salon-approval',
+      '/payment-management',
+      '/analytics',
+      '/reports',
+    ];
+
+    if (adminProtectedRoutes.contains(loc)) {
+      if (user == null) {
+        return '/admin-login';
+      }
+      if (currentUserModel != null &&
+          currentUserModel.role != UserRole.admin) {
+        return '/home';
+      }
+    }
+
+    // Direct route protection for customer protected routes
+    const customerProtectedRoutes = [
+      '/my-bookings',
+      '/booking-details',
+      '/reschedule-booking',
+      '/favorites',
+      '/customer-profile',
+      '/chat',
+    ];
+
+    if (user == null && customerProtectedRoutes.contains(loc)) {
+      return '/login';
+    }
+
     return null;
   },
   routes: [

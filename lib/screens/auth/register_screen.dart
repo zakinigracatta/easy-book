@@ -26,9 +26,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _handleRegister() async {
-    if (_nameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
-        _passwordController.text.isEmpty) {
+    final name = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Please enter name, email, and password.')),
@@ -36,13 +39,45 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
+    if (name.length > 60) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Full name must be 60 characters or less.')),
+      );
+      return;
+    }
+
+    if (email.length > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Email address must be 100 characters or less.')),
+      );
+      return;
+    }
+
+    if (phone.length > 25) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Phone number must be 25 characters or less.')),
+      );
+      return;
+    }
+
+    if (password.length > 128) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Password must be 128 characters or less.')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).registerCustomer(
-            name: _nameController.text.trim(),
-            phone: _phoneController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
+            name: name,
+            phone: phone,
+            email: email,
+            password: password,
             profileImageUrl: _profileImageUrl,
           );
 
@@ -165,6 +200,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         controller: _nameController,
                         label: 'Full Name',
                         prefixIcon: Icons.person_outline,
+                        maxLength: 60,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
@@ -172,6 +208,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         label: 'Phone Number',
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
+                        maxLength: 25,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
@@ -179,6 +216,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         label: 'Email Address',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
+                        maxLength: 100,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
@@ -186,6 +224,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         label: 'Password',
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
+                        maxLength: 128,
                       ),
                       const SizedBox(height: 24),
                       CustomButton(
