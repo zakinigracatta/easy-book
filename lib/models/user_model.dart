@@ -81,4 +81,35 @@ class UserModel {
       'business_image_url': businessImageUrl,
     };
   }
+
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? fullName,
+    String? phone,
+    String? avatarUrl,
+    UserRole? role,
+    double? walletBalance,
+    List<String>? favoriteBusinessIds,
+    String? businessName,
+    String? category,
+    String? location,
+    String? businessImageUrl,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      fullName: fullName ?? this.fullName,
+      phone: phone ?? this.phone,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      role: role ?? this.role,
+      walletBalance: walletBalance ?? this.walletBalance,
+      favoriteBusinessIds:
+          favoriteBusinessIds ?? this.favoriteBusinessIds,
+      businessName: businessName ?? this.businessName,
+      category: category ?? this.category,
+      location: location ?? this.location,
+      businessImageUrl: businessImageUrl ?? this.businessImageUrl,
+    );
+  }
 }
