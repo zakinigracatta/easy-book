@@ -18,21 +18,24 @@ class CustomerProfileService {
     final firebaseUser = _auth.currentUser;
     if (firebaseUser == null) return null;
 
-    final doc = await _firestore.collection('users').doc(firebaseUser.uid).get();
-    final raw = doc.data();
+    final userRef = _firestore.collection('users').doc(firebaseUser.uid);
+    DocumentSnapshot<Map<String, dynamic>> doc;
 
+    // Prefer the server so reopening Profile cannot silently show stale local
+    // data after a successful edit. Fall back to the normal Firestore behavior
+    // only when the device cannot currently reach the backend.
+    try {
+      doc = await userRef.get(const GetOptions(source: Source.server));
+    } on FirebaseException {
+      doc = await userRef.get();
+    }
+
+    final raw = doc.data();
     if (!doc.exists || raw == null) {
       return _fallbackCustomer(firebaseUser);
     }
 
-    final data = Map<String, dynamic>.from(raw)
-      ..['id'] = firebaseUser.uid
-      ..['email'] = (firebaseUser.email ?? raw['email'] ?? '')
-          .toString()
-          .trim()
-          .toLowerCase();
-
-    return UserModel.fromJson(data);
+    return _modelFromDocument(firebaseUser, raw);
   }
 
   Future<UserModel> updateCurrentCustomerProfile({
@@ -70,26 +73,18 @@ class CustomerProfileService {
     }
 
     final userRef = _firestore.collection('users').doc(firebaseUser.uid);
-    final snapshot = await userRef.get();
-    final raw = snapshot.data();
+    final before = await userRef.get();
+    final rawBefore = before.data();
+    final current = rawBefore == null
+        ? _fallbackCustomer(firebaseUser)
+        : _modelFromDocument(firebaseUser, rawBefore);
 
-    final UserModel current;
-    final bool isLegacyProfileMissing;
-
-    if (!snapshot.exists || raw == null) {
-      // Older accounts can exist in Firebase Auth without a Firestore profile.
-      // Create the canonical profile on first save instead of blocking editing.
-      current = _fallbackCustomer(firebaseUser);
-      isLegacyProfileMissing = true;
-    } else {
-      final data = Map<String, dynamic>.from(raw)
-        ..['id'] = firebaseUser.uid
-        ..['email'] = (firebaseUser.email ?? raw['email'] ?? '')
-            .toString()
-            .trim()
-            .toLowerCase();
-      current = UserModel.fromJson(data);
-      isLegacyProfileMissing = false;
+    final email = (firebaseUser.email ?? current.email).trim().toLowerCase();
+    if (email.isEmpty) {
+      throw FirebaseAuthException(
+        code: 'missing-email',
+        message: 'This account has no email address.',
+      );
     }
 
     String? nextAvatar = current.avatarUrl;
@@ -99,84 +94,79 @@ class CustomerProfileService {
       nextAvatar = avatarUrl.trim();
     }
 
-    if (isLegacyProfileMissing) {
-      final email = (firebaseUser.email ?? '').trim().toLowerCase();
-      if (email.isEmpty) {
-        throw FirebaseAuthException(
-          code: 'missing-email',
-          message: 'This account has no email address.',
-        );
+    // One canonical write path for both modern and legacy accounts. Including
+    // id/email/role is safe because their values are preserved; Firestore rules
+    // still reject any attempt to actually change role or email.
+    final writeData = <String, dynamic>{
+      'id': firebaseUser.uid,
+      'email': email,
+      'role': current.roleString,
+      'full_name': cleanName,
+      'phone': cleanPhone,
+      'updated_at': FieldValue.serverTimestamp(),
+      if (!before.exists) 'created_at': FieldValue.serverTimestamp(),
+    };
+
+    if (clearAvatar) {
+      if (before.exists) {
+        writeData['avatar_url'] = FieldValue.delete();
+        writeData['profile_image'] = FieldValue.delete();
       }
-
-      final newProfile = UserModel(
-        id: firebaseUser.uid,
-        email: email,
-        fullName: cleanName,
-        phone: cleanPhone,
-        avatarUrl: nextAvatar,
-        role: UserRole.customer,
-        walletBalance: current.walletBalance,
-        favoriteBusinessIds: current.favoriteBusinessIds,
-      );
-      final createData = newProfile.toJson()
-        ..removeWhere((key, value) => value == null);
-
-      await userRef.set({
-        ...createData,
-        if (nextAvatar != null && nextAvatar.isNotEmpty)
-          'profile_image': nextAvatar,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': FieldValue.serverTimestamp(),
-      });
-    } else {
-      final updates = <String, dynamic>{
-        'full_name': cleanName,
-        'phone': cleanPhone,
-        'updated_at': FieldValue.serverTimestamp(),
-      };
-
-      if (clearAvatar) {
-        updates['avatar_url'] = FieldValue.delete();
-        updates['profile_image'] = FieldValue.delete();
-      } else if (nextAvatar != null && nextAvatar.isNotEmpty) {
-        updates['avatar_url'] = nextAvatar;
-        updates['profile_image'] = nextAvatar;
-      }
-
-      // The signed-in user can only write their own users/{uid} document.
-      // Firestore rules independently prevent role/email modification.
-      await userRef.update(updates);
+    } else if (nextAvatar != null && nextAvatar.isNotEmpty) {
+      writeData['avatar_url'] = nextAvatar;
+      writeData['profile_image'] = nextAvatar;
     }
 
+    await userRef.set(writeData, SetOptions(merge: true));
+
+    // Do not report success from an optimistic/in-memory object. Verify the
+    // values from the Firestore server after the write acknowledgement.
+    final verifiedSnapshot =
+        await userRef.get(const GetOptions(source: Source.server));
+    final verifiedRaw = verifiedSnapshot.data();
+    if (!verifiedSnapshot.exists || verifiedRaw == null) {
+      throw StateError('Profile save could not be verified on the server.');
+    }
+
+    final savedName = (verifiedRaw['full_name'] ?? '').toString().trim();
+    final savedPhone = (verifiedRaw['phone'] ?? '').toString().trim();
+    if (savedName != cleanName || savedPhone != cleanPhone) {
+      throw StateError(
+        'Profile save verification failed. The server did not return the new values.',
+      );
+    }
+
+    final verified = _modelFromDocument(firebaseUser, verifiedRaw);
+
     try {
-      await firebaseUser.updateDisplayName(cleanName);
+      await firebaseUser.updateDisplayName(verified.fullName);
       if (clearAvatar) {
         await firebaseUser.updatePhotoURL(null);
-      } else if (nextAvatar != null && nextAvatar.isNotEmpty) {
-        await firebaseUser.updatePhotoURL(nextAvatar);
+      } else if (verified.avatarUrl != null && verified.avatarUrl!.isNotEmpty) {
+        await firebaseUser.updatePhotoURL(verified.avatarUrl);
       }
     } on FirebaseAuthException catch (e) {
       // Firestore is canonical. A Firebase Auth metadata mirror failure should
-      // not turn a successful profile save into an apparent failure.
+      // not turn a verified Firestore save into an apparent failure.
       if (kDebugMode) {
         debugPrint('FirebaseAuth profile mirror update failed: ${e.code}');
       }
     }
 
-    return UserModel(
-      id: current.id,
-      email: (firebaseUser.email ?? current.email).trim().toLowerCase(),
-      fullName: cleanName,
-      phone: cleanPhone,
-      avatarUrl: nextAvatar,
-      role: current.role,
-      walletBalance: current.walletBalance,
-      favoriteBusinessIds: current.favoriteBusinessIds,
-      businessName: current.businessName,
-      category: current.category,
-      location: current.location,
-      businessImageUrl: current.businessImageUrl,
-    );
+    return verified;
+  }
+
+  UserModel _modelFromDocument(
+    User firebaseUser,
+    Map<String, dynamic> raw,
+  ) {
+    final data = Map<String, dynamic>.from(raw)
+      ..['id'] = firebaseUser.uid
+      ..['email'] = (firebaseUser.email ?? raw['email'] ?? '')
+          .toString()
+          .trim()
+          .toLowerCase();
+    return UserModel.fromJson(data);
   }
 
   UserModel _fallbackCustomer(User firebaseUser) {
