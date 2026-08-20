@@ -45,7 +45,6 @@ export const createBooking = onCall(async (request) => {
   const db = admin.firestore();
 
   return await db.runTransaction(async (transaction) => {
-    // 1. Authoritative Validation & Price/Duration calculation
     const context = await validateBookingRequirements(
       db,
       transaction,
@@ -55,7 +54,6 @@ export const createBooking = onCall(async (request) => {
       requestedStartAt
     );
 
-    // 2. Lock IDs generation
     const lockObjects = generateIntervalSlotLockIds(
       businessId,
       staffId,
@@ -63,7 +61,6 @@ export const createBooking = onCall(async (request) => {
       context.calculatedEndAt
     );
 
-    // 3. Check Lock Availability
     for (const lock of lockObjects) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
       const lockSnap = await transaction.get(lockRef);
@@ -75,7 +72,6 @@ export const createBooking = onCall(async (request) => {
       }
     }
 
-    // 4. Create Non-Sensitive Booking Slots Locks
     const bookingDocRef = db.collection('bookings').doc();
     const primarySlotLockId = lockObjects[0].lockId;
 
@@ -92,7 +88,6 @@ export const createBooking = onCall(async (request) => {
       });
     }
 
-    // 5. Create Authoritative Booking Snapshot Document
     const bookingPayload = {
       id: bookingDocRef.id,
       customerId,
@@ -123,10 +118,24 @@ export const createBooking = onCall(async (request) => {
     return {
       success: true,
       bookingId: bookingDocRef.id,
+      customerId,
+      customerName,
+      customerPhone,
+      businessId,
+      businessName: context.businessName,
+      serviceId,
+      serviceName: context.serviceName,
       servicePrice: context.servicePrice,
+      currency: context.currency,
       durationMinutes: context.durationMinutes,
+      staffId,
+      staffName: context.staffName,
+      startDateTime: requestedStartAt.toISOString(),
       endDateTime: context.calculatedEndAt.toISOString(),
       status: 'pending',
+      bookingSource: 'app',
+      notes,
+      slotLockId: primarySlotLockId,
     };
   });
 });
