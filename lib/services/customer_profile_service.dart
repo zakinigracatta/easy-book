@@ -78,9 +78,7 @@ class CustomerProfileService {
 
     if (!snapshot.exists || raw == null) {
       // Older accounts can exist in Firebase Auth without a Firestore profile.
-      // They were previously readable through the Auth fallback but impossible
-      // to edit because update() requires an existing document. Treat this as a
-      // legacy customer account and create its canonical profile on first save.
+      // Create the canonical profile on first save instead of blocking editing.
       current = _fallbackCustomer(firebaseUser);
       isLegacyProfileMissing = true;
     } else {
@@ -92,10 +90,6 @@ class CustomerProfileService {
             .toLowerCase();
       current = UserModel.fromJson(data);
       isLegacyProfileMissing = false;
-    }
-
-    if (current.role != UserRole.customer) {
-      throw StateError('Only customer accounts can be edited from this screen.');
     }
 
     String? nextAvatar = current.avatarUrl;
@@ -110,7 +104,7 @@ class CustomerProfileService {
       if (email.isEmpty) {
         throw FirebaseAuthException(
           code: 'missing-email',
-          message: 'This account has no verified email address.',
+          message: 'This account has no email address.',
         );
       }
 
@@ -149,8 +143,8 @@ class CustomerProfileService {
         updates['profile_image'] = nextAvatar;
       }
 
-      // Firestore is the canonical app profile. Only update the in-memory/auth
-      // mirrors after this write succeeds.
+      // The signed-in user can only write their own users/{uid} document.
+      // Firestore rules independently prevent role/email modification.
       await userRef.update(updates);
     }
 
@@ -162,8 +156,8 @@ class CustomerProfileService {
         await firebaseUser.updatePhotoURL(nextAvatar);
       }
     } on FirebaseAuthException catch (e) {
-      // The Firestore profile is already safely updated. A metadata mirror
-      // failure must not roll back or incorrectly report the whole save as lost.
+      // Firestore is canonical. A Firebase Auth metadata mirror failure should
+      // not turn a successful profile save into an apparent failure.
       if (kDebugMode) {
         debugPrint('FirebaseAuth profile mirror update failed: ${e.code}');
       }
