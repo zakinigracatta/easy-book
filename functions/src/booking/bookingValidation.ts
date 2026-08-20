@@ -28,6 +28,36 @@ export function parseTimeStringToMinutes(raw: string): number {
   }
 }
 
+function getZonedDayAndMinutes(date: Date, timeZone: string): {
+  weekday: number;
+  minutes: number;
+} {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  const parts = formatter.formatToParts(date);
+  const weekdayName = parts.find((p) => p.type === 'weekday')?.value ?? 'Mon';
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? '0');
+  const minute = Number(parts.find((p) => p.type === 'minute')?.value ?? '0');
+  const weekdays: Record<string, number> = {
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+    Sun: 7,
+  };
+  return {
+    weekday: weekdays[weekdayName] ?? 1,
+    minutes: hour * 60 + minute,
+  };
+}
+
 export async function validateBookingRequirements(
   db: admin.firestore.Firestore,
   transaction: admin.firestore.Transaction,
@@ -36,7 +66,6 @@ export async function validateBookingRequirements(
   staffId: string,
   requestedStartAt: Date
 ): Promise<ValidatedBookingContext> {
-  // 1. Business Check
   const bizRef = db.collection('businesses').doc(businessId);
   const bizSnap = await transaction.get(bizRef);
   if (!bizSnap.exists) {
@@ -46,13 +75,13 @@ export async function validateBookingRequirements(
     );
   }
   const bizData = bizSnap.data() || {};
-  // Support both Firestore schemas. Prefer snake_case because Flutter models
-  // currently persist these fields in snake_case.
   const isActive = (bizData.is_active ?? bizData.isActive) !== false;
   const acceptingBookings =
     (bizData.accepting_bookings ?? bizData.acceptingBookings) !== false;
   const businessStatus =
     bizData.business_status ?? bizData.businessStatus ?? 'open';
+  const businessTimeZone =
+    bizData.timezone ?? bizData.timeZone ?? 'Asia/Dubai';
 
   if (!isActive || !acceptingBookings || businessStatus !== 'open') {
     throw new HttpsError(
@@ -61,7 +90,6 @@ export async function validateBookingRequirements(
     );
   }
 
-  // 2. Service Validation
   const srvRef = db
     .collection('businesses')
     .doc(businessId)
@@ -90,19 +118,22 @@ export async function validateBookingRequirements(
   const discountPrice =
     typeof srvData.discountPrice === 'number' && srvData.discountPrice > 0
       ? srvData.discountPrice
-      : (typeof srvData.discount_price === 'number' && srvData.discount_price > 0 ? srvData.discount_price : null);
+      : (typeof srvData.discount_price === 'number' && srvData.discount_price > 0
+          ? srvData.discount_price
+          : null);
 
   const effectivePrice = discountPrice !== null ? discountPrice : price;
   const durationMinutes =
     typeof srvData.durationMinutes === 'number' && srvData.durationMinutes > 0
       ? srvData.durationMinutes
-      : (typeof srvData.duration_minutes === 'number' && srvData.duration_minutes > 0 ? srvData.duration_minutes : 30);
+      : (typeof srvData.duration_minutes === 'number' && srvData.duration_minutes > 0
+          ? srvData.duration_minutes
+          : 30);
 
   const calculatedEndAt = new Date(
     requestedStartAt.getTime() + durationMinutes * 60 * 1000
   );
 
-  // 3. Staff Validation
   const staffRef = db
     .collection('businesses')
     .doc(businessId)
@@ -137,9 +168,8 @@ export async function validateBookingRequirements(
     );
   }
 
-  // 4. Working Days & Shift Boundaries Check (UTC Timezone Normalization)
-  const dayOfWeek = requestedStartAt.getUTCDay(); // 0 = Sun, 1 = Mon ...
-  const normalizedDay = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Mon ... 7 = Sun
+  const zonedStart = getZonedDayAndMinutes(requestedStartAt, businessTimeZone);
+  const normalizedDay = zonedStart.weekday;
 
   const workingDays: number[] | null = Array.isArray(staffData.workingDays)
     ? staffData.workingDays
@@ -157,8 +187,7 @@ export async function validateBookingRequirements(
   const shiftStartStr = staffData.shiftStart || staffData.shift_start || null;
   const shiftEndStr = staffData.shiftEnd || staffData.shift_end || null;
 
-  const candStartMin =
-    requestedStartAt.getUTCHours() * 60 + requestedStartAt.getUTCMinutes();
+  const candStartMin = zonedStart.minutes;
   const candEndMin = candStartMin + durationMinutes;
 
   if (shiftStartStr) {
@@ -181,7 +210,6 @@ export async function validateBookingRequirements(
     }
   }
 
-  // 5. Time-Off / Leave Check
   const toffSnap = await db
     .collection('businesses')
     .doc(businessId)
