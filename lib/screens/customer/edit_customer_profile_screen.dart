@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -78,10 +80,14 @@ class _EditCustomerProfileScreenState
         _pendingImageBytes = bytes;
         _removeAvatar = false;
       });
-    } catch (e) {
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[PROFILE_EDIT] Image selection failed: $e');
+        debugPrintStack(stackTrace: st);
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not select image: $e')),
+          SnackBar(content: Text('Could not select image: ${_errorMessage(e)}')),
         );
       }
     }
@@ -105,6 +111,10 @@ class _EditCustomerProfileScreenState
 
     String? uploadedUrl;
     try {
+      if (kDebugMode) {
+        debugPrint('[PROFILE_EDIT] Saving uid=${current.id}, role=${current.role}');
+      }
+
       final pending = _pendingImage;
       if (pending != null) {
         uploadedUrl = await _media.uploadXFile(
@@ -132,9 +142,10 @@ class _EditCustomerProfileScreenState
       if (shouldDeleteOld) {
         try {
           await _media.deleteByUrl(oldUrl);
-        } catch (_) {
-          // Non-blocking cleanup: the saved profile already points to the
-          // correct image and an orphan can be cleaned up later.
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[PROFILE_EDIT] Old avatar cleanup skipped: $e');
+          }
         }
       }
 
@@ -149,7 +160,7 @@ class _EditCustomerProfileScreenState
         ),
       );
       context.pop();
-    } catch (e) {
+    } catch (e, st) {
       // If upload succeeded but the canonical Firestore update failed, delete
       // only the newly uploaded object so the previous saved profile stays safe.
       if (uploadedUrl != null) {
@@ -157,17 +168,34 @@ class _EditCustomerProfileScreenState
           await _media.deleteByUrl(uploadedUrl);
         } catch (_) {}
       }
+
+      if (kDebugMode) {
+        debugPrint('[PROFILE_EDIT] Save failed: $e');
+        debugPrintStack(stackTrace: st);
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not update profile: $e'),
+            content: Text('Could not update profile: ${_errorMessage(e)}'),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 8),
           ),
         );
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  String _errorMessage(Object error) {
+    if (error is FirebaseException) {
+      final message = error.message?.trim();
+      return message == null || message.isEmpty
+          ? '[${error.code}] Firebase request failed.'
+          : '[${error.code}] $message';
+    }
+    return error.toString();
   }
 
   @override
@@ -181,7 +209,7 @@ class _EditCustomerProfileScreenState
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (error, _) => _ErrorState(
-          message: 'Unable to load your profile: $error',
+          message: 'Unable to load your profile: ${_errorMessage(error)}',
           onRetry: () => ref.invalidate(customerProfileProvider),
         ),
         data: (user) {
@@ -192,18 +220,9 @@ class _EditCustomerProfileScreenState
               buttonLabel: 'Sign In',
             );
           }
-          if (user.role != UserRole.customer) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'This profile editor is only available for customer accounts.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
 
+          // Personal profile fields are safe for every authenticated account.
+          // Firestore rules still prevent changing the protected role/email.
           _hydrate(user);
           final visibleAvatarUrl = _removeAvatar ? null : user.avatarUrl;
 
