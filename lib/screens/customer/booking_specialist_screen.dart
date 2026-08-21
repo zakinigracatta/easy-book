@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/staff_model.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/business_catalog_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import 'widgets/selected_services_summary.dart';
@@ -64,7 +65,7 @@ class _BookingSpecialistScreenState
     final businessId = draft.businessId ?? '';
     final selectedServices = draft.selectedServices;
 
-    final eligibleStaffState = ref.watch(eligibleStaffProvider((
+    final eligibleStaffState = ref.watch(cachedEligibleStaffProvider((
       businessId: businessId,
       selectedServices: selectedServices,
     )));
@@ -99,11 +100,8 @@ class _BookingSpecialistScreenState
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Progress Header Step 1
               const BookingProgressHeader(currentStep: 1),
               const SizedBox(height: 16),
-
-              // Selected Services Summary Review
               if (selectedServices.isNotEmpty) ...[
                 SelectedServicesSummary(
                   services: selectedServices,
@@ -117,8 +115,6 @@ class _BookingSpecialistScreenState
                 ),
                 const SizedBox(height: 20),
               ],
-
-              // Section Title
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Column(
@@ -141,8 +137,6 @@ class _BookingSpecialistScreenState
                 ),
               ),
               const SizedBox(height: 14),
-
-              // Eligible Staff List
               Expanded(
                 child: eligibleStaffState.when(
                   loading: () =>
@@ -154,7 +148,6 @@ class _BookingSpecialistScreenState
                   data: (eligibleStaff) {
                     return ListView(
                       children: [
-                        // Option 1: Any Available Specialist
                         SpecialistOptionCard(
                           isAnySpecialist: true,
                           isSelected: _anySpecialist,
@@ -166,8 +159,6 @@ class _BookingSpecialistScreenState
                           },
                         ),
                         const SizedBox(height: 12),
-
-                        // Eligible Staff Cards
                         ...eligibleStaff.map((staff) {
                           final isSel =
                               !_anySpecialist && _selectedStaffId == staff.id;
@@ -190,8 +181,6 @@ class _BookingSpecialistScreenState
                   },
                 ),
               ),
-
-              // Continue Button
               eligibleStaffState.maybeWhen(
                 data: (eligibleStaff) => CustomButton(
                   text: 'Continue: Select Date & Time',
