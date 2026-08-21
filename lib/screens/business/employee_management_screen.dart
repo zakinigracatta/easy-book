@@ -6,7 +6,6 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
-import '../../models/staff_model.dart';
 
 class EmployeeManagementScreen extends ConsumerWidget {
   const EmployeeManagementScreen({super.key});
