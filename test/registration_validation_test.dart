@@ -194,6 +194,7 @@ class MockHttpClientResponse extends Fake implements HttpClientResponse {
   @override
   int get statusCode => 200;
 
+  @override
   int get contentLength => transparentPixel.length;
 
   @override
