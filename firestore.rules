@@ -61,6 +61,15 @@ service cloud.firestore {
       allow update: if isUser(userId)
                     && request.path == /databases/$(database)/documents/users/$(userId)
                     && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
+
+      // Per-user saved businesses. The document ID is the canonical business ID.
+      match /favorites/{businessId} {
+        allow read, delete: if isUser(userId);
+        allow create: if isUser(userId)
+                      && request.resource.data.businessId == businessId
+                      && request.resource.data.keys().hasOnly(['businessId', 'createdAt']);
+        allow update: if false;
+      }
     }
 
     // Businesses Collection & Subcollections

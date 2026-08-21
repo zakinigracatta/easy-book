@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/booking_model.dart';
+import 'package:flutter/foundation.dart';
+
 import '../core/domain_exceptions.dart';
+import '../models/booking_model.dart';
 import 'booking_functions_service.dart';
 
 class BookingService {
@@ -18,20 +19,30 @@ class BookingService {
   static void validateCanonical15MinAlignment(DateTime start) {
     if (start.minute % 15 != 0 || start.second != 0 || start.millisecond != 0) {
       throw InvalidBookingTimeException(
-          'Booking start time must be aligned to 15-minute intervals (e.g., 10:00, 10:15, 10:30, 10:45).');
+        'Booking start time must be aligned to 15-minute intervals (e.g., 10:00, 10:15, 10:30, 10:45).',
+      );
     }
   }
 
   Future<List<BookingModel>> getBookings(String customerId) async {
-    if (customerId.isEmpty) return [];
+    final normalizedCustomerId = customerId.trim();
+    if (normalizedCustomerId.isEmpty) return [];
+
     try {
       final snap = await _firestore
           .collection('bookings')
-          .where('customerId', isEqualTo: customerId)
+          .where('customerId', isEqualTo: normalizedCustomerId)
           .get();
 
-      final list =
-          snap.docs.map((doc) => BookingModel.fromJson(doc.data())).toList();
+      final list = snap.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        // Always trust Firestore's document ID as the canonical booking ID.
+        // This keeps cancellation/rescheduling working even for legacy records
+        // that were created before an `id` field was stored in the document.
+        data['id'] = doc.id;
+        return BookingModel.fromJson(data);
+      }).toList();
+
       list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
       return list;
     } catch (e) {
@@ -41,7 +52,11 @@ class BookingService {
   }
 
   static List<String> generateIntervalSlotLockIds(
-      String businessId, String staffId, DateTime start, DateTime end) {
+    String businessId,
+    String staffId,
+    DateTime start,
+    DateTime end,
+  ) {
     final List<String> ids = [];
     const int bucketMs = 15 * 60 * 1000;
     final int startMs = start.millisecondsSinceEpoch;

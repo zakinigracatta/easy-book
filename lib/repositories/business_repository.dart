@@ -1,12 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/business_model.dart';
+import '../models/review_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
-import '../models/review_model.dart';
 
 abstract class BusinessRepository {
-  Future<List<BusinessModel>> fetchBusinesses(
-      {String? category, String? query});
+  Future<List<BusinessModel>> fetchBusinesses({
+    String? category,
+    String? query,
+  });
+
   Future<BusinessModel?> fetchBusinessById(String id);
   Future<List<ServiceModel>> fetchServices(String businessId);
   Future<List<StaffModel>> fetchStaff(String businessId);
@@ -20,61 +24,89 @@ class BusinessRepositoryImpl implements BusinessRepository {
   final FirebaseFirestore _firestore;
 
   @override
-  Future<List<BusinessModel>> fetchBusinesses(
-      {String? category, String? query}) async {
-    final snap = await _firestore.collection('businesses').get();
-    final list = snap.docs.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id;
-      return BusinessModel.fromJson(data);
-    }).toList();
+  Future<List<BusinessModel>> fetchBusinesses({
+    String? category,
+    String? query,
+  }) async {
+    final snapshot = await _firestore.collection('businesses').get();
 
-    return _filter(list, category, query);
+    final businesses = snapshot.docs
+        .map((doc) {
+          final data = Map<String, dynamic>.from(doc.data());
+          data['id'] = doc.id;
+          return BusinessModel.fromJson(data);
+        })
+        .where((business) => business.isActive)
+        .toList();
+
+    return _filterBusinesses(businesses, category, query);
   }
 
-  List<BusinessModel> _filter(
-      List<BusinessModel> list, String? category, String? query) {
-    var results = list;
-    if (category != null && category != 'all' && category.isNotEmpty) {
+  List<BusinessModel> _filterBusinesses(
+    List<BusinessModel> businesses,
+    String? category,
+    String? query,
+  ) {
+    var results = businesses;
+
+    final normalizedCategory = category?.trim().toLowerCase();
+    if (normalizedCategory != null &&
+        normalizedCategory.isNotEmpty &&
+        normalizedCategory != 'all') {
       results = results
           .where(
-              (b) => b.category.toLowerCase().contains(category.toLowerCase()))
+            (business) => business.category
+                .toLowerCase()
+                .contains(normalizedCategory),
+          )
           .toList();
     }
-    if (query != null && query.isNotEmpty) {
+
+    final normalizedQuery = query?.trim().toLowerCase();
+    if (normalizedQuery != null && normalizedQuery.isNotEmpty) {
       results = results
-          .where((b) =>
-              b.name.toLowerCase().contains(query.toLowerCase()) ||
-              b.address.toLowerCase().contains(query.toLowerCase()))
+          .where(
+            (business) =>
+                business.name.toLowerCase().contains(normalizedQuery) ||
+                business.address.toLowerCase().contains(normalizedQuery) ||
+                business.category.toLowerCase().contains(normalizedQuery),
+          )
           .toList();
     }
+
     return results;
   }
 
   @override
   Future<BusinessModel?> fetchBusinessById(String id) async {
-    if (id.isEmpty) return null;
+    final normalizedId = id.trim();
+    if (normalizedId.isEmpty) return null;
 
-    final doc = await _firestore.collection('businesses').doc(id).get();
+    final doc =
+        await _firestore.collection('businesses').doc(normalizedId).get();
+
     if (!doc.exists || doc.data() == null) return null;
 
-    final data = doc.data()!;
+    final data = Map<String, dynamic>.from(doc.data()!);
     data['id'] = doc.id;
-    return BusinessModel.fromJson(data);
+    final business = BusinessModel.fromJson(data);
+
+    return business.isActive ? business : null;
   }
 
   @override
   Future<List<ServiceModel>> fetchServices(String businessId) async {
-    if (businessId.isEmpty) return [];
+    final normalizedId = businessId.trim();
+    if (normalizedId.isEmpty) return [];
 
-    final snap = await _firestore
+    final snapshot = await _firestore
         .collection('businesses')
-        .doc(businessId)
+        .doc(normalizedId)
         .collection('services')
         .get();
 
-    return snap.docs.map((doc) {
-      final data = doc.data();
+    return snapshot.docs.map((doc) {
+      final data = Map<String, dynamic>.from(doc.data());
       data['id'] = doc.id;
       return ServiceModel.fromJson(data);
     }).toList();
@@ -82,16 +114,17 @@ class BusinessRepositoryImpl implements BusinessRepository {
 
   @override
   Future<List<StaffModel>> fetchStaff(String businessId) async {
-    if (businessId.isEmpty) return [];
+    final normalizedId = businessId.trim();
+    if (normalizedId.isEmpty) return [];
 
-    final snap = await _firestore
+    final snapshot = await _firestore
         .collection('businesses')
-        .doc(businessId)
+        .doc(normalizedId)
         .collection('staff')
         .get();
 
-    return snap.docs.map((doc) {
-      final data = doc.data();
+    return snapshot.docs.map((doc) {
+      final data = Map<String, dynamic>.from(doc.data());
       data['id'] = doc.id;
       return StaffModel.fromJson(data);
     }).toList();
@@ -99,16 +132,17 @@ class BusinessRepositoryImpl implements BusinessRepository {
 
   @override
   Future<List<ReviewModel>> fetchReviews(String businessId) async {
-    if (businessId.isEmpty) return [];
+    final normalizedId = businessId.trim();
+    if (normalizedId.isEmpty) return [];
 
-    final snap = await _firestore
+    final snapshot = await _firestore
         .collection('businesses')
-        .doc(businessId)
+        .doc(normalizedId)
         .collection('reviews')
         .get();
 
-    return snap.docs.map((doc) {
-      final data = doc.data();
+    return snapshot.docs.map((doc) {
+      final data = Map<String, dynamic>.from(doc.data());
       data['id'] = doc.id;
       return ReviewModel.fromJson(data);
     }).toList();

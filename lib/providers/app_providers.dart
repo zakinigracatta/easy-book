@@ -1,19 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../models/business_model.dart';
+
+import '../models/available_slot.dart';
 import '../models/booking_model.dart';
+import '../models/business_model.dart';
 import '../models/chat_model.dart';
+import '../models/review_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
-import '../models/review_model.dart';
-import '../models/available_slot.dart';
-import '../services/auth_service.dart';
 import '../repositories/auth_repository.dart';
-import '../repositories/business_repository.dart';
 import '../repositories/booking_repository.dart';
+import '../repositories/business_repository.dart';
+import '../services/auth_service.dart';
 import '../services/availability_service.dart';
 import '../services/booking_availability_engine.dart';
+
 export 'auth_provider.dart';
 
 // Services & Repositories Providers
@@ -349,8 +352,8 @@ final appointmentsProvider =
 // Theme Mode Provider
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
-// Favorites State Provider
-final favoritesProvider = StateProvider<Set<String>>((ref) => {'b1', 'b3'});
+// Legacy in-memory favorites state. New customer UI uses savedFavoritesProvider.
+final favoritesProvider = StateProvider<Set<String>>((ref) => <String>{});
 
 // Chat State Provider
 final chatMessagesProvider = StateProvider<List<ChatMessageModel>>((ref) => [
