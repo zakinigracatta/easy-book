@@ -204,7 +204,7 @@ class SalonDetailScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.15)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
