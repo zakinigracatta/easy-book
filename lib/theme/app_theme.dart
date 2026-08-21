@@ -3,12 +3,24 @@ import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
+  static const _pageTransitionsTheme = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.fuchsia: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+    },
+  );
+
   static ThemeData get darkTheme {
     final baseText = GoogleFonts.tajawalTextTheme(ThemeData.dark().textTheme);
 
     return ThemeData.dark().copyWith(
       scaffoldBackgroundColor: AppColors.bgDark,
       primaryColor: AppColors.primary,
+      pageTransitionsTheme: _pageTransitionsTheme,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.accent,
