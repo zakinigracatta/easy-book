@@ -29,8 +29,14 @@ class SalonDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
-  int _selectedTabIndex = 0;
+  final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
   final List<String> _selectedServiceIds = [];
+
+  @override
+  void dispose() {
+    _selectedTabIndex.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +70,6 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
               return _buildNotFoundView(context);
             }
 
-            // Services are needed immediately because they are the default tab
-            // and the booking bar uses the selected service state. Staff and
-            // reviews are watched lazily inside their tabs below.
             final servicesState = ref.watch(servicesProvider(business.id));
 
             return Column(
@@ -114,15 +117,30 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               const SizedBox(height: 16),
                               BusinessQuickActions(business: business),
                               const SizedBox(height: 20),
-                              BusinessNavTabs(
-                                selectedIndex: _selectedTabIndex,
-                                onTabSelected: (index) {
-                                  if (index == _selectedTabIndex) return;
-                                  setState(() => _selectedTabIndex = index);
+                              ValueListenableBuilder<int>(
+                                valueListenable: _selectedTabIndex,
+                                builder: (context, selectedTabIndex, _) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      BusinessNavTabs(
+                                        selectedIndex: selectedTabIndex,
+                                        onTabSelected: (index) {
+                                          if (index == selectedTabIndex) return;
+                                          _selectedTabIndex.value = index;
+                                        },
+                                      ),
+                                      const SizedBox(height: 20),
+                                      _buildTabContent(
+                                        business,
+                                        servicesState,
+                                        selectedTabIndex,
+                                      ),
+                                    ],
+                                  );
                                 },
                               ),
-                              const SizedBox(height: 20),
-                              _buildTabContent(business, servicesState),
                             ],
                           ),
                         ),
@@ -182,8 +200,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
   Widget _buildTabContent(
     BusinessModel business,
     AsyncValue<List<ServiceModel>> servicesState,
+    int selectedTabIndex,
   ) {
-    switch (_selectedTabIndex) {
+    switch (selectedTabIndex) {
       case 0:
         return servicesState.when(
           loading: () => const Center(
@@ -329,10 +348,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   color: Colors.white),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Please check your network connection and try again.',
-              style:
-                  const TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
