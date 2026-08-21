@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/business_model.dart';
 import '../../models/service_model.dart';
-import '../../models/staff_model.dart';
-import '../../models/review_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/auth_guard.dart';
 import '../../theme/app_colors.dart';
@@ -66,9 +64,10 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
               return _buildNotFoundView(context);
             }
 
+            // Services are needed immediately because they are the default tab
+            // and the booking bar uses the selected service state. Staff and
+            // reviews are watched lazily inside their tabs below.
             final servicesState = ref.watch(servicesProvider(business.id));
-            final staffState = ref.watch(staffProvider(business.id));
-            final reviewsState = ref.watch(reviewsProvider(business.id));
 
             return Column(
               children: [
@@ -77,10 +76,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Hero Cover Header
                         BusinessHero(business: business),
-
-                        // Inactive Business Banner
                         if (!business.isActive)
                           Container(
                             width: double.infinity,
@@ -104,8 +100,6 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               ],
                             ),
                           ),
-
-                        // 2. Business Summary & Actions
                         Padding(
                           padding: const EdgeInsets.all(20),
                           child: Column(
@@ -120,25 +114,15 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               const SizedBox(height: 16),
                               BusinessQuickActions(business: business),
                               const SizedBox(height: 20),
-
-                              // 3. Navigation Tabs (Services, Specialists, Reviews, About)
                               BusinessNavTabs(
                                 selectedIndex: _selectedTabIndex,
                                 onTabSelected: (index) {
-                                  setState(() {
-                                    _selectedTabIndex = index;
-                                  });
+                                  if (index == _selectedTabIndex) return;
+                                  setState(() => _selectedTabIndex = index);
                                 },
                               ),
                               const SizedBox(height: 20),
-
-                              // 4. Tab Body Contents
-                              _buildTabContent(
-                                business,
-                                servicesState,
-                                staffState,
-                                reviewsState,
-                              ),
+                              _buildTabContent(business, servicesState),
                             ],
                           ),
                         ),
@@ -146,8 +130,6 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                     ),
                   ),
                 ),
-
-                // 5. Persistent Bottom Booking Bar
                 BookingBottomBar(
                   business: business,
                   onBookNowTap: () async {
@@ -160,7 +142,6 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                           .toList();
                     }
 
-                    // Update draft state
                     final currentDraft = ref.read(bookingDraftProvider);
                     if (selectedList.isNotEmpty) {
                       final first = selectedList.first;
@@ -183,7 +164,6 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                       );
                     }
 
-                    // Check Auth requirement
                     final allowed = await requireLogin(context,
                         targetRoute: '/booking-service');
                     if (allowed && context.mounted) {
@@ -202,12 +182,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
   Widget _buildTabContent(
     BusinessModel business,
     AsyncValue<List<ServiceModel>> servicesState,
-    AsyncValue<List<StaffModel>> staffState,
-    AsyncValue<List<ReviewModel>> reviewsState,
   ) {
     switch (_selectedTabIndex) {
       case 0:
-        // Services Tab
         return servicesState.when(
           loading: () => const Center(
               child: Padding(
@@ -227,7 +204,6 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                 }
               });
 
-              // Update draft immediately
               final selectedList = services
                   .where((s) => _selectedServiceIds.contains(s.id))
                   .toList();
@@ -260,7 +236,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         );
 
       case 1:
-        // Specialists Tab
+        final staffState = ref.watch(staffProvider(business.id));
         return staffState.when(
           loading: () => const Center(
               child: Padding(
@@ -305,7 +281,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         );
 
       case 2:
-        // Reviews Tab
+        final reviewsState = ref.watch(reviewsProvider(business.id));
         return reviewsState.when(
           loading: () => const Center(
               child: Padding(
@@ -321,7 +297,6 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         );
 
       case 3:
-        // About & Gallery Tab
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
