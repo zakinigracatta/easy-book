@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import '../../../models/business_model.dart';
-import '../../../providers/app_providers.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/favorites_provider.dart';
+import '../../../services/auth_guard.dart';
 import '../../../theme/app_colors.dart';
 
 class BusinessHero extends ConsumerWidget {
@@ -18,37 +21,32 @@ class BusinessHero extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favorites = ref.watch(favoritesProvider);
+    final favoritesAsync = ref.watch(savedFavoritesProvider);
+    final favorites = favoritesAsync.asData?.value ?? <String>{};
     final isFavorite = favorites.contains(business.id);
-
-    const fallbackUrl =
-        'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80';
-    final imageUrl =
-        business.imageUrl.isNotEmpty ? business.imageUrl : fallbackUrl;
+    final imageUrl = business.imageUrl.trim();
 
     return Stack(
       children: [
-        // Cover Image
         AspectRatio(
           aspectRatio: 16 / 10,
-          child: CachedNetworkImage(
-            imageUrl: imageUrl,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-              color: AppColors.cardDark,
-              child: const Center(
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: AppColors.primary),
-              ),
-            ),
-            errorWidget: (context, url, error) => Image.network(
-              fallbackUrl,
-              fit: BoxFit.cover,
-            ),
-          ),
+          child: imageUrl.isEmpty
+              ? _coverPlaceholder()
+              : CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: AppColors.cardDark,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => _coverPlaceholder(),
+                ),
         ),
-
-        // Gradient Overlay for Readability
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -65,15 +63,12 @@ class BusinessHero extends ConsumerWidget {
             ),
           ),
         ),
-
-        // Top Action Bar Buttons
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Back Button
                 _circleIconButton(
                   icon: Icons.arrow_back_rounded,
                   onTap: () {
@@ -84,7 +79,6 @@ class BusinessHero extends ConsumerWidget {
                     }
                   },
                 ),
-                // Right Buttons (Favorite + Share)
                 Row(
                   children: [
                     _circleIconButton(
@@ -92,15 +86,32 @@ class BusinessHero extends ConsumerWidget {
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
                       iconColor: isFavorite ? Colors.redAccent : Colors.white,
-                      onTap: () {
-                        final set =
-                            Set<String>.from(ref.read(favoritesProvider));
-                        if (isFavorite) {
-                          set.remove(business.id);
-                        } else {
-                          set.add(business.id);
+                      onTap: () async {
+                        final allowed = await requireLogin(
+                          context,
+                          targetRoute: '/salon/${business.id}',
+                        );
+                        if (!allowed || !context.mounted) return;
+
+                        final user = ref.read(authProvider);
+                        if (user == null || user.id.trim().isEmpty) return;
+
+                        try {
+                          await ref.read(favoritesRepositoryProvider).setFavorite(
+                                userId: user.id,
+                                businessId: business.id,
+                                isFavorite: !isFavorite,
+                              );
+                        } catch (_) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Could not update favorites. Please try again.',
+                              ),
+                            ),
+                          );
                         }
-                        ref.read(favoritesProvider.notifier).state = set;
                       },
                     ),
                     const SizedBox(width: 10),
@@ -110,7 +121,8 @@ class BusinessHero extends ConsumerWidget {
                           () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                  content: Text('Sharing ${business.name}...')),
+                                content: Text('Sharing ${business.name}...'),
+                              ),
                             );
                           },
                     ),
@@ -121,6 +133,18 @@ class BusinessHero extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _coverPlaceholder() {
+    return Container(
+      color: AppColors.cardDark,
+      alignment: Alignment.center,
+      child: const Icon(
+        Icons.storefront_rounded,
+        size: 64,
+        color: AppColors.textMutedDark,
+      ),
     );
   }
 
@@ -136,8 +160,10 @@ class BusinessHero extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.45),
           shape: BoxShape.circle,
-          border:
-              Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1,
+          ),
         ),
         child: Icon(icon, color: iconColor, size: 20),
       ),
