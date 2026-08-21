@@ -52,7 +52,6 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Name & Contact
             Row(
               children: [
                 CircleAvatar(
@@ -109,10 +108,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                 ),
               ],
             ),
-
             const SizedBox(height: 20),
-
-            // Metrics Summary Grid
             Row(
               children: [
                 Expanded(
@@ -133,9 +129,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                 ),
               ],
             ),
-
             const SizedBox(height: 16),
-
             GlassCard(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -157,7 +151,6 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                 ],
               ),
             ),
-
             if (c.favoriteServices.isNotEmpty) ...[
               const SizedBox(height: 14),
               const Text(
@@ -188,10 +181,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                 }).toList(),
               ),
             ],
-
             const SizedBox(height: 16),
-
-            // Private Internal Owner Notes Section
             const Text(
               'Private Owner Notes (Internal Only)',
               style: TextStyle(
@@ -207,9 +197,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               maxLines: 3,
               prefixIcon: Icons.lock_outline_rounded,
             ),
-
             const SizedBox(height: 20),
-
             CustomButton(
               text: 'Save Private Notes',
               isLoading: _isSaving,
@@ -222,15 +210,14 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                       _notesController.text.trim(),
                     );
                 ref.invalidate(ownerCustomersProvider);
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Private customer notes saved!'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Private customer notes saved!'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
               },
             ),
           ],
