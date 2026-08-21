@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/business_model.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/business_catalog_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/customer_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
@@ -14,14 +15,14 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final businessesAsync = ref.watch(businessesProvider);
+    final businessesAsync = ref.watch(businessCatalogProvider);
 
     return Scaffold(
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            ref.invalidate(businessesProvider);
-            await ref.read(businessesProvider.future);
+            ref.invalidate(businessCatalogProvider);
+            await ref.read(businessCatalogProvider.future);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -413,7 +414,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             TextButton.icon(
-              onPressed: () => ref.invalidate(businessesProvider),
+              onPressed: () => ref.invalidate(businessCatalogProvider),
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try again'),
             ),
