@@ -26,26 +26,33 @@ class BusinessHero extends ConsumerWidget {
     final isFavorite = favorites.contains(business.id);
     final imageUrl = business.imageUrl.trim();
 
+    final logicalWidth = MediaQuery.sizeOf(context).width;
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final heroCacheWidth = (logicalWidth * devicePixelRatio)
+        .round()
+        .clamp(1, 1440)
+        .toInt();
+
     return Stack(
       children: [
-        AspectRatio(
-          aspectRatio: 16 / 10,
-          child: imageUrl.isEmpty
-              ? _coverPlaceholder()
-              : CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: AppColors.cardDark,
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
-                      ),
+        RepaintBoundary(
+          child: AspectRatio(
+            aspectRatio: 16 / 10,
+            child: imageUrl.isEmpty
+                ? _coverPlaceholder()
+                : CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    memCacheWidth: heroCacheWidth,
+                    maxWidthDiskCache: heroCacheWidth,
+                    fadeInDuration: const Duration(milliseconds: 120),
+                    fadeOutDuration: Duration.zero,
+                    placeholder: (context, url) => Container(
+                      color: AppColors.cardDark,
                     ),
+                    errorWidget: (context, url, error) => _coverPlaceholder(),
                   ),
-                  errorWidget: (context, url, error) => _coverPlaceholder(),
-                ),
+          ),
         ),
         Positioned.fill(
           child: DecoratedBox(
