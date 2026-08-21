@@ -59,9 +59,9 @@ class BusinessImagePicker extends StatelessWidget {
                       ),
                     )
                   : !hasImage
-                      ? Column(
+                      ? const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.add_a_photo_rounded,
                               size: 32,
