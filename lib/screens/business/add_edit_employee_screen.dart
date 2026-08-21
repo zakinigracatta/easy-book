@@ -143,7 +143,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         value: _isActive,
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                         title: const Text(
                           'Active & Bookable',
                           style: TextStyle(
