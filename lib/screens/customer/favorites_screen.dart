@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/business_model.dart';
 import '../../providers/app_providers.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/customer_bottom_nav.dart';

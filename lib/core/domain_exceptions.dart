@@ -22,43 +22,40 @@ class DomainException implements Exception {
 }
 
 class SlotConflictException extends DomainException {
-  SlotConflictException(
-      [String message =
-          'This time slot was just booked by another customer. Please choose another available time.'])
-      : super(message, reason: BookingFailureReason.slotTaken);
+  SlotConflictException([
+    super.message =
+        'This time slot was just booked by another customer. Please choose another available time.',
+  ]) : super(reason: BookingFailureReason.slotTaken);
 }
 
 class BusinessClosedException extends DomainException {
-  BusinessClosedException(
-      [String message =
-          'The business is currently closed or not accepting online bookings.'])
-      : super(message, reason: BookingFailureReason.businessClosed);
+  BusinessClosedException([
+    super.message =
+        'The business is currently closed or not accepting online bookings.',
+  ]) : super(reason: BookingFailureReason.businessClosed);
 }
 
 class EmployeeUnavailableException extends DomainException {
-  EmployeeUnavailableException(
-      [String message =
-          'The selected specialist is unavailable during this time.'])
-      : super(message, reason: BookingFailureReason.employeeUnavailable);
+  EmployeeUnavailableException([
+    super.message = 'The selected specialist is unavailable during this time.',
+  ]) : super(reason: BookingFailureReason.employeeUnavailable);
 }
 
 class ServiceUnavailableException extends DomainException {
-  ServiceUnavailableException(
-      [String message =
-          'The selected service is currently inactive or unavailable.'])
-      : super(message, reason: BookingFailureReason.serviceUnavailable);
+  ServiceUnavailableException([
+    super.message = 'The selected service is currently inactive or unavailable.',
+  ]) : super(reason: BookingFailureReason.serviceUnavailable);
 }
 
 class AuthorizationException extends DomainException {
-  AuthorizationException(
-      [String message =
-          'You do not have authorization to perform this operation.'])
-      : super(message, reason: BookingFailureReason.authorizationFailed);
+  AuthorizationException([
+    super.message = 'You do not have authorization to perform this operation.',
+  ]) : super(reason: BookingFailureReason.authorizationFailed);
 }
 
 class InvalidBookingTimeException extends DomainException {
-  InvalidBookingTimeException(
-      [String message =
-          'Booking start time must be aligned to 15-minute intervals.'])
-      : super(message, reason: BookingFailureReason.invalidBookingTime);
+  InvalidBookingTimeException([
+    super.message =
+        'Booking start time must be aligned to 15-minute intervals.',
+  ]) : super(reason: BookingFailureReason.invalidBookingTime);
 }
