@@ -32,10 +32,10 @@ class AnalyticsScreen extends StatelessWidget {
           ),
           title: const Text('Platform Analytics'),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
+        body: const Padding(
+          padding: EdgeInsets.all(20),
           child: Column(
-            children: const [
+            children: [
               GlassCard(
                 child: ListTile(
                   title: Text('Monthly Active Users (MAU)'),
