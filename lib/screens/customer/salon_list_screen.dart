@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/business_model.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/business_catalog_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
@@ -14,7 +15,7 @@ class SalonListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedCategory = ref.watch(selectedCategoryProvider);
-    final businessesAsync = ref.watch(businessesProvider);
+    final businessesAsync = ref.watch(filteredBusinessCatalogProvider);
     final title = selectedCategory == 'all'
         ? 'Top Salons & Spas'
         : '$selectedCategory Businesses';
@@ -54,8 +55,8 @@ class SalonListScreen extends ConsumerWidget {
 
             return RefreshIndicator(
               onRefresh: () async {
-                ref.invalidate(businessesProvider);
-                await ref.read(businessesProvider.future);
+                ref.invalidate(businessCatalogProvider);
+                await ref.read(businessCatalogProvider.future);
               },
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -227,7 +228,7 @@ class SalonListScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             TextButton.icon(
-              onPressed: () => ref.invalidate(businessesProvider),
+              onPressed: () => ref.invalidate(businessCatalogProvider),
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try again'),
             ),
