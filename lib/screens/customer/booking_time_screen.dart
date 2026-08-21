@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/business_catalog_provider.dart';
 import '../../models/staff_model.dart';
 import '../../models/available_slot.dart';
 import 'widgets/booking_progress_header.dart';
@@ -43,7 +44,6 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
     String resolvedId = draft.staffId ?? '';
     String resolvedName = draft.staffName ?? 'Specialist';
 
-    // If Any Specialist was chosen, resolve staff ID from available staff for this slot
     if (draft.anySpecialist || resolvedId.isEmpty) {
       if (_selectedSlot!.availableStaffIds.isNotEmpty) {
         resolvedId = _selectedSlot!.availableStaffIds.first;
@@ -71,7 +71,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
     final businessState = ref.watch(businessDetailProvider(businessId));
     final selectedServices = draft.selectedServices;
 
-    final eligibleStaffState = ref.watch(eligibleStaffProvider((
+    final eligibleStaffState = ref.watch(cachedEligibleStaffProvider((
       businessId: businessId,
       selectedServices: selectedServices,
     )));
@@ -135,23 +135,18 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Progress Header Step 2
                       const BookingProgressHeader(currentStep: 2),
                       const SizedBox(height: 16),
-
-                      // Date Selector
                       BookingDateSelector(
                         selectedDate: _selectedDate,
                         onDateSelected: (d) {
                           setState(() {
                             _selectedDate = d;
-                            _selectedSlot = null; // clear slot on date change
+                            _selectedSlot = null;
                           });
                         },
                       ),
                       const SizedBox(height: 20),
-
-                      // Time Slots
                       Expanded(
                         child: SingleChildScrollView(
                           child: engineSlotsState.when(
@@ -179,9 +174,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
                       engineSlotsState.maybeWhen(
                         data: (slots) => CustomButton(
                           text: 'Review Booking Summary',
