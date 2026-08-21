@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -139,14 +138,19 @@ class BookingDraft {
   double get totalPrice {
     if (selectedServices.isNotEmpty) {
       return selectedServices.fold(
-          0.0, (sum, s) => sum + (s.discountPrice ?? s.price));
+        0.0,
+        (total, service) => total + (service.discountPrice ?? service.price),
+      );
     }
     return servicePrice ?? 0.0;
   }
 
   int get totalDurationMinutes {
     if (selectedServices.isNotEmpty) {
-      return selectedServices.fold(0, (sum, s) => sum + s.durationMinutes);
+      return selectedServices.fold(
+        0,
+        (total, service) => total + service.durationMinutes,
+      );
     }
     return serviceDurationMinutes ?? 30;
   }
