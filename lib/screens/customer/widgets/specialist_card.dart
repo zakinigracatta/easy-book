@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import '../../../models/staff_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
@@ -20,6 +20,10 @@ class SpecialistCard extends StatelessWidget {
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
     final avatarUrl =
         staff.avatarUrl.isNotEmpty ? staff.avatarUrl : fallbackAvatar;
+    final avatarCacheWidth = (64 * MediaQuery.devicePixelRatioOf(context))
+        .round()
+        .clamp(64, 256)
+        .toInt();
 
     return GlassCard(
       onTap: onTap,
@@ -27,7 +31,6 @@ class SpecialistCard extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         child: Row(
           children: [
-            // Avatar Image
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: CachedNetworkImage(
@@ -35,20 +38,25 @@ class SpecialistCard extends StatelessWidget {
                 width: 64,
                 height: 64,
                 fit: BoxFit.cover,
+                memCacheWidth: avatarCacheWidth,
+                maxWidthDiskCache: avatarCacheWidth,
+                fadeInDuration: const Duration(milliseconds: 100),
+                fadeOutDuration: Duration.zero,
                 placeholder: (context, url) =>
                     Container(color: AppColors.cardDark),
-                errorWidget: (context, url, err) => Image.network(
-                  fallbackAvatar,
+                errorWidget: (context, url, err) => Container(
                   width: 64,
                   height: 64,
-                  fit: BoxFit.cover,
+                  color: AppColors.cardDark,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: AppColors.textMutedDark,
+                  ),
                 ),
               ),
             ),
-
             const SizedBox(width: 14),
-
-            // Specialist Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
