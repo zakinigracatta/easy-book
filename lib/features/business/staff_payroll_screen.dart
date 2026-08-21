@@ -9,8 +9,8 @@ class StaffPayrollScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Staff Payroll & Commissions')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(20),
         child: Column(
           children: [
             GlassCard(
@@ -18,21 +18,21 @@ class StaffPayrollScreen extends StatelessWidget {
                 children: [
                   GradientText(
                     '\$14,250.00',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
+                  SizedBox(height: 4),
+                  Text(
                     'Total Monthly Staff Payouts',
                     style: TextStyle(color: Colors.grey),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-            const GlassCard(
+            SizedBox(height: 20),
+            GlassCard(
               child: ListTile(
                 title: Text(
                   'Marcus Vance',
