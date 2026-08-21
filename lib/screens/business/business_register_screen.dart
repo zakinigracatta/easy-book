@@ -279,13 +279,13 @@ class _BusinessRegisterScreenState
                                   ),
                           ),
                         ),
-                        Positioned(
+                        const Positioned(
                           bottom: 0,
                           right: 0,
                           child: CircleAvatar(
                             backgroundColor: AppColors.accent,
                             radius: 16,
-                            child: const Icon(
+                            child: Icon(
                               Icons.camera_alt_rounded,
                               size: 16,
                               color: Colors.white,
@@ -338,7 +338,7 @@ class _BusinessRegisterScreenState
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
-                        value: _selectedCategory,
+                        initialValue: _selectedCategory,
                         dropdownColor: AppColors.cardDark,
                         decoration: InputDecoration(
                           prefixIcon:

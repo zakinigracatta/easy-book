@@ -299,13 +299,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 )
                               : null,
                         ),
-                        Positioned(
+                        const Positioned(
                           bottom: 0,
                           right: 0,
                           child: CircleAvatar(
                             backgroundColor: AppColors.primary,
                             radius: 16,
-                            child: const Icon(
+                            child: Icon(
                               Icons.camera_alt_rounded,
                               size: 16,
                               color: Colors.white,

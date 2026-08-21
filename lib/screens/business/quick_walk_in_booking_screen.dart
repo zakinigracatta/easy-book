@@ -76,12 +76,11 @@ class _QuickWalkInBookingScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Walk-in Header Banner
                 GlassCard(
                   padding: const EdgeInsets.all(16),
                   backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(Icons.directions_walk_rounded,
                           color: AppColors.gold, size: 28),
                       SizedBox(width: 12),
@@ -111,10 +110,7 @@ class _QuickWalkInBookingScreenState
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Customer Segment Toggle (New vs Existing)
                 Row(
                   children: [
                     Expanded(
@@ -178,14 +174,11 @@ class _QuickWalkInBookingScreenState
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
                 GlassCard(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      // Customer Name Field
                       CustomTextField(
                         controller: _nameController,
                         label: 'Customer Name *',
@@ -197,27 +190,21 @@ class _QuickWalkInBookingScreenState
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Customer Phone Field
                       CustomTextField(
                         controller: _phoneController,
                         label: 'Phone Number',
                         prefixIcon: Icons.phone_rounded,
                         keyboardType: TextInputType.phone,
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Service Picker Dropdown
                       servicesAsync.when(
                         data: (services) {
                           if (_selectedService == null && services.isNotEmpty) {
                             _selectedService = services.first;
                           }
                           return DropdownButtonFormField<ServiceModel>(
-                            value: _selectedService,
+                            initialValue: _selectedService,
                             decoration: InputDecoration(
                               labelText: 'Select Service *',
                               labelStyle: const TextStyle(
@@ -253,17 +240,14 @@ class _QuickWalkInBookingScreenState
                             color: AppColors.primary),
                         error: (_, __) => const SizedBox.shrink(),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Employee Picker Dropdown
                       employeesAsync.when(
                         data: (staffList) {
                           if (_selectedStaff == null && staffList.isNotEmpty) {
                             _selectedStaff = staffList.first;
                           }
                           return DropdownButtonFormField<StaffModel>(
-                            value: _selectedStaff,
+                            initialValue: _selectedStaff,
                             decoration: InputDecoration(
                               labelText: 'Assign Specialist *',
                               labelStyle: const TextStyle(
@@ -298,10 +282,7 @@ class _QuickWalkInBookingScreenState
                             color: AppColors.primary),
                         error: (_, __) => const SizedBox.shrink(),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Date & Time Pickers
                       Row(
                         children: [
                           Expanded(
@@ -367,20 +348,14 @@ class _QuickWalkInBookingScreenState
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 16),
-
-                      // Notes Field
                       CustomTextField(
                         controller: _notesController,
                         label: 'Walk-in Notes (Optional)',
                         prefixIcon: Icons.notes_rounded,
                         maxLines: 2,
                       ),
-
                       const SizedBox(height: 24),
-
-                      // Create Button
                       CustomButton(
                         text: 'Create Walk-in Booking',
                         isLoading: _isLoading,

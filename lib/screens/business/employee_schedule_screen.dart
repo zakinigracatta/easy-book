@@ -79,7 +79,7 @@ class _EmployeeScheduleScreenState
                   GlassCard(
                     padding: const EdgeInsets.all(14),
                     child: DropdownButtonFormField<String>(
-                      value: selected.id,
+                      initialValue: selected.id,
                       decoration: const InputDecoration(
                         labelText: 'Staff member',
                         prefixIcon: Icon(Icons.badge_rounded),
@@ -211,7 +211,7 @@ class _EmployeeScheduleScreenState
               ),
               Switch(
                 value: hours.isWorking,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (value) {
                   setState(() {
                     _schedule[day] = hours.copyWith(isWorking: value);

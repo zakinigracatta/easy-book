@@ -159,7 +159,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                       ),
                       const SizedBox(height: 14),
                       DropdownButtonFormField<int>(
-                        value:
+                        initialValue:
                             _durationOptions.contains(_selectedDurationMinutes)
                                 ? _selectedDurationMinutes
                                 : 30,
@@ -227,7 +227,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                       const SizedBox(height: 16),
                       SwitchListTile(
                         value: _isActive,
-                        activeColor: AppColors.primary,
+                        activeThumbColor: AppColors.primary,
                         title: const Text(
                           'Available for Booking',
                           style: TextStyle(
