@@ -5,32 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/business_model.dart';
-import '../../providers/app_providers.dart';
+import '../../providers/business_catalog_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/customer_bottom_nav.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
-
-final customerSearchSourceProvider = FutureProvider<List<BusinessModel>>((ref) async {
-  final repository = ref.watch(businessRepositoryProvider);
-  return repository.fetchBusinesses();
-});
-
-final customerSearchBusinessesProvider =
-    FutureProvider.family<List<BusinessModel>, String>((ref, query) async {
-  final businesses = await ref.watch(customerSearchSourceProvider.future);
-  final normalizedQuery = query.trim().toLowerCase();
-
-  return businesses.where((business) {
-    if (!business.isActive) return false;
-    if (normalizedQuery.isEmpty) return true;
-
-    return business.name.toLowerCase().contains(normalizedQuery) ||
-        business.address.toLowerCase().contains(normalizedQuery) ||
-        business.category.toLowerCase().contains(normalizedQuery);
-  }).toList();
-});
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -70,8 +50,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final businessesAsync =
-        ref.watch(customerSearchBusinessesProvider(_query));
+    final businessesAsync = ref.watch(businessSearchResultsProvider(_query));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Search & Explore')),
@@ -96,8 +75,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
                 return RefreshIndicator(
                   onRefresh: () async {
-                    ref.invalidate(customerSearchSourceProvider);
-                    await ref.read(customerSearchSourceProvider.future);
+                    ref.invalidate(businessCatalogProvider);
+                    await ref.read(businessCatalogProvider.future);
                   },
                   child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -257,7 +236,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             const SizedBox(height: 12),
             TextButton.icon(
-              onPressed: () => ref.invalidate(customerSearchSourceProvider),
+              onPressed: () => ref.invalidate(businessCatalogProvider),
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try again'),
             ),
