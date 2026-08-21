@@ -255,44 +255,49 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         );
 
       case 1:
-        final staffState = ref.watch(staffProvider(business.id));
-        return staffState.when(
-          loading: () => const Center(
-              child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator())),
-          error: (err, stack) => Text('Error loading specialists: $err',
-              style: const TextStyle(color: AppColors.error)),
-          data: (staffList) {
-            if (staffList.isEmpty) {
-              return Container(
-                padding: const EdgeInsets.all(32),
-                alignment: Alignment.center,
-                child: const Column(
-                  children: [
-                    Icon(Icons.badge_outlined,
-                        size: 48, color: AppColors.textMutedDark),
-                    SizedBox(height: 12),
-                    Text(
-                      'Specialist information is not available yet.',
-                      style: TextStyle(
-                          color: AppColors.textMutedDark, fontSize: 14),
-                      textAlign: TextAlign.center,
+        return Consumer(
+          builder: (context, tabRef, _) {
+            final staffState = tabRef.watch(staffProvider(business.id));
+            return staffState.when(
+              loading: () => const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator())),
+              error: (err, stack) => Text('Error loading specialists: $err',
+                  style: const TextStyle(color: AppColors.error)),
+              data: (staffList) {
+                if (staffList.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(32),
+                    alignment: Alignment.center,
+                    child: const Column(
+                      children: [
+                        Icon(Icons.badge_outlined,
+                            size: 48, color: AppColors.textMutedDark),
+                        SizedBox(height: 12),
+                        Text(
+                          'Specialist information is not available yet.',
+                          style: TextStyle(
+                              color: AppColors.textMutedDark, fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            }
-            return ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: staffList.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final staff = staffList[index];
-                return SpecialistCard(
-                  staff: staff,
-                  onTap: () => context.push('/staff-profile'),
+                  );
+                }
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: staffList.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final staff = staffList[index];
+                    return SpecialistCard(
+                      staff: staff,
+                      onTap: () => context.push('/staff-profile'),
+                    );
+                  },
                 );
               },
             );
@@ -300,19 +305,23 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         );
 
       case 2:
-        final reviewsState = ref.watch(reviewsProvider(business.id));
-        return reviewsState.when(
-          loading: () => const Center(
-              child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator())),
-          error: (err, stack) => Text('Error loading reviews: $err',
-              style: const TextStyle(color: AppColors.error)),
-          data: (reviewsList) => ReviewsSection(
-            averageRating: business.rating,
-            totalReviews: business.reviewCount,
-            reviews: reviewsList,
-          ),
+        return Consumer(
+          builder: (context, tabRef, _) {
+            final reviewsState = tabRef.watch(reviewsProvider(business.id));
+            return reviewsState.when(
+              loading: () => const Center(
+                  child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator())),
+              error: (err, stack) => Text('Error loading reviews: $err',
+                  style: const TextStyle(color: AppColors.error)),
+              data: (reviewsList) => ReviewsSection(
+                averageRating: business.rating,
+                totalReviews: business.reviewCount,
+                reviews: reviewsList,
+              ),
+            );
+          },
         );
 
       case 3:
