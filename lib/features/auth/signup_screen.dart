@@ -93,7 +93,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 24),
-                // Role Toggle
                 Row(
                   children: [
                     Expanded(
@@ -110,7 +109,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             border: Border.all(
                               color: Theme.of(context)
                                   .primaryColor
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Center(
@@ -145,7 +144,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             border: Border.all(
                               color: Theme.of(context)
                                   .primaryColor
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Center(

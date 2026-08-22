@@ -45,7 +45,6 @@ export const createWalkInBooking = onCall(async (request) => {
   const db = admin.firestore();
 
   return await db.runTransaction(async (transaction) => {
-    // 1. Verify Business Ownership
     const bizRef = db.collection('businesses').doc(businessId);
     const bizSnap = await transaction.get(bizRef);
     if (!bizSnap.exists) {
@@ -56,24 +55,26 @@ export const createWalkInBooking = onCall(async (request) => {
     }
     const bizData = bizSnap.data() || {};
     const ownerId = bizData.ownerId || bizData.owner_id;
-    if (ownerId !== ownerUid) {
+    const isDeterministicOwner = businessId === ownerUid;
+    if (!isDeterministicOwner && ownerId !== ownerUid) {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: Caller is not the owner of this business.'
       );
     }
 
-    // 2. Authoritative Validation & Price/Duration calculation
+    // Walk-ins are allowed immediately; customer app lead-time restrictions
+    // do not apply, while all business/service/staff/hour checks still do.
     const context = await validateBookingRequirements(
       db,
       transaction,
       businessId,
       serviceId,
       staffId,
-      requestedStartAt
+      requestedStartAt,
+      false
     );
 
-    // 3. Lock IDs generation
     const lockObjects = generateIntervalSlotLockIds(
       businessId,
       staffId,
@@ -81,7 +82,6 @@ export const createWalkInBooking = onCall(async (request) => {
       context.calculatedEndAt
     );
 
-    // 4. Check Lock Availability (Competes for exact same slot lock documents)
     for (const lock of lockObjects) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
       const lockSnap = await transaction.get(lockRef);
@@ -93,7 +93,6 @@ export const createWalkInBooking = onCall(async (request) => {
       }
     }
 
-    // 5. Create Non-Sensitive Booking Slots Locks
     const bookingDocRef = db.collection('bookings').doc();
     const primarySlotLockId = lockObjects[0].lockId;
 
@@ -110,7 +109,6 @@ export const createWalkInBooking = onCall(async (request) => {
       });
     }
 
-    // 6. Create Authoritative Walk-in Booking Snapshot Document
     const bookingPayload = {
       id: bookingDocRef.id,
       customerId: '',

@@ -60,6 +60,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                   ),
                 );
                 ref.invalidate(ownerProfitAndLossProvider);
+                ref.invalidate(ownerTodayProfitAndLossProvider);
               },
               child: const ListTile(
                 leading: Icon(
@@ -74,7 +75,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                   ),
                 ),
                 subtitle: Text(
-                  'Add, edit and archive owner-only business costs',
+                  'Daily, monthly, annual and emergency owner-only costs',
                 ),
                 trailing: Icon(Icons.chevron_right_rounded),
               ),
@@ -93,7 +94,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Revenue is recognized only from completed bookings in this version. Payment-status accounting will replace this rule when the payment module is connected.',
+                      'Revenue is recognized only from completed bookings. Expenses are actual recorded costs; Daily, Monthly and Annual are reporting classifications and do not automatically repeat amounts.',
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.4,
@@ -239,6 +240,12 @@ class OwnerFinanceScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 18),
         _sectionCard(
+          title: 'Expense Frequency',
+          subtitle: 'Daily, monthly, annual and emergency actual costs',
+          children: _buildExpenseFrequencyRows(report, currency),
+        ),
+        const SizedBox(height: 14),
+        _sectionCard(
           title: 'Cost Structure',
           subtitle: 'Expenses grouped into business cost areas',
           children: _buildExpenseGroupRows(report, currency),
@@ -290,6 +297,22 @@ class OwnerFinanceScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildExpenseFrequencyRows(
+    ProfitAndLossSummary report,
+    NumberFormat currency,
+  ) {
+    return ExpenseFrequency.values.map((frequency) {
+      final amount = report.expensesByFrequency[frequency] ?? 0.0;
+      final share = report.expenses <= 0 ? 0.0 : amount / report.expenses;
+      return _breakdownRow(
+        label: frequency.label,
+        value: currency.format(amount),
+        detail:
+            '${(share * 100).toStringAsFixed(1)}% of expenses • ${frequency.description}',
+      );
+    }).toList(growable: false);
   }
 
   List<Widget> _buildExpenseGroupRows(

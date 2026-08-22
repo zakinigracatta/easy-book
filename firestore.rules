@@ -17,9 +17,28 @@ service cloud.firestore {
     }
 
     function isBusinessOwner(businessId) {
-      return isAuthenticated() &&
+      return isOwnerAccount() &&
+        (
+          businessId == request.auth.uid ||
+          (
+            exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+            (
+              ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
+              ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+            )
+          )
+        );
+    }
+
+    // Finance access is stricter than the general owner helper: a real parent
+    // business document must exist before any private financial record can be
+    // read or written. Deterministic business IDs equal to the owner UID remain
+    // supported alongside ownerId/owner_id legacy records.
+    function isFinanceOwner(businessId) {
+      return isOwnerAccount() &&
         exists(/databases/$(database)/documents/businesses/$(businessId)) &&
         (
+          businessId == request.auth.uid ||
           ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
           ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
         );
@@ -48,7 +67,9 @@ service cloud.firestore {
     }
 
     function validExpenseFrequency(frequency) {
-      return frequency in ['oneTime', 'monthly', 'yearly'];
+      // oneTime is accepted only for backward compatibility with V1 clients and
+      // historical records. Current clients write daily/monthly/yearly/emergency.
+      return frequency in ['daily', 'monthly', 'yearly', 'emergency', 'oneTime'];
     }
 
     function validExpenseData(businessId) {
@@ -134,15 +155,6 @@ service cloud.firestore {
       allow update: if isUser(userId)
                     && request.path == /databases/$(database)/documents/users/$(userId)
                     && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
-
-      // Per-user saved businesses. The document ID is the canonical business ID.
-      match /favorites/{businessId} {
-        allow read, delete: if isUser(userId);
-        allow create: if isUser(userId)
-                      && request.resource.data.businessId == businessId
-                      && request.resource.data.keys().hasOnly(['businessId', 'createdAt']);
-        allow update: if false;
-      }
     }
 
     // Businesses Collection & Subcollections
@@ -150,7 +162,8 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if isOwnerAccount() &&
-        (request.resource.data.ownerId == request.auth.uid ||
+        (businessId == request.auth.uid ||
+         request.resource.data.ownerId == request.auth.uid ||
          request.resource.data.owner_id == request.auth.uid);
 
       allow update: if isBusinessOwner(businessId);
@@ -171,15 +184,15 @@ service cloud.firestore {
 
       // PRIVATE OWNER FINANCE: employees and customers have no read/write access.
       match /expenses/{expenseId} {
-        allow read: if isBusinessOwner(businessId);
+        allow read: if isFinanceOwner(businessId);
 
-        allow create: if isBusinessOwner(businessId)
+        allow create: if isFinanceOwner(businessId)
                       && validExpenseData(businessId)
                       && request.resource.data.isActive == true
                       && request.resource.data.createdAt == request.time
                       && request.resource.data.updatedAt == request.time;
 
-        allow update: if isBusinessOwner(businessId)
+        allow update: if isFinanceOwner(businessId)
                       && resource != null
                       && validExpenseData(businessId)
                       && request.resource.data.businessId == resource.data.businessId

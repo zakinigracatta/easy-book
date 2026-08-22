@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_book/models/booking_model.dart';
 import 'package:easy_book/models/expense_model.dart';
 import 'package:easy_book/services/owner_finance_calculator.dart';
@@ -35,6 +36,7 @@ void main() {
     required ExpenseCategory category,
     required double amount,
     required DateTime date,
+    ExpenseFrequency frequency = ExpenseFrequency.emergency,
     bool isActive = true,
   }) {
     return ExpenseModel(
@@ -45,6 +47,7 @@ void main() {
       amount: amount,
       expenseDate: date,
       paymentMethod: 'Cash',
+      frequency: frequency,
       isActive: isActive,
       createdBy: 'owner-1',
     );
@@ -96,9 +99,10 @@ void main() {
     expect(summary.netProfit, 200);
     expect(summary.profitMarginPercent, 100);
     expect(summary.revenueByService['Service'], 200);
+    expect(summary.expensesByFrequency, isEmpty);
   });
 
-  test('counts active expenses in range and groups them by category and group', () {
+  test('counts active expenses in range and groups by category group and frequency', () {
     final summary = calculator.calculate(
       bookings: [
         booking(
@@ -114,24 +118,28 @@ void main() {
           category: ExpenseCategory.rent,
           amount: 300,
           date: DateTime(2026, 8, 1),
+          frequency: ExpenseFrequency.monthly,
         ),
         expense(
           id: 'supplies-1',
           category: ExpenseCategory.supplies,
           amount: 100,
           date: DateTime(2026, 8, 5),
+          frequency: ExpenseFrequency.daily,
         ),
         expense(
           id: 'supplies-2',
           category: ExpenseCategory.supplies,
           amount: 50,
           date: DateTime(2026, 8, 20),
+          frequency: ExpenseFrequency.daily,
         ),
         expense(
           id: 'archived',
           category: ExpenseCategory.marketing,
           amount: 700,
           date: DateTime(2026, 8, 10),
+          frequency: ExpenseFrequency.monthly,
           isActive: false,
         ),
         expense(
@@ -139,6 +147,7 @@ void main() {
           category: ExpenseCategory.other,
           amount: 900,
           date: DateTime(2026, 9, 1),
+          frequency: ExpenseFrequency.emergency,
         ),
       ],
       from: DateTime(2026, 8, 1),
@@ -152,8 +161,82 @@ void main() {
     expect(summary.expensesByGroup[ExpenseGroup.occupancy], 300);
     expect(summary.expensesByGroup[ExpenseGroup.operations], 150);
     expect(summary.expensesByGroup.containsKey(ExpenseGroup.marketing), false);
+    expect(summary.expensesByFrequency[ExpenseFrequency.monthly], 300);
+    expect(summary.expensesByFrequency[ExpenseFrequency.daily], 150);
+    expect(summary.expensesByFrequency.containsKey(ExpenseFrequency.emergency), false);
     expect(summary.netProfit, 550);
     expect(summary.profitMarginPercent, closeTo(55, 1e-9));
+  });
+
+  test('separates daily monthly annual and emergency expenses exactly', () {
+    final summary = calculator.calculate(
+      bookings: const [],
+      expenses: [
+        expense(
+          id: 'daily',
+          category: ExpenseCategory.supplies,
+          amount: 25,
+          date: DateTime(2026, 8, 10),
+          frequency: ExpenseFrequency.daily,
+        ),
+        expense(
+          id: 'monthly',
+          category: ExpenseCategory.rent,
+          amount: 2000,
+          date: DateTime(2026, 8, 1),
+          frequency: ExpenseFrequency.monthly,
+        ),
+        expense(
+          id: 'annual',
+          category: ExpenseCategory.licensing,
+          amount: 1200,
+          date: DateTime(2026, 8, 3),
+          frequency: ExpenseFrequency.yearly,
+        ),
+        expense(
+          id: 'emergency',
+          category: ExpenseCategory.maintenance,
+          amount: 350,
+          date: DateTime(2026, 8, 5),
+          frequency: ExpenseFrequency.emergency,
+        ),
+      ],
+      from: DateTime(2026, 8, 1),
+      to: DateTime(2026, 8, 31),
+    );
+
+    expect(summary.expenses, 3575);
+    expect(summary.expensesByFrequency[ExpenseFrequency.daily], 25);
+    expect(summary.expensesByFrequency[ExpenseFrequency.monthly], 2000);
+    expect(summary.expensesByFrequency[ExpenseFrequency.yearly], 1200);
+    expect(summary.expensesByFrequency[ExpenseFrequency.emergency], 350);
+  });
+
+  test('maps legacy oneTime Firestore expenses to emergency classification', () {
+    final item = ExpenseModel.fromFirestore('legacy-1', {
+      'businessId': 'business-1',
+      'category': 'maintenance',
+      'description': 'Legacy repair',
+      'amount': 150,
+      'expenseDate': Timestamp.fromDate(DateTime(2026, 8, 10)),
+      'paymentMethod': 'Cash',
+      'frequency': 'oneTime',
+      'isActive': true,
+      'createdBy': 'owner-1',
+    });
+
+    expect(item.frequency, ExpenseFrequency.emergency);
+  });
+
+  test('suggests sensible default frequency by expense category', () {
+    expect(ExpenseCategory.rent.suggestedFrequency, ExpenseFrequency.monthly);
+    expect(ExpenseCategory.salaries.suggestedFrequency, ExpenseFrequency.monthly);
+    expect(ExpenseCategory.supplies.suggestedFrequency, ExpenseFrequency.daily);
+    expect(ExpenseCategory.cleaningLaundry.suggestedFrequency, ExpenseFrequency.daily);
+    expect(ExpenseCategory.licensing.suggestedFrequency, ExpenseFrequency.yearly);
+    expect(ExpenseCategory.insurance.suggestedFrequency, ExpenseFrequency.yearly);
+    expect(ExpenseCategory.maintenance.suggestedFrequency, ExpenseFrequency.emergency);
+    expect(ExpenseCategory.other.suggestedFrequency, ExpenseFrequency.emergency);
   });
 
   test('groups completed revenue by service and calculates average revenue', () {
@@ -232,6 +315,7 @@ void main() {
           category: ExpenseCategory.utilities,
           amount: 20,
           date: DateTime(2026, 8, 23, 23, 30),
+          frequency: ExpenseFrequency.monthly,
         ),
       ],
       from: DateTime(2026, 8, 23),
@@ -241,6 +325,7 @@ void main() {
     expect(summary.recognizedRevenue, 120);
     expect(summary.expenses, 20);
     expect(summary.netProfit, 100);
+    expect(summary.expensesByFrequency[ExpenseFrequency.monthly], 20);
   });
 
   test('returns zero margin and zero average when there is no recognized revenue', () {
@@ -252,6 +337,7 @@ void main() {
           category: ExpenseCategory.rent,
           amount: 300,
           date: DateTime(2026, 8, 1),
+          frequency: ExpenseFrequency.monthly,
         ),
       ],
       from: DateTime(2026, 8, 1),

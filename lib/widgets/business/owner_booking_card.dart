@@ -35,7 +35,7 @@ class OwnerBookingCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.access_time_filled_rounded,
+                  const Icon(Icons.access_time_filled_rounded,
                       size: 16, color: AppColors.accent),
                   const SizedBox(width: 6),
                   Text(

@@ -54,7 +54,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Tabs
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -82,13 +81,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   }).toList(),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Revenue Metric
               GlassCard(
                 padding: const EdgeInsets.all(20),
-                backgroundColor: AppColors.primary.withOpacity(0.1),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -115,16 +111,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              // Stats Grid
-              Row(
+              const Row(
                 children: [
                   Expanded(
                     child: GlassCard(
-                      padding: const EdgeInsets.all(18),
-                      child: const Column(
+                      padding: EdgeInsets.all(18),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
@@ -151,11 +144,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  SizedBox(width: 14),
                   Expanded(
                     child: GlassCard(
-                      padding: const EdgeInsets.all(18),
-                      child: const Column(
+                      padding: EdgeInsets.all(18),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
@@ -183,14 +176,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
-              // System Health
               const Text('System Health',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-
               GlassCard(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -211,7 +200,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                              color: AppColors.success.withOpacity(0.2),
+                              color: AppColors.success.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6)),
                           child: const Text('100% Uptime',
                               style: TextStyle(
@@ -242,14 +231,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Admin Actions
               const Text('Admin Actions',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-
               ElevatedButton(
                 onPressed: () => context.push('/user-management'),
                 style: ElevatedButton.styleFrom(

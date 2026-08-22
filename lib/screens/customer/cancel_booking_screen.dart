@@ -83,9 +83,9 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              GlassCard(
+              const GlassCard(
                 borderColor: AppColors.error,
-                child: const Column(
+                child: Column(
                   children: [
                     Icon(Icons.warning_amber_rounded,
                         size: 50, color: AppColors.error),
@@ -95,7 +95,7 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
                     Text(
-                        'Full refund will be credited to your Easy Book Wallet.',
+                        'The appointment will be cancelled and the time slot will become available again.',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: AppColors.textMutedDark)),
                   ],

@@ -17,7 +17,6 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 20),
-              // Header Logo & Branding
               Center(
                 child: Column(
                   children: [
@@ -27,10 +26,11 @@ class WelcomeScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: AppColors.gold.withOpacity(0.4), width: 2),
+                            color: AppColors.gold.withValues(alpha: 0.4),
+                            width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.gold.withOpacity(0.25),
+                            color: AppColors.gold.withValues(alpha: 0.25),
                             blurRadius: 24,
                             offset: const Offset(0, 8),
                           ),
@@ -71,7 +71,6 @@ class WelcomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 36),
               const Text(
                 'Choose Your Portal',
@@ -79,8 +78,6 @@ class WelcomeScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-
-              // Role 1: Customer / Client
               GlassCard(
                 onTap: () => context.go('/home'),
                 padding: const EdgeInsets.all(20),
@@ -118,10 +115,7 @@ class WelcomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 14),
-
-              // Role 2: Salon & Spa Owner
               GlassCard(
                 onTap: () => context.push('/salon-register'),
                 padding: const EdgeInsets.all(20),
@@ -159,10 +153,7 @@ class WelcomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 14),
-
-              // Role 3: Super Admin
               GlassCard(
                 onTap: () => context.push('/admin-dashboard'),
                 padding: const EdgeInsets.all(20),
@@ -200,13 +191,10 @@ class WelcomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // SaaS Banner
               GlassCard(
                 onTap: () => context.push('/subscribe'),
-                backgroundColor: AppColors.primary.withOpacity(0.12),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                 borderColor: AppColors.primary,
                 padding: const EdgeInsets.all(18),
                 child: Row(

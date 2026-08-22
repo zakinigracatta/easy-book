@@ -11,6 +11,18 @@ export interface ValidatedBookingContext {
   staffName: string;
 }
 
+const MINIMUM_LEAD_TIME_MINUTES = 30;
+const MAX_ADVANCE_BOOKING_DAYS = 60;
+const DAY_NAMES = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+];
+
 export function parseTimeStringToMinutes(raw: string): number {
   try {
     const clean = raw.trim();
@@ -28,15 +40,103 @@ export function parseTimeStringToMinutes(raw: string): number {
   }
 }
 
+function getZonedDayAndMinutes(date: Date, timeZone: string): {
+  weekday: number;
+  minutes: number;
+} {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  });
+  const parts = formatter.formatToParts(date);
+  const weekdayName = parts.find((p) => p.type === 'weekday')?.value ?? 'Mon';
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? '0');
+  const minute = Number(parts.find((p) => p.type === 'minute')?.value ?? '0');
+  const weekdays: Record<string, number> = {
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+    Sun: 7,
+  };
+  return {
+    weekday: weekdays[weekdayName] ?? 1,
+    minutes: hour * 60 + minute,
+  };
+}
+
+function validateBookingWindow(requestedStartAt: Date): void {
+  const now = Date.now();
+  const earliest = now + MINIMUM_LEAD_TIME_MINUTES * 60 * 1000;
+  const latest = now + MAX_ADVANCE_BOOKING_DAYS * 24 * 60 * 60 * 1000;
+
+  if (requestedStartAt.getTime() < earliest) {
+    throw new HttpsError(
+      'failed-precondition',
+      'BOOKING_TOO_SOON: Appointments must be booked at least 30 minutes in advance.'
+    );
+  }
+  if (requestedStartAt.getTime() > latest) {
+    throw new HttpsError(
+      'failed-precondition',
+      'BOOKING_TOO_FAR: Appointments can only be booked up to 60 days in advance.'
+    );
+  }
+}
+
+function validateBusinessHours(
+  bizData: Record<string, any>,
+  zonedWeekday: number,
+  candStartMin: number,
+  candEndMin: number
+): void {
+  const rawHours = bizData.working_hours ?? bizData.workingHours;
+  if (!rawHours || typeof rawHours !== 'object') return;
+
+  const dayName = DAY_NAMES[zonedWeekday - 1];
+  const dayData = rawHours[dayName.toLowerCase()] ?? rawHours[dayName];
+  if (!dayData || typeof dayData !== 'object') return;
+
+  const isClosed = (dayData.is_closed ?? dayData.isClosed) === true;
+  if (isClosed) {
+    throw new HttpsError(
+      'failed-precondition',
+      'BUSINESS_CLOSED_DAY: Business is closed on the selected day.'
+    );
+  }
+
+  const openRaw = dayData.open ?? dayData.openTime;
+  const closeRaw = dayData.close ?? dayData.closeTime;
+  if (typeof openRaw !== 'string' || typeof closeRaw !== 'string') return;
+
+  const openMin = parseTimeStringToMinutes(openRaw);
+  const closeMin = parseTimeStringToMinutes(closeRaw);
+  if (candStartMin < openMin || candEndMin > closeMin) {
+    throw new HttpsError(
+      'failed-precondition',
+      'OUTSIDE_BUSINESS_HOURS: Requested appointment is outside business working hours.'
+    );
+  }
+}
+
 export async function validateBookingRequirements(
   db: admin.firestore.Firestore,
   transaction: admin.firestore.Transaction,
   businessId: string,
   serviceId: string,
   staffId: string,
-  requestedStartAt: Date
+  requestedStartAt: Date,
+  enforceCustomerBookingWindow = true
 ): Promise<ValidatedBookingContext> {
-  // 1. Business Check
+  if (enforceCustomerBookingWindow) {
+    validateBookingWindow(requestedStartAt);
+  }
+
   const bizRef = db.collection('businesses').doc(businessId);
   const bizSnap = await transaction.get(bizRef);
   if (!bizSnap.exists) {
@@ -46,9 +146,12 @@ export async function validateBookingRequirements(
     );
   }
   const bizData = bizSnap.data() || {};
-  const isActive = bizData.isActive !== false;
-  const acceptingBookings = bizData.acceptingBookings !== false;
-  const businessStatus = bizData.businessStatus || 'open';
+  const isActive = (bizData.is_active ?? bizData.isActive) !== false;
+  const acceptingBookings =
+    (bizData.accepting_bookings ?? bizData.acceptingBookings) !== false;
+  const businessStatus =
+    bizData.business_status ?? bizData.businessStatus ?? 'open';
+  const businessTimeZone = bizData.timezone ?? bizData.timeZone ?? 'Asia/Dubai';
 
   if (!isActive || !acceptingBookings || businessStatus !== 'open') {
     throw new HttpsError(
@@ -57,7 +160,6 @@ export async function validateBookingRequirements(
     );
   }
 
-  // 2. Service Validation
   const srvRef = db
     .collection('businesses')
     .doc(businessId)
@@ -71,10 +173,14 @@ export async function validateBookingRequirements(
     );
   }
   const srvData = srvSnap.data() || {};
-  if (srvData.isActive === false) {
+  const serviceIsActive = (srvData.is_active ?? srvData.isActive) !== false;
+  const serviceIsBookable =
+    (srvData.is_bookable ?? srvData.isBookable) !== false;
+
+  if (!serviceIsActive || !serviceIsBookable) {
     throw new HttpsError(
       'failed-precondition',
-      'SERVICE_INACTIVE: Selected service is not currently active.'
+      'SERVICE_INACTIVE: Selected service is not currently active or bookable.'
     );
   }
 
@@ -82,19 +188,27 @@ export async function validateBookingRequirements(
   const discountPrice =
     typeof srvData.discountPrice === 'number' && srvData.discountPrice > 0
       ? srvData.discountPrice
-      : (typeof srvData.discount_price === 'number' && srvData.discount_price > 0 ? srvData.discount_price : null);
+      : (typeof srvData.discount_price === 'number' && srvData.discount_price > 0
+          ? srvData.discount_price
+          : null);
 
   const effectivePrice = discountPrice !== null ? discountPrice : price;
   const durationMinutes =
     typeof srvData.durationMinutes === 'number' && srvData.durationMinutes > 0
       ? srvData.durationMinutes
-      : (typeof srvData.duration_minutes === 'number' && srvData.duration_minutes > 0 ? srvData.duration_minutes : 30);
+      : (typeof srvData.duration_minutes === 'number' && srvData.duration_minutes > 0
+          ? srvData.duration_minutes
+          : 30);
 
   const calculatedEndAt = new Date(
     requestedStartAt.getTime() + durationMinutes * 60 * 1000
   );
 
-  // 3. Staff Validation
+  const zonedStart = getZonedDayAndMinutes(requestedStartAt, businessTimeZone);
+  const candStartMin = zonedStart.minutes;
+  const candEndMin = candStartMin + durationMinutes;
+  validateBusinessHours(bizData, zonedStart.weekday, candStartMin, candEndMin);
+
   const staffRef = db
     .collection('businesses')
     .doc(businessId)
@@ -108,7 +222,8 @@ export async function validateBookingRequirements(
     );
   }
   const staffData = staffSnap.data() || {};
-  if (staffData.isActive === false) {
+  const staffIsActive = (staffData.is_active ?? staffData.isActive) !== false;
+  if (!staffIsActive) {
     throw new HttpsError(
       'failed-precondition',
       'STAFF_INACTIVE: Staff member is currently inactive.'
@@ -128,10 +243,7 @@ export async function validateBookingRequirements(
     );
   }
 
-  // 4. Working Days & Shift Boundaries Check (UTC Timezone Normalization)
-  const dayOfWeek = requestedStartAt.getUTCDay(); // 0 = Sun, 1 = Mon ...
-  const normalizedDay = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Mon ... 7 = Sun
-
+  const normalizedDay = zonedStart.weekday;
   const workingDays: number[] | null = Array.isArray(staffData.workingDays)
     ? staffData.workingDays
     : Array.isArray(staffData.working_days)
@@ -147,10 +259,6 @@ export async function validateBookingRequirements(
 
   const shiftStartStr = staffData.shiftStart || staffData.shift_start || null;
   const shiftEndStr = staffData.shiftEnd || staffData.shift_end || null;
-
-  const candStartMin =
-    requestedStartAt.getUTCHours() * 60 + requestedStartAt.getUTCMinutes();
-  const candEndMin = candStartMin + durationMinutes;
 
   if (shiftStartStr) {
     const sStartMin = parseTimeStringToMinutes(shiftStartStr);
@@ -172,7 +280,6 @@ export async function validateBookingRequirements(
     }
   }
 
-  // 5. Time-Off / Leave Check
   const toffSnap = await db
     .collection('businesses')
     .doc(businessId)

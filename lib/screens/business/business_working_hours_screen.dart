@@ -163,7 +163,7 @@ class _BusinessWorkingHoursScreenState
               const SizedBox(width: 6),
               Switch(
                 value: !hours.isClosed,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (open) {
                   setState(() {
                     _hoursMap[day] = DailyHours(

@@ -46,7 +46,6 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -84,10 +83,7 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
-                // Quick Action Bar
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -122,10 +118,7 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Navigation Tabs
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -154,11 +147,8 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                     }).toList(),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 if (_activeTab == 'Overview') ...[
-                  // Revenue Bar Chart Card
                   GlassCard(
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -185,7 +175,7 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.success.withOpacity(0.15),
+                                color: AppColors.success.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Row(
@@ -224,10 +214,7 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // Metrics Grid
                   Row(
                     children: [
                       Expanded(
@@ -243,13 +230,11 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                               Icons.star_rounded)),
                     ],
                   ),
-
                   const SizedBox(height: 24),
                   const Text('Today\'s Appointments',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-
                   _appointmentTile(
                       'Sarah Jenkins',
                       'Royal Haircut & Beard Trim',

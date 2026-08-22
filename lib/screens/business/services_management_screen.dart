@@ -109,7 +109,6 @@ class ServicesManagementScreen extends ConsumerWidget {
                                           ),
                                         ),
                                       ),
-                                      // Active / Disabled status chip
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 3),
@@ -196,13 +195,11 @@ class ServicesManagementScreen extends ConsumerWidget {
                                 ],
                               ],
                             ),
-
-                            // Actions: Toggle Active, Edit, Delete
                             Row(
                               children: [
                                 Switch(
                                   value: s.isActive,
-                                  activeColor: AppColors.primary,
+                                  activeThumbColor: AppColors.primary,
                                   onChanged: (_) {
                                     ref
                                         .read(ownerServicesProvider.notifier)

@@ -28,7 +28,6 @@ class CustomerHomeScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
                   child: Row(
@@ -81,8 +80,6 @@ class CustomerHomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-
-                // Search Bar & Map Explorer Trigger
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -124,10 +121,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Quick Bar Explorer Pills
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -159,10 +153,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Special Offers Horizontal Slider
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -194,9 +185,8 @@ class CustomerHomeScreen extends ConsumerWidget {
                         AppColors.goldGradient,
                         () async {
                           final allowed = await requireLogin(context);
-                          if (allowed) {
-                            context.push('/booking-service');
-                          }
+                          if (!context.mounted) return;
+                          if (allowed) context.push('/booking-service');
                         },
                       ),
                       const SizedBox(width: 14),
@@ -207,18 +197,14 @@ class CustomerHomeScreen extends ConsumerWidget {
                         AppColors.primaryGradient,
                         () async {
                           final allowed = await requireLogin(context);
-                          if (allowed) {
-                            context.push('/booking-service');
-                          }
+                          if (!context.mounted) return;
+                          if (allowed) context.push('/booking-service');
                         },
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Categories
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
@@ -271,10 +257,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                     },
                   ),
                 ),
-
                 const SizedBox(height: 28),
-
-                // Featured Salons
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -293,7 +276,6 @@ class CustomerHomeScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-
                 businessesAsync.when(
                   data: (businesses) {
                     final filtered = selectedCategory == 'all'
@@ -385,9 +367,9 @@ class CustomerHomeScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.4)),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -414,7 +396,7 @@ class CustomerHomeScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4)),
           ],
@@ -434,7 +416,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(salon,
                     style: TextStyle(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withValues(alpha: 0.7),
                         fontSize: 13,
                         fontWeight: FontWeight.w600)),
               ],

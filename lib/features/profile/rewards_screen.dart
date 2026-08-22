@@ -39,7 +39,7 @@ class RewardsScreen extends StatelessWidget {
           child: Column(
             children: [
               GlassCard(
-                backgroundColor: AppColors.primary.withOpacity(0.15),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                 child: Column(
                   children: [
                     const Icon(Icons.stars_rounded,
@@ -96,7 +96,7 @@ class RewardsScreen extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
               child: Icon(icon, color: AppColors.primary),
             ),
             const SizedBox(width: 16),

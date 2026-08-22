@@ -235,7 +235,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: category,
+                initialValue: category,
                 decoration: const InputDecoration(
                   labelText: 'Photo category',
                   prefixIcon: Icon(Icons.category_outlined),

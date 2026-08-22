@@ -1,25 +1,29 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../models/booking_model.dart';
-import '../../models/profit_and_loss_summary.dart';
-import '../../providers/owner_finance_providers.dart';
-import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/glass_card.dart';
 import '../../widgets/app_drawer.dart';
-import '../../widgets/business/owner_booking_card.dart';
-import '../../widgets/business/owner_empty_state.dart';
+import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_stat_card.dart';
 import '../../widgets/business/quick_action_card.dart';
-import '../../widgets/business_bottom_nav.dart';
-import '../../widgets/glass_card.dart';
+import '../../widgets/business/owner_booking_card.dart';
+import '../../widgets/business/owner_empty_state.dart';
+import '../../providers/owner_providers.dart';
+import '../../providers/owner_finance_providers.dart';
+import '../../models/booking_model.dart';
+import '../../models/profit_and_loss_summary.dart';
 
 class OwnerDashboardScreen extends ConsumerWidget {
   const OwnerDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (kDebugMode) {
+      debugPrint('[OWNER] dashboard initialized');
+    }
+
     final businessAsync = ref.watch(ownerBusinessProvider);
     final bookingsAsync = ref.watch(ownerBookingsProvider);
     final notificationsAsync = ref.watch(ownerNotificationsProvider);
@@ -46,6 +50,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
+              ref.invalidate(currentBusinessIdProvider);
               ref.invalidate(ownerBusinessProvider);
               ref.invalidate(ownerBookingsProvider);
               ref.invalidate(ownerNotificationsProvider);
@@ -56,15 +61,22 @@ class OwnerDashboardScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 1. HEADER SECTION
                   businessAsync.when(
                     data: (biz) => _buildHeader(
                         context, ref, biz, unreadNotificationsCount),
                     loading: () => _buildHeaderSkeleton(context),
-                    error: (_, __) => _buildHeaderSkeleton(context),
+                    error: (err, __) => _buildHeaderError(context, ref, err),
                   ),
+
                   const SizedBox(height: 20),
+
+                  // 2. TODAY METRICS GRID
                   _buildMetricsSection(bookingsAsync, todayFinanceAsync),
+
                   const SizedBox(height: 24),
+
+                  // 3. QUICK ACTIONS
                   const Text(
                     'Quick Actions',
                     style: TextStyle(
@@ -75,7 +87,10 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   _buildQuickActions(context),
+
                   const SizedBox(height: 24),
+
+                  // 4. UPCOMING BOOKINGS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -102,6 +117,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
+
                   _buildUpcomingBookingsList(context, ref, bookingsAsync),
                 ],
               ),
@@ -115,12 +131,15 @@ class OwnerDashboardScreen extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, WidgetRef ref, dynamic biz,
       int unreadNotificationsCount) {
-    final isOpen = biz.isActive;
+    final isOpen = biz.isActive &&
+        biz.businessStatus == 'open' &&
+        biz.acceptingBookings;
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
+          // Drawer menu trigger & Business Avatar
           Builder(
             builder: (ctx) => GestureDetector(
               onTap: () => Scaffold.of(ctx).openDrawer(),
@@ -155,7 +174,10 @@ class OwnerDashboardScreen extends ConsumerWidget {
               ),
             ),
           ),
+
           const SizedBox(width: 12),
+
+          // Business Name, Rating & Status
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,10 +207,11 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 4, width: 8),
+                    // Open / Closed Status Badge
                     GestureDetector(
                       onTap: () => ref
                           .read(ownerBusinessProvider.notifier)
-                          .toggleAcceptingBookings(!isOpen),
+                          .toggleAcceptingBookings(!biz.acceptingBookings),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 2),
@@ -236,6 +259,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
               ],
             ),
           ),
+
+          // Icons Shortcuts: Notifications & Settings
           Row(
             children: [
               IconButton(
@@ -260,9 +285,9 @@ class OwnerDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildHeaderSkeleton(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      child: const Row(
+    return const GlassCard(
+      padding: EdgeInsets.all(16),
+      child: Row(
         children: [
           CircleAvatar(radius: 26, backgroundColor: AppColors.glassBorderDark),
           SizedBox(width: 12),
@@ -279,6 +304,54 @@ class OwnerDashboardScreen extends ConsumerWidget {
                         fontSize: 12, color: AppColors.textMutedDark)),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderError(BuildContext context, WidgetRef ref, Object err) {
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 26,
+            backgroundColor: AppColors.glassBorderDark,
+            child: Icon(Icons.storefront_rounded, color: AppColors.gold, size: 28),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No Business Profile Found',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimaryDark,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Complete your business registration to manage bookings.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMutedDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+            onPressed: () {
+              ref.invalidate(currentBusinessIdProvider);
+              ref.invalidate(ownerBusinessProvider);
+              ref.invalidate(ownerBookingsProvider);
+              ref.invalidate(ownerTodayProfitAndLossProvider);
+            },
           ),
         ],
       ),
@@ -496,11 +569,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
           children: upcoming.map((b) {
             return OwnerBookingCard(
               booking: b,
-              onStatusChanged: (newStatus) {
-                ref
+              onStatusChanged: (newStatus) async {
+                await ref
                     .read(ownerBookingsProvider.notifier)
                     .updateStatus(b.id, newStatus);
                 ref.invalidate(ownerTodayProfitAndLossProvider);
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(

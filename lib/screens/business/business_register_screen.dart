@@ -1,12 +1,18 @@
+import 'dart:typed_data';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../widgets/custom_button.dart';
-import '../../theme/app_colors.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../providers/app_providers.dart';
+import '../../services/media_upload_service.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/glass_card.dart';
 
 class BusinessRegisterScreen extends ConsumerStatefulWidget {
   const BusinessRegisterScreen({super.key});
@@ -23,11 +29,14 @@ class _BusinessRegisterScreenState
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _locationController = TextEditingController();
+  final _picker = ImagePicker();
+  final _media = MediaUploadService();
 
   String _selectedCategory = 'Barber';
-  String? _businessImageUrl =
-      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+  XFile? _pendingBusinessImage;
+  Uint8List? _businessImagePreview;
   bool _isLoading = false;
+  double? _uploadProgress;
 
   final List<String> _categories = [
     'Barber',
@@ -36,6 +45,50 @@ class _BusinessRegisterScreenState
     'Nails & Beauty',
     'Skin & Facial',
   ];
+
+  @override
+  void dispose() {
+    _businessNameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickBusinessImage() async {
+    if (_isLoading) return;
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 88,
+        maxWidth: 2200,
+        maxHeight: 2200,
+        requestFullMetadata: false,
+      );
+      if (file == null) return;
+
+      final bytes = await file.readAsBytes();
+      if (bytes.isEmpty) {
+        throw StateError('The selected image is empty.');
+      }
+      if (bytes.length > MediaUploadService.maxImageBytes) {
+        throw StateError('Image must be smaller than 5 MB.');
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _pendingBusinessImage = file;
+        _businessImagePreview = bytes;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not select image: $e')),
+        );
+      }
+    }
+  }
 
   Future<void> _handleRegister() async {
     if (_businessNameController.text.isEmpty ||
@@ -48,51 +101,97 @@ class _BusinessRegisterScreenState
     }
 
     setState(() => _isLoading = true);
+    var imageUploadFailed = false;
+
     try {
-      await ref.read(authProvider.notifier).registerBusinessOwner(
-            businessName: _businessNameController.text.trim(),
-            category: _selectedCategory,
-            phone: _phoneController.text.trim(),
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-            location: _locationController.text.trim(),
-            businessImageUrl: _businessImageUrl,
+      final registeredUser =
+          await ref.read(authProvider.notifier).registerBusinessOwner(
+                businessName: _businessNameController.text.trim(),
+                category: _selectedCategory,
+                phone: _phoneController.text.trim(),
+                email: _emailController.text.trim(),
+                password: _passwordController.text,
+                location: _locationController.text.trim(),
+                businessImageUrl: null,
+              );
+
+      final pendingImage = _pendingBusinessImage;
+      if (pendingImage != null) {
+        try {
+          if (mounted) setState(() => _uploadProgress = 0);
+          final imageUrl = await _media.uploadXFile(
+            pendingImage,
+            storageFolder: 'businesses/${registeredUser.id}/profile',
+            onProgress: (progress) {
+              if (mounted) setState(() => _uploadProgress = progress);
+            },
           );
+
+          final firestore = FirebaseFirestore.instance;
+          await firestore.collection('businesses').doc(registeredUser.id).set({
+            'image_url': imageUrl,
+            'updated_at': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+          await firestore.collection('users').doc(registeredUser.id).set({
+            'business_image_url': imageUrl,
+            'updated_at': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+
+          ref
+              .read(authProvider.notifier)
+              .setUser(registeredUser.copyWith(businessImageUrl: imageUrl));
+        } catch (_) {
+          imageUploadFailed = true;
+        } finally {
+          if (mounted) setState(() => _uploadProgress = null);
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('Registration successful! Please verify your email.')),
+          SnackBar(
+            content: Text(
+              imageUploadFailed
+                  ? 'Account created. The business photo could not be uploaded; you can add it from Business Management.'
+                  : 'Registration successful! Please verify your email.',
+            ),
+          ),
         );
-        // Owner goes to Verify Email Screen
         context.go('/verify-email');
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  e.message ?? 'Authentication failed. Please check details.')),
+            content: Text(
+              e.message ?? 'Authentication failed. Please check details.',
+            ),
+          ),
         );
       }
     } on FirebaseException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  e.message ?? 'Database error occurred during registration.')),
+            content: Text(
+              e.message ?? 'Database error occurred during registration.',
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('An unexpected error occurred: ${e.toString()}')),
+          SnackBar(content: Text('An unexpected error occurred: $e')),
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _uploadProgress = null;
+        });
+      }
     }
   }
 
@@ -129,8 +228,11 @@ class _BusinessRegisterScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.storefront_rounded,
-                    size: 60, color: AppColors.accent),
+                const Icon(
+                  Icons.storefront_rounded,
+                  size: 60,
+                  color: AppColors.accent,
+                ),
                 const SizedBox(height: 12),
                 const Text(
                   'Partner Account Creation',
@@ -141,43 +243,82 @@ class _BusinessRegisterScreenState
                 const Text(
                   'Register your salon or spa. Saved in database with role "owner".',
                   textAlign: TextAlign.center,
-                  style:
-                      TextStyle(color: AppColors.textMutedDark, fontSize: 13),
-                ),
-                const SizedBox(height: 24),
-
-                // Image Picker / Preview Widget
-                Center(
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 110,
-                        height: 110,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.accent, width: 2),
-                          image: DecorationImage(
-                            image: NetworkImage(_businessImageUrl!),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: CircleAvatar(
-                          backgroundColor: AppColors.accent,
-                          radius: 16,
-                          child: const Icon(Icons.camera_alt_rounded,
-                              size: 16, color: Colors.white),
-                        ),
-                      ),
-                    ],
+                  style: TextStyle(
+                    color: AppColors.textMutedDark,
+                    fontSize: 13,
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
+                Center(
+                  child: GestureDetector(
+                    onTap: _isLoading ? null : _pickBusinessImage,
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            color: AppColors.glassBgDark,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppColors.accent,
+                              width: 2,
+                            ),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: _businessImagePreview != null
+                                ? Image.memory(
+                                    _businessImagePreview!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : const Icon(
+                                    Icons.add_business_rounded,
+                                    size: 42,
+                                    color: AppColors.textMutedDark,
+                                  ),
+                          ),
+                        ),
+                        const Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            backgroundColor: AppColors.accent,
+                            radius: 16,
+                            child: Icon(
+                              Icons.camera_alt_rounded,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Tap the photo to choose an image from your phone.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMutedDark,
+                  ),
+                ),
+                if (_uploadProgress != null) ...[
+                  const SizedBox(height: 10),
+                  LinearProgressIndicator(value: _uploadProgress),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Uploading business photo ${(100 * _uploadProgress!).round()}%',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMutedDark,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 24),
                 GlassCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,32 +329,38 @@ class _BusinessRegisterScreenState
                         prefixIcon: Icons.storefront_rounded,
                       ),
                       const SizedBox(height: 14),
-
-                      // Category Selection Dropdown
-                      const Text('Business Category',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondaryDark)),
+                      const Text(
+                        'Business Category',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondaryDark,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
-                        value: _selectedCategory,
+                        initialValue: _selectedCategory,
                         dropdownColor: AppColors.cardDark,
                         decoration: InputDecoration(
                           prefixIcon:
                               const Icon(Icons.category_rounded, size: 20),
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
                         items: _categories
-                            .map((cat) =>
-                                DropdownMenuItem(value: cat, child: Text(cat)))
+                            .map(
+                              (cat) => DropdownMenuItem(
+                                value: cat,
+                                child: Text(cat),
+                              ),
+                            )
                             .toList(),
                         onChanged: (val) {
-                          if (val != null)
+                          if (val != null) {
                             setState(() => _selectedCategory = val);
+                          }
                         },
                       ),
-
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
@@ -251,19 +398,23 @@ class _BusinessRegisterScreenState
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already registered? ',
-                        style: TextStyle(color: AppColors.textMutedDark)),
+                    const Text(
+                      'Already registered? ',
+                      style: TextStyle(color: AppColors.textMutedDark),
+                    ),
                     TextButton(
                       onPressed: () => context.push('/owner-login'),
-                      child: const Text('Partner Sign In',
-                          style: TextStyle(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Partner Sign In',
+                        style: TextStyle(
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),

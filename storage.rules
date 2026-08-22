@@ -13,7 +13,8 @@ service firebase.storage {
 
     function isBusinessOwner(businessId) {
       let biz = firestore.get(/databases/(default)/documents/businesses/$(businessId)).data;
-      return isAuthenticated() && (
+      return isOwnerAccount() && (
+        businessId == request.auth.uid ||
         ('owner_id' in biz && biz.owner_id == request.auth.uid) ||
         ('ownerId' in biz && biz.ownerId == request.auth.uid)
       );
