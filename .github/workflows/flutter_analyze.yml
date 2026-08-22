@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, feature/owner-management-v2]
+    branches: [main, feature/owner-management-v2, integration/codex-owner-finance]
   workflow_dispatch:
 
 jobs:
