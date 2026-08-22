@@ -11,6 +11,7 @@ void main() {
     required BookingStatus status,
     required double price,
     required DateTime date,
+    String serviceName = 'Service',
   }) {
     return BookingModel(
       id: id,
@@ -19,7 +20,7 @@ void main() {
       businessId: 'business-1',
       businessName: 'Business',
       serviceId: 'service-1',
-      serviceName: 'Service',
+      serviceName: serviceName,
       servicePrice: price,
       staffId: 'staff-1',
       staffName: 'Staff',
@@ -89,12 +90,15 @@ void main() {
     );
 
     expect(summary.recognizedRevenue, 200);
+    expect(summary.completedBookingsCount, 1);
+    expect(summary.averageRevenuePerCompletedBooking, 200);
     expect(summary.expenses, 0);
     expect(summary.netProfit, 200);
     expect(summary.profitMarginPercent, 100);
+    expect(summary.revenueByService['Service'], 200);
   });
 
-  test('counts active expenses in range and groups them by category', () {
+  test('counts active expenses in range and groups them by category and group', () {
     final summary = calculator.calculate(
       bookings: [
         booking(
@@ -145,8 +149,71 @@ void main() {
     expect(summary.expensesByCategory[ExpenseCategory.rent], 300);
     expect(summary.expensesByCategory[ExpenseCategory.supplies], 150);
     expect(summary.expensesByCategory.containsKey(ExpenseCategory.marketing), false);
+    expect(summary.expensesByGroup[ExpenseGroup.occupancy], 300);
+    expect(summary.expensesByGroup[ExpenseGroup.operations], 150);
+    expect(summary.expensesByGroup.containsKey(ExpenseGroup.marketing), false);
     expect(summary.netProfit, 550);
     expect(summary.profitMarginPercent, closeTo(55, 1e-9));
+  });
+
+  test('groups completed revenue by service and calculates average revenue', () {
+    final summary = calculator.calculate(
+      bookings: [
+        booking(
+          id: 'haircut-1',
+          status: BookingStatus.completed,
+          price: 100,
+          date: DateTime(2026, 8, 4),
+          serviceName: 'Haircut',
+        ),
+        booking(
+          id: 'haircut-2',
+          status: BookingStatus.completed,
+          price: 120,
+          date: DateTime(2026, 8, 5),
+          serviceName: 'Haircut',
+        ),
+        booking(
+          id: 'beard',
+          status: BookingStatus.completed,
+          price: 80,
+          date: DateTime(2026, 8, 6),
+          serviceName: 'Beard Trim',
+        ),
+        booking(
+          id: 'pending-spa',
+          status: BookingStatus.pending,
+          price: 500,
+          date: DateTime(2026, 8, 7),
+          serviceName: 'Spa',
+        ),
+      ],
+      expenses: const [],
+      from: DateTime(2026, 8, 1),
+      to: DateTime(2026, 8, 31),
+    );
+
+    expect(summary.recognizedRevenue, 300);
+    expect(summary.completedBookingsCount, 3);
+    expect(summary.averageRevenuePerCompletedBooking, 100);
+    expect(summary.revenueByService['Haircut'], 220);
+    expect(summary.revenueByService['Beard Trim'], 80);
+    expect(summary.revenueByService.containsKey('Spa'), false);
+  });
+
+  test('maps every expense category to exactly one financial group', () {
+    for (final category in ExpenseCategory.values) {
+      expect(ExpenseGroup.values.contains(category.group), true);
+    }
+
+    expect(ExpenseCategory.salaries.group, ExpenseGroup.staff);
+    expect(ExpenseCategory.commissions.group, ExpenseGroup.staff);
+    expect(ExpenseCategory.rent.group, ExpenseGroup.occupancy);
+    expect(ExpenseCategory.utilities.group, ExpenseGroup.occupancy);
+    expect(ExpenseCategory.supplies.group, ExpenseGroup.operations);
+    expect(ExpenseCategory.marketing.group, ExpenseGroup.marketing);
+    expect(ExpenseCategory.taxes.group, ExpenseGroup.feesAndCompliance);
+    expect(ExpenseCategory.other.group, ExpenseGroup.other);
   });
 
   test('uses inclusive calendar dates for the report range', () {
@@ -176,7 +243,7 @@ void main() {
     expect(summary.netProfit, 100);
   });
 
-  test('returns zero margin when there is no recognized revenue', () {
+  test('returns zero margin and zero average when there is no recognized revenue', () {
     final summary = calculator.calculate(
       bookings: const [],
       expenses: [
@@ -192,8 +259,11 @@ void main() {
     );
 
     expect(summary.recognizedRevenue, 0);
+    expect(summary.completedBookingsCount, 0);
+    expect(summary.averageRevenuePerCompletedBooking, 0);
     expect(summary.netProfit, -300);
     expect(summary.profitMarginPercent, 0);
+    expect(summary.revenueByService, isEmpty);
   });
 
   test('rejects an inverted report range', () {
