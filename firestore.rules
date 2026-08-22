@@ -30,6 +30,20 @@ service cloud.firestore {
         );
     }
 
+    // Finance access is stricter than the general owner helper: a real parent
+    // business document must exist before any private financial record can be
+    // read or written. Deterministic business IDs equal to the owner UID remain
+    // supported alongside ownerId/owner_id legacy records.
+    function isFinanceOwner(businessId) {
+      return isOwnerAccount() &&
+        exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+        (
+          businessId == request.auth.uid ||
+          ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
+          ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+        );
+    }
+
     function validExpenseCategory(category) {
       return category in [
         'rent',
@@ -168,15 +182,15 @@ service cloud.firestore {
 
       // PRIVATE OWNER FINANCE: employees and customers have no read/write access.
       match /expenses/{expenseId} {
-        allow read: if isBusinessOwner(businessId);
+        allow read: if isFinanceOwner(businessId);
 
-        allow create: if isBusinessOwner(businessId)
+        allow create: if isFinanceOwner(businessId)
                       && validExpenseData(businessId)
                       && request.resource.data.isActive == true
                       && request.resource.data.createdAt == request.time
                       && request.resource.data.updatedAt == request.time;
 
-        allow update: if isBusinessOwner(businessId)
+        allow update: if isFinanceOwner(businessId)
                       && resource != null
                       && validExpenseData(businessId)
                       && request.resource.data.businessId == resource.data.businessId
