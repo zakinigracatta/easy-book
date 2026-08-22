@@ -47,137 +47,304 @@ class OwnerExpensesScreen extends ConsumerWidget {
           ),
         ),
         data: (expenses) {
-          if (expenses.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(28),
+          final sorted = [...expenses]
+            ..sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
+
+          return RefreshIndicator(
+            onRefresh: () => ref.read(ownerExpensesProvider.notifier).load(),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+              children: [
+                _classificationSummary(sorted, money),
+                const SizedBox(height: 16),
+                for (final frequency in ExpenseFrequency.values) ...[
+                  _frequencySection(
+                    context,
+                    ref,
+                    sorted,
+                    frequency,
+                    money,
+                    date,
+                  ),
+                  const SizedBox(height: 18),
+                ],
+                if (expenses.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4, bottom: 24),
+                    child: Text(
+                      'No expenses recorded yet. Use “Add Expense” to record a real business cost.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textMutedDark),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _classificationSummary(
+    List<ExpenseModel> expenses,
+    NumberFormat money,
+  ) {
+    final total = expenses.fold<double>(0, (sum, item) => sum + item.amount);
+
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Expense Classification',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimaryDark,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Every record is an actual cost. The type describes its business cadence; it does not automatically repeat the amount.',
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.35,
+              color: AppColors.textMutedDark,
+            ),
+          ),
+          const SizedBox(height: 14),
+          _summaryRow('Total Active Expenses', money.format(total), true),
+          const Divider(height: 20),
+          for (final frequency in ExpenseFrequency.values)
+            _summaryRow(
+              frequency.label,
+              money.format(
+                expenses
+                    .where((item) => item.frequency == frequency)
+                    .fold<double>(0, (sum, item) => sum + item.amount),
+              ),
+              false,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryRow(String label, String value, bool emphasize) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: emphasize ? 13 : 12,
+                fontWeight: emphasize ? FontWeight.bold : FontWeight.w500,
+                color: emphasize
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textMutedDark,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: emphasize ? AppColors.error : AppColors.textPrimaryDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _frequencySection(
+    BuildContext context,
+    WidgetRef ref,
+    List<ExpenseModel> expenses,
+    ExpenseFrequency frequency,
+    NumberFormat money,
+    DateFormat date,
+  ) {
+    final items = expenses
+        .where((expense) => expense.frequency == frequency)
+        .toList(growable: false);
+    final total = items.fold<double>(0, (sum, item) => sum + item.amount);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    frequency.label,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimaryDark,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    frequency.description,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.textMutedDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              money.format(total),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.error,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (items.isEmpty)
+          GlassCard(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.receipt_long_outlined,
+                  color: AppColors.textMutedDark,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'No ${frequency.shortLabel.toLowerCase()} expenses recorded.',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMutedDark,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          ...items.map(
+            (expense) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _expenseCard(context, ref, expense, money, date),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _expenseCard(
+    BuildContext context,
+    WidgetRef ref,
+    ExpenseModel expense,
+    NumberFormat money,
+    DateFormat date,
+  ) {
+    return GlassCard(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.payments_outlined,
+                  color: AppColors.error,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.receipt_long_outlined,
-                        size: 58, color: AppColors.textMutedDark),
-                    SizedBox(height: 14),
                     Text(
-                      'No expenses recorded yet',
-                      style: TextStyle(
-                        fontSize: 17,
+                      expense.description,
+                      style: const TextStyle(
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimaryDark,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 3),
                     Text(
-                      'Record each real business cost so profit reports remain accurate.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textMutedDark),
+                      '${expense.category.label} • ${date.format(expense.expenseDate)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMutedDark,
+                      ),
                     ),
                   ],
                 ),
               ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => ref.read(ownerExpensesProvider.notifier).load(),
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-              itemCount: expenses.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final expense = expenses[index];
-                return GlassCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.payments_outlined,
-                                color: AppColors.error),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  expense.description,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimaryDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  '${expense.category.label} • ${date.format(expense.expenseDate)}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textMutedDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            money.format(expense.amount),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.error,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: [
-                          _tag(expense.paymentMethod),
-                          if (expense.supplier?.trim().isNotEmpty == true)
-                            _tag(expense.supplier!.trim()),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton.icon(
-                            onPressed: () => _openEditor(
-                              context,
-                              ref,
-                              existing: expense,
-                            ),
-                            icon: const Icon(Icons.edit_outlined, size: 18),
-                            label: const Text('Edit'),
-                          ),
-                          TextButton.icon(
-                            onPressed: () => _confirmArchive(
-                              context,
-                              ref,
-                              expense,
-                            ),
-                            icon: const Icon(Icons.archive_outlined, size: 18),
-                            label: const Text('Archive'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-        },
+              const SizedBox(width: 8),
+              Text(
+                money.format(expense.amount),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.error,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _tag(expense.frequency.shortLabel),
+              _tag(expense.paymentMethod),
+              if (expense.supplier?.trim().isNotEmpty == true)
+                _tag(expense.supplier!.trim()),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () => _openEditor(
+                  context,
+                  ref,
+                  existing: expense,
+                ),
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Edit'),
+              ),
+              TextButton.icon(
+                onPressed: () => _confirmArchive(
+                  context,
+                  ref,
+                  expense,
+                ),
+                icon: const Icon(Icons.archive_outlined, size: 18),
+                label: const Text('Archive'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -225,6 +392,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
     try {
       await ref.read(ownerExpensesProvider.notifier).archive(expense.id);
       ref.invalidate(ownerProfitAndLossProvider);
+      ref.invalidate(ownerTodayProfitAndLossProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Expense archived.')),
@@ -254,6 +422,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
     if (saved == true) {
       await ref.read(ownerExpensesProvider.notifier).load();
       ref.invalidate(ownerProfitAndLossProvider);
+      ref.invalidate(ownerTodayProfitAndLossProvider);
     }
   }
 }
@@ -274,6 +443,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
   late final TextEditingController _supplier;
   late final TextEditingController _notes;
   late ExpenseCategory _category;
+  late ExpenseFrequency _frequency;
   late DateTime _date;
   late String _paymentMethod;
   bool _saving = false;
@@ -297,6 +467,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
     _supplier = TextEditingController(text: item?.supplier ?? '');
     _notes = TextEditingController(text: item?.notes ?? '');
     _category = item?.category ?? ExpenseCategory.other;
+    _frequency = item?.frequency ?? _category.suggestedFrequency;
     _date = item?.expenseDate ?? DateTime.now();
     _paymentMethod = item?.paymentMethod ?? _paymentMethods.first;
     if (!_paymentMethods.contains(_paymentMethod)) {
@@ -339,7 +510,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Enter an expense only when the cost actually occurred. Recurring automation will be added separately so reports never double-count estimated costs.',
+                'Record the actual amount that occurred, then classify it as Daily, Monthly, Annual or Emergency. The classification itself does not create recurring charges.',
                 style: TextStyle(
                   fontSize: 11,
                   height: 1.35,
@@ -359,8 +530,41 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                     )
                     .toList(),
                 onChanged: (value) {
-                  if (value != null) setState(() => _category = value);
+                  if (value == null) return;
+                  setState(() {
+                    _category = value;
+                    if (widget.existing == null) {
+                      _frequency = value.suggestedFrequency;
+                    }
+                  });
                 },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<ExpenseFrequency>(
+                initialValue: _frequency,
+                decoration: const InputDecoration(
+                  labelText: 'Expense Type',
+                  helperText: 'Daily / Monthly / Annual / Emergency',
+                ),
+                items: ExpenseFrequency.values
+                    .map(
+                      (frequency) => DropdownMenuItem(
+                        value: frequency,
+                        child: Text(frequency.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _frequency = value);
+                },
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _frequency.description,
+                style: const TextStyle(
+                  fontSize: 10,
+                  color: AppColors.textMutedDark,
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -379,7 +583,8 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                   labelText: 'Amount',
                   prefixText: 'AED ',
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   final parsed = double.tryParse(value?.trim() ?? '');
                   if (parsed == null || !parsed.isFinite || parsed <= 0) {
@@ -470,9 +675,10 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             paymentMethod: _paymentMethod,
             supplier: _supplier.text.trim(),
             notes: _notes.text.trim(),
-            frequency: ExpenseFrequency.oneTime,
+            frequency: _frequency,
           );
       ref.invalidate(ownerProfitAndLossProvider);
+      ref.invalidate(ownerTodayProfitAndLossProvider);
       if (mounted) Navigator.pop(context, true);
     } catch (error) {
       if (mounted) {
