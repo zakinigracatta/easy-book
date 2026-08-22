@@ -67,6 +67,9 @@ class OwnerExpensesNotifier
           break;
         }
       }
+      if (existing == null) {
+        throw StateError('The expense being edited is no longer available.');
+      }
     }
 
     final expense = ExpenseModel(
@@ -78,7 +81,9 @@ class OwnerExpensesNotifier
       expenseDate: expenseDate,
       paymentMethod: paymentMethod,
       supplier: supplier,
-      receiptUrl: receiptUrl,
+      // Receipt upload is not exposed in the V1 editor yet. Preserve an
+      // existing receipt instead of clearing it during unrelated edits.
+      receiptUrl: receiptUrl ?? existing?.receiptUrl,
       notes: notes,
       frequency: frequency,
       isActive: true,
