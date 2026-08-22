@@ -30,6 +30,84 @@ service cloud.firestore {
         );
     }
 
+    function validExpenseCategory(category) {
+      return category in [
+        'rent',
+        'salaries',
+        'commissions',
+        'utilities',
+        'internetPhone',
+        'supplies',
+        'equipment',
+        'maintenance',
+        'cleaningLaundry',
+        'marketing',
+        'licensing',
+        'insurance',
+        'paymentFees',
+        'easyBookFees',
+        'taxes',
+        'transport',
+        'other'
+      ];
+    }
+
+    function validExpenseFrequency(frequency) {
+      return frequency in ['oneTime', 'monthly', 'yearly'];
+    }
+
+    function validExpenseData(businessId) {
+      return request.resource.data.keys().hasOnly([
+          'businessId',
+          'category',
+          'description',
+          'amount',
+          'expenseDate',
+          'paymentMethod',
+          'supplier',
+          'receiptUrl',
+          'notes',
+          'frequency',
+          'isActive',
+          'createdBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'businessId',
+          'category',
+          'description',
+          'amount',
+          'expenseDate',
+          'paymentMethod',
+          'frequency',
+          'isActive',
+          'createdBy',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        request.resource.data.businessId == businessId &&
+        request.resource.data.category is string &&
+        validExpenseCategory(request.resource.data.category) &&
+        request.resource.data.description is string &&
+        request.resource.data.description.size() > 0 &&
+        request.resource.data.description.size() <= 300 &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0 &&
+        request.resource.data.expenseDate is timestamp &&
+        request.resource.data.paymentMethod is string &&
+        request.resource.data.paymentMethod.size() > 0 &&
+        request.resource.data.frequency is string &&
+        validExpenseFrequency(request.resource.data.frequency) &&
+        request.resource.data.isActive is bool &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.updatedAt is timestamp &&
+        (!('supplier' in request.resource.data) || request.resource.data.supplier is string) &&
+        (!('receiptUrl' in request.resource.data) || request.resource.data.receiptUrl is string) &&
+        (!('notes' in request.resource.data) || request.resource.data.notes is string);
+    }
+
     // User Devices
     match /users/{userId}/devices/{deviceId} {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
@@ -61,15 +139,6 @@ service cloud.firestore {
       allow update: if isUser(userId)
                     && request.path == /databases/$(database)/documents/users/$(userId)
                     && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
-
-      // Per-user saved businesses. The document ID is the canonical business ID.
-      match /favorites/{businessId} {
-        allow read, delete: if isUser(userId);
-        allow create: if isUser(userId)
-                      && request.resource.data.businessId == businessId
-                      && request.resource.data.keys().hasOnly(['businessId', 'createdAt']);
-        allow update: if false;
-      }
     }
 
     // Businesses Collection & Subcollections
@@ -95,6 +164,28 @@ service cloud.firestore {
       match /staff/{staffId} {
         allow read: if true;
         allow create, update, delete: if isBusinessOwner(businessId);
+      }
+
+      // PRIVATE OWNER FINANCE: employees and customers have no read/write access.
+      match /expenses/{expenseId} {
+        allow read: if isBusinessOwner(businessId);
+
+        allow create: if isBusinessOwner(businessId)
+                      && validExpenseData(businessId)
+                      && request.resource.data.isActive == true
+                      && request.resource.data.createdAt == request.time
+                      && request.resource.data.updatedAt == request.time;
+
+        allow update: if isBusinessOwner(businessId)
+                      && resource != null
+                      && validExpenseData(businessId)
+                      && request.resource.data.businessId == resource.data.businessId
+                      && request.resource.data.createdBy == resource.data.createdBy
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && request.resource.data.updatedAt == request.time;
+
+        // Financial history is archived, never hard-deleted from untrusted clients.
+        allow delete: if false;
       }
 
       // Offers Subcollection
