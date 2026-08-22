@@ -74,14 +74,13 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
     await _assertOwner(businessId);
 
     try {
-      final snapshot = await _expenses(businessId)
-          .where('isActive', isEqualTo: true)
-          .orderBy('expenseDate', descending: true)
-          .get();
-
-      return snapshot.docs
+      final snapshot = await _expenses(businessId).get();
+      final expenses = snapshot.docs
           .map((doc) => ExpenseModel.fromFirestore(doc.id, doc.data()))
-          .toList(growable: false);
+          .where((expense) => expense.isActive)
+          .toList();
+      expenses.sort((a, b) => b.expenseDate.compareTo(a.expenseDate));
+      return List.unmodifiable(expenses);
     } on FirebaseException catch (e) {
       throw DomainException(
         'Failed to load expenses: ${e.message ?? e.code}',
@@ -166,34 +165,31 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
     );
 
     try {
-      final results = await Future.wait([
-        _firestore
-            .collection('bookings')
-            .where('businessId', isEqualTo: businessId)
-            .where('status', isEqualTo: BookingStatus.completed.name)
-            .where('startDateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-            .where('startDateTime', isLessThan: Timestamp.fromDate(endExclusive))
-            .get(),
-        _expenses(businessId)
-            .where('isActive', isEqualTo: true)
-            .where('expenseDate', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
-            .where('expenseDate', isLessThan: Timestamp.fromDate(endExclusive))
-            .get(),
-      ]);
+      final bookingSnapshot = await _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId)
+          .get();
+      final expenseSnapshot = await _expenses(businessId).get();
 
-      final bookingSnapshot = results[0] as QuerySnapshot<Map<String, dynamic>>;
-      final expenseSnapshot = results[1] as QuerySnapshot<Map<String, dynamic>>;
-
-      final recognizedRevenue = bookingSnapshot.docs.fold<double>(0, (sum, doc) {
+      var recognizedRevenue = 0.0;
+      for (final doc in bookingSnapshot.docs) {
         final data = doc.data();
-        final price = (data['servicePrice'] ?? data['service_price']) as num?;
-        return sum + (price?.toDouble() ?? 0);
-      });
+        final booking = BookingModel.fromJson({...data, 'id': doc.id});
+        final inRange = !booking.startDateTime.isBefore(start) &&
+            booking.startDateTime.isBefore(endExclusive);
+        if (inRange && booking.status == BookingStatus.completed) {
+          recognizedRevenue += booking.servicePrice;
+        }
+      }
 
       final expensesByCategory = <ExpenseCategory, double>{};
       var expenseTotal = 0.0;
       for (final doc in expenseSnapshot.docs) {
         final expense = ExpenseModel.fromFirestore(doc.id, doc.data());
+        final inRange = !expense.expenseDate.isBefore(start) &&
+            expense.expenseDate.isBefore(endExclusive);
+        if (!expense.isActive || !inRange) continue;
+
         expenseTotal += expense.amount;
         expensesByCategory.update(
           expense.category,
