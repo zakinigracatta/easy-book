@@ -58,9 +58,15 @@ class OwnerExpensesNotifier
       throw StateError('No authenticated owner is available.');
     }
 
-    final existing = expenseId == null
-        ? null
-        : state.value?.where((item) => item.id == expenseId).firstOrNull;
+    ExpenseModel? existing;
+    if (expenseId != null) {
+      for (final item in state.value ?? const <ExpenseModel>[]) {
+        if (item.id == expenseId) {
+          existing = item;
+          break;
+        }
+      }
+    }
 
     final expense = ExpenseModel(
       id: expenseId ?? '',
