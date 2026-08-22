@@ -22,6 +22,15 @@ enum ExpenseCategory {
 
 enum ExpenseFrequency { oneTime, monthly, yearly }
 
+enum ExpenseGroup {
+  staff,
+  occupancy,
+  operations,
+  marketing,
+  feesAndCompliance,
+  other,
+}
+
 class ExpenseModel {
   final String id;
   final String businessId;
@@ -198,6 +207,53 @@ extension ExpenseCategoryLabel on ExpenseCategory {
         return 'Transport';
       case ExpenseCategory.other:
         return 'Other';
+    }
+  }
+
+  ExpenseGroup get group {
+    switch (this) {
+      case ExpenseCategory.salaries:
+      case ExpenseCategory.commissions:
+        return ExpenseGroup.staff;
+      case ExpenseCategory.rent:
+      case ExpenseCategory.utilities:
+      case ExpenseCategory.internetPhone:
+        return ExpenseGroup.occupancy;
+      case ExpenseCategory.supplies:
+      case ExpenseCategory.equipment:
+      case ExpenseCategory.maintenance:
+      case ExpenseCategory.cleaningLaundry:
+      case ExpenseCategory.transport:
+        return ExpenseGroup.operations;
+      case ExpenseCategory.marketing:
+        return ExpenseGroup.marketing;
+      case ExpenseCategory.licensing:
+      case ExpenseCategory.insurance:
+      case ExpenseCategory.paymentFees:
+      case ExpenseCategory.easyBookFees:
+      case ExpenseCategory.taxes:
+        return ExpenseGroup.feesAndCompliance;
+      case ExpenseCategory.other:
+        return ExpenseGroup.other;
+    }
+  }
+}
+
+extension ExpenseGroupLabel on ExpenseGroup {
+  String get label {
+    switch (this) {
+      case ExpenseGroup.staff:
+        return 'Staff Costs';
+      case ExpenseGroup.occupancy:
+        return 'Occupancy & Utilities';
+      case ExpenseGroup.operations:
+        return 'Operating Costs';
+      case ExpenseGroup.marketing:
+        return 'Marketing';
+      case ExpenseGroup.feesAndCompliance:
+        return 'Fees, Insurance & Taxes';
+      case ExpenseGroup.other:
+        return 'Other Costs';
     }
   }
 }
