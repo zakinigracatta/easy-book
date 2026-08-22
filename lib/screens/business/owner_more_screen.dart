@@ -43,7 +43,6 @@ class OwnerMoreScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Business Profile Summary Card Header
               businessAsync.when(
                 data: (biz) => GlassCard(
                   padding: const EdgeInsets.all(16),
@@ -98,7 +97,6 @@ class OwnerMoreScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // BUSINESS SECTION
               _sectionHeader('BUSINESS'),
               _menuTile(context, 'Business Profile', Icons.storefront_rounded,
                   '/salon-management'),
@@ -111,7 +109,6 @@ class OwnerMoreScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // TEAM SECTION
               _sectionHeader('TEAM'),
               _menuTile(context, 'Employees & Specialists', Icons.badge_rounded,
                   '/employee-management'),
@@ -120,7 +117,6 @@ class OwnerMoreScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // CUSTOMERS SECTION
               _sectionHeader('CUSTOMERS'),
               _menuTile(context, 'Customer Database & CRM',
                   Icons.people_alt_rounded, '/customer-management'),
@@ -129,21 +125,22 @@ class OwnerMoreScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // MARKETING SECTION
               _sectionHeader('MARKETING'),
               _menuTile(context, 'Offers & Promotions', Icons.campaign_rounded,
                   '/promotion-management'),
 
               const SizedBox(height: 20),
 
-              // INSIGHTS SECTION
-              _sectionHeader('INSIGHTS'),
-              _menuTile(context, 'Sales & Performance Reports',
-                  Icons.assessment_rounded, '/sales-report'),
+              _sectionHeader('FINANCE'),
+              _menuTile(
+                context,
+                'Finance, Expenses & Profit',
+                Icons.account_balance_wallet_rounded,
+                '/sales-report',
+              ),
 
               const SizedBox(height: 20),
 
-              // ACCOUNT SECTION
               _sectionHeader('ACCOUNT'),
               _menuTile(context, 'Notifications', Icons.notifications_rounded,
                   '/owner-notifications'),
