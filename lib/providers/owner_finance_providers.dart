@@ -48,7 +48,7 @@ class OwnerExpensesNotifier
     String? supplier,
     String? receiptUrl,
     String? notes,
-    ExpenseFrequency frequency = ExpenseFrequency.oneTime,
+    ExpenseFrequency frequency = ExpenseFrequency.emergency,
   }) async {
     if (_businessId.isEmpty) {
       throw StateError('No business is linked to this owner account.');
@@ -81,8 +81,8 @@ class OwnerExpensesNotifier
       expenseDate: expenseDate,
       paymentMethod: paymentMethod,
       supplier: supplier,
-      // Receipt upload is not exposed in the V1 editor yet. Preserve an
-      // existing receipt instead of clearing it during unrelated edits.
+      // Receipt upload is not exposed in the editor yet. Preserve an existing
+      // receipt instead of clearing it during unrelated edits.
       receiptUrl: receiptUrl ?? existing?.receiptUrl,
       notes: notes,
       frequency: frequency,

@@ -43,6 +43,7 @@ class OwnerFinanceCalculator {
     var expenseTotal = 0.0;
     final expensesByCategory = <ExpenseCategory, double>{};
     final expensesByGroup = <ExpenseGroup, double>{};
+    final expensesByFrequency = <ExpenseFrequency, double>{};
 
     for (final expense in expenses) {
       final inRange = !expense.expenseDate.isBefore(start) &&
@@ -57,6 +58,11 @@ class OwnerFinanceCalculator {
       );
       expensesByGroup.update(
         expense.category.group,
+        (value) => value + expense.amount,
+        ifAbsent: () => expense.amount,
+      );
+      expensesByFrequency.update(
+        expense.frequency,
         (value) => value + expense.amount,
         ifAbsent: () => expense.amount,
       );
@@ -81,6 +87,7 @@ class OwnerFinanceCalculator {
       averageRevenuePerCompletedBooking: averageRevenuePerCompletedBooking,
       expensesByCategory: Map.unmodifiable(expensesByCategory),
       expensesByGroup: Map.unmodifiable(expensesByGroup),
+      expensesByFrequency: Map.unmodifiable(expensesByFrequency),
       revenueByService: Map.unmodifiable(revenueByService),
     );
   }

@@ -20,7 +20,11 @@ enum ExpenseCategory {
   other,
 }
 
-enum ExpenseFrequency { oneTime, monthly, yearly }
+/// Describes how the owner classifies an expense for management reporting.
+///
+/// This is intentionally NOT an automatic recurrence engine. Every expense
+/// document still represents a real cost that occurred on [expenseDate].
+enum ExpenseFrequency { daily, monthly, yearly, emergency }
 
 enum ExpenseGroup {
   staff,
@@ -59,14 +63,16 @@ class ExpenseModel {
     this.supplier,
     this.receiptUrl,
     this.notes,
-    this.frequency = ExpenseFrequency.oneTime,
+    this.frequency = ExpenseFrequency.emergency,
     this.isActive = true,
     required this.createdBy,
     this.createdAt,
     this.updatedAt,
   });
 
-  bool get isRecurring => frequency != ExpenseFrequency.oneTime;
+  /// Daily/monthly/yearly describe an expected cadence; emergency is a
+  /// one-off/unplanned cost. No cadence automatically creates extra expenses.
+  bool get isRecurringClassification => frequency != ExpenseFrequency.emergency;
 
   static DateTime _parseDate(dynamic value) {
     if (value is Timestamp) return value.toDate();
@@ -88,11 +94,15 @@ class ExpenseModel {
       orElse: () => ExpenseCategory.other,
     );
 
+    // V1 stored real one-off expenses as `oneTime`. Keep those historical
+    // documents readable and classify them as Emergency / One-time in V3.
     final rawFrequency = json['frequency']?.toString() ?? 'oneTime';
-    final frequency = ExpenseFrequency.values.firstWhere(
-      (value) => value.name == rawFrequency,
-      orElse: () => ExpenseFrequency.oneTime,
-    );
+    final frequency = rawFrequency == 'oneTime'
+        ? ExpenseFrequency.emergency
+        : ExpenseFrequency.values.firstWhere(
+            (value) => value.name == rawFrequency,
+            orElse: () => ExpenseFrequency.emergency,
+          );
 
     return ExpenseModel(
       id: documentId,
@@ -170,6 +180,47 @@ class ExpenseModel {
   }
 }
 
+extension ExpenseFrequencyLabel on ExpenseFrequency {
+  String get label {
+    switch (this) {
+      case ExpenseFrequency.daily:
+        return 'Daily Expenses';
+      case ExpenseFrequency.monthly:
+        return 'Monthly Expenses';
+      case ExpenseFrequency.yearly:
+        return 'Annual Expenses';
+      case ExpenseFrequency.emergency:
+        return 'Emergency / One-time';
+    }
+  }
+
+  String get shortLabel {
+    switch (this) {
+      case ExpenseFrequency.daily:
+        return 'Daily';
+      case ExpenseFrequency.monthly:
+        return 'Monthly';
+      case ExpenseFrequency.yearly:
+        return 'Annual';
+      case ExpenseFrequency.emergency:
+        return 'Emergency';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case ExpenseFrequency.daily:
+        return 'Day-to-day operating costs actually paid';
+      case ExpenseFrequency.monthly:
+        return 'Regular monthly costs such as rent or salaries';
+      case ExpenseFrequency.yearly:
+        return 'Annual costs such as licenses or insurance';
+      case ExpenseFrequency.emergency:
+        return 'Unexpected or one-off costs such as urgent repairs';
+    }
+  }
+}
+
 extension ExpenseCategoryLabel on ExpenseCategory {
   String get label {
     switch (this) {
@@ -207,6 +258,33 @@ extension ExpenseCategoryLabel on ExpenseCategory {
         return 'Transport';
       case ExpenseCategory.other:
         return 'Other';
+    }
+  }
+
+  /// Provides a sensible default while still allowing the owner to override it.
+  ExpenseFrequency get suggestedFrequency {
+    switch (this) {
+      case ExpenseCategory.rent:
+      case ExpenseCategory.salaries:
+      case ExpenseCategory.commissions:
+      case ExpenseCategory.utilities:
+      case ExpenseCategory.internetPhone:
+      case ExpenseCategory.marketing:
+      case ExpenseCategory.paymentFees:
+      case ExpenseCategory.easyBookFees:
+        return ExpenseFrequency.monthly;
+      case ExpenseCategory.supplies:
+      case ExpenseCategory.cleaningLaundry:
+      case ExpenseCategory.transport:
+        return ExpenseFrequency.daily;
+      case ExpenseCategory.licensing:
+      case ExpenseCategory.insurance:
+      case ExpenseCategory.taxes:
+        return ExpenseFrequency.yearly;
+      case ExpenseCategory.equipment:
+      case ExpenseCategory.maintenance:
+      case ExpenseCategory.other:
+        return ExpenseFrequency.emergency;
     }
   }
 
