@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/expense_model.dart';
+import '../models/profit_and_loss_summary.dart';
 import '../repositories/owner_finance_repository.dart';
 import 'owner_providers.dart';
 
