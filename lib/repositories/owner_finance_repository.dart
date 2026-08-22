@@ -4,26 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../core/domain_exceptions.dart';
 import '../models/booking_model.dart';
 import '../models/expense_model.dart';
-
-class ProfitAndLossSummary {
-  final DateTime from;
-  final DateTime to;
-  final double recognizedRevenue;
-  final double expenses;
-  final double netProfit;
-  final double profitMarginPercent;
-  final Map<ExpenseCategory, double> expensesByCategory;
-
-  const ProfitAndLossSummary({
-    required this.from,
-    required this.to,
-    required this.recognizedRevenue,
-    required this.expenses,
-    required this.netProfit,
-    required this.profitMarginPercent,
-    required this.expensesByCategory,
-  });
-}
+import '../models/profit_and_loss_summary.dart';
+import '../services/owner_finance_calculator.dart';
 
 abstract class OwnerFinanceRepository {
   Future<List<ExpenseModel>> fetchExpenses(String businessId);
@@ -39,12 +21,15 @@ abstract class OwnerFinanceRepository {
 class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final OwnerFinanceCalculator _calculator;
 
   OwnerFinanceRepositoryImpl({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
+    OwnerFinanceCalculator calculator = const OwnerFinanceCalculator(),
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _auth = auth ?? FirebaseAuth.instance;
+        _auth = auth ?? FirebaseAuth.instance,
+        _calculator = calculator;
 
   Future<void> _assertOwner(String businessId) async {
     final user = _auth.currentUser;
@@ -159,11 +144,6 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
 
     await _assertOwner(businessId);
 
-    final start = DateTime(from.year, from.month, from.day);
-    final endExclusive = DateTime(to.year, to.month, to.day).add(
-      const Duration(days: 1),
-    );
-
     try {
       final bookingSnapshot = await _firestore
           .collection('bookings')
@@ -171,46 +151,20 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
           .get();
       final expenseSnapshot = await _expenses(businessId).get();
 
-      var recognizedRevenue = 0.0;
-      for (final doc in bookingSnapshot.docs) {
-        final data = doc.data();
-        final booking = BookingModel.fromJson({...data, 'id': doc.id});
-        final inRange = !booking.startDateTime.isBefore(start) &&
-            booking.startDateTime.isBefore(endExclusive);
-        if (inRange && booking.status == BookingStatus.completed) {
-          recognizedRevenue += booking.servicePrice;
-        }
-      }
+      final bookings = bookingSnapshot.docs
+          .map(
+            (doc) => BookingModel.fromJson({...doc.data(), 'id': doc.id}),
+          )
+          .toList(growable: false);
+      final expenses = expenseSnapshot.docs
+          .map((doc) => ExpenseModel.fromFirestore(doc.id, doc.data()))
+          .toList(growable: false);
 
-      final expensesByCategory = <ExpenseCategory, double>{};
-      var expenseTotal = 0.0;
-      for (final doc in expenseSnapshot.docs) {
-        final expense = ExpenseModel.fromFirestore(doc.id, doc.data());
-        final inRange = !expense.expenseDate.isBefore(start) &&
-            expense.expenseDate.isBefore(endExclusive);
-        if (!expense.isActive || !inRange) continue;
-
-        expenseTotal += expense.amount;
-        expensesByCategory.update(
-          expense.category,
-          (value) => value + expense.amount,
-          ifAbsent: () => expense.amount,
-        );
-      }
-
-      final netProfit = recognizedRevenue - expenseTotal;
-      final margin = recognizedRevenue <= 0
-          ? 0.0
-          : (netProfit / recognizedRevenue) * 100;
-
-      return ProfitAndLossSummary(
-        from: start,
-        to: DateTime(to.year, to.month, to.day),
-        recognizedRevenue: recognizedRevenue,
-        expenses: expenseTotal,
-        netProfit: netProfit,
-        profitMarginPercent: margin,
-        expensesByCategory: Map.unmodifiable(expensesByCategory),
+      return _calculator.calculate(
+        bookings: bookings,
+        expenses: expenses,
+        from: from,
+        to: to,
       );
     } on FirebaseException catch (e) {
       throw DomainException(
