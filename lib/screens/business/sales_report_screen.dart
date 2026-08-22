@@ -106,8 +106,8 @@ class SalesReportScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Row(
-                          children: const [
+                        const Row(
+                          children: [
                             Icon(Icons.trending_up_rounded,
                                 color: AppColors.success, size: 16),
                             SizedBox(width: 4),

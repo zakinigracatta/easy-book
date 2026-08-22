@@ -354,10 +354,10 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   color: Colors.white),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Please check your network connection and try again.',
               style:
-                  const TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                  TextStyle(color: AppColors.textMutedDark, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

@@ -198,7 +198,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                 },
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (err, _) => OwnerEmptyStateWidget(
+                error: (err, _) => const OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Bookings',
                   description: 'An error occurred while retrieving bookings.',

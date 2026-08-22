@@ -281,10 +281,10 @@ class OwnerDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildHeaderSkeleton(BuildContext context) {
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
+    return const GlassCard(
+      padding: EdgeInsets.all(16),
       child: Row(
-        children: const [
+        children: [
           CircleAvatar(radius: 26, backgroundColor: AppColors.glassBorderDark),
           SizedBox(width: 12),
           Expanded(
@@ -317,10 +317,10 @@ class OwnerDashboardScreen extends ConsumerWidget {
             child: Icon(Icons.storefront_rounded, color: AppColors.gold, size: 28),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   'No Business Profile Found',
                   style: TextStyle(
@@ -429,8 +429,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
       },
       loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary)),
-      error: (_, __) => Row(
-        children: const [
+      error: (_, __) => const Row(
+        children: [
           Expanded(
               child: OwnerStatCard(
                   label: "Today's Bookings",

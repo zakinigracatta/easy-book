@@ -83,9 +83,9 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              GlassCard(
+              const GlassCard(
                 borderColor: AppColors.error,
-                child: const Column(
+                child: Column(
                   children: [
                     Icon(Icons.warning_amber_rounded,
                         size: 50, color: AppColors.error),
