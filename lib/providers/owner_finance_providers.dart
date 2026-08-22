@@ -145,3 +145,20 @@ final ownerProfitAndLossProvider = FutureProvider<ProfitAndLossSummary>((ref) as
     to: range.to,
   );
 });
+
+final ownerTodayProfitAndLossProvider =
+    FutureProvider<ProfitAndLossSummary>((ref) async {
+  final businessId = await ref.watch(currentBusinessIdProvider.future);
+  if (businessId.isEmpty) {
+    throw StateError('No business is linked to this owner account.');
+  }
+
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final repository = ref.watch(ownerFinanceRepositoryProvider);
+  return repository.buildProfitAndLoss(
+    businessId: businessId,
+    from: today,
+    to: today,
+  );
+});
