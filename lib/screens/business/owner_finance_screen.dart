@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/expense_model.dart';
+import '../../models/profit_and_loss_summary.dart';
 import '../../providers/owner_finance_providers.dart';
-import '../../repositories/owner_finance_repository.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
