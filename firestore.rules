@@ -67,7 +67,9 @@ service cloud.firestore {
     }
 
     function validExpenseFrequency(frequency) {
-      return frequency in ['oneTime', 'monthly', 'yearly'];
+      // oneTime is accepted only for backward compatibility with V1 clients and
+      // historical records. Current clients write daily/monthly/yearly/emergency.
+      return frequency in ['daily', 'monthly', 'yearly', 'emergency', 'oneTime'];
     }
 
     function validExpenseData(businessId) {
