@@ -206,7 +206,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         title: const Text('Archive expense?'),
         content: Text(
-          'Archive “${expense.description}”? It will be removed from active expense reports but retained in Firestore for audit history.',
+          'Archive “${expense.description}”? It will be removed from active expense reports but retained as an archived financial record.',
         ),
         actions: [
           TextButton(
@@ -348,7 +348,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
               ),
               const SizedBox(height: 18),
               DropdownButtonFormField<ExpenseCategory>(
-                value: _category,
+                initialValue: _category,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: ExpenseCategory.values
                     .map(
@@ -398,7 +398,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
               ),
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
-                value: _paymentMethod,
+                initialValue: _paymentMethod,
                 decoration: const InputDecoration(labelText: 'Payment Method'),
                 items: _paymentMethods
                     .map(
