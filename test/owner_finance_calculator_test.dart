@@ -146,7 +146,7 @@ void main() {
     expect(summary.expensesByCategory[ExpenseCategory.supplies], 150);
     expect(summary.expensesByCategory.containsKey(ExpenseCategory.marketing), false);
     expect(summary.netProfit, 550);
-    expect(summary.profitMarginPercent, 55);
+    expect(summary.profitMarginPercent, closeTo(55, 1e-9));
   });
 
   test('uses inclusive calendar dates for the report range', () {
