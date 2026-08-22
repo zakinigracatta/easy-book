@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/expense_model.dart';
 import '../../providers/owner_finance_providers.dart';
+import '../../repositories/owner_finance_repository.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
@@ -75,9 +76,9 @@ class OwnerFinanceScreen extends ConsumerWidget {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _periodButton(context, ref, 'Today', _todayRange()),
-                      _periodButton(context, ref, 'This Month', _monthRange()),
-                      _periodButton(context, ref, 'This Year', _yearRange()),
+                      _periodButton(ref, 'Today', _todayRange()),
+                      _periodButton(ref, 'This Month', _monthRange()),
+                      _periodButton(ref, 'This Year', _yearRange()),
                     ],
                   ),
                 ],
@@ -156,43 +157,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        if (report.expensesByCategory.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 18),
-                            child: Center(
-                              child: Text(
-                                'No expenses recorded in this period.',
-                                style: TextStyle(color: AppColors.textMutedDark),
-                              ),
-                            ),
-                          )
-                        else
-                          ...report.expensesByCategory.entries.toList()
-                            ..sort((a, b) => b.value.compareTo(a.value))
-                            ..map(
-                              (entry) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        entry.key.label,
-                                        style: const TextStyle(
-                                          color: AppColors.textPrimaryDark,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      currency.format(entry.value),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimaryDark,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                        ..._buildExpenseRows(report, currency),
                       ],
                     ),
                   ),
@@ -247,6 +212,53 @@ class OwnerFinanceScreen extends ConsumerWidget {
       ),
       bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
     );
+  }
+
+  List<Widget> _buildExpenseRows(
+    ProfitAndLossSummary report,
+    NumberFormat currency,
+  ) {
+    if (report.expensesByCategory.isEmpty) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 18),
+          child: Center(
+            child: Text(
+              'No expenses recorded in this period.',
+              style: TextStyle(color: AppColors.textMutedDark),
+            ),
+          ),
+        ),
+      ];
+    }
+
+    final entries = report.expensesByCategory.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return entries
+        .map(
+          (entry) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    entry.key.label,
+                    style: const TextStyle(color: AppColors.textPrimaryDark),
+                  ),
+                ),
+                Text(
+                  currency.format(entry.value),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimaryDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .toList(growable: false);
   }
 
   Widget _metricCard(
@@ -315,7 +327,6 @@ class OwnerFinanceScreen extends ConsumerWidget {
   }
 
   Widget _periodButton(
-    BuildContext context,
     WidgetRef ref,
     String label,
     FinanceReportRange range,
