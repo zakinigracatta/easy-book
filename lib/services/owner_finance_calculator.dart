@@ -19,16 +19,31 @@ class OwnerFinanceCalculator {
     final endExclusive = end.add(const Duration(days: 1));
 
     var recognizedRevenue = 0.0;
+    var completedBookingsCount = 0;
+    final revenueByService = <String, double>{};
+
     for (final booking in bookings) {
       final inRange = !booking.startDateTime.isBefore(start) &&
           booking.startDateTime.isBefore(endExclusive);
-      if (inRange && booking.status == BookingStatus.completed) {
-        recognizedRevenue += booking.servicePrice;
-      }
+      if (!inRange || booking.status != BookingStatus.completed) continue;
+
+      recognizedRevenue += booking.servicePrice;
+      completedBookingsCount += 1;
+
+      final serviceLabel = booking.serviceName.trim().isEmpty
+          ? 'Unnamed Service'
+          : booking.serviceName.trim();
+      revenueByService.update(
+        serviceLabel,
+        (value) => value + booking.servicePrice,
+        ifAbsent: () => booking.servicePrice,
+      );
     }
 
     var expenseTotal = 0.0;
     final expensesByCategory = <ExpenseCategory, double>{};
+    final expensesByGroup = <ExpenseGroup, double>{};
+
     for (final expense in expenses) {
       final inRange = !expense.expenseDate.isBefore(start) &&
           expense.expenseDate.isBefore(endExclusive);
@@ -40,12 +55,20 @@ class OwnerFinanceCalculator {
         (value) => value + expense.amount,
         ifAbsent: () => expense.amount,
       );
+      expensesByGroup.update(
+        expense.category.group,
+        (value) => value + expense.amount,
+        ifAbsent: () => expense.amount,
+      );
     }
 
     final netProfit = recognizedRevenue - expenseTotal;
     final profitMarginPercent = recognizedRevenue <= 0
         ? 0.0
         : (netProfit / recognizedRevenue) * 100;
+    final averageRevenuePerCompletedBooking = completedBookingsCount == 0
+        ? 0.0
+        : recognizedRevenue / completedBookingsCount;
 
     return ProfitAndLossSummary(
       from: start,
@@ -54,7 +77,11 @@ class OwnerFinanceCalculator {
       expenses: expenseTotal,
       netProfit: netProfit,
       profitMarginPercent: profitMarginPercent,
+      completedBookingsCount: completedBookingsCount,
+      averageRevenuePerCompletedBooking: averageRevenuePerCompletedBooking,
       expensesByCategory: Map.unmodifiable(expensesByCategory),
+      expensesByGroup: Map.unmodifiable(expensesByGroup),
+      revenueByService: Map.unmodifiable(revenueByService),
     );
   }
 }
