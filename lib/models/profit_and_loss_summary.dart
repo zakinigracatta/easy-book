@@ -11,6 +11,7 @@ class ProfitAndLossSummary {
   final double averageRevenuePerCompletedBooking;
   final Map<ExpenseCategory, double> expensesByCategory;
   final Map<ExpenseGroup, double> expensesByGroup;
+  final Map<ExpenseFrequency, double> expensesByFrequency;
   final Map<String, double> revenueByService;
 
   const ProfitAndLossSummary({
@@ -24,6 +25,7 @@ class ProfitAndLossSummary {
     required this.averageRevenuePerCompletedBooking,
     required this.expensesByCategory,
     required this.expensesByGroup,
+    required this.expensesByFrequency,
     required this.revenueByService,
   });
 }
