@@ -86,7 +86,7 @@ class _CustomerManagementScreenState
                   }).toList();
 
                   if (filtered.isEmpty) {
-                    return OwnerEmptyStateWidget(
+                    return const OwnerEmptyStateWidget(
                       icon: Icons.people_outline_rounded,
                       title: 'No Customers Found',
                       description:

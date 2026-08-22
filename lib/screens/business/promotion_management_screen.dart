@@ -55,11 +55,10 @@ class PromotionManagementScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Card
-              GlassCard(
-                padding: const EdgeInsets.all(16),
+              const GlassCard(
+                padding: EdgeInsets.all(16),
                 child: Row(
-                  children: const [
+                  children: [
                     Icon(Icons.campaign_rounded,
                         color: AppColors.accent, size: 28),
                     SizedBox(width: 12),
@@ -89,9 +88,7 @@ class PromotionManagementScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -118,9 +115,7 @@ class PromotionManagementScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 12),
-
               offersAsync.when(
                 data: (offers) {
                   if (offers.isEmpty) {
@@ -302,6 +297,7 @@ class PromotionManagementScreen extends ConsumerWidget {
 
                 await ref.read(ownerRepositoryProvider).saveOffer(newOffer);
                 ref.invalidate(ownerOffersProvider);
+                if (!ctx.mounted || !context.mounted) return;
 
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(

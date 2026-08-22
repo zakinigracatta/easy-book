@@ -2,18 +2,132 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../providers/app_providers.dart';
+
 import '../../core/utils/currency_formatter.dart';
+import '../../models/booking_model.dart';
+import '../../providers/app_providers.dart';
+import '../../services/auth_guard.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/glass_card.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/glass_card.dart';
 import 'widgets/booking_progress_header.dart';
 
-class BookingSummaryScreen extends ConsumerWidget {
+class BookingSummaryScreen extends ConsumerStatefulWidget {
   const BookingSummaryScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BookingSummaryScreen> createState() =>
+      _BookingSummaryScreenState();
+}
+
+class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
+  bool _isSubmitting = false;
+
+  DateTime _resolveStartDateTime(BookingDraft draft) {
+    final date = draft.date;
+    final timeSlot = draft.timeSlot;
+    if (date == null || timeSlot == null || timeSlot.trim().isEmpty) {
+      throw StateError('Please select a valid appointment date and time.');
+    }
+
+    final parsedTime = DateFormat('hh:mm a').parseStrict(timeSlot.trim());
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      parsedTime.hour,
+      parsedTime.minute,
+    );
+  }
+
+  Future<void> _confirmBooking() async {
+    if (_isSubmitting) return;
+
+    final loggedIn = await requireLogin(context, targetRoute: '/booking-summary');
+    if (!loggedIn || !mounted) return;
+
+    final draft = ref.read(bookingDraftProvider);
+    final user = ref.read(authProvider);
+    final businessId = draft.businessId?.trim() ?? '';
+    final serviceId = draft.serviceId?.trim() ?? '';
+    final staffId = (draft.resolvedStaffId?.trim().isNotEmpty == true
+            ? draft.resolvedStaffId
+            : draft.staffId)
+        ?.trim() ??
+        '';
+
+    if (businessId.isEmpty || serviceId.isEmpty || staffId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Booking information is incomplete. Please reselect the service and specialist.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final startAt = _resolveStartDateTime(draft);
+      if (startAt.minute % 15 != 0 || startAt.second != 0) {
+        throw StateError('Selected time is not aligned to a valid 15-minute slot.');
+      }
+
+      final duration = draft.totalDurationMinutes > 0
+          ? draft.totalDurationMinutes
+          : 30;
+      final customerName = user?.fullName.trim().isNotEmpty == true
+          ? user!.fullName.trim()
+          : 'Easy Book Customer';
+      final customerPhone = user?.phone.trim() ?? '';
+
+      final requestBooking = BookingModel(
+        id: '',
+        customerId: user?.id ?? '',
+        customerName: customerName,
+        customerPhone: customerPhone,
+        businessId: businessId,
+        businessName: draft.businessName ?? '',
+        serviceId: serviceId,
+        serviceName: draft.serviceName ?? '',
+        servicePrice: draft.totalPrice,
+        staffId: staffId,
+        staffName: draft.resolvedStaffName ?? draft.staffName ?? '',
+        startDateTime: startAt,
+        endDateTime: startAt.add(Duration(minutes: duration)),
+        status: BookingStatus.pending,
+        bookingSource: 'app',
+      );
+
+      final saved = await ref
+          .read(appointmentsProvider.notifier)
+          .createBooking(requestBooking);
+
+      if (!mounted) return;
+      ref.read(bookingDraftProvider.notifier).state = BookingDraft();
+      context.go('/booking-success', extra: saved);
+    } catch (e) {
+      if (!mounted) return;
+      final message = e
+          .toString()
+          .replaceFirst('Exception: ', '')
+          .replaceFirst('Bad state: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final draft = ref.watch(bookingDraftProvider);
     final businessId = draft.businessId ?? '';
     final businessState = ref.watch(businessDetailProvider(businessId));
@@ -22,14 +136,12 @@ class BookingSummaryScreen extends ConsumerWidget {
         ? DateFormat('EEEE, dd MMMM yyyy').format(draft.date!)
         : 'Not selected';
     final timeStr = draft.timeSlot ?? 'Not selected';
-
     final staffName =
-        (draft.resolvedStaffName != null && draft.resolvedStaffName!.isNotEmpty)
+        draft.resolvedStaffName?.trim().isNotEmpty == true
             ? draft.resolvedStaffName!
-            : (draft.staffName != null && draft.staffName!.isNotEmpty
+            : (draft.staffName?.trim().isNotEmpty == true
                 ? draft.staffName!
                 : 'Any Available Specialist');
-
     final services = draft.selectedServices;
     final totalPrice = draft.totalPrice;
     final totalDuration = draft.totalDurationMinutes;
@@ -38,11 +150,7 @@ class BookingSummaryScreen extends ConsumerWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
@@ -50,21 +158,18 @@ class BookingSummaryScreen extends ConsumerWidget {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: _isSubmitting
+                ? null
+                : () => context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: const Text('Booking Summary'),
         ),
         body: businessState.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Center(
-              child: Text('Error: $err',
-                  style: const TextStyle(color: AppColors.error))),
+            child: Text('Error: $err',
+                style: const TextStyle(color: AppColors.error)),
+          ),
           data: (business) {
             final salonName = business?.name ?? draft.businessName ?? 'Salon';
             final salonAddress = business?.address ?? 'Dubai, UAE';
@@ -74,11 +179,8 @@ class BookingSummaryScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Step 3 Header
                   const BookingProgressHeader(currentStep: 3),
                   const SizedBox(height: 20),
-
-                  // Salon Details Header Card
                   GlassCard(
                     child: Row(
                       children: [
@@ -96,222 +198,134 @@ class BookingSummaryScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                salonName,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
+                              Text(salonName,
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
                               const SizedBox(height: 2),
-                              Text(
-                                salonAddress,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textMutedDark,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              Text(salonAddress,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textMutedDark)),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Selected Services Breakdown Card
                   GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Services',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                            GestureDetector(
-                              onTap: () => context.push('/salon-details',
-                                  extra: businessId),
-                              child: const Text(
-                                'Edit',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryLight),
-                              ),
-                            ),
-                          ],
-                        ),
+                        const Text('Service',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
                         const SizedBox(height: 12),
                         if (services.isNotEmpty)
-                          ...services.map((s) {
-                            final price = s.discountPrice ?? s.price;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      s.name,
-                                      style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white),
+                          ...services.map((service) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(service.name,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white)),
                                     ),
-                                  ),
-                                  Text(
-                                    s.duration,
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textMutedDark),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    CurrencyFormatter.format(price,
-                                        currency: s.currency),
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryLight),
-                                  ),
-                                ],
-                              ),
-                            );
-                          })
+                                    Text(service.duration,
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.textMutedDark)),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      CurrencyFormatter.format(
+                                          service.discountPrice ?? service.price,
+                                          currency: service.currency),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.primaryLight),
+                                    ),
+                                  ],
+                                ),
+                              ))
                         else
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                draft.serviceName ?? 'General Service',
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white),
+                              Expanded(
+                                child: Text(draft.serviceName ?? 'Service',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white)),
                               ),
-                              Text(
-                                CurrencyFormatter.format(totalPrice),
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryLight),
-                              ),
+                              Text(CurrencyFormatter.format(totalPrice),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryLight)),
                             ],
                           ),
                         const Divider(
                             color: AppColors.glassBorderDark, height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Total Duration',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textMutedDark)),
-                            Text('$totalDuration minutes',
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
-                          ],
-                        ),
+                        _valueRow('Total duration', '$totalDuration minutes'),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Appointment Details Card (Date, Time, Specialist)
                   GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Appointment Info',
-                              style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                            GestureDetector(
-                              onTap: () => context.push('/booking-date'),
-                              child: const Text(
-                                'Edit',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryLight),
-                              ),
-                            ),
-                          ],
-                        ),
+                        const Text('Appointment Info',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
                         const SizedBox(height: 12),
                         _infoRow(Icons.calendar_today_rounded, 'Date', dateStr),
                         const SizedBox(height: 10),
                         _infoRow(Icons.access_time_rounded, 'Time', timeStr),
                         const SizedBox(height: 10),
-                        _infoRow(Icons.person_outline_rounded, 'Specialist',
-                            staffName),
+                        _infoRow(Icons.person_outline_rounded, 'Specialist', staffName),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 16),
-
-                  // Pricing Breakdown Card
                   GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Payment Details',
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                        const SizedBox(height: 12),
-                        _priceRow(
-                            'Subtotal', CurrencyFormatter.format(totalPrice)),
-                        const SizedBox(height: 6),
-                        _priceRow(
-                            'Taxes & Fees', CurrencyFormatter.format(0.0)),
-                        const Divider(
-                            color: AppColors.glassBorderDark, height: 20),
-                        _priceRow('Total Amount',
-                            CurrencyFormatter.format(totalPrice),
+                        const Text('Payment',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
+                        const SizedBox(height: 10),
+                        _valueRow('Payment method', 'Pay at venue'),
+                        const SizedBox(height: 8),
+                        _valueRow('Total', CurrencyFormatter.format(totalPrice),
                             isTotal: true),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Action Button
                   CustomButton(
-                    text: 'Continue to Payment',
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Booking summary confirmed! Proceeding to Payment preparation phase...'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
-                    },
+                    text: 'Confirm Booking',
+                    isLoading: _isSubmitting,
+                    onPressed: _isSubmitting ? null : _confirmBooking,
+                  ),
+                  const SizedBox(height: 10),
+                  const Center(
+                    child: Text(
+                      'The selected slot is revalidated securely when you confirm.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 11, color: AppColors.textMutedDark),
+                    ),
                   ),
                 ],
               ),
@@ -327,43 +341,36 @@ class BookingSummaryScreen extends ConsumerWidget {
       children: [
         Icon(icon, size: 16, color: AppColors.primaryLight),
         const SizedBox(width: 10),
-        Text(
-          '$title: ',
-          style: const TextStyle(fontSize: 13, color: AppColors.textMutedDark),
-        ),
-        Expanded(
-          child: Text(
-            value,
+        Text('$title: ',
             style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+                fontSize: 13, color: AppColors.textMutedDark)),
+        Expanded(
+          child: Text(value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white)),
         ),
       ],
     );
   }
 
-  static Widget _priceRow(String label, String amount, {bool isTotal = false}) {
+  static Widget _valueRow(String label, String value, {bool isTotal = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: isTotal ? 16 : 13,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isTotal ? Colors.white : AppColors.textSecondaryDark,
-          ),
-        ),
-        Text(
-          amount,
-          style: TextStyle(
-            fontSize: isTotal ? 18 : 14,
-            fontWeight: FontWeight.bold,
-            color: isTotal ? AppColors.primaryLight : Colors.white,
-          ),
-        ),
+        Text(label,
+            style: TextStyle(
+                fontSize: isTotal ? 15 : 12,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+                color: isTotal ? Colors.white : AppColors.textMutedDark)),
+        Text(value,
+            style: TextStyle(
+                fontSize: isTotal ? 17 : 13,
+                fontWeight: FontWeight.bold,
+                color: isTotal ? AppColors.primaryLight : Colors.white)),
       ],
     );
   }

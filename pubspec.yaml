@@ -37,6 +37,7 @@ dependencies:
 
   dio: ^5.4.3+1
   cached_network_image: ^3.3.1
+  url_launcher: ^6.3.2
 
   # Owner Management V2: real media uploads and precise business location.
   image_picker: ^1.2.3
@@ -52,6 +53,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
 
   # Tests import these platform interfaces directly, so keep them explicit.
   firebase_auth_platform_interface: ^7.7.3

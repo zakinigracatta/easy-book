@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/business_model.dart';
 import '../../models/service_model.dart';
+import '../../models/staff_model.dart';
+import '../../models/review_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/auth_guard.dart';
 import '../../theme/app_colors.dart';
@@ -29,14 +31,8 @@ class SalonDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
-  final ValueNotifier<int> _selectedTabIndex = ValueNotifier<int>(0);
+  int _selectedTabIndex = 0;
   final List<String> _selectedServiceIds = [];
-
-  @override
-  void dispose() {
-    _selectedTabIndex.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +67,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
             }
 
             final servicesState = ref.watch(servicesProvider(business.id));
+            final staffState = ref.watch(staffProvider(business.id));
+            final reviewsState = ref.watch(reviewsProvider(business.id));
 
             return Column(
               children: [
@@ -79,7 +77,10 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // 1. Hero Cover Header
                         BusinessHero(business: business),
+
+                        // Inactive Business Banner
                         if (!business.isActive)
                           Container(
                             width: double.infinity,
@@ -103,6 +104,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               ],
                             ),
                           ),
+
+                        // 2. Business Summary & Actions
                         Padding(
                           padding: const EdgeInsets.all(20),
                           child: Column(
@@ -117,29 +120,24 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               const SizedBox(height: 16),
                               BusinessQuickActions(business: business),
                               const SizedBox(height: 20),
-                              ValueListenableBuilder<int>(
-                                valueListenable: _selectedTabIndex,
-                                builder: (context, selectedTabIndex, _) {
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      BusinessNavTabs(
-                                        selectedIndex: selectedTabIndex,
-                                        onTabSelected: (index) {
-                                          if (index == selectedTabIndex) return;
-                                          _selectedTabIndex.value = index;
-                                        },
-                                      ),
-                                      const SizedBox(height: 20),
-                                      _buildTabContent(
-                                        business,
-                                        servicesState,
-                                        selectedTabIndex,
-                                      ),
-                                    ],
-                                  );
+
+                              // 3. Navigation Tabs (Services, Specialists, Reviews, About)
+                              BusinessNavTabs(
+                                selectedIndex: _selectedTabIndex,
+                                onTabSelected: (index) {
+                                  setState(() {
+                                    _selectedTabIndex = index;
+                                  });
                                 },
+                              ),
+                              const SizedBox(height: 20),
+
+                              // 4. Tab Body Contents
+                              _buildTabContent(
+                                business,
+                                servicesState,
+                                staffState,
+                                reviewsState,
                               ),
                             ],
                           ),
@@ -148,6 +146,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                     ),
                   ),
                 ),
+
+                // 5. Persistent Bottom Booking Bar
                 BookingBottomBar(
                   business: business,
                   onBookNowTap: () async {
@@ -160,6 +160,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                           .toList();
                     }
 
+                    // Update draft state
                     final currentDraft = ref.read(bookingDraftProvider);
                     if (selectedList.isNotEmpty) {
                       final first = selectedList.first;
@@ -182,6 +183,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                       );
                     }
 
+                    // Check Auth requirement
                     final allowed = await requireLogin(context,
                         targetRoute: '/booking-service');
                     if (allowed && context.mounted) {
@@ -200,10 +202,12 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
   Widget _buildTabContent(
     BusinessModel business,
     AsyncValue<List<ServiceModel>> servicesState,
-    int selectedTabIndex,
+    AsyncValue<List<StaffModel>> staffState,
+    AsyncValue<List<ReviewModel>> reviewsState,
   ) {
-    switch (selectedTabIndex) {
+    switch (_selectedTabIndex) {
       case 0:
+        // Services Tab
         return servicesState.when(
           loading: () => const Center(
               child: Padding(
@@ -223,6 +227,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                 }
               });
 
+              // Update draft immediately
               final selectedList = services
                   .where((s) => _selectedServiceIds.contains(s.id))
                   .toList();
@@ -255,49 +260,44 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         );
 
       case 1:
-        return Consumer(
-          builder: (context, tabRef, _) {
-            final staffState = tabRef.watch(staffProvider(business.id));
-            return staffState.when(
-              loading: () => const Center(
-                  child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator())),
-              error: (err, stack) => Text('Error loading specialists: $err',
-                  style: const TextStyle(color: AppColors.error)),
-              data: (staffList) {
-                if (staffList.isEmpty) {
-                  return Container(
-                    padding: const EdgeInsets.all(32),
-                    alignment: Alignment.center,
-                    child: const Column(
-                      children: [
-                        Icon(Icons.badge_outlined,
-                            size: 48, color: AppColors.textMutedDark),
-                        SizedBox(height: 12),
-                        Text(
-                          'Specialist information is not available yet.',
-                          style: TextStyle(
-                              color: AppColors.textMutedDark, fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+        // Specialists Tab
+        return staffState.when(
+          loading: () => const Center(
+              child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator())),
+          error: (err, stack) => Text('Error loading specialists: $err',
+              style: const TextStyle(color: AppColors.error)),
+          data: (staffList) {
+            if (staffList.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(32),
+                alignment: Alignment.center,
+                child: const Column(
+                  children: [
+                    Icon(Icons.badge_outlined,
+                        size: 48, color: AppColors.textMutedDark),
+                    SizedBox(height: 12),
+                    Text(
+                      'Specialist information is not available yet.',
+                      style: TextStyle(
+                          color: AppColors.textMutedDark, fontSize: 14),
+                      textAlign: TextAlign.center,
                     ),
-                  );
-                }
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: staffList.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final staff = staffList[index];
-                    return SpecialistCard(
-                      staff: staff,
-                      onTap: () => context.push('/staff-profile'),
-                    );
-                  },
+                  ],
+                ),
+              );
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: staffList.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final staff = staffList[index];
+                return SpecialistCard(
+                  staff: staff,
+                  onTap: () => context.push('/staff-profile'),
                 );
               },
             );
@@ -305,26 +305,23 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         );
 
       case 2:
-        return Consumer(
-          builder: (context, tabRef, _) {
-            final reviewsState = tabRef.watch(reviewsProvider(business.id));
-            return reviewsState.when(
-              loading: () => const Center(
-                  child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator())),
-              error: (err, stack) => Text('Error loading reviews: $err',
-                  style: const TextStyle(color: AppColors.error)),
-              data: (reviewsList) => ReviewsSection(
-                averageRating: business.rating,
-                totalReviews: business.reviewCount,
-                reviews: reviewsList,
-              ),
-            );
-          },
+        // Reviews Tab
+        return reviewsState.when(
+          loading: () => const Center(
+              child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator())),
+          error: (err, stack) => Text('Error loading reviews: $err',
+              style: const TextStyle(color: AppColors.error)),
+          data: (reviewsList) => ReviewsSection(
+            averageRating: business.rating,
+            totalReviews: business.reviewCount,
+            reviews: reviewsList,
+          ),
         );
 
       case 3:
+        // About & Gallery Tab
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -359,7 +356,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
             const SizedBox(height: 8),
             const Text(
               'Please check your network connection and try again.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+              style:
+                  TextStyle(color: AppColors.textMutedDark, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),

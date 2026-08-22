@@ -38,7 +38,6 @@ export const updateBookingStatus = onCall(async (request) => {
     const businessId = bookingData.businessId;
     const currentStatus = bookingData.status;
 
-    // Owner authorization check
     const bizRef = db.collection('businesses').doc(businessId);
     const bizSnap = await transaction.get(bizRef);
     if (!bizSnap.exists) {
@@ -50,14 +49,14 @@ export const updateBookingStatus = onCall(async (request) => {
 
     const bizData = bizSnap.data() || {};
     const ownerId = bizData.ownerId || bizData.owner_id;
-    if (ownerId !== callerUid) {
+    const isDeterministicOwner = businessId === callerUid;
+    if (!isDeterministicOwner && ownerId !== callerUid) {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: Only the business owner can update booking status.'
       );
     }
 
-    // Status Transition Validation
     const allowedTransitions: Record<string, string[]> = {
       pending: ['confirmed', 'cancelled'],
       confirmed: ['arrived', 'inProgress', 'noShow', 'cancelled'],
@@ -73,7 +72,6 @@ export const updateBookingStatus = onCall(async (request) => {
       );
     }
 
-    // Handle cancellation: release slot locks
     if (newStatus === 'cancelled') {
       let startAt: Date;
       let endAt: Date;

@@ -84,7 +84,7 @@ class NotificationService {
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-      debugPrint('FCM Device token registered for user: $uid');
+      debugPrint('FCM Device token registered successfully.');
     } catch (e) {
       debugPrint('Error registering device token: $e');
     }
@@ -106,7 +106,7 @@ class NotificationService {
         'isRead': true,
         'readAt': FieldValue.serverTimestamp(),
       });
-      debugPrint('Notification $notificationId marked as read for user $uid.');
+      debugPrint('Notification marked as read successfully.');
     } catch (e) {
       debugPrint('Error marking notification as read: $e');
     }
@@ -120,4 +120,6 @@ class NotificationService {
     // Foreground experience: Displays in-app banner UI and refreshes Riverpod state.
     // Client does NOT write authoritative notification history to Firestore.
   }
+
+  static List<Map<String, dynamic>> getMockNotifications() => [];
 }

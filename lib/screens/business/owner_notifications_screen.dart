@@ -44,7 +44,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
         body: notificationsAsync.when(
           data: (notifications) {
             if (notifications.isEmpty) {
-              return OwnerEmptyStateWidget(
+              return const OwnerEmptyStateWidget(
                 icon: Icons.notifications_none_rounded,
                 title: 'No Notifications',
                 description:

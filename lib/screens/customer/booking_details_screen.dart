@@ -1,37 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
+import 'package:intl/intl.dart';
+
+import '../../models/booking_model.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/glass_card.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
-  const BookingDetailsScreen({super.key});
+  const BookingDetailsScreen({super.key, this.booking});
+
+  final BookingModel? booking;
 
   @override
   Widget build(BuildContext context) {
+    final b = booking;
+    if (b == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Booking Details')),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Booking details are unavailable.'),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => context.go('/my-bookings'),
+                child: const Text('Back to My Bookings'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final dateText =
+        DateFormat('EEEE, dd MMMM yyyy • hh:mm a').format(b.startDateTime);
+    final statusText =
+        b.status.name[0].toUpperCase() + b.status.name.substring(1);
+    final statusColor = b.status == BookingStatus.cancelled
+        ? AppColors.error
+        : b.status == BookingStatus.completed
+            ? AppColors.success
+            : AppColors.primary;
+
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/my-bookings');
-          }
+          context.canPop() ? context.pop() : context.go('/my-bookings');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/my-bookings');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/my-bookings'),
           ),
-          title: const Text('Booking Details & QR'),
+          title: const Text('Booking Details'),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -41,12 +67,14 @@ class BookingDetailsScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const Icon(Icons.qr_code_2_rounded,
-                        size: 140, color: AppColors.primary),
+                        size: 120, color: AppColors.primary),
                     const SizedBox(height: 8),
-                    const Text('Booking Ref: #BK-94821',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Booking Ref: ${b.id}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    const Text('Scan code at salon check-in desk',
+                    const Text('Show this booking reference at check-in',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 12, color: AppColors.textMutedDark)),
                   ],
@@ -54,24 +82,36 @@ class BookingDetailsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               GlassCard(
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Executive Barber Lounge',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                    SizedBox(height: 4),
-                    Text('142 Luxury Blvd, NYC',
-                        style: TextStyle(color: AppColors.textMutedDark)),
-                    Divider(height: 24),
-                    Text('Service: Royal Haircut & Beard Trim'),
-                    SizedBox(height: 4),
-                    Text('Time: Tomorrow at 10:00 AM'),
-                    SizedBox(height: 4),
-                    Text('Status: Confirmed',
-                        style: TextStyle(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.bold)),
+                    Text(b.businessName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 17)),
+                    const Divider(height: 24),
+                    _row('Service', b.serviceName),
+                    const SizedBox(height: 8),
+                    _row('Specialist', b.staffName),
+                    const SizedBox(height: 8),
+                    _row('Time', dateText),
+                    const SizedBox(height: 8),
+                    _row('Price', '${b.servicePrice.toStringAsFixed(2)} AED'),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const SizedBox(
+                          width: 88,
+                          child: Text('Status',
+                              style: TextStyle(
+                                  color: AppColors.textMutedDark,
+                                  fontSize: 12)),
+                        ),
+                        Text(statusText,
+                            style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -79,6 +119,24 @@ class BookingDetailsScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  static Widget _row(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 88,
+          child: Text(label,
+              style: const TextStyle(
+                  color: AppColors.textMutedDark, fontSize: 12)),
+        ),
+        Expanded(
+          child: Text(value,
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+        ),
+      ],
     );
   }
 }

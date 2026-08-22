@@ -162,7 +162,6 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // Progress Indicator
               LinearProgressIndicator(
                 value: (_currentStep + 1) / 3,
                 backgroundColor: Colors.grey.shade200,
@@ -233,13 +232,13 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? Theme.of(context).primaryColor.withOpacity(0.08)
+                    ? Theme.of(context).primaryColor.withValues(alpha: 0.08)
                     : Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: isSelected
                       ? Theme.of(context).primaryColor
-                      : Colors.grey.withOpacity(0.2),
+                      : Colors.grey.withValues(alpha: 0.2),
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -247,7 +246,7 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
                 children: [
                   CircleAvatar(
                     backgroundColor:
-                        Theme.of(context).primaryColor.withOpacity(0.1),
+                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     child: Text(s['name']![0],
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
@@ -340,7 +339,7 @@ class _BookingFlowScreenState extends ConsumerState<BookingFlowScreen> {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.grey.withOpacity(0.2)),
+            border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [

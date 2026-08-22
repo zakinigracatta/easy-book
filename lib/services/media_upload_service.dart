@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -7,14 +6,20 @@ class MediaUploadService {
   MediaUploadService({
     FirebaseStorage? storage,
     ImagePicker? picker,
-  })  : _storage = storage ?? FirebaseStorage.instance,
+  })  : _storage = storage,
         _picker = picker ?? ImagePicker();
 
   static const int maxImageBytes = 5 * 1024 * 1024;
 
-  final FirebaseStorage _storage;
+  FirebaseStorage? _storage;
   final ImagePicker _picker;
   final Uuid _uuid = const Uuid();
+
+  // Resolve Firebase Storage only when an upload/delete is actually requested.
+  // This keeps screens constructible in tests and in read-only flows even when
+  // a Storage bucket is unavailable or intentionally not configured.
+  FirebaseStorage get _resolvedStorage =>
+      _storage ??= FirebaseStorage.instance;
 
   Future<String?> pickAndUploadImage({
     required String storageFolder,
@@ -94,7 +99,7 @@ class MediaUploadService {
     final extension = _safeExtension(file.name);
     final fileName =
         '${DateTime.now().millisecondsSinceEpoch}_${_uuid.v4()}.$extension';
-    final ref = _storage.ref().child('$cleanFolder/$fileName');
+    final ref = _resolvedStorage.ref().child('$cleanFolder/$fileName');
 
     final task = ref.putData(
       bytes,
@@ -120,7 +125,7 @@ class MediaUploadService {
     if (value.isEmpty || !_isFirebaseStorageUrl(value)) return;
 
     try {
-      await _storage.refFromURL(value).delete();
+      await _resolvedStorage.refFromURL(value).delete();
     } on FirebaseException catch (e) {
       if (e.code != 'object-not-found') rethrow;
     }
