@@ -67,7 +67,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
                     ),
                     SizedBox(height: 6),
                     Text(
-                      'Add real business costs here so profit reports remain accurate.',
+                      'Record each real business cost so profit reports remain accurate.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textMutedDark),
                     ),
@@ -143,7 +143,6 @@ class OwnerExpensesScreen extends ConsumerWidget {
                         runSpacing: 6,
                         children: [
                           _tag(expense.paymentMethod),
-                          _tag(_frequencyLabel(expense.frequency)),
                           if (expense.supplier?.trim().isNotEmpty == true)
                             _tag(expense.supplier!.trim()),
                         ],
@@ -195,17 +194,6 @@ class OwnerExpensesScreen extends ConsumerWidget {
         style: const TextStyle(fontSize: 10, color: AppColors.textMutedDark),
       ),
     );
-  }
-
-  String _frequencyLabel(ExpenseFrequency frequency) {
-    switch (frequency) {
-      case ExpenseFrequency.oneTime:
-        return 'One-time';
-      case ExpenseFrequency.monthly:
-        return 'Monthly';
-      case ExpenseFrequency.yearly:
-        return 'Yearly';
-    }
   }
 
   Future<void> _confirmArchive(
@@ -286,7 +274,6 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
   late final TextEditingController _supplier;
   late final TextEditingController _notes;
   late ExpenseCategory _category;
-  late ExpenseFrequency _frequency;
   late DateTime _date;
   late String _paymentMethod;
   bool _saving = false;
@@ -310,7 +297,6 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
     _supplier = TextEditingController(text: item?.supplier ?? '');
     _notes = TextEditingController(text: item?.notes ?? '');
     _category = item?.category ?? ExpenseCategory.other;
-    _frequency = item?.frequency ?? ExpenseFrequency.oneTime;
     _date = item?.expenseDate ?? DateTime.now();
     _paymentMethod = item?.paymentMethod ?? _paymentMethods.first;
     if (!_paymentMethods.contains(_paymentMethod)) {
@@ -351,6 +337,15 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 6),
+              const Text(
+                'Enter an expense only when the cost actually occurred. Recurring automation will be added separately so reports never double-count estimated costs.',
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 1.35,
+                  color: AppColors.textMutedDark,
+                ),
+              ),
               const SizedBox(height: 18),
               DropdownButtonFormField<ExpenseCategory>(
                 value: _category,
@@ -372,6 +367,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                 controller: _description,
                 decoration: const InputDecoration(labelText: 'Description'),
                 textInputAction: TextInputAction.next,
+                maxLength: 300,
                 validator: (value) => value == null || value.trim().isEmpty
                     ? 'Description is required.'
                     : null,
@@ -417,28 +413,6 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                 },
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<ExpenseFrequency>(
-                value: _frequency,
-                decoration: const InputDecoration(labelText: 'Frequency'),
-                items: const [
-                  DropdownMenuItem(
-                    value: ExpenseFrequency.oneTime,
-                    child: Text('One-time'),
-                  ),
-                  DropdownMenuItem(
-                    value: ExpenseFrequency.monthly,
-                    child: Text('Monthly'),
-                  ),
-                  DropdownMenuItem(
-                    value: ExpenseFrequency.yearly,
-                    child: Text('Yearly'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) setState(() => _frequency = value);
-                },
-              ),
-              const SizedBox(height: 12),
               TextFormField(
                 controller: _supplier,
                 decoration: const InputDecoration(
@@ -477,7 +451,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
       context: context,
       initialDate: _date,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: DateTime.now(),
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -496,7 +470,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             paymentMethod: _paymentMethod,
             supplier: _supplier.text.trim(),
             notes: _notes.text.trim(),
-            frequency: _frequency,
+            frequency: ExpenseFrequency.oneTime,
           );
       ref.invalidate(ownerProfitAndLossProvider);
       if (mounted) Navigator.pop(context, true);
