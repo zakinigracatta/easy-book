@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/expense_model.dart';
@@ -9,6 +8,7 @@ import '../../repositories/owner_finance_repository.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
+import 'owner_expenses_screen.dart';
 
 class OwnerFinanceScreen extends ConsumerWidget {
   const OwnerFinanceScreen({super.key});
@@ -166,7 +166,14 @@ class OwnerFinanceScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 18),
             GlassCard(
-              onTap: () => context.push('/owner-expenses'),
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const OwnerExpensesScreen(),
+                  ),
+                );
+                ref.invalidate(ownerProfitAndLossProvider);
+              },
               child: const ListTile(
                 leading: Icon(
                   Icons.receipt_long_rounded,
