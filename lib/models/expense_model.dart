@@ -112,11 +112,11 @@ class ExpenseModel {
       'amount': amount,
       'expenseDate': Timestamp.fromDate(expenseDate),
       'paymentMethod': paymentMethod.trim(),
-      if (supplier != null && supplier!.trim().isNotEmpty)
-        'supplier': supplier!.trim(),
-      if (receiptUrl != null && receiptUrl!.trim().isNotEmpty)
-        'receiptUrl': receiptUrl!.trim(),
-      if (notes != null && notes!.trim().isNotEmpty) 'notes': notes!.trim(),
+      // Keep optional strings explicit so editing a value to blank really clears
+      // the old Firestore value instead of silently preserving stale data.
+      'supplier': supplier?.trim() ?? '',
+      'receiptUrl': receiptUrl?.trim() ?? '',
+      'notes': notes?.trim() ?? '',
       'frequency': frequency.name,
       'isActive': isActive,
       'createdBy': createdBy,
