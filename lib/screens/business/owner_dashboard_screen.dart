@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../models/booking_model.dart';
+import '../../models/profit_and_loss_summary.dart';
+import '../../providers/owner_finance_providers.dart';
+import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/glass_card.dart';
 import '../../widgets/app_drawer.dart';
-import '../../widgets/business_bottom_nav.dart';
-import '../../widgets/business/owner_stat_card.dart';
-import '../../widgets/business/quick_action_card.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
-import '../../providers/owner_providers.dart';
-import '../../models/booking_model.dart';
+import '../../widgets/business/owner_stat_card.dart';
+import '../../widgets/business/quick_action_card.dart';
+import '../../widgets/business_bottom_nav.dart';
+import '../../widgets/glass_card.dart';
 
 class OwnerDashboardScreen extends ConsumerWidget {
   const OwnerDashboardScreen({super.key});
@@ -20,6 +23,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
     final businessAsync = ref.watch(ownerBusinessProvider);
     final bookingsAsync = ref.watch(ownerBookingsProvider);
     final notificationsAsync = ref.watch(ownerNotificationsProvider);
+    final todayFinanceAsync = ref.watch(ownerTodayProfitAndLossProvider);
 
     final unreadNotificationsCount = notificationsAsync.maybeWhen(
       data: (nList) => nList.where((n) => !n.isRead).length,
@@ -45,28 +49,22 @@ class OwnerDashboardScreen extends ConsumerWidget {
               ref.invalidate(ownerBusinessProvider);
               ref.invalidate(ownerBookingsProvider);
               ref.invalidate(ownerNotificationsProvider);
+              ref.invalidate(ownerTodayProfitAndLossProvider);
             },
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. HEADER SECTION
                   businessAsync.when(
                     data: (biz) => _buildHeader(
                         context, ref, biz, unreadNotificationsCount),
                     loading: () => _buildHeaderSkeleton(context),
                     error: (_, __) => _buildHeaderSkeleton(context),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // 2. TODAY METRICS GRID
-                  _buildMetricsSection(ref, bookingsAsync),
-
+                  _buildMetricsSection(bookingsAsync, todayFinanceAsync),
                   const SizedBox(height: 24),
-
-                  // 3. QUICK ACTIONS
                   const Text(
                     'Quick Actions',
                     style: TextStyle(
@@ -77,10 +75,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   _buildQuickActions(context),
-
                   const SizedBox(height: 24),
-
-                  // 4. UPCOMING BOOKINGS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -107,7 +102,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-
                   _buildUpcomingBookingsList(context, ref, bookingsAsync),
                 ],
               ),
@@ -127,7 +121,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          // Drawer menu trigger & Business Avatar
           Builder(
             builder: (ctx) => GestureDetector(
               onTap: () => Scaffold.of(ctx).openDrawer(),
@@ -162,10 +155,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
               ),
             ),
           ),
-
           const SizedBox(width: 12),
-
-          // Business Name, Rating & Status
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +185,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 4, width: 8),
-                    // Open / Closed Status Badge
                     GestureDetector(
                       onTap: () => ref
                           .read(ownerBusinessProvider.notifier)
@@ -247,8 +236,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
               ],
             ),
           ),
-
-          // Icons Shortcuts: Notifications & Settings
           Row(
             children: [
               IconButton(
@@ -275,8 +262,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
   Widget _buildHeaderSkeleton(BuildContext context) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
-      child: Row(
-        children: const [
+      child: const Row(
+        children: [
           CircleAvatar(radius: 26, backgroundColor: AppColors.glassBorderDark),
           SizedBox(width: 12),
           Expanded(
@@ -299,26 +286,45 @@ class OwnerDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildMetricsSection(
-      WidgetRef ref, AsyncValue<List<BookingModel>> bookingsAsync) {
+    AsyncValue<List<BookingModel>> bookingsAsync,
+    AsyncValue<ProfitAndLossSummary> financeAsync,
+  ) {
     final now = DateTime.now();
 
     return bookingsAsync.when(
       data: (bookings) {
-        final todayBookings = bookings.where((b) {
-          return b.startDateTime.year == now.year &&
-              b.startDateTime.month == now.month &&
-              b.startDateTime.day == now.day;
+        final todayBookings = bookings.where((booking) {
+          return booking.startDateTime.year == now.year &&
+              booking.startDateTime.month == now.month &&
+              booking.startDateTime.day == now.day;
         }).toList();
-
-        final todayRevenue = todayBookings
-            .where((b) => b.status != BookingStatus.cancelled)
-            .fold<double>(0.0, (sum, b) => sum + b.servicePrice);
 
         final pendingCount =
             bookings.where((b) => b.status == BookingStatus.pending).length;
-
         final customerIdsToday =
             todayBookings.map((b) => b.customerId).toSet().length;
+
+        final revenueText = financeAsync.when(
+          data: (finance) =>
+              'AED ${finance.recognizedRevenue.toStringAsFixed(0)}',
+          loading: () => '—',
+          error: (_, __) => '—',
+        );
+        final expenseText = financeAsync.when(
+          data: (finance) => 'AED ${finance.expenses.toStringAsFixed(0)}',
+          loading: () => '—',
+          error: (_, __) => '—',
+        );
+        final profitText = financeAsync.when(
+          data: (finance) => 'AED ${finance.netProfit.toStringAsFixed(0)}',
+          loading: () => '—',
+          error: (_, __) => '—',
+        );
+        final profitColor = financeAsync.maybeWhen(
+          data: (finance) =>
+              finance.netProfit >= 0 ? AppColors.success : AppColors.error,
+          orElse: () => AppColors.textMutedDark,
+        );
 
         return Column(
           children: [
@@ -336,11 +342,35 @@ class OwnerDashboardScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: OwnerStatCard(
-                    label: "Today's Revenue",
-                    value: 'AED ${todayRevenue.toStringAsFixed(0)}',
+                    label: 'Recognized Revenue',
+                    value: revenueText,
                     icon: Icons.payments_rounded,
                     iconColor: AppColors.success,
-                    subtitle: 'REVENUE',
+                    subtitle: 'COMPLETED',
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OwnerStatCard(
+                    label: "Today's Expenses",
+                    value: expenseText,
+                    icon: Icons.receipt_long_rounded,
+                    iconColor: AppColors.error,
+                    subtitle: 'COSTS',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OwnerStatCard(
+                    label: "Today's Net Profit",
+                    value: profitText,
+                    icon: Icons.account_balance_wallet_rounded,
+                    iconColor: profitColor,
+                    subtitle: 'PROFIT',
                   ),
                 ),
               ],
@@ -374,21 +404,25 @@ class OwnerDashboardScreen extends ConsumerWidget {
       },
       loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary)),
-      error: (_, __) => Row(
-        children: const [
+      error: (_, __) => const Row(
+        children: [
           Expanded(
-              child: OwnerStatCard(
-                  label: "Today's Bookings",
-                  value: '0',
-                  icon: Icons.calendar_today_rounded,
-                  iconColor: AppColors.primaryLight)),
+            child: OwnerStatCard(
+              label: "Today's Bookings",
+              value: '—',
+              icon: Icons.calendar_today_rounded,
+              iconColor: AppColors.primaryLight,
+            ),
+          ),
           SizedBox(width: 12),
           Expanded(
-              child: OwnerStatCard(
-                  label: "Today's Revenue",
-                  value: 'AED 0',
-                  icon: Icons.payments_rounded,
-                  iconColor: AppColors.success)),
+            child: OwnerStatCard(
+              label: 'Recognized Revenue',
+              value: '—',
+              icon: Icons.payments_rounded,
+              iconColor: AppColors.success,
+            ),
+          ),
         ],
       ),
     );
@@ -399,19 +433,19 @@ class OwnerDashboardScreen extends ConsumerWidget {
       children: [
         Expanded(
           child: QuickActionCard(
-            title: 'New Booking',
-            icon: Icons.add_circle_outline_rounded,
-            color: AppColors.primaryLight,
+            title: 'Walk-in',
+            icon: Icons.directions_walk_rounded,
+            color: AppColors.gold,
             onTap: () => context.push('/quick-walk-in'),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: QuickActionCard(
-            title: 'Walk-in',
-            icon: Icons.directions_walk_rounded,
-            color: AppColors.gold,
-            onTap: () => context.push('/quick-walk-in'),
+            title: 'Finance',
+            icon: Icons.account_balance_wallet_rounded,
+            color: AppColors.primaryLight,
+            onTap: () => context.push('/sales-report'),
           ),
         ),
         const SizedBox(width: 10),
@@ -466,6 +500,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                 ref
                     .read(ownerBookingsProvider.notifier)
                     .updateStatus(b.id, newStatus);
+                ref.invalidate(ownerTodayProfitAndLossProvider);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
