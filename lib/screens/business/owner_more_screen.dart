@@ -12,6 +12,11 @@ class OwnerMoreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final businessAsync = ref.watch(ownerBusinessProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final mutedTextColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
 
     return PopScope(
       canPop: context.canPop(),
@@ -66,18 +71,18 @@ class OwnerMoreScreen extends ConsumerWidget {
                           children: [
                             Text(
                               biz.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimaryDark,
+                                color: primaryTextColor,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               biz.category,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textMutedDark,
+                                color: mutedTextColor,
                               ),
                             ),
                           ],
@@ -94,10 +99,8 @@ class OwnerMoreScreen extends ConsumerWidget {
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
               ),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('BUSINESS'),
+              _sectionHeader(context, 'BUSINESS'),
               _menuTile(context, 'Business Profile', Icons.storefront_rounded,
                   '/salon-management'),
               _menuTile(context, 'Photos & Gallery',
@@ -106,42 +109,32 @@ class OwnerMoreScreen extends ConsumerWidget {
                   Icons.access_time_filled_rounded, '/business-hours'),
               _menuTile(context, 'Services Menu', Icons.design_services_rounded,
                   '/services-management'),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('TEAM'),
+              _sectionHeader(context, 'TEAM'),
               _menuTile(context, 'Employees & Specialists', Icons.badge_rounded,
                   '/employee-management'),
               _menuTile(context, 'Employee Rosters & Time Off',
                   Icons.calendar_month_rounded, '/employee-schedule'),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('CUSTOMERS'),
+              _sectionHeader(context, 'CUSTOMERS'),
               _menuTile(context, 'Customer Database & CRM',
                   Icons.people_alt_rounded, '/customer-management'),
               _menuTile(context, 'Customer Reviews & Ratings',
                   Icons.star_rounded, '/owner-reviews'),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('MARKETING'),
+              _sectionHeader(context, 'MARKETING'),
               _menuTile(context, 'Offers & Promotions', Icons.campaign_rounded,
                   '/promotion-management'),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('FINANCE'),
+              _sectionHeader(context, 'FINANCE'),
               _menuTile(
                 context,
                 'Finance, Expenses & Profit',
                 Icons.account_balance_wallet_rounded,
                 '/sales-report',
               ),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('ACCOUNT'),
+              _sectionHeader(context, 'ACCOUNT'),
               _menuTile(context, 'Notifications', Icons.notifications_rounded,
                   '/owner-notifications'),
               _menuTile(context, 'System Settings', Icons.settings_rounded,
@@ -154,15 +147,19 @@ class OwnerMoreScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sectionHeader(String title) {
+  Widget _sectionHeader(BuildContext context, String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedTextColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: AppColors.textMutedDark,
+          color: mutedTextColor,
           letterSpacing: 1.2,
         ),
       ),
@@ -171,23 +168,28 @@ class OwnerMoreScreen extends ConsumerWidget {
 
   Widget _menuTile(
       BuildContext context, String title, IconData icon, String route) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor =
+        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
+    final mutedTextColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: GlassCard(
         onTap: () => context.push(route),
         child: ListTile(
           dense: true,
-          leading: Icon(icon, color: AppColors.primaryLight, size: 22),
+          leading: Icon(icon, color: AppColors.primary, size: 22),
           title: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 14,
-              color: AppColors.textPrimaryDark,
+              color: primaryTextColor,
             ),
           ),
-          trailing: const Icon(Icons.chevron_right_rounded,
-              color: AppColors.textMutedDark),
+          trailing: Icon(Icons.chevron_right_rounded, color: mutedTextColor),
         ),
       ),
     );

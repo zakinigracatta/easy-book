@@ -15,6 +15,7 @@ import '../repositories/business_repository.dart';
 import '../services/auth_service.dart';
 import '../services/availability_service.dart';
 import '../services/booking_availability_engine.dart';
+import '../services/local_storage_service.dart';
 
 export 'auth_provider.dart';
 
@@ -354,7 +355,8 @@ final appointmentsProvider =
 });
 
 // Theme Mode Provider
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
+final themeModeProvider =
+    StateProvider<ThemeMode>((ref) => LocalStorageService.getThemeMode());
 
 // Legacy in-memory favorites state. New customer UI uses savedFavoritesProvider.
 final favoritesProvider = StateProvider<Set<String>>((ref) => <String>{});

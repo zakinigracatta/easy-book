@@ -8,10 +8,15 @@ class AppColors {
   static const Color accent = Color(0xFFA855F7); // Purple Glow
   static const Color gold = Color(0xFFF59E0B); // Amber / Gold Accent
 
-  // Backgrounds
+  // Backgrounds & Surfaces
   static const Color bgDark = Color(0xFF080C16);
   static const Color cardDark = Color(0xFF121828);
   static const Color glassBgDark = Color(0x2A1E293B);
+
+  static const Color bgLight = Color(0xFFF8FAFC);
+  static const Color cardLight = Color(0xFFFFFFFF);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color glassBgLight = Color(0xFFF1F5F9);
 
   // Status Colors
   static const Color success = Color(0xFF10B981);
@@ -23,9 +28,15 @@ class AppColors {
   static const Color textPrimaryDark = Color(0xFFF8FAFC);
   static const Color textSecondaryDark = Color(0xFF94A3B8);
   static const Color textMutedDark = Color(0xFF64748B);
+  static const Color textPrimaryLight = Color(0xFF0F172A);
+  static const Color textSecondaryLight = Color(0xFF475569);
+  static const Color textMutedLight = Color(0xFF64748B);
 
-  // Borders
+  // Borders & Shadows
   static const Color glassBorderDark = Color(0x33FFFFFF);
+  static const Color glassBorderLight = Color(0xFFE2E8F0);
+  static const Color shadowDark = Color(0x5E000000);
+  static const Color shadowLight = Color(0x0D000000);
 
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
