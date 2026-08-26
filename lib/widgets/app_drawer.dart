@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +13,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isBusiness = portalType == 'business';
+    final signedInEmail = FirebaseAuth.instance.currentUser?.email ?? '';
 
     final businessItems = [
       {'title': 'Dashboard', 'icon': Icons.dashboard_rounded, 'route': '/owner-dashboard'},
@@ -44,17 +46,25 @@ class AppDrawer extends StatelessWidget {
             UserAccountsDrawerHeader(
               decoration: const BoxDecoration(color: AppColors.cardDark),
               accountName: Text(
-                context.tr(isBusiness ? 'Salon Management Center' : 'Platform Super Admin'),
+                context.tr(isBusiness
+                    ? 'Salon Management Center'
+                    : 'Platform Super Admin'),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               accountEmail: Text(
-                isBusiness ? 'easybook.business@portal.com' : 'admin@easybook.com',
-                style: const TextStyle(color: AppColors.textMutedDark, fontSize: 12),
+                signedInEmail,
+                style: const TextStyle(
+                  color: AppColors.textMutedDark,
+                  fontSize: 12,
+                ),
               ),
               currentAccountPicture: CircleAvatar(
-                backgroundColor: isBusiness ? AppColors.primary : AppColors.error,
+                backgroundColor:
+                    isBusiness ? AppColors.primary : AppColors.error,
                 child: Icon(
-                  isBusiness ? Icons.storefront_rounded : Icons.security_rounded,
+                  isBusiness
+                      ? Icons.storefront_rounded
+                      : Icons.security_rounded,
                   color: Colors.white,
                 ),
               ),
@@ -67,7 +77,8 @@ class AppDrawer extends StatelessWidget {
                     (item) => ListTile(
                       leading: Icon(
                         item['icon'] as IconData,
-                        color: isBusiness ? AppColors.primary : AppColors.accent,
+                        color:
+                            isBusiness ? AppColors.primary : AppColors.accent,
                       ),
                       title: Text(
                         context.tr(item['title'] as String),
@@ -81,7 +92,10 @@ class AppDrawer extends StatelessWidget {
                   ),
                   const Divider(color: AppColors.glassBorderDark),
                   ListTile(
-                    leading: const Icon(Icons.settings_rounded, color: AppColors.textSecondaryDark),
+                    leading: const Icon(
+                      Icons.settings_rounded,
+                      color: AppColors.textSecondaryDark,
+                    ),
                     title: Text(context.tr('Settings')),
                     onTap: () {
                       Navigator.pop(context);
@@ -89,14 +103,19 @@ class AppDrawer extends StatelessWidget {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+                    leading:
+                        const Icon(Icons.logout_rounded, color: AppColors.error),
                     title: Text(
                       context.tr('Exit Portal'),
-                      style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    onTap: () {
+                    onTap: () async {
                       Navigator.pop(context);
-                      context.go('/welcome');
+                      await FirebaseAuth.instance.signOut();
+                      if (context.mounted) context.go('/welcome');
                     },
                   ),
                 ],
