@@ -1,14 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../widgets/custom_button.dart';
-import '../../theme/app_colors.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/navigation_service.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/glass_card.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -23,10 +25,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   UserRole _selectedRole = UserRole.customer;
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleLogin() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email and password.')),
+        SnackBar(
+          content: Text(context.tr('Please enter your email and password.')),
+        ),
       );
       return;
     }
@@ -39,51 +51,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             requestedRole: _selectedRole,
           );
 
-      if (mounted) {
-        final firebaseUser = FirebaseAuth.instance.currentUser;
-        if (firebaseUser != null) {
-          await firebaseUser.reload();
-          if (!mounted) return;
-          final refreshedUser = FirebaseAuth.instance.currentUser;
-          if (refreshedUser != null && !refreshedUser.emailVerified) {
-            context.go('/verify-email');
-            return;
-          }
-        }
+      if (!mounted) return;
 
-        final pendingRoute = NavigationService().consumePendingRoute();
-        if (user.role == UserRole.owner ||
-            user.role == UserRole.businessOwner) {
-          NavigationService().clearPendingRoute();
-          context.go('/owner-dashboard');
-        } else if (pendingRoute != null && pendingRoute.isNotEmpty) {
-          if (context.canPop()) {
-            context.pop(true);
-          } else {
-            context.go(pendingRoute);
-          }
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null) {
+        await firebaseUser.reload();
+      }
+      if (!mounted) return;
+
+      final refreshedUser = FirebaseAuth.instance.currentUser;
+      if (refreshedUser != null && !refreshedUser.emailVerified) {
+        context.go('/verify-email');
+        return;
+      }
+
+      final pendingRoute = NavigationService().consumePendingRoute();
+      if (user.role == UserRole.owner || user.role == UserRole.businessOwner) {
+        NavigationService().clearPendingRoute();
+        context.go('/owner-dashboard');
+      } else if (user.role == UserRole.admin) {
+        NavigationService().clearPendingRoute();
+        context.go('/admin-dashboard');
+      } else if (pendingRoute != null && pendingRoute.isNotEmpty) {
+        if (context.canPop()) {
+          context.pop(true);
         } else {
-          if (context.canPop()) {
-            context.pop(true);
-          } else {
-            context.go('/home');
-          }
+          context.go(pendingRoute);
         }
+      } else if (context.canPop()) {
+        context.pop(true);
+      } else {
+        context.go('/home');
       }
     } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? 'Authentication failed.')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text('An error occurred during sign in: ${e.toString()}')),
-        );
-      }
+      if (!mounted) return;
+      final message = switch (e.code) {
+        'role-mismatch' => _selectedRole == UserRole.owner
+            ? context.tr('This account is not registered as a business owner.')
+            : context.tr('Authentication failed.'),
+        'invalid-credential' || 'wrong-password' || 'user-not-found' =>
+          context.tr('Invalid email or password.'),
+        'too-many-requests' => context.tr(
+            'Too many sign-in attempts. Please wait and try again.',
+          ),
+        'network-request-failed' => context.tr(
+            'Network connection failed. Check your connection and try again.',
+          ),
+        _ => context.tr('Authentication failed.'),
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('Authentication failed.'))),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -95,15 +118,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/welcome');
-            }
-          },
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: const Text('Sign In'),
+        title: Text(context.tr('Sign In')),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -111,14 +129,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Welcome Back 👋',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+              Text(
+                context.tr('Welcome Back 👋'),
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 6),
-              const Text('Sign in to access your portal',
-                  style: TextStyle(color: AppColors.textMutedDark)),
+              Text(
+                context.tr('Sign in to access your portal'),
+                style: const TextStyle(color: AppColors.textMutedDark),
+              ),
               const SizedBox(height: 24),
-
-              // Role Toggle Segment
               Row(
                 children: [
                   Expanded(
@@ -133,13 +156,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               : AppColors.cardDark,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                              color: _selectedRole == UserRole.customer
-                                  ? AppColors.primary
-                                  : AppColors.glassBorderDark),
+                            color: _selectedRole == UserRole.customer
+                                ? AppColors.primary
+                                : AppColors.glassBorderDark,
+                          ),
                         ),
-                        child: const Center(
-                          child: Text('Customer',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Center(
+                          child: Text(
+                            context.tr('Customer'),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
@@ -157,35 +183,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               : AppColors.cardDark,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                              color: _selectedRole == UserRole.owner
-                                  ? AppColors.accent
-                                  : AppColors.glassBorderDark),
+                            color: _selectedRole == UserRole.owner
+                                ? AppColors.accent
+                                : AppColors.glassBorderDark,
+                          ),
                         ),
-                        child: const Center(
-                          child: Text('Business Owner',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Center(
+                          child: Text(
+                            context.tr('Business Owner'),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 24),
-
               GlassCard(
                 child: Column(
                   children: [
                     CustomTextField(
                       controller: _emailController,
-                      label: 'Email / Phone',
+                      label: context.tr('Email'),
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       controller: _passwordController,
-                      label: 'Password',
+                      label: context.tr('Password'),
                       obscureText: true,
                       prefixIcon: Icons.lock_outline_rounded,
                     ),
@@ -194,23 +221,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => context.push('/forgot-password'),
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                              color: AppColors.textMutedDark,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600),
+                        child: Text(
+                          context.tr('Forgot Password?'),
+                          style: const TextStyle(
+                            color: AppColors.textMutedDark,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     CustomButton(
-                      text: 'Sign In',
+                      text: context.tr('Sign In'),
                       isLoading: _isLoading,
                       backgroundColor: _selectedRole == UserRole.owner
                           ? AppColors.accent
                           : AppColors.primary,
-                      onPressed: _handleLogin,
+                      onPressed: _isLoading ? null : _handleLogin,
                     ),
                   ],
                 ),
@@ -221,23 +249,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Customer? ',
-                          style: TextStyle(color: AppColors.textMutedDark)),
+                      Text(
+                        context.tr('Register as Customer? '),
+                        style: const TextStyle(color: AppColors.textMutedDark),
+                      ),
                       TextButton(
                         onPressed: () => context.push('/register'),
-                        child: const Text('Customer Register'),
+                        child: Text(context.tr('Customer Register')),
                       ),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Partner? ',
-                          style: TextStyle(color: AppColors.textMutedDark)),
+                      Text(
+                        context.tr('Register as Partner? '),
+                        style: const TextStyle(color: AppColors.textMutedDark),
+                      ),
                       TextButton(
                         onPressed: () => context.push('/business-register'),
-                        child: const Text('Owner Register',
-                            style: TextStyle(color: AppColors.accent)),
+                        child: Text(
+                          context.tr('Owner Register'),
+                          style: const TextStyle(color: AppColors.accent),
+                        ),
                       ),
                     ],
                   ),
