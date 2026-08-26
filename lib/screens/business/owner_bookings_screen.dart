@@ -174,7 +174,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  'Updated booking status to ${newStatus.name.toUpperCase()}'),
+                                  context.tr('Updated booking status to {status}', params: {'status': newStatus.name.toUpperCase()})),
                               backgroundColor: AppColors.primary,
                             ),
                           );

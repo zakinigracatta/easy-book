@@ -122,7 +122,7 @@ void main() {
     for (final file in uiFiles()) {
       final source = file.readAsStringSync();
       for (final match in keyPattern.allMatches(source)) {
-        final key = match.group(2)!;
+        final key = match.group(2)!.replaceAll(r'\n', '\n');
         if (!arabicKeys.contains(key)) missingArabic.add(key);
         if (!russianKeys.contains(key)) missingRussian.add(key);
       }

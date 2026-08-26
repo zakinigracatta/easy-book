@@ -132,7 +132,7 @@ class _CustomerManagementScreenState
                                   color: Theme.of(context).colorScheme.onSurface),
                             ),
                             subtitle: Text(
-                              '${c.phone} • ${c.completedVisits} visits',
+                              context.tr('{phone} • {count} visits', params: {'phone': c.phone, 'count': c.completedVisits}),
                               style: TextStyle(
                                   fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
@@ -151,7 +151,7 @@ class _CustomerManagementScreenState
                                 if (c.noShowCount > 0) ...[
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${c.noShowCount} No-Shows',
+                                    context.tr('{count} No-Shows', params: {'count': c.noShowCount}),
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: AppColors.warning,

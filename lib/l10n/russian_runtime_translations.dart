@@ -219,4 +219,10 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Failed to save reply. Please try again.': 'Не удалось сохранить ответ. Попробуйте снова.',
   'Failed to create walk-in. Please try again.':
       'Не удалось создать запись без предварительной записи. Попробуйте снова.',
+
+  'Bookings for {date}': 'Записи на {date}',
+  '{phone} • {count} visits': '{phone} • визитов: {count}',
+  '{rating} ({count} reviews)': '{rating} (отзывов: {count})',
+  '• {count} yrs experience': '• опыт: {count} лет',
+  '• {count} yrs exp': '• опыт: {count} лет',
 };

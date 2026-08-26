@@ -138,7 +138,7 @@ class OwnerBookingCard extends StatelessWidget {
                             size: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         const SizedBox(width: 4),
                         Text(
-                          'Staff: ${booking.staffName}',
+                          context.tr('Staff: {name}', params: {'name': booking.staffName}),
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).colorScheme.onSurfaceVariant,

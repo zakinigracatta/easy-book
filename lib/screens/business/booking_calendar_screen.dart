@@ -80,7 +80,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Bookings for ${DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}',
+                    context.tr('Bookings for {date}', params: {'date': DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,

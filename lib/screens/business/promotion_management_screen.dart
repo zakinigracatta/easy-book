@@ -200,7 +200,7 @@ class PromotionManagementScreen extends ConsumerWidget {
                                     size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Valid: $startStr – $endStr',
+                                  context.tr('Valid: {start} – {end}', params: {'start': startStr, 'end': endStr}),
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: Theme.of(context).colorScheme.onSurfaceVariant,

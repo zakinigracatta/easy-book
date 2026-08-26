@@ -140,7 +140,7 @@ class EmployeeManagementScreen extends ConsumerWidget {
                                       size: 14, color: AppColors.gold),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${st.rating} (${st.reviewCount} reviews)',
+                                    context.tr('{rating} ({count} reviews)', params: {'rating': st.rating, 'count': st.reviewCount}),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -148,7 +148,7 @@ class EmployeeManagementScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    '${st.experienceYears} yrs exp',
+                                    context.tr('{count} yrs exp', params: {'count': st.experienceYears}),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,

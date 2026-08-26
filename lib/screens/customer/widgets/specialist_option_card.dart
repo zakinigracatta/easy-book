@@ -151,7 +151,7 @@ class SpecialistOptionCard extends StatelessWidget {
                     if (s.experienceYears > 0) ...[
                       const SizedBox(width: 8),
                       Text(
-                        '•  ${s.experienceYears} yrs exp',
+                        context.tr('• {count} yrs exp', params: {'count': s.experienceYears}),
                         style: TextStyle(
                           fontSize: 11,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,

@@ -72,7 +72,7 @@ class ReviewsSection extends StatelessWidget {
                   RatingStars(rating: averageRating, size: 16),
                   const SizedBox(height: 6),
                   Text(
-                    '$totalReviews reviews',
+                    context.tr('{count} reviews', params: {'count': totalReviews}),
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,

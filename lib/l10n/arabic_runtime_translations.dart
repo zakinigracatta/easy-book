@@ -205,4 +205,10 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Failed to save reply. Please try again.': 'تعذر حفظ الرد. حاول مرة أخرى.',
   'Failed to create walk-in. Please try again.':
       'تعذر إنشاء الحجز المباشر. حاول مرة أخرى.',
+
+  'Bookings for {date}': 'حجوزات يوم {date}',
+  '{phone} • {count} visits': '{phone} • {count} زيارة',
+  '{rating} ({count} reviews)': '{rating} ({count} مراجعة)',
+  '• {count} yrs experience': '• {count} سنة خبرة',
+  '• {count} yrs exp': '• {count} سنة خبرة',
 };

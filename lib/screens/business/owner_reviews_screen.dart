@@ -144,7 +144,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$total reviews',
+                    context.tr('{count} reviews', params: {'count': total}),
                     style: TextStyle(
                       fontSize: 11,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -174,7 +174,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   size: 18, color: AppColors.primaryLight),
               const SizedBox(width: 8),
               Text(
-                '$replied of $total reviews replied to',
+                context.tr('{replied} of {total} reviews replied to', params: {'replied': replied, 'total': total}),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
