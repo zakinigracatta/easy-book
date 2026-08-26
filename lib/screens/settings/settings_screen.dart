@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
+import '../../providers/theme_mode_provider.dart';
 import '../../widgets/glass_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -12,8 +13,12 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedLocale = ref.watch(localeProvider);
-    final effectiveLanguage =
-        selectedLocale?.languageCode ?? Localizations.localeOf(context).languageCode;
+    final themeMode = ref.watch(themeModeProvider);
+    final effectiveLanguage = selectedLocale?.languageCode ??
+        Localizations.localeOf(context).languageCode;
+    final isDarkMode = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
 
     return PopScope(
       canPop: context.canPop(),
@@ -40,7 +45,8 @@ class SettingsScreen extends ConsumerWidget {
                 title: Text(context.tr('Language')),
                 subtitle: Text(_languageName(context, effectiveLanguage)),
                 trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () => _showLanguagePicker(context, ref, effectiveLanguage),
+                onTap: () =>
+                    _showLanguagePicker(context, ref, effectiveLanguage),
               ),
             ),
             const SizedBox(height: 12),
@@ -54,9 +60,25 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 12),
             GlassCard(
               child: ListTile(
-                leading: const Icon(Icons.dark_mode_rounded),
+                leading: Icon(
+                  isDarkMode
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded,
+                ),
                 title: Text(context.tr('Dark Theme Mode')),
-                trailing: const Switch(value: true, onChanged: null),
+                subtitle: Text(
+                  context.tr(
+                    isDarkMode ? 'Dark mode is on' : 'Light mode is on',
+                  ),
+                ),
+                trailing: Switch(
+                  value: isDarkMode,
+                  onChanged: (enabled) {
+                    ref
+                        .read(themeModeProvider.notifier)
+                        .setDarkMode(enabled);
+                  },
+                ),
               ),
             ),
           ],
@@ -88,19 +110,22 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               leading: const Text('EN'),
               title: Text(sheetContext.tr('English')),
-              trailing: currentCode == 'en' ? const Icon(Icons.check_rounded) : null,
+              trailing:
+                  currentCode == 'en' ? const Icon(Icons.check_rounded) : null,
               onTap: () => Navigator.pop(sheetContext, 'en'),
             ),
             ListTile(
               leading: const Text('AR'),
               title: Text(sheetContext.tr('Arabic')),
-              trailing: currentCode == 'ar' ? const Icon(Icons.check_rounded) : null,
+              trailing:
+                  currentCode == 'ar' ? const Icon(Icons.check_rounded) : null,
               onTap: () => Navigator.pop(sheetContext, 'ar'),
             ),
             ListTile(
               leading: const Text('RU'),
               title: Text(sheetContext.tr('Russian')),
-              trailing: currentCode == 'ru' ? const Icon(Icons.check_rounded) : null,
+              trailing:
+                  currentCode == 'ru' ? const Icon(Icons.check_rounded) : null,
               onTap: () => Navigator.pop(sheetContext, 'ru'),
             ),
             const SizedBox(height: 8),
@@ -110,6 +135,6 @@ class SettingsScreen extends ConsumerWidget {
     );
 
     if (code == null) return;
-    ref.read(localeProvider.notifier).state = Locale(code);
+    await ref.read(localeProvider.notifier).setLocale(Locale(code));
   }
 }
