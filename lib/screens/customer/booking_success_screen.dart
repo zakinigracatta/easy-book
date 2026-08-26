@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 
@@ -34,16 +35,21 @@ class BookingSuccessScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Booking Confirmed!',
+                Text(
+                  context.tr('Booking Confirmed!'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Your appointment has been successfully scheduled. You can review all details in My Bookings.',
+                Text(
+                  context.tr(
+                    'Your appointment has been successfully scheduled. You can review all details in My Bookings.',
+                  ),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMutedDark),
+                  style: const TextStyle(color: AppColors.textMutedDark),
                 ),
                 const SizedBox(height: 36),
                 CustomButton(
