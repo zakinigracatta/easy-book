@@ -447,7 +447,11 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (sheetContext.mounted) {
+        setModalState(() => _isLoading = false);
+      } else if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
