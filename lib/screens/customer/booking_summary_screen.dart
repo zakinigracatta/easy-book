@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/utils/currency_formatter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
@@ -20,10 +20,10 @@ class BookingSummaryScreen extends ConsumerWidget {
     final businessState = ref.watch(businessDetailProvider(businessId));
 
     final dateStr = draft.date != null
-        ? DateFormat('EEEE, dd MMMM yyyy').format(draft.date!)
-        : 'Not selected';
-    final timeStr = draft.timeSlot ?? 'Not selected';
-    final staffName = _resolvedStaffName(draft);
+        ? MaterialLocalizations.of(context).formatFullDate(draft.date!)
+        : context.tr('Not selected');
+    final timeStr = draft.timeSlot ?? context.tr('Not selected');
+    final staffName = _resolvedStaffName(context, draft);
     final services = draft.selectedServices;
     final totalPrice = draft.totalPrice;
     final totalDuration = draft.totalDurationMinutes;
@@ -43,7 +43,7 @@ class BookingSummaryScreen extends ConsumerWidget {
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Booking Summary'),
+          title: Text(context.tr('Booking Summary')),
         ),
         body: businessState.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -53,11 +53,11 @@ class BookingSummaryScreen extends ConsumerWidget {
           ),
           data: (business) {
             if (business == null) {
-              return _errorState(context, 'This business is no longer available.');
+              return _errorState(
+                context,
+                'This business is no longer available.',
+              );
             }
-
-            final salonName = business.name;
-            final salonAddress = business.address;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -87,7 +87,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                salonName,
+                                business.name,
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -96,7 +96,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                salonAddress,
+                                business.address,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -169,11 +169,16 @@ class BookingSummaryScreen extends ConsumerWidget {
                           })
                         else
                           _summaryRow(
+                            context,
                             draft.serviceName ?? 'Service',
                             CurrencyFormatter.format(totalPrice),
                           ),
                         const Divider(height: 22),
-                        _summaryRow('Total duration', '$totalDuration minutes'),
+                        _summaryRow(
+                          context,
+                          'Total duration',
+                          '$totalDuration ${context.tr('minutes')}',
+                        ),
                       ],
                     ),
                   ),
@@ -188,11 +193,22 @@ class BookingSummaryScreen extends ConsumerWidget {
                           onEdit: () => context.push('/booking-time'),
                         ),
                         const SizedBox(height: 12),
-                        _infoRow(Icons.calendar_today_rounded, 'Date', dateStr),
-                        const SizedBox(height: 10),
-                        _infoRow(Icons.access_time_rounded, 'Time', timeStr),
+                        _infoRow(
+                          context,
+                          Icons.calendar_today_rounded,
+                          'Date',
+                          dateStr,
+                        ),
                         const SizedBox(height: 10),
                         _infoRow(
+                          context,
+                          Icons.access_time_rounded,
+                          'Time',
+                          timeStr,
+                        ),
+                        const SizedBox(height: 10),
+                        _infoRow(
+                          context,
                           Icons.person_outline_rounded,
                           'Specialist',
                           staffName,
@@ -205,9 +221,9 @@ class BookingSummaryScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Total',
-                          style: TextStyle(
+                        Text(
+                          context.tr('Total'),
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimaryDark,
@@ -217,9 +233,11 @@ class BookingSummaryScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Amount due',
-                              style: TextStyle(color: AppColors.textMutedDark),
+                            Text(
+                              context.tr('Amount due'),
+                              style: const TextStyle(
+                                color: AppColors.textMutedDark,
+                              ),
                             ),
                             Directionality(
                               textDirection: TextDirection.ltr,
@@ -243,9 +261,11 @@ class BookingSummaryScreen extends ConsumerWidget {
                     onPressed: draft.isComplete
                         ? () => context.push('/booking-confirmation')
                         : () => ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text(
-                                  'Please complete the service, specialist, date and time first.',
+                                  context.tr(
+                                    'Please complete the service, specialist, date and time first.',
+                                  ),
                                 ),
                               ),
                             ),
@@ -259,12 +279,14 @@ class BookingSummaryScreen extends ConsumerWidget {
     );
   }
 
-  static String _resolvedStaffName(BookingDraft draft) {
+  static String _resolvedStaffName(BuildContext context, BookingDraft draft) {
     final resolved = draft.resolvedStaffName?.trim() ?? '';
     if (resolved.isNotEmpty) return resolved;
     final selected = draft.staffName?.trim() ?? '';
     if (selected.isNotEmpty) return selected;
-    return draft.anySpecialist ? 'Any Available Specialist' : 'Not selected';
+    return draft.anySpecialist
+        ? context.tr('Any Available Specialist')
+        : context.tr('Not selected');
   }
 
   static Widget _sectionHeader(
@@ -276,28 +298,36 @@ class BookingSummaryScreen extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          title,
+          context.tr(title),
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimaryDark,
           ),
         ),
-        TextButton(onPressed: onEdit, child: const Text('Edit')),
+        TextButton(
+          onPressed: onEdit,
+          child: Text(context.tr('Edit')),
+        ),
       ],
     );
   }
 
-  static Widget _infoRow(IconData icon, String title, String value) {
+  static Widget _infoRow(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String value,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 17, color: AppColors.primaryLight),
         const SizedBox(width: 10),
         SizedBox(
-          width: 78,
+          width: 90,
           child: Text(
-            title,
+            context.tr(title),
             style: const TextStyle(
               fontSize: 13,
               color: AppColors.textMutedDark,
@@ -318,12 +348,16 @@ class BookingSummaryScreen extends ConsumerWidget {
     );
   }
 
-  static Widget _summaryRow(String label, String value) {
+  static Widget _summaryRow(
+    BuildContext context,
+    String label,
+    String value,
+  ) {
     return Row(
       children: [
         Expanded(
           child: Text(
-            label,
+            context.tr(label),
             style: const TextStyle(color: AppColors.textMutedDark),
           ),
         ),
@@ -353,14 +387,14 @@ class BookingSummaryScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              message,
+              context.tr(message),
               textAlign: TextAlign.center,
               style: const TextStyle(color: AppColors.textMutedDark),
             ),
             const SizedBox(height: 14),
             OutlinedButton(
               onPressed: () => context.go('/home'),
-              child: const Text('Back to Home'),
+              child: Text(context.tr('Back to Home')),
             ),
           ],
         ),
