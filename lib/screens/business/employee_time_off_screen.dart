@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../l10n/app_localizations.dart';
 import '../../models/employee_time_off_model.dart';
 import '../../models/staff_model.dart';
 import '../../providers/owner_providers.dart';
@@ -54,10 +55,10 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                 ? context.pop()
                 : context.go('/employee-management'),
           ),
-          title: const Text('Employee Time Off & Leave'),
+          title: Text(context.tr('Employee Time Off & Leave')),
           actions: [
             IconButton(
-              tooltip: 'Add Leave',
+              tooltip: context.tr('Add Leave'),
               icon: const Icon(Icons.add_rounded),
               onPressed: _showAddTimeOffModal,
             ),
@@ -72,29 +73,34 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             children: [
-              const GlassCard(
-                padding: EdgeInsets.all(16),
+              GlassCard(
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(Icons.event_busy_rounded,
-                        color: AppColors.gold, size: 28),
-                    SizedBox(width: 12),
+                    const Icon(
+                      Icons.event_busy_rounded,
+                      color: AppColors.gold,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Staff Leave Manager',
-                            style: TextStyle(
+                            context.tr('Staff Leave Manager'),
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimaryDark,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            'Scheduled leave blocks customer booking slots for the selected employee.',
-                            style: TextStyle(
+                            context.tr(
+                              'Scheduled leave blocks customer booking slots for the selected employee.',
+                            ),
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textMutedDark,
                             ),
@@ -108,10 +114,10 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Scheduled Leave Periods',
-                      style: TextStyle(
+                      context.tr('Scheduled Leave Periods'),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimaryDark,
@@ -121,7 +127,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                   FilledButton.icon(
                     onPressed: _showAddTimeOffModal,
                     icon: const Icon(Icons.add_rounded, size: 17),
-                    label: const Text('Add Leave'),
+                    label: Text(context.tr('Add Leave')),
                   ),
                 ],
               ),
@@ -165,8 +171,9 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
   }
 
   Widget _leaveCard(EmployeeTimeOffModel timeOff) {
-    final start = DateFormat('MMM d, yyyy').format(timeOff.startDate);
-    final end = DateFormat('MMM d, yyyy').format(timeOff.endDate);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final start = DateFormat('MMM d, yyyy', locale).format(timeOff.startDate);
+    final end = DateFormat('MMM d, yyyy', locale).format(timeOff.endDate);
 
     return GlassCard(
       padding: const EdgeInsets.all(14),
@@ -232,18 +239,25 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
 
     List<StaffModel> activeStaff;
     try {
-      final allStaff = await ref.read(ownerEmployeesProvider.future);
+      await ref.read(ownerEmployeesProvider.notifier).loadEmployees();
+      final allStaff = ref.read(ownerEmployeesProvider).value ?? <StaffModel>[];
       activeStaff = allStaff.where((staff) => staff.isActive).toList();
     } catch (_) {
       if (mounted) {
-        _showMessage('Unable to load employees. Please try again.', isError: true);
+        _showMessage(
+          context.tr('Unable to load employees. Please try again.'),
+          isError: true,
+        );
       }
       return;
     }
 
     if (!mounted) return;
     if (activeStaff.isEmpty) {
-      _showMessage('Add an active employee before scheduling leave.', isError: true);
+      _showMessage(
+        context.tr('Add an active employee before scheduling leave.'),
+        isError: true,
+      );
       return;
     }
 
@@ -274,9 +288,9 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Schedule Employee Time Off',
-                    style: TextStyle(
+                  Text(
+                    context.tr('Schedule Employee Time Off'),
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimaryDark,
@@ -285,9 +299,9 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<StaffModel>(
                     initialValue: _selectedStaff,
-                    decoration: const InputDecoration(
-                      labelText: 'Select Employee',
-                      prefixIcon: Icon(Icons.person_rounded),
+                    decoration: InputDecoration(
+                      labelText: context.tr('Select Employee'),
+                      prefixIcon: const Icon(Icons.person_rounded),
                     ),
                     dropdownColor: AppColors.cardDark,
                     items: activeStaff
@@ -378,10 +392,13 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
     required DateTime date,
     required VoidCallback onTap,
   }) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
     return OutlinedButton.icon(
       onPressed: onTap,
       icon: const Icon(Icons.calendar_month_rounded, size: 18),
-      label: Text('$label: ${DateFormat('MMM d').format(date)}'),
+      label: Text(
+        '${context.tr(label)}: ${DateFormat('MMM d', locale).format(date)}',
+      ),
     );
   }
 
@@ -391,13 +408,16 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
   ) async {
     final selectedStaff = _selectedStaff;
     if (selectedStaff == null) {
-      _showMessage('Please select an employee.', isError: true);
+      _showMessage(context.tr('Please select an employee.'), isError: true);
       return;
     }
 
     final reason = _reasonController.text.trim();
     if (reason.isEmpty) {
-      _showMessage('Please enter a reason for the leave.', isError: true);
+      _showMessage(
+        context.tr('Please enter a reason for the leave.'),
+        isError: true,
+      );
       return;
     }
 
@@ -438,11 +458,13 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
 
       if (!sheetContext.mounted) return;
       Navigator.pop(sheetContext);
-      if (mounted) _showMessage('Employee leave scheduled successfully.');
+      if (mounted) {
+        _showMessage(context.tr('Employee leave scheduled successfully.'));
+      }
     } catch (_) {
       if (mounted) {
         _showMessage(
-          'Unable to schedule employee leave. Please try again.',
+          context.tr('Unable to schedule employee leave. Please try again.'),
           isError: true,
         );
       }
