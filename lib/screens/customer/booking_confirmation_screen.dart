@@ -25,6 +25,10 @@ class _BookingConfirmationScreenState
     extends ConsumerState<BookingConfirmationScreen> {
   bool _isCreating = false;
 
+  Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
+      ? AppColors.textMutedDark
+      : AppColors.textMutedLight;
+
   Future<void> _confirmBooking() async {
     if (_isCreating) return;
 
@@ -170,6 +174,7 @@ class _BookingConfirmationScreenState
     final resolved = draft.resolvedStaffName?.trim() ?? '';
     if (resolved.isNotEmpty) return resolved;
     final selected = draft.staffName?.trim() ?? '';
+    if (selected == 'Any Available Specialist') return context.tr(selected);
     return selected.isNotEmpty ? selected : context.tr('Specialist');
   }
 
@@ -222,7 +227,10 @@ class _BookingConfirmationScreenState
                       ),
                     ),
                     const Divider(height: 24),
-                    _row('Service', draft.serviceName ?? context.tr('Not selected')),
+                    _row(
+                      'Service',
+                      draft.serviceName ?? context.tr('Not selected'),
+                    ),
                     _row(
                       'Duration',
                       '${draft.totalDurationMinutes} ${context.tr('minutes')}',
@@ -248,10 +256,7 @@ class _BookingConfirmationScreenState
                   'Your appointment is created only after this confirmation succeeds.',
                 ),
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMutedDark,
-                ),
+                style: TextStyle(fontSize: 12, color: _mutedColor),
               ),
               const SizedBox(height: 20),
               CustomButton(
@@ -278,7 +283,7 @@ class _BookingConfirmationScreenState
       style: TextStyle(
         fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
         fontSize: isBold ? 17 : 14,
-        color: isBold ? AppColors.primaryLight : null,
+        color: isBold ? AppColors.primary : null,
       ),
     );
 
@@ -289,7 +294,7 @@ class _BookingConfirmationScreenState
         children: [
           Text(
             context.tr(title),
-            style: const TextStyle(color: AppColors.textMutedDark),
+            style: TextStyle(color: _mutedColor),
           ),
           const SizedBox(width: 16),
           Expanded(
