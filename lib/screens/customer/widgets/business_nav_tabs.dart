@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
 
 class BusinessNavTabs extends StatelessWidget {
@@ -13,7 +15,7 @@ class BusinessNavTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = ['Services', 'Specialists', 'Reviews', 'About'];
+    const tabs = ['Services', 'Specialists', 'Reviews', 'About'];
 
     return Container(
       height: 48,
@@ -41,12 +43,12 @@ class BusinessNavTabs extends StatelessWidget {
                             color: AppColors.primary.withValues(alpha: 0.4),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
-                          )
+                          ),
                         ]
-                      : [],
+                      : const [],
                 ),
                 child: Text(
-                  tabs[index],
+                  context.tr(tabs[index]),
                   style: TextStyle(
                     color: isSelected ? Colors.white : AppColors.textMutedDark,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
