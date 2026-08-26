@@ -28,20 +28,29 @@ class BookingBottomBar extends ConsumerWidget {
     final canBook = business.isActive &&
         business.acceptingBookings &&
         business.businessStatus == 'open';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.cardDark : AppColors.cardLight;
+    final borderColor =
+        isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight;
+    final mutedColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final secondaryColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondaryLight;
 
     final hasSelection = count > 0;
     final buttonText = hasSelection ? 'Continue' : 'Book Now';
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: const Border(
-          top: BorderSide(color: AppColors.glassBorderDark, width: 1),
-        ),
+        border: Border(top: BorderSide(color: borderColor, width: 1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: isDark
+                ? AppColors.shadowDark
+                : AppColors.shadowLight.withValues(alpha: 0.12),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -63,9 +72,9 @@ class BookingBottomBar extends ConsumerWidget {
                         count == 1
                             ? '1 ${context.tr('service selected')}'
                             : '$count ${context.tr('services selected')}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondaryDark,
+                          color: secondaryColor,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -79,16 +88,15 @@ class BookingBottomBar extends ConsumerWidget {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             '•  $totalDuration ${context.tr('min')}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textMutedDark,
+                              color: mutedColor,
                             ),
                           ),
                         ],
@@ -99,7 +107,6 @@ class BookingBottomBar extends ConsumerWidget {
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -111,10 +118,7 @@ class BookingBottomBar extends ConsumerWidget {
                               ? 'Select a service or tap Book Now'
                               : 'Online booking is currently unavailable',
                         ),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textMutedDark,
-                        ),
+                        style: TextStyle(fontSize: 12, color: mutedColor),
                       ),
                     ],
                   ],
@@ -146,8 +150,7 @@ class BookingBottomBar extends ConsumerWidget {
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      canBook ? AppColors.primary : AppColors.cardDark,
+                  backgroundColor: canBook ? AppColors.primary : cardColor,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 14,
