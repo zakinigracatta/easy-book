@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
 class BusinessBottomNav extends StatelessWidget {
@@ -36,26 +38,44 @@ class BusinessBottomNav extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _navItem(context, 0, Icons.home_rounded, 'Home', routes[0]),
-          _navItem(context, 1, Icons.assignment_turned_in_rounded, 'Bookings',
-              routes[1]),
           _navItem(
-              context, 2, Icons.calendar_month_rounded, 'Calendar', routes[2]),
+            context,
+            1,
+            Icons.assignment_turned_in_rounded,
+            'Bookings',
+            routes[1],
+          ),
           _navItem(
-              context, 3, Icons.design_services_rounded, 'Services', routes[3]),
+            context,
+            2,
+            Icons.calendar_month_rounded,
+            'Calendar',
+            routes[2],
+          ),
+          _navItem(
+            context,
+            3,
+            Icons.design_services_rounded,
+            'Services',
+            routes[3],
+          ),
           _navItem(context, 4, Icons.grid_view_rounded, 'More', routes[4]),
         ],
       ),
     );
   }
 
-  Widget _navItem(BuildContext context, int index, IconData icon, String label,
-      String route) {
+  Widget _navItem(
+    BuildContext context,
+    int index,
+    IconData icon,
+    String label,
+    String route,
+  ) {
     final isSelected = currentIndex == index;
     return GestureDetector(
       onTap: () {
-        if (!isSelected) {
-          context.go(route);
-        }
+        if (!isSelected) context.go(route);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -76,7 +96,7 @@ class BusinessBottomNav extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              label,
+              context.tr(label),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
