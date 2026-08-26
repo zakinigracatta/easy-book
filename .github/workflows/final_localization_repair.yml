@@ -1,0 +1,33 @@
+name: Final Localization Repair
+
+on:
+  push:
+    branches: [fix/audit-issues-2026-08-26]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: contains(github.event.head_commit.message, '[finalize-localization]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: fix/audit-issues-2026-08-26
+
+      - name: Apply final localization repair
+        run: python3 tool/finalize_active_ui_localization.py
+
+      - name: Commit repairs
+        run: |
+          if git diff --quiet; then
+            echo "No localization repairs required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib
+          git commit -m "Finalize active UI Arabic Russian localization"
+          git push origin HEAD:fix/audit-issues-2026-08-26
