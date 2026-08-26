@@ -135,7 +135,6 @@ service cloud.firestore {
                     && request.path == /databases/$(database)/documents/users/$(userId)
                     && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
 
-      // Per-user saved businesses. The document ID is the canonical business ID.
       match /favorites/{businessId} {
         allow read, delete: if isUser(userId);
         allow create: if isUser(userId)
@@ -154,16 +153,13 @@ service cloud.firestore {
          request.resource.data.owner_id == request.auth.uid);
 
       allow update: if isBusinessOwner(businessId);
-
       allow delete: if isBusinessOwner(businessId);
 
-      // Services Subcollection
       match /services/{serviceId} {
         allow read: if true;
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // Staff Subcollection
       match /staff/{staffId} {
         allow read: if true;
         allow create, update, delete: if isBusinessOwner(businessId);
@@ -187,23 +183,19 @@ service cloud.firestore {
                       && request.resource.data.createdAt == resource.data.createdAt
                       && request.resource.data.updatedAt == request.time;
 
-        // Financial history is archived, never hard-deleted from untrusted clients.
         allow delete: if false;
       }
 
-      // Offers Subcollection
       match /offers/{offerId} {
         allow read: if true;
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // Gallery Subcollection
       match /gallery/{imageId} {
         allow read: if true;
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // Customer Reviews: public read; owner can only add/edit the business reply fields.
       match /reviews/{reviewId} {
         allow read: if true;
         allow create, delete: if false;
@@ -213,18 +205,15 @@ service cloud.firestore {
                           .hasOnly(['businessReply', 'businessReplyAt']);
       }
 
-      // Owner Notifications Subcollection
       match /notifications/{notificationId} {
         allow read, update: if isBusinessOwner(businessId);
         allow create, delete: if isBusinessOwner(businessId);
       }
 
-      // Staff Time-offs Subcollection
       match /timeOffs/{timeOffId} {
         allow read, create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // PRIVATE OWNER CUSTOMER NOTES SUBCOLLECTION (CUSTOMERS STRICTLY DENIED)
       match /customerNotes/{customerId} {
         allow read, write: if isBusinessOwner(businessId);
       }
@@ -234,9 +223,11 @@ service cloud.firestore {
       }
     }
 
-    // Slot Locks Collection (Public Non-Sensitive Availability Queries; Untrusted Client Writes Denied)
+    // Slot locks contain only non-sensitive availability state. Guests may read
+    // them so they can browse open appointment times before signing in. All
+    // writes remain server-only through trusted backend code.
     match /booking_slots/{slotId} {
-      allow read, get, list: if isAuthenticated();
+      allow read, get, list: if true;
       allow create, update, delete: if false;
     }
 
