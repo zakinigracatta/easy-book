@@ -37,7 +37,8 @@ class MyBookingsScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+                const Icon(Icons.error_outline_rounded,
+                    size: 48, color: AppColors.error),
                 const SizedBox(height: 12),
                 Text(
                   context.tr('Unable to load bookings. Please try again.'),
@@ -46,7 +47,9 @@ class MyBookingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => ref.read(appointmentsProvider.notifier).loadAppointments(),
+                  onPressed: () => ref
+                      .read(appointmentsProvider.notifier)
+                      .loadAppointments(),
                   child: Text(context.tr('Retry')),
                 ),
               ],
@@ -59,15 +62,18 @@ class MyBookingsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.calendar_today_rounded, size: 60, color: AppColors.textMutedDark),
+                  const Icon(Icons.calendar_today_rounded,
+                      size: 60, color: AppColors.textMutedDark),
                   const SizedBox(height: 16),
                   Text(
                     context.tr('No Bookings Found'),
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    context.tr('You have not scheduled any appointments yet.'),
+                    context.tr(
+                        'You have not scheduled any appointments yet.'),
                     style: const TextStyle(color: AppColors.textMutedDark),
                   ),
                   const SizedBox(height: 20),
@@ -91,18 +97,22 @@ class MyBookingsScreen extends ConsumerWidget {
               final isCancelled = booking.status == BookingStatus.cancelled;
               final isConfirmed = booking.status == BookingStatus.confirmed;
               final isPending = booking.status == BookingStatus.pending;
+              final canModify =
+                  (isPending || isConfirmed) && booking.startDateTime.isAfter(DateTime.now());
 
               final statusColor = isCancelled
                   ? AppColors.error
                   : (isConfirmed
                       ? AppColors.success
                       : (isPending ? AppColors.warning : Colors.blue));
-              final statusKey = booking.status.name[0].toUpperCase() + booking.status.name.substring(1);
+              final statusKey = booking.status.name[0].toUpperCase() +
+                  booking.status.name.substring(1);
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: GlassCard(
-                  onTap: () => context.push('/booking-details'),
+                  onTap: () =>
+                      context.push('/booking-details', extra: booking),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -112,12 +122,14 @@ class MyBookingsScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               booking.businessName,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: statusColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
@@ -138,13 +150,16 @@ class MyBookingsScreen extends ConsumerWidget {
                         textDirection: TextDirection.ltr,
                         child: Text(
                           '${booking.serviceName} • $dateStr',
-                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondaryDark),
+                          style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondaryDark),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${context.tr('Specialist')}: ${booking.staffName}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark),
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textMutedDark),
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -161,11 +176,14 @@ class MyBookingsScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          if (!isCancelled)
+                          if (canModify)
                             Row(
                               children: [
                                 OutlinedButton(
-                                  onPressed: () => context.push('/reschedule-booking', extra: booking),
+                                  onPressed: () => context.push(
+                                    '/reschedule-booking',
+                                    extra: booking,
+                                  ),
                                   child: Text(
                                     context.tr('Reschedule'),
                                     style: const TextStyle(fontSize: 11),
@@ -173,10 +191,15 @@ class MyBookingsScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 OutlinedButton(
-                                  onPressed: () => context.push('/cancel-booking', extra: booking.id),
+                                  onPressed: () => context.push(
+                                    '/cancel-booking',
+                                    extra: booking.id,
+                                  ),
                                   child: Text(
                                     context.tr('Cancel'),
-                                    style: const TextStyle(fontSize: 11, color: AppColors.error),
+                                    style: const TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.error),
                                   ),
                                 ),
                               ],
