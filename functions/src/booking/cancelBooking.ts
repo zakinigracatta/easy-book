@@ -12,13 +12,18 @@ export const cancelBooking = onCall(async (request) => {
 
   const callerUid = request.auth.uid;
   const data = request.data || {};
-  const bookingId = typeof data.bookingId === 'string' ? data.bookingId.trim() : '';
-  const cancelReason = typeof data.cancelReason === 'string'
-    ? data.cancelReason.trim().slice(0, 500)
-    : '';
+  const bookingId =
+    typeof data.bookingId === 'string' ? data.bookingId.trim() : '';
+  const cancelReason =
+    typeof data.cancelReason === 'string'
+      ? data.cancelReason.trim().slice(0, 500)
+      : '';
 
   if (!bookingId || bookingId.length > 200) {
-    throw new HttpsError('invalid-argument', 'MISSING_ARGUMENT: bookingId is required.');
+    throw new HttpsError(
+      'invalid-argument',
+      'MISSING_ARGUMENT: bookingId is required.'
+    );
   }
 
   const db = admin.firestore();
@@ -68,8 +73,6 @@ export const cancelBooking = onCall(async (request) => {
       );
     }
 
-    // A customer may cancel only before service has started. Once the customer
-    // has arrived/in-progress, only the business owner may terminate it.
     if (
       cancelledBy === 'customer' &&
       currentStatus !== 'pending' &&
@@ -112,15 +115,13 @@ export const cancelBooking = onCall(async (request) => {
       transaction.delete(db.collection('booking_slots').doc(lock.lockId));
     }
 
-    const updatePayload: Record<string, unknown> = {
+    transaction.update(bookingRef, {
       status: 'cancelled',
       cancelledBy,
+      ...(cancelReason ? { cancelReason } : {}),
       cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-    if (cancelReason) updatePayload.cancelReason = cancelReason;
-
-    transaction.update(bookingRef, updatePayload);
+    });
 
     return {
       success: true,
