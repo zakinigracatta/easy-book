@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../glass_card.dart';
 
@@ -20,6 +22,10 @@ class OwnerStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -38,11 +44,11 @@ class OwnerStatCard extends StatelessWidget {
               ),
               if (subtitle != null)
                 Text(
-                  subtitle!,
-                  style: const TextStyle(
+                  context.tr(subtitle!),
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textMutedDark,
+                    color: mutedColor,
                   ),
                 ),
             ],
@@ -53,17 +59,16 @@ class OwnerStatCard extends StatelessWidget {
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 2),
           Text(
-            label,
-            style: const TextStyle(
+            context.tr(label),
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: AppColors.textMutedDark,
+              color: mutedColor,
             ),
           ),
         ],
