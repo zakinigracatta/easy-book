@@ -11,6 +11,12 @@ import '../../widgets/glass_card.dart';
 class CustomerProfileScreen extends ConsumerWidget {
   const CustomerProfileScreen({super.key});
 
+  Color _mutedColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AppColors.textMutedDark
+        : AppColors.textMutedLight;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider);
@@ -22,6 +28,7 @@ class CustomerProfileScreen extends ConsumerWidget {
     final secondaryText = phone.isNotEmpty ? phone : email;
     final avatarUrl = user?.avatarUrl?.trim() ?? '';
     final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'E';
+    final mutedColor = _mutedColor(context);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('Customer Profile'))),
@@ -36,7 +43,8 @@ class CustomerProfileScreen extends ConsumerWidget {
                 children: [
                   CircleAvatar(
                     radius: 36,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.18),
+                    backgroundColor:
+                        AppColors.primary.withValues(alpha: 0.18),
                     backgroundImage:
                         avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
                     child: avatarUrl.isEmpty
@@ -45,7 +53,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.primaryLight,
+                              color: AppColors.primary,
                             ),
                           )
                         : null,
@@ -68,8 +76,8 @@ class CustomerProfileScreen extends ConsumerWidget {
                             textDirection: TextDirection.ltr,
                             child: Text(
                               secondaryText,
-                              style: const TextStyle(
-                                color: AppColors.textMutedDark,
+                              style: TextStyle(
+                                color: mutedColor,
                                 fontSize: 13,
                               ),
                             ),
@@ -77,11 +85,14 @@ class CustomerProfileScreen extends ConsumerWidget {
                         ],
                         if (phone.isNotEmpty && email.isNotEmpty) ...[
                           const SizedBox(height: 3),
-                          Text(
-                            email,
-                            style: const TextStyle(
-                              color: AppColors.textMutedDark,
-                              fontSize: 12,
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              email,
+                              style: TextStyle(
+                                color: mutedColor,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -92,16 +103,36 @@ class CustomerProfileScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
-            _profileOption(context, Icons.chat_rounded, 'Salon Chat Support',
-                () => context.push('/chat')),
-            _profileOption(context, Icons.notifications_rounded, 'Notifications',
-                () => context.push('/notifications')),
-            _profileOption(context, Icons.settings_rounded, 'Settings',
-                () => context.push('/settings')),
-            _profileOption(context, Icons.help_outline_rounded, 'Help & Support',
-                () => context.push('/help')),
-            _profileOption(context, Icons.info_outline_rounded, 'About App',
-                () => context.push('/about')),
+            _profileOption(
+              context,
+              Icons.chat_rounded,
+              'Salon Chat Support',
+              () => context.push('/chat'),
+            ),
+            _profileOption(
+              context,
+              Icons.notifications_rounded,
+              'Notifications',
+              () => context.push('/notifications'),
+            ),
+            _profileOption(
+              context,
+              Icons.settings_rounded,
+              'Settings',
+              () => context.push('/settings'),
+            ),
+            _profileOption(
+              context,
+              Icons.help_outline_rounded,
+              'Help & Support',
+              () => context.push('/help'),
+            ),
+            _profileOption(
+              context,
+              Icons.info_outline_rounded,
+              'About App',
+              () => context.push('/about'),
+            ),
             const SizedBox(height: 16),
             GlassCard(
               onTap: () async {
@@ -153,9 +184,9 @@ class CustomerProfileScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right_rounded,
-              color: AppColors.textMutedDark,
+              color: _mutedColor(context),
             ),
           ],
         ),
