@@ -22,9 +22,13 @@ class EmployeeTimeOffModel {
   });
 
   factory EmployeeTimeOffModel.fromJson(Map<String, dynamic> json) {
-    DateTime parseDate(dynamic d) {
-      if (d is Timestamp) return d.toDate();
-      if (d is String) return DateTime.tryParse(d) ?? DateTime.now();
+    DateTime parseDate(dynamic value) {
+      if (value is Timestamp) return value.toDate();
+      if (value is DateTime) return value;
+      if (value is String) {
+        final parsed = DateTime.tryParse(value);
+        if (parsed != null) return parsed;
+      }
       return DateTime.now();
     }
 
@@ -50,10 +54,10 @@ class EmployeeTimeOffModel {
       if (businessId != null) 'businessId': businessId,
       'employeeId': employeeId,
       'employeeName': employeeName,
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate.toIso8601String(),
-      'reason': reason,
-      if (notes != null) 'notes': notes,
+      'startDate': Timestamp.fromDate(startDate),
+      'endDate': Timestamp.fromDate(endDate),
+      'reason': reason.trim(),
+      if (notes != null) 'notes': notes!.trim(),
     };
   }
 }
