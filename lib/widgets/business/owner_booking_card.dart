@@ -259,6 +259,8 @@ class OwnerBookingCard extends StatelessWidget {
         );
 
       case BookingStatus.arrived:
+        // Server transition rules require arrived -> inProgress -> completed.
+        // Do not offer a direct Complete action that the backend will reject.
         return Row(
           children: [
             Expanded(
@@ -268,15 +270,6 @@ class OwnerBookingCard extends StatelessWidget {
                 color: AppColors.accent,
                 onPressed: () =>
                     onStatusChanged?.call(BookingStatus.inProgress),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _actionButton(
-                label: 'Complete',
-                icon: Icons.task_alt_rounded,
-                color: AppColors.success,
-                onPressed: () => onStatusChanged?.call(BookingStatus.completed),
               ),
             ),
           ],
