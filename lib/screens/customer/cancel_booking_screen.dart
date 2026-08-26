@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_button.dart';
-import '../../theme/app_colors.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_providers.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/glass_card.dart';
 
 class CancelBookingScreen extends ConsumerStatefulWidget {
   final String? bookingId;
+
   const CancelBookingScreen({super.key, this.bookingId});
 
   @override
@@ -24,7 +27,9 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
 
     if (idToCancel.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to find booking ID to cancel.')),
+        SnackBar(
+          content: Text(context.tr('Unable to find booking ID to cancel.')),
+        ),
       );
       context.go('/my-bookings');
       return;
@@ -37,14 +42,20 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
           .cancelAppointment(idToCancel);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Booking cancelled successfully.')),
+          SnackBar(
+            content: Text(context.tr('Booking cancelled successfully.')),
+          ),
         );
         context.go('/my-bookings');
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to cancel booking: ${e.toString()}')),
+          SnackBar(
+            content: Text(
+              context.tr('Unable to cancel this booking. Please try again.'),
+            ),
+          ),
         );
       }
     } finally {
@@ -77,7 +88,7 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
               }
             },
           ),
-          title: const Text('Cancel Booking'),
+          title: Text(context.tr('Cancel Booking')),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -85,28 +96,38 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
             children: [
               GlassCard(
                 borderColor: AppColors.error,
-                child: const Column(
+                child: Column(
                   children: [
-                    Icon(Icons.warning_amber_rounded,
-                        size: 50, color: AppColors.error),
-                    SizedBox(height: 12),
-                    Text('Are you sure you want to cancel?',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      size: 50,
+                      color: AppColors.error,
+                    ),
+                    const SizedBox(height: 12),
                     Text(
-                        'Full refund will be credited to your Easy Book Wallet.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textMutedDark)),
+                      context.tr('Are you sure you want to cancel?'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      context.tr(
+                        'This will cancel the appointment and release the reserved time slot.',
+                      ),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.textMutedDark),
+                    ),
                   ],
                 ),
               ),
               const Spacer(),
               CustomButton(
-                text: 'Confirm Cancellation',
+                text: context.tr('Confirm Cancellation'),
                 backgroundColor: AppColors.error,
                 isLoading: _isCancelling,
-                onPressed: _handleCancel,
+                onPressed: _isCancelling ? null : _handleCancel,
               ),
             ],
           ),
