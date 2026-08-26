@@ -1,9 +1,6 @@
 import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import {
-  generateIntervalSlotLockIds,
-  validateCanonical15MinAlignment,
-} from './bookingLocks';
+import { generateIntervalSlotLockIds } from './bookingLocks';
 import { validateBookingRequirements } from './bookingValidation';
 
 function requiredId(value: unknown, name: string): string {
@@ -72,6 +69,28 @@ export const createBooking = onCall(async (request) => {
   const db = admin.firestore();
 
   return db.runTransaction(async (transaction) => {
+    const businessRef = db.collection('businesses').doc(businessId);
+    const businessSnap = await transaction.get(businessRef);
+    if (!businessSnap.exists) {
+      throw new HttpsError(
+        'not-found',
+        'BUSINESS_NOT_FOUND: Business does not exist.'
+      );
+    }
+
+    const businessData = businessSnap.data() || {};
+    const isVerified =
+      businessData.is_verified === true || businessData.isVerified === true;
+    const isActive =
+      (businessData.is_active ?? businessData.isActive) !== false;
+
+    if (!isVerified || !isActive) {
+      throw new HttpsError(
+        'failed-precondition',
+        'BUSINESS_NOT_VERIFIED: This business is not approved for public booking.'
+      );
+    }
+
     const context = await validateBookingRequirements(
       db,
       transaction,
