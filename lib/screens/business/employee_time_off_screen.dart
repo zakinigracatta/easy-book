@@ -230,6 +230,28 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
   Future<void> _showAddTimeOffModal() async {
     if (_isLoading) return;
 
+    List<StaffModel> activeStaff;
+    try {
+      final allStaff = await ref.read(ownerEmployeesProvider.future);
+      activeStaff = allStaff.where((staff) => staff.isActive).toList();
+    } catch (_) {
+      if (mounted) {
+        _showMessage('Unable to load employees. Please try again.', isError: true);
+      }
+      return;
+    }
+
+    if (!mounted) return;
+    if (activeStaff.isEmpty) {
+      _showMessage('Add an active employee before scheduling leave.', isError: true);
+      return;
+    }
+
+    if (_selectedStaff == null ||
+        !activeStaff.any((staff) => staff.id == _selectedStaff!.id)) {
+      _selectedStaff = activeStaff.first;
+    }
+
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -240,8 +262,6 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
       ),
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, setModalState) {
-          final employeesAsync = ref.watch(ownerEmployeesProvider);
-
           return Padding(
             padding: EdgeInsets.only(
               left: 20,
@@ -263,46 +283,23 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  employeesAsync.when(
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: CircularProgressIndicator(),
-                      ),
+                  DropdownButtonFormField<StaffModel>(
+                    initialValue: _selectedStaff,
+                    decoration: const InputDecoration(
+                      labelText: 'Select Employee',
+                      prefixIcon: Icon(Icons.person_rounded),
                     ),
-                    error: (_, __) => const Text(
-                      'Unable to load employees.',
-                      style: TextStyle(color: AppColors.error),
-                    ),
-                    data: (staffList) {
-                      final selectedStillExists = _selectedStaff != null &&
-                          staffList.any((s) => s.id == _selectedStaff!.id);
-                      if (!selectedStillExists && staffList.isNotEmpty) {
-                        _selectedStaff = staffList.first;
-                      }
-
-                      return DropdownButtonFormField<StaffModel>(
-                        initialValue: selectedStillExists
-                            ? _selectedStaff
-                            : (staffList.isEmpty ? null : staffList.first),
-                        decoration: const InputDecoration(
-                          labelText: 'Select Employee',
-                          prefixIcon: Icon(Icons.person_rounded),
-                        ),
-                        dropdownColor: AppColors.cardDark,
-                        items: staffList
-                            .where((staff) => staff.isActive)
-                            .map(
-                              (staff) => DropdownMenuItem(
-                                value: staff,
-                                child: Text(staff.name),
-                              ),
-                            )
-                            .toList(growable: false),
-                        onChanged: (value) {
-                          setModalState(() => _selectedStaff = value);
-                        },
-                      );
+                    dropdownColor: AppColors.cardDark,
+                    items: activeStaff
+                        .map(
+                          (staff) => DropdownMenuItem(
+                            value: staff,
+                            child: Text(staff.name),
+                          ),
+                        )
+                        .toList(growable: false),
+                    onChanged: (value) {
+                      setModalState(() => _selectedStaff = value);
                     },
                   ),
                   const SizedBox(height: 14),
@@ -416,7 +413,6 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
         _startDate.month,
         _startDate.day,
       );
-      // Owner selects calendar dates, so the end date is inclusive.
       final end = DateTime(
         _endDate.year,
         _endDate.month,
@@ -442,9 +438,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
 
       if (!sheetContext.mounted) return;
       Navigator.pop(sheetContext);
-      if (mounted) {
-        _showMessage('Employee leave scheduled successfully.');
-      }
+      if (mounted) _showMessage('Employee leave scheduled successfully.');
     } catch (_) {
       if (mounted) {
         _showMessage(
@@ -453,9 +447,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
