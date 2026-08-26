@@ -35,10 +35,10 @@ class HelpScreen extends StatelessWidget {
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
-          children: const [
+          children: [
             GlassCard(
               child: ListTile(
-                leading: Icon(Icons.help_center_rounded),
+                leading: const Icon(Icons.help_center_rounded),
                 title: Text(context.tr('Frequently Asked Questions')),
                 subtitle: Text(context.tr('How to cancel, reschedule or pay for bookings')),
               ),

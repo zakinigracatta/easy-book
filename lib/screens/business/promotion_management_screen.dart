@@ -60,10 +60,10 @@ class PromotionManagementScreen extends ConsumerWidget {
               GlassCard(
                 padding: const EdgeInsets.all(16),
                 child: Row(
-                  children: const [
-                    Icon(Icons.campaign_rounded,
+                  children: [
+                    const Icon(Icons.campaign_rounded,
                         color: AppColors.accent, size: 28),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +75,7 @@ class PromotionManagementScreen extends ConsumerWidget {
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(context.tr('Create promotional offers to boost bookings during off-peak hours.'),
                             style: TextStyle(
                               fontSize: 12,

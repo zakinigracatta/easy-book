@@ -82,10 +82,10 @@ class _QuickWalkInBookingScreenState
                   padding: const EdgeInsets.all(16),
                   backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                   child: Row(
-                    children: const [
-                      Icon(Icons.directions_walk_rounded,
+                    children: [
+                      const Icon(Icons.directions_walk_rounded,
                           color: AppColors.gold, size: 28),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +97,7 @@ class _QuickWalkInBookingScreenState
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            SizedBox(height: 2),
+                            const SizedBox(height: 2),
                             Text(context.tr('Create a booking for on-site clients arriving without the customer app.'),
                               style: TextStyle(
                                 fontSize: 12,
