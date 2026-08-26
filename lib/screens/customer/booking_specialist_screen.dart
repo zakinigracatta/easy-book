@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../models/staff_model.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
+import 'widgets/booking_progress_header.dart';
 import 'widgets/selected_services_summary.dart';
 import 'widgets/specialist_option_card.dart';
-import 'widgets/booking_progress_header.dart';
 
 class BookingSpecialistScreen extends ConsumerStatefulWidget {
   const BookingSpecialistScreen({super.key});
@@ -34,6 +36,14 @@ class _BookingSpecialistScreenState
   void _onNext(List<StaffModel> eligibleStaff) {
     final draft = ref.read(bookingDraftProvider);
     if (_anySpecialist) {
+      if (eligibleStaff.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr('No specialists are available for this service.')),
+          ),
+        );
+        return;
+      }
       ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
         anySpecialist: true,
         staffId: '',
@@ -42,9 +52,13 @@ class _BookingSpecialistScreenState
     } else {
       if (_selectedStaffId == null || _selectedStaffId!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Please choose a specialist or select Any Available Specialist.')),
+          SnackBar(
+            content: Text(
+              context.tr(
+                'Please choose a specialist or select Any Available Specialist.',
+              ),
+            ),
+          ),
         );
         return;
       }
@@ -63,21 +77,18 @@ class _BookingSpecialistScreenState
     final draft = ref.watch(bookingDraftProvider);
     final businessId = draft.businessId ?? '';
     final selectedServices = draft.selectedServices;
-
-    final eligibleStaffState = ref.watch(eligibleStaffProvider((
-      businessId: businessId,
-      selectedServices: selectedServices,
-    )));
+    final eligibleStaffState = ref.watch(
+      eligibleStaffProvider((
+        businessId: businessId,
+        selectedServices: selectedServices,
+      )),
+    );
 
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
@@ -85,25 +96,17 @@ class _BookingSpecialistScreenState
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Select Specialist'),
+          title: Text(context.tr('Select Specialist')),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Progress Header Step 1
               const BookingProgressHeader(currentStep: 1),
               const SizedBox(height: 16),
-
-              // Selected Services Summary Review
               if (selectedServices.isNotEmpty) ...[
                 SelectedServicesSummary(
                   services: selectedServices,
@@ -117,44 +120,55 @@ class _BookingSpecialistScreenState
                 ),
                 const SizedBox(height: 20),
               ],
-
-              // Section Title
-              const Align(
-                alignment: Alignment.centerLeft,
+              Align(
+                alignment: AlignmentDirectional.centerStart,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Choose a Specialist',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
+                      context.tr('Choose a Specialist'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Select your preferred specialist or choose anyone available.',
-                      style: TextStyle(
-                          fontSize: 12, color: AppColors.textMutedDark),
+                      context.tr(
+                        'Select your preferred specialist or choose anyone available.',
+                      ),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMutedDark,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 14),
-
-              // Eligible Staff List
               Expanded(
                 child: eligibleStaffState.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(
-                    child: Text('Error loading specialists: $err',
-                        style: const TextStyle(color: AppColors.error)),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => Center(
+                    child: Text(
+                      context.tr('Unable to load specialists. Please try again.'),
+                      style: const TextStyle(color: AppColors.error),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   data: (eligibleStaff) {
+                    if (eligibleStaff.isEmpty) {
+                      return Center(
+                        child: Text(
+                          context.tr('No specialists are available for this service.'),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppColors.textMutedDark),
+                        ),
+                      );
+                    }
                     return ListView(
                       children: [
-                        // Option 1: Any Available Specialist
                         SpecialistOptionCard(
                           isAnySpecialist: true,
                           isSelected: _anySpecialist,
@@ -166,16 +180,14 @@ class _BookingSpecialistScreenState
                           },
                         ),
                         const SizedBox(height: 12),
-
-                        // Eligible Staff Cards
                         ...eligibleStaff.map((staff) {
-                          final isSel =
+                          final isSelected =
                               !_anySpecialist && _selectedStaffId == staff.id;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: SpecialistOptionCard(
                               staff: staff,
-                              isSelected: isSel,
+                              isSelected: isSelected,
                               onTap: () {
                                 setState(() {
                                   _anySpecialist = false;
@@ -190,12 +202,12 @@ class _BookingSpecialistScreenState
                   },
                 ),
               ),
-
-              // Continue Button
               eligibleStaffState.maybeWhen(
                 data: (eligibleStaff) => CustomButton(
                   text: 'Continue: Select Date & Time',
-                  onPressed: () => _onNext(eligibleStaff),
+                  onPressed: eligibleStaff.isNotEmpty
+                      ? () => _onNext(eligibleStaff)
+                      : null,
                 ),
                 orElse: () => const SizedBox.shrink(),
               ),
