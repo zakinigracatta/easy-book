@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/domain_exceptions.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/navigation_service.dart';
@@ -30,9 +31,7 @@ class _BookingConfirmationScreenState
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       NavigationService().setPendingRoute('/booking-confirmation');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in to complete your booking.')),
-      );
+      _showMessage('Please sign in to complete your booking.');
       context.push('/login');
       return;
     }
@@ -76,12 +75,13 @@ class _BookingConfirmationScreenState
 
     final startDateTime = _parseStartDateTime(draft.date!, draft.timeSlot!);
     if (startDateTime == null) {
-      _showMessage('The selected appointment time is invalid. Please choose it again.');
+      _showMessage(
+        'The selected appointment time is invalid. Please choose it again.',
+      );
       return;
     }
 
-    final now = DateTime.now();
-    if (!startDateTime.isAfter(now)) {
+    if (!startDateTime.isAfter(DateTime.now())) {
       _showMessage('Please select a future appointment time.');
       return;
     }
@@ -115,10 +115,6 @@ class _BookingConfirmationScreenState
     try {
       await ref.read(appointmentsProvider.notifier).createBooking(booking);
       if (!mounted) return;
-
-      // The authoritative booking is now stored by the Cloud Function. Clear
-      // the draft only after a successful transaction to prevent duplicate
-      // submissions while preserving recovery after a failed attempt.
       ref.read(bookingDraftProvider.notifier).state = BookingDraft();
       context.go('/booking-success');
     } on DomainException catch (e) {
@@ -174,13 +170,13 @@ class _BookingConfirmationScreenState
     final resolved = draft.resolvedStaffName?.trim() ?? '';
     if (resolved.isNotEmpty) return resolved;
     final selected = draft.staffName?.trim() ?? '';
-    return selected.isNotEmpty ? selected : 'Specialist';
+    return selected.isNotEmpty ? selected : context.tr('Specialist');
   }
 
   void _showMessage(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(context.tr(message)),
         backgroundColor: isError ? AppColors.error : null,
       ),
     );
@@ -190,8 +186,8 @@ class _BookingConfirmationScreenState
   Widget build(BuildContext context) {
     final draft = ref.watch(bookingDraftProvider);
     final dateStr = draft.date == null
-        ? 'Not selected'
-        : '${draft.date!.year}-${draft.date!.month.toString().padLeft(2, '0')}-${draft.date!.day.toString().padLeft(2, '0')}';
+        ? context.tr('Not selected')
+        : MaterialLocalizations.of(context).formatFullDate(draft.date!);
     final staffName = _resolvedStaffName(draft);
 
     return PopScope(
@@ -208,7 +204,7 @@ class _BookingConfirmationScreenState
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Confirm Booking'),
+          title: Text(context.tr('Confirm Booking')),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -219,19 +215,22 @@ class _BookingConfirmationScreenState
                 child: Column(
                   children: [
                     Text(
-                      draft.businessName ?? 'Business',
+                      draft.businessName ?? context.tr('Business'),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const Divider(height: 24),
-                    _row('Service', draft.serviceName ?? 'Not selected'),
-                    _row('Duration', '${draft.totalDurationMinutes} minutes'),
+                    _row('Service', draft.serviceName ?? context.tr('Not selected')),
+                    _row(
+                      'Duration',
+                      '${draft.totalDurationMinutes} ${context.tr('minutes')}',
+                    ),
                     _row('Specialist', staffName),
                     _row(
                       'Date & Time',
-                      '$dateStr at ${draft.timeSlot ?? 'Not selected'}',
+                      '$dateStr • ${draft.timeSlot ?? context.tr('Not selected')}',
                     ),
                     const Divider(height: 24),
                     _row(
@@ -244,10 +243,12 @@ class _BookingConfirmationScreenState
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Your appointment is created only after this confirmation succeeds.',
+              Text(
+                context.tr(
+                  'Your appointment is created only after this confirmation succeeds.',
+                ),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textMutedDark,
                 ),
@@ -286,11 +287,14 @@ class _BookingConfirmationScreenState
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: AppColors.textMutedDark)),
+          Text(
+            context.tr(title),
+            style: const TextStyle(color: AppColors.textMutedDark),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Align(
-              alignment: Alignment.centerRight,
+              alignment: AlignmentDirectional.centerEnd,
               child: forceLtr
                   ? Directionality(
                       textDirection: TextDirection.ltr,
