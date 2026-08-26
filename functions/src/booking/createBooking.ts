@@ -1,6 +1,9 @@
 import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import { generateIntervalSlotLockIds } from './bookingLocks';
+import {
+  generateIntervalSlotLockIds,
+  validateCanonical15MinAlignment,
+} from './bookingLocks';
 import { validateBookingRequirements } from './bookingValidation';
 
 function requiredId(value: unknown, name: string): string {
