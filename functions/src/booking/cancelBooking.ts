@@ -105,6 +105,13 @@ export const cancelBooking = onCall(async (request) => {
       endAt = new Date(startAt.getTime() + duration * 60 * 1000);
     }
 
+    if (cancelledBy === 'customer' && startAt.getTime() <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'CANNOT_CANCEL: The appointment start time has already passed.'
+      );
+    }
+
     const lockObjects = generateIntervalSlotLockIds(
       businessId,
       bookingData.staffId,
