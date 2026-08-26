@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/utils/currency_formatter.dart';
 import '../../../models/business_model.dart';
 import '../../../providers/app_providers.dart';
-import '../../../core/utils/currency_formatter.dart';
 import '../../../services/auth_guard.dart';
 import '../../../theme/app_colors.dart';
 
@@ -23,6 +24,9 @@ class BookingBottomBar extends ConsumerWidget {
     final count = draft.selectedServicesCount;
     final totalPrice = draft.totalPrice;
     final totalDuration = draft.totalDurationMinutes;
+    final canBook = business.isActive &&
+        business.acceptingBookings &&
+        business.businessStatus == 'open';
 
     final hasSelection = count > 0;
     final buttonText = hasSelection ? 'Continue' : 'Book Now';
@@ -48,7 +52,6 @@ class BookingBottomBar extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
             children: [
-              // Price / Selection Summary
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -66,12 +69,15 @@ class BookingBottomBar extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Text(
-                            CurrencyFormatter.format(totalPrice),
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              CurrencyFormatter.format(totalPrice),
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -96,9 +102,11 @@ class BookingBottomBar extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Select service or tap Book Now',
-                        style: TextStyle(
+                      Text(
+                        canBook
+                            ? 'Select a service or tap Book Now'
+                            : 'Online booking is currently unavailable',
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMutedDark,
                         ),
@@ -107,46 +115,49 @@ class BookingBottomBar extends ConsumerWidget {
                   ],
                 ),
               ),
-
               const SizedBox(width: 16),
-
-              // Action Button
               ElevatedButton(
-                onPressed: business.isActive
+                onPressed: canBook
                     ? () async {
                         if (onBookNowTap != null) {
                           onBookNowTap!();
-                        } else {
-                          // Update draft with business context
-                          final currentDraft = ref.read(bookingDraftProvider);
-                          ref.read(bookingDraftProvider.notifier).state =
-                              currentDraft.copyWith(
-                            businessId: business.id,
-                            businessName: business.name,
-                          );
+                          return;
+                        }
 
-                          final allowed = await requireLogin(context,
-                              targetRoute: '/booking-service');
-                          if (allowed && context.mounted) {
-                            context.push('/booking-service');
-                          }
+                        final currentDraft = ref.read(bookingDraftProvider);
+                        ref.read(bookingDraftProvider.notifier).state =
+                            currentDraft.copyWith(
+                          businessId: business.id,
+                          businessName: business.name,
+                        );
+
+                        final allowed = await requireLogin(
+                          context,
+                          targetRoute: '/booking-service',
+                        );
+                        if (allowed && context.mounted) {
+                          context.push('/booking-service');
                         }
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: business.isActive
-                      ? AppColors.primary
-                      : AppColors.cardDark,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  backgroundColor:
+                      canBook ? AppColors.primary : AppColors.cardDark,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: business.isActive ? 4 : 0,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: canBook ? 4 : 0,
                 ),
                 child: Text(
-                  business.isActive ? buttonText : 'Unavailable',
+                  canBook ? buttonText : 'Unavailable',
                   style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.bold),
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
