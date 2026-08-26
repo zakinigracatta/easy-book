@@ -37,6 +37,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
           await ref.read(ownerProfitAndLossProvider.future);
         },
         child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
           children: [
             _periodCard(context, ref, range, date),
@@ -48,7 +49,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                   child: CircularProgressIndicator(color: AppColors.primary),
                 ),
               ),
-              error: (error, _) => _errorCard(error),
+              error: (_, __) => _errorCard(ref),
               data: (report) => _reportBody(report, currency),
             ),
             const SizedBox(height: 18),
@@ -133,12 +134,15 @@ class OwnerFinanceScreen extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  '${date.format(range.from)} — ${date.format(range.to)}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(
+                    '${date.format(range.from)} — ${date.format(range.to)}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimaryDark,
+                    ),
                   ),
                 ),
               ),
@@ -392,12 +396,15 @@ class OwnerFinanceScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            value,
-            textAlign: TextAlign.right,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimaryDark,
+              ),
             ),
           ),
         ],
@@ -433,14 +440,17 @@ class OwnerFinanceScreen extends ConsumerWidget {
         children: [
           Icon(icon, color: color, size: 22),
           const SizedBox(height: 12),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: color,
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -456,13 +466,13 @@ class OwnerFinanceScreen extends ConsumerWidget {
     );
   }
 
-  Widget _errorCard(Object error) {
+  Widget _errorCard(WidgetRef ref) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           const Icon(
-            Icons.lock_outline_rounded,
+            Icons.error_outline_rounded,
             color: AppColors.error,
             size: 32,
           ),
@@ -475,13 +485,19 @@ class OwnerFinanceScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            error.toString(),
+          const Text(
+            'We could not load the finance report. Check your connection and try again.',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppColors.textMutedDark,
             ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => ref.invalidate(ownerProfitAndLossProvider),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Try Again'),
           ),
         ],
       ),
@@ -509,7 +525,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
     final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: DateTime.now(),
       initialDateRange: DateTimeRange(start: current.from, end: current.to),
     );
     if (picked == null) return;
