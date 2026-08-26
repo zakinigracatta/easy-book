@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../widgets/glass_card.dart';
 
 class UsersManagementScreen extends StatelessWidget {
@@ -9,11 +11,7 @@ class UsersManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final users = [
       {'name': 'Ahmed Mohamed', 'role': 'Customer', 'status': 'Active'},
-      {
-        'name': 'Executive Barber Lounge',
-        'role': 'Business Partner',
-        'status': 'Verified'
-      },
+      {'name': 'Executive Barber Lounge', 'role': 'Business Partner', 'status': 'Verified'},
       {'name': 'Sarah Jenkins', 'role': 'Customer', 'status': 'Active'},
     ];
 
@@ -21,44 +19,40 @@ class UsersManagementScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/admin-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/admin-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/admin-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/admin-dashboard'),
           ),
-          title: const Text('Users & Accounts Management'),
+          title: Text(context.tr('Users & Accounts Management')),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),
           itemCount: users.length,
           itemBuilder: (context, index) {
-            final u = users[index];
+            final user = users[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: GlassCard(
                 child: ListTile(
-                  leading:
-                      const CircleAvatar(child: Icon(Icons.person_rounded)),
-                  title: Text(u['name']!,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(u['role']!),
-                  trailing: Text(u['status']!,
-                      style: const TextStyle(
-                          color: Colors.green, fontWeight: FontWeight.bold)),
+                  leading: const CircleAvatar(child: Icon(Icons.person_rounded)),
+                  title: Text(
+                    user['name']!,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(context.tr(user['role']!)),
+                  trailing: Text(
+                    context.tr(user['status']!),
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             );

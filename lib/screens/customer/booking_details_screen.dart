@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/glass_card.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   const BookingDetailsScreen({super.key});
@@ -12,26 +14,17 @@ class BookingDetailsScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/my-bookings');
-          }
+          context.canPop() ? context.pop() : context.go('/my-bookings');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/my-bookings');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/my-bookings'),
           ),
-          title: const Text('Booking Details & QR'),
+          title: Text(context.tr('Booking Details & QR')),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -40,38 +33,53 @@ class BookingDetailsScreen extends StatelessWidget {
               GlassCard(
                 child: Column(
                   children: [
-                    const Icon(Icons.qr_code_2_rounded,
-                        size: 140, color: AppColors.primary),
+                    const Icon(
+                      Icons.qr_code_2_rounded,
+                      size: 140,
+                      color: AppColors.primary,
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Booking Ref: #BK-94821',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      '${context.tr('Booking Ref')}: #BK-94821',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 4),
-                    const Text('Scan code at salon check-in desk',
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.textMutedDark)),
+                    Text(
+                      context.tr('Scan code at salon check-in desk'),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMutedDark,
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               GlassCard(
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Executive Barber Lounge',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                    SizedBox(height: 4),
-                    Text('142 Luxury Blvd, NYC',
-                        style: TextStyle(color: AppColors.textMutedDark)),
-                    Divider(height: 24),
-                    Text('Service: Royal Haircut & Beard Trim'),
-                    SizedBox(height: 4),
-                    Text('Time: Tomorrow at 10:00 AM'),
-                    SizedBox(height: 4),
-                    Text('Status: Confirmed',
-                        style: TextStyle(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Executive Barber Lounge',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      '142 Luxury Blvd, NYC',
+                      style: TextStyle(color: AppColors.textMutedDark),
+                    ),
+                    const Divider(height: 24),
+                    Text('${context.tr('Service')}: Royal Haircut & Beard Trim'),
+                    const SizedBox(height: 4),
+                    Text('${context.tr('Time')}: ${context.tr('Tomorrow')} 10:00 AM'),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${context.tr('Status')}: ${context.tr('Confirmed')}',
+                      style: const TextStyle(
+                        color: AppColors.success,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),

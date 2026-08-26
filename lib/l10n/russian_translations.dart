@@ -336,7 +336,6 @@ const Map<String, String> russianTranslations = <String, String>{
   'Main Profile Photo': 'Основное фото профиля',
   'Portfolio Photos': 'Фото портфолио',
   'No portfolio photos yet.': 'Фотографий портфолио пока нет.',
-  'Profile': 'Профиль',
   'Portfolio': 'Портфолио',
   'Working Hours & Breaks': 'Рабочие часы и перерывы',
   'Configure a different schedule for every day.': 'Настройте отдельный график для каждого дня.',

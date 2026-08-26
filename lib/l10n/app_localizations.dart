@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'russian_secondary_translations.dart';
 import 'russian_translations.dart';
 
 class AppLocalizations {
@@ -26,9 +27,12 @@ class AppLocalizations {
     Map<String, Object?> params = const <String, Object?>{},
   }) {
     final languageCode = locale.languageCode.toLowerCase();
-    var value = languageCode == 'ru'
-        ? russianTranslations[source] ?? source
-        : source;
+    var value = source;
+    if (languageCode == 'ru') {
+      value = russianSecondaryTranslations[source] ??
+          russianTranslations[source] ??
+          source;
+    }
 
     for (final entry in params.entries) {
       value = value.replaceAll('{${entry.key}}', '${entry.value ?? ''}');

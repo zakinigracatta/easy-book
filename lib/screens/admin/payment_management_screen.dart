@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/glass_card.dart';
 
 class PaymentManagementScreen extends StatelessWidget {
   const PaymentManagementScreen({super.key});
@@ -12,37 +14,32 @@ class PaymentManagementScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/admin-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/admin-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/admin-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/admin-dashboard'),
           ),
-          title: const Text('Payout Queues & Commissions'),
+          title: Text(context.tr('Payout Queues & Commissions')),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
-          children: const [
+          children: [
             GlassCard(
               child: ListTile(
-                title: Text('Executive Barber Lounge'),
-                subtitle: Text('Pending Payout: \$3,450.00'),
-                trailing: Text('Approve',
-                    style: TextStyle(
-                        color: AppColors.success, fontWeight: FontWeight.bold)),
+                title: const Text('Executive Barber Lounge'),
+                subtitle: Text(context.tr('Pending Payout: {amount}', params: {'amount': '\$3,450.00'})),
+                trailing: Text(
+                  context.tr('Approve'),
+                  style: const TextStyle(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
