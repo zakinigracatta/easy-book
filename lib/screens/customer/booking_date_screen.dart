@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/custom_button.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
-import 'widgets/booking_progress_header.dart';
+import '../../widgets/custom_button.dart';
 import 'widgets/booking_date_selector.dart';
+import 'widgets/booking_progress_header.dart';
 
 class BookingDateScreen extends ConsumerStatefulWidget {
   const BookingDateScreen({super.key});
@@ -27,9 +29,7 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
 
   void _onNext() {
     ref.read(bookingDraftProvider.notifier).state =
-        ref.read(bookingDraftProvider).copyWith(
-              date: _selectedDate,
-            );
+        ref.read(bookingDraftProvider).copyWith(date: _selectedDate);
     context.push('/booking-time');
   }
 
@@ -39,11 +39,7 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
@@ -51,34 +47,24 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Select Appointment Date'),
+          title: Text(context.tr('Select Appointment Date')),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Progress Header Step 2
               const BookingProgressHeader(currentStep: 2),
               const SizedBox(height: 20),
-
-              // Date Selector Component
               BookingDateSelector(
                 selectedDate: _selectedDate,
-                onDateSelected: (d) => setState(() => _selectedDate = d),
+                onDateSelected: (date) => setState(() => _selectedDate = date),
               ),
-
               const SizedBox(height: 24),
               const Spacer(),
-
               CustomButton(
                 text: 'Next: Select Time Slot',
                 onPressed: _onNext,
