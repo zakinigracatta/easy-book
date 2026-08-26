@@ -29,9 +29,13 @@ class EasyBookApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Easy Book - Luxury Salon Ecosystem',
       debugShowCheckedModeBanner: false,
+      // A complete light theme now exists in AppTheme, but many legacy screens
+      // still contain explicit dark-only foreground colors. Keep the released
+      // GitHub branch on dark mode until those screens are migrated so enabling
+      // light mode cannot make text unreadable.
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark,
       supportedLocales: const [
         Locale('en'),
         Locale('ar'),
