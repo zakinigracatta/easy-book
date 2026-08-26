@@ -27,9 +27,6 @@ class BookingFunctionsService {
         'businessId': businessId,
         'serviceId': serviceId,
         'staffId': staffId,
-        // Always send an absolute instant. Dart local ISO strings omit the UTC
-        // offset and were previously interpreted as UTC by Cloud Functions,
-        // shifting UAE appointments by four hours.
         'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
@@ -39,7 +36,8 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final endDateTime =
+          DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
@@ -99,7 +97,8 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final endDateTime =
+          DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
@@ -170,7 +169,8 @@ class BookingFunctionsService {
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final endDateTime =
+          DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
@@ -235,23 +235,35 @@ class BookingFunctionsService {
       );
     }
     if (msg.contains('BUSINESS_NOT_ACCEPTING_BOOKINGS') ||
-        msg.contains('BUSINESS_NOT_FOUND')) {
+        msg.contains('BUSINESS_NOT_FOUND') ||
+        msg.contains('OUTSIDE_BUSINESS_HOURS')) {
       return BusinessClosedException(
-        'The business is currently closed or not accepting online bookings.',
+        msg.contains('OUTSIDE_BUSINESS_HOURS')
+            ? 'The selected time is outside the business operating hours.'
+            : 'The business is currently closed or not accepting online bookings.',
       );
     }
     if (msg.contains('STAFF_INACTIVE') ||
         msg.contains('STAFF_NOT_WORKING_DAY') ||
         msg.contains('OUTSIDE_STAFF_SHIFT') ||
+        msg.contains('STAFF_ON_BREAK') ||
         msg.contains('STAFF_ON_LEAVE') ||
         msg.contains('STAFF_INELIGIBLE')) {
       return EmployeeUnavailableException(
         'The selected specialist is unavailable during this time slot.',
       );
     }
-    if (msg.contains('SERVICE_NOT_FOUND') || msg.contains('SERVICE_INACTIVE')) {
+    if (msg.contains('SERVICE_NOT_FOUND') ||
+        msg.contains('SERVICE_INACTIVE') ||
+        msg.contains('INVALID_SERVICE_PRICE') ||
+        msg.contains('INVALID_SERVICE_DURATION')) {
       return ServiceUnavailableException(
         'The selected service is currently unavailable.',
+      );
+    }
+    if (msg.contains('EMAIL_NOT_VERIFIED')) {
+      return AuthorizationException(
+        'Please verify your email address before booking.',
       );
     }
     if (e.code == 'permission-denied' || e.code == 'unauthenticated') {
@@ -259,8 +271,19 @@ class BookingFunctionsService {
         'You are not authorized to perform this booking operation.',
       );
     }
+    if (msg.contains('CANNOT_CANCEL')) {
+      return DomainException(
+        'This appointment can no longer be cancelled.',
+      );
+    }
+    if (msg.contains('CANNOT_RESCHEDULE')) {
+      return DomainException(
+        'This appointment can no longer be rescheduled.',
+      );
+    }
     if (msg.contains('INVALID_CANONICAL_ALIGNMENT') ||
-        msg.contains('START_TIME_IN_PAST')) {
+        msg.contains('START_TIME_IN_PAST') ||
+        msg.contains('INVALID_BOOKING_INTERVAL')) {
       return InvalidBookingTimeException(
         msg.contains('START_TIME_IN_PAST')
             ? 'Please select a future appointment time.'
