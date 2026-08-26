@@ -24,6 +24,10 @@ class _BookingSpecialistScreenState
   String? _selectedStaffId;
   bool _anySpecialist = true;
 
+  Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
+      ? AppColors.textMutedDark
+      : AppColors.textMutedLight;
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +43,9 @@ class _BookingSpecialistScreenState
       if (eligibleStaff.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.tr('No specialists are available for this service.')),
+            content: Text(
+              context.tr('No specialists are available for this service.'),
+            ),
           ),
         );
         return;
@@ -92,7 +98,6 @@ class _BookingSpecialistScreenState
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.bgDark,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
@@ -130,7 +135,6 @@ class _BookingSpecialistScreenState
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -138,9 +142,9 @@ class _BookingSpecialistScreenState
                       context.tr(
                         'Select your preferred specialist or choose anyone available.',
                       ),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textMutedDark,
+                        color: _mutedColor,
                       ),
                     ),
                   ],
@@ -149,10 +153,13 @@ class _BookingSpecialistScreenState
               const SizedBox(height: 14),
               Expanded(
                 child: eligibleStaffState.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (_, __) => Center(
                     child: Text(
-                      context.tr('Unable to load specialists. Please try again.'),
+                      context.tr(
+                        'Unable to load specialists. Please try again.',
+                      ),
                       style: const TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
@@ -161,9 +168,11 @@ class _BookingSpecialistScreenState
                     if (eligibleStaff.isEmpty) {
                       return Center(
                         child: Text(
-                          context.tr('No specialists are available for this service.'),
+                          context.tr(
+                            'No specialists are available for this service.',
+                          ),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppColors.textMutedDark),
+                          style: TextStyle(color: _mutedColor),
                         ),
                       );
                     }
