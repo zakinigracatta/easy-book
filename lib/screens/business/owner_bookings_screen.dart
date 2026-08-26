@@ -6,6 +6,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
+import '../../providers/owner_finance_providers.dart';
 import '../../l10n/app_localizations.dart';
 
 class OwnerBookingsScreen extends ConsumerWidget {
@@ -167,17 +168,36 @@ class OwnerBookingsScreen extends ConsumerWidget {
                       final booking = filteredBookings[index];
                       return OwnerBookingCard(
                         booking: booking,
-                        onStatusChanged: (newStatus) {
-                          ref
-                              .read(ownerBookingsProvider.notifier)
-                              .updateStatus(booking.id, newStatus);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  context.tr('Updated booking status to {status}', params: {'status': newStatus.name.toUpperCase()})),
-                              backgroundColor: AppColors.primary,
-                            ),
-                          );
+                        onStatusChanged: (newStatus) async {
+                          try {
+                            await ref
+                                .read(ownerBookingsProvider.notifier)
+                                .updateStatus(booking.id, newStatus);
+                            ref.invalidate(ownerTodayProfitAndLossProvider);
+                            ref.invalidate(ownerProfitAndLossProvider);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  context.tr(
+                                    'Updated booking status to {status}',
+                                    params: {
+                                      'status': newStatus.name.toUpperCase(),
+                                    },
+                                  ),
+                                ),
+                                backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          } catch (_) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(context.tr('Something went wrong')),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
                         },
                         onRescheduleTap: () =>
                             context.push('/booking-calendar'),

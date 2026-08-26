@@ -550,21 +550,33 @@ class OwnerDashboardScreen extends ConsumerWidget {
           children: upcoming.map((booking) {
             return OwnerBookingCard(
               booking: booking,
-              onStatusChanged: (newStatus) {
-                ref
-                    .read(ownerBookingsProvider.notifier)
-                    .updateStatus(booking.id, newStatus);
-                ref.invalidate(ownerTodayProfitAndLossProvider);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      context.tr(
-                        'Booking status updated to {status}',
-                        params: {'status': newStatus.name.toUpperCase()},
+              onStatusChanged: (newStatus) async {
+                try {
+                  await ref
+                      .read(ownerBookingsProvider.notifier)
+                      .updateStatus(booking.id, newStatus);
+                  ref.invalidate(ownerTodayProfitAndLossProvider);
+                  ref.invalidate(ownerProfitAndLossProvider);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        context.tr(
+                          'Booking status updated to {status}',
+                          params: {'status': newStatus.name.toUpperCase()},
+                        ),
                       ),
                     ),
-                  ),
-                );
+                  );
+                } catch (_) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(context.tr('Something went wrong')),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
               },
               onRescheduleTap: () => context.push('/booking-calendar'),
             );
