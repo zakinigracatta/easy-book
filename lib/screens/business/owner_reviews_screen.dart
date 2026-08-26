@@ -396,7 +396,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
     final reply = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Reply to ${review.userName}'),
+        title: Text(context.tr('Reply to {name}', params: {'name': review.userName})),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -449,7 +449,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save reply: $e'),
+            content: Text(context.tr('Failed to save reply. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );

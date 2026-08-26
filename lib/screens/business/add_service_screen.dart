@@ -177,7 +177,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                           return DropdownMenuItem(
                             value: mins,
                             child: Text(
-                              '$mins minutes',
+                              "$mins ${context.tr('minutes')}",
                               style: TextStyle(
                                   color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 14),
@@ -295,9 +295,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.initialService != null
-                ? 'Service updated successfully!'
-                : 'New service created!'),
+            content: Text(context.tr(
+              widget.initialService != null
+                  ? 'Service updated successfully!'
+                  : 'New service created!',
+            )),
             backgroundColor: AppColors.success,
           ),
         );
@@ -311,7 +313,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save service: $e'),
+            content: Text(context.tr('Unable to save service. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );

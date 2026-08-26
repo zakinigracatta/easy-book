@@ -499,7 +499,7 @@ class _QuickWalkInBookingScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create walk-in: $e'),
+            content: Text(context.tr('Failed to create walk-in. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
 
 class BookingProgressHeader extends StatelessWidget {
@@ -11,7 +12,11 @@ class BookingProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['Specialist', 'Date & Time', 'Summary'];
+    final steps = [
+      context.tr('Specialist'),
+      context.tr('Date & Time'),
+      context.tr('Summary'),
+    ];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -66,7 +71,7 @@ class BookingProgressHeader extends StatelessWidget {
                       fontSize: 11,
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
                       color: isCurrent
-                          ? Colors.white
+                          ? AppColors.primary
                           : (isDone
                               ? Theme.of(context).colorScheme.onSurfaceVariant
                               : Theme.of(context).colorScheme.onSurfaceVariant),

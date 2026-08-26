@@ -124,7 +124,7 @@ class _BusinessWorkingHoursScreenState
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load working hours: $error'),
+              child: Text(context.tr('Unable to load working hours. Please try again.')),
             ),
           ),
         ),
@@ -243,7 +243,7 @@ class _BusinessWorkingHoursScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update working hours: $e'),
+            content: Text(context.tr('Unable to update working hours. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );

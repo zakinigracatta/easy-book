@@ -335,7 +335,10 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       if (urls.isNotEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${urls.length} photo(s) uploaded successfully.'),
+            content: Text(context.tr(
+                  '{count} photos uploaded successfully.',
+                  params: {'count': urls.length},
+                )),
             backgroundColor: AppColors.success,
           ),
         );
@@ -344,7 +347,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Photo upload failed: $e'),
+            content: Text(context.tr('Photo upload failed. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );
@@ -389,7 +392,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not delete photo: $e')),
+          SnackBar(content: Text(context.tr('Could not delete photo. Please try again.'))),
         );
       }
     }

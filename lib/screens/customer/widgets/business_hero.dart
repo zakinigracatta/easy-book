@@ -127,7 +127,7 @@ class BusinessHero extends ConsumerWidget {
                           () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Sharing ${business.name}...'),
+                                content: Text(context.tr('Sharing {business}...', params: {'business': business.name})),
                               ),
                             );
                           },
