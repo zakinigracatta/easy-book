@@ -34,7 +34,7 @@ class BusinessModel {
     required this.rating,
     required this.reviewCount,
     required this.imageUrl,
-    this.isVerified = true,
+    this.isVerified = false,
     required this.description,
     required this.ownerId,
     this.latitude = 0.0,
@@ -87,7 +87,7 @@ class BusinessModel {
       imageUrl:
           json['image_url'] as String? ?? json['imageUrl'] as String? ?? '',
       isVerified:
-          json['is_verified'] as bool? ?? json['isVerified'] as bool? ?? true,
+          json['is_verified'] as bool? ?? json['isVerified'] as bool? ?? false,
       description: json['description'] as String? ?? '',
       ownerId: json['owner_id'] as String? ?? json['ownerId'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
