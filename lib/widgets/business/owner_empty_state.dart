@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../glass_card.dart';
 
@@ -38,7 +40,7 @@ class OwnerEmptyStateWidget extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                title,
+                context.tr(title),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
@@ -48,7 +50,7 @@ class OwnerEmptyStateWidget extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                description,
+                context.tr(description),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 13,
@@ -63,7 +65,9 @@ class OwnerEmptyStateWidget extends StatelessWidget {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -71,7 +75,7 @@ class OwnerEmptyStateWidget extends StatelessWidget {
                   onPressed: onActionTap,
                   icon: const Icon(Icons.add_rounded, size: 18),
                   label: Text(
-                    actionLabel!,
+                    context.tr(actionLabel!),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
