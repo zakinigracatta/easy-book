@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -25,10 +27,12 @@ class CustomButton extends StatelessWidget {
         onPressed: isLoading ? null : onPressed,
         style: OutlinedButton.styleFrom(
           side: BorderSide(
-              color: backgroundColor ?? Theme.of(context).primaryColor,
-              width: 1.5),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            color: backgroundColor ?? Theme.of(context).primaryColor,
+            width: 1.5,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         ),
         child: _buildChild(context),
@@ -52,6 +56,8 @@ class CustomButton extends StatelessWidget {
         child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
       );
     }
+
+    final translatedText = context.tr(text);
     if (icon != null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -59,10 +65,10 @@ class CustomButton extends StatelessWidget {
         children: [
           Icon(icon, size: 20),
           const SizedBox(width: 8),
-          Text(text),
+          Text(translatedText),
         ],
       );
     }
-    return Text(text);
+    return Text(translatedText);
   }
 }
