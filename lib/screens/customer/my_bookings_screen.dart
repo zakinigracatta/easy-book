@@ -13,9 +13,22 @@ import '../../widgets/glass_card.dart';
 class MyBookingsScreen extends ConsumerWidget {
   const MyBookingsScreen({super.key});
 
+  Color _mutedColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AppColors.textMutedDark
+        : AppColors.textMutedLight;
+  }
+
+  Color _secondaryColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondaryLight;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appointmentsState = ref.watch(appointmentsProvider);
+    final mutedColor = _mutedColor(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,13 +50,16 @@ class MyBookingsScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline_rounded,
-                    size: 48, color: AppColors.error),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 48,
+                  color: AppColors.error,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   context.tr('Unable to load bookings. Please try again.'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.textMutedDark),
+                  style: TextStyle(color: mutedColor),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
@@ -62,19 +78,25 @@ class MyBookingsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.calendar_today_rounded,
-                      size: 60, color: AppColors.textMutedDark),
+                  Icon(
+                    Icons.calendar_today_rounded,
+                    size: 60,
+                    color: mutedColor,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     context.tr('No Bookings Found'),
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     context.tr(
-                        'You have not scheduled any appointments yet.'),
-                    style: const TextStyle(color: AppColors.textMutedDark),
+                      'You have not scheduled any appointments yet.',
+                    ),
+                    style: TextStyle(color: mutedColor),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
@@ -97,8 +119,8 @@ class MyBookingsScreen extends ConsumerWidget {
               final isCancelled = booking.status == BookingStatus.cancelled;
               final isConfirmed = booking.status == BookingStatus.confirmed;
               final isPending = booking.status == BookingStatus.pending;
-              final canModify =
-                  (isPending || isConfirmed) && booking.startDateTime.isAfter(DateTime.now());
+              final canModify = (isPending || isConfirmed) &&
+                  booking.startDateTime.isAfter(DateTime.now());
 
               final statusColor = isCancelled
                   ? AppColors.error
@@ -123,13 +145,17 @@ class MyBookingsScreen extends ConsumerWidget {
                             child: Text(
                               booking.businessName,
                               style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: statusColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
@@ -150,16 +176,19 @@ class MyBookingsScreen extends ConsumerWidget {
                         textDirection: TextDirection.ltr,
                         child: Text(
                           '${booking.serviceName} • $dateStr',
-                          style: const TextStyle(
-                              fontSize: 13,
-                              color: AppColors.textSecondaryDark),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: _secondaryColor(context),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${context.tr('Specialist')}: ${booking.staffName}',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textMutedDark),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: mutedColor,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -198,8 +227,9 @@ class MyBookingsScreen extends ConsumerWidget {
                                   child: Text(
                                     context.tr('Cancel'),
                                     style: const TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.error),
+                                      fontSize: 11,
+                                      color: AppColors.error,
+                                    ),
                                   ),
                                 ),
                               ],
