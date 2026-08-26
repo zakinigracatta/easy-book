@@ -36,13 +36,24 @@ class OwnerExpensesScreen extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
-        error: (error, _) => Center(
+        error: (_, __) => const Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              error.toString(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.error),
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 42,
+                  color: AppColors.error,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Unable to load expenses right now. Please try again.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textMutedDark),
+                ),
+              ],
             ),
           ),
         ),
@@ -54,8 +65,11 @@ class OwnerExpensesScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.receipt_long_outlined,
-                        size: 58, color: AppColors.textMutedDark),
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 58,
+                      color: AppColors.textMutedDark,
+                    ),
                     SizedBox(height: 14),
                     Text(
                       'No expenses recorded yet',
@@ -100,8 +114,10 @@ class OwnerExpensesScreen extends ConsumerWidget {
                               color: AppColors.error.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.payments_outlined,
-                                color: AppColors.error),
+                            child: const Icon(
+                              Icons.payments_outlined,
+                              color: AppColors.error,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -143,6 +159,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
                         runSpacing: 6,
                         children: [
                           _tag(expense.paymentMethod),
+                          _tag(expense.frequency.label),
                           if (expense.supplier?.trim().isNotEmpty == true)
                             _tag(expense.supplier!.trim()),
                         ],
@@ -230,10 +247,12 @@ class OwnerExpensesScreen extends ConsumerWidget {
           const SnackBar(content: Text('Expense archived.')),
         );
       }
-    } catch (error) {
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
+          const SnackBar(
+            content: Text('Unable to archive this expense. Please try again.'),
+          ),
         );
       }
     }
@@ -274,6 +293,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
   late final TextEditingController _supplier;
   late final TextEditingController _notes;
   late ExpenseCategory _category;
+  late ExpenseFrequency _frequency;
   late DateTime _date;
   late String _paymentMethod;
   bool _saving = false;
@@ -297,6 +317,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
     _supplier = TextEditingController(text: item?.supplier ?? '');
     _notes = TextEditingController(text: item?.notes ?? '');
     _category = item?.category ?? ExpenseCategory.other;
+    _frequency = item?.frequency ?? ExpenseFrequency.oneTime;
     _date = item?.expenseDate ?? DateTime.now();
     _paymentMethod = item?.paymentMethod ?? _paymentMethods.first;
     if (!_paymentMethods.contains(_paymentMethod)) {
@@ -339,7 +360,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Enter an expense only when the cost actually occurred. Recurring automation will be added separately so reports never double-count estimated costs.',
+                'Record the cost when it actually occurs. Frequency classifies the expense for reporting and does not create automatic future charges.',
                 style: TextStyle(
                   fontSize: 11,
                   height: 1.35,
@@ -363,6 +384,22 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                 },
               ),
               const SizedBox(height: 12),
+              DropdownButtonFormField<ExpenseFrequency>(
+                initialValue: _frequency,
+                decoration: const InputDecoration(labelText: 'Frequency'),
+                items: ExpenseFrequency.values
+                    .map(
+                      (frequency) => DropdownMenuItem(
+                        value: frequency,
+                        child: Text(frequency.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _frequency = value);
+                },
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _description,
                 decoration: const InputDecoration(labelText: 'Description'),
@@ -379,7 +416,8 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                   labelText: 'Amount',
                   prefixText: 'AED ',
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   final parsed = double.tryParse(value?.trim() ?? '');
                   if (parsed == null || !parsed.isFinite || parsed <= 0) {
@@ -470,18 +508,33 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             paymentMethod: _paymentMethod,
             supplier: _supplier.text.trim(),
             notes: _notes.text.trim(),
-            frequency: ExpenseFrequency.oneTime,
+            frequency: _frequency,
           );
       ref.invalidate(ownerProfitAndLossProvider);
       if (mounted) Navigator.pop(context, true);
-    } catch (error) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
+          const SnackBar(
+            content: Text('Unable to save this expense. Please try again.'),
+          ),
         );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+extension ExpenseFrequencyLabel on ExpenseFrequency {
+  String get label {
+    switch (this) {
+      case ExpenseFrequency.oneTime:
+        return 'One-time';
+      case ExpenseFrequency.monthly:
+        return 'Monthly';
+      case ExpenseFrequency.yearly:
+        return 'Annual';
     }
   }
 }
