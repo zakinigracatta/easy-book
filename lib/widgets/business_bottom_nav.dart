@@ -11,6 +11,7 @@ class BusinessBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final routes = [
       '/owner-dashboard',
       '/owner-bookings',
@@ -23,12 +24,17 @@ class BusinessBottomNav extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       height: 64,
       decoration: BoxDecoration(
-        color: AppColors.cardDark.withValues(alpha: 0.9),
+        color: (isDark ? AppColors.cardDark : AppColors.cardLight)
+            .withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.glassBorderDark),
+        border: Border.all(
+          color: isDark
+              ? AppColors.glassBorderDark
+              : AppColors.glassBorderLight,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: isDark ? AppColors.shadowDark : AppColors.shadowLight,
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -73,6 +79,10 @@ class BusinessBottomNav extends StatelessWidget {
     String route,
   ) {
     final isSelected = currentIndex == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+
     return GestureDetector(
       onTap: () {
         if (!isSelected) context.go(route);
@@ -82,7 +92,7 @@ class BusinessBottomNav extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.accent.withValues(alpha: 0.2)
+              ? AppColors.accent.withValues(alpha: isDark ? 0.2 : 0.12)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
@@ -92,7 +102,7 @@ class BusinessBottomNav extends StatelessWidget {
             Icon(
               icon,
               size: 22,
-              color: isSelected ? AppColors.accent : AppColors.textMutedDark,
+              color: isSelected ? AppColors.accent : mutedColor,
             ),
             const SizedBox(height: 2),
             Text(
@@ -100,7 +110,7 @@ class BusinessBottomNav extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? AppColors.accent : AppColors.textMutedDark,
+                color: isSelected ? AppColors.accent : mutedColor,
               ),
             ),
           ],
