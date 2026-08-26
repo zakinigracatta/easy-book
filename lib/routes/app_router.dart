@@ -25,6 +25,7 @@ import '../screens/customer/booking_specialist_screen.dart';
 import '../screens/customer/booking_success_screen.dart';
 import '../screens/customer/booking_summary_screen.dart';
 import '../screens/customer/booking_time_screen.dart';
+import '../screens/customer/cancel_booking_screen.dart';
 import '../screens/customer/categories_screen.dart';
 import '../screens/customer/chat_screen.dart';
 import '../screens/customer/customer_profile_screen.dart';
@@ -118,6 +119,7 @@ const Set<String> _customerPrivateRoutes = {
   '/booking-success',
   '/my-bookings',
   '/booking-details',
+  '/cancel-booking',
   '/reschedule-booking',
   '/favorites',
   '/notifications',
@@ -310,7 +312,17 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/booking-details',
-      builder: (context, state) => const BookingDetailsScreen(),
+      builder: (context, state) {
+        final booking = state.extra as BookingModel?;
+        return BookingDetailsScreen(booking: booking);
+      },
+    ),
+    GoRoute(
+      path: '/cancel-booking',
+      builder: (context, state) {
+        final bookingId = state.extra as String?;
+        return CancelBookingScreen(bookingId: bookingId);
+      },
     ),
     GoRoute(
       path: '/reschedule-booking',
