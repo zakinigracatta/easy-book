@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_providers.dart';
-import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import 'widgets/booking_date_selector.dart';
 import 'widgets/booking_progress_header.dart';
@@ -43,7 +42,6 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.bgDark,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
