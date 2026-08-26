@@ -17,4 +17,37 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Business rejected successfully.': 'Бизнес отклонён.',
   'Unable to update business approval. Please try again.':
       'Не удалось обновить статус одобрения. Попробуйте снова.',
+
+  // Owner dashboard runtime coverage.
+  'Quick Actions': 'Быстрые действия',
+  'Upcoming Bookings': 'Предстоящие записи',
+  'View All': 'Смотреть все',
+  'OPEN': 'ОТКРЫТО',
+  'CLOSED': 'ЗАКРЫТО',
+  'Easy Book Business': 'Easy Book для бизнеса',
+  'Loading business details...': 'Загрузка данных бизнеса...',
+  "Today's Bookings": 'Записи сегодня',
+  "Today's Expenses": 'Расходы сегодня',
+  "Today's Net Profit": 'Чистая прибыль сегодня',
+  'Recognized Revenue': 'Признанная выручка',
+  'Customers Today': 'Клиенты сегодня',
+  'Pending Bookings': 'Ожидающие записи',
+  'TODAY': 'СЕГОДНЯ',
+  'COMPLETED': 'ЗАВЕРШЕНО',
+  'COSTS': 'РАСХОДЫ',
+  'PROFIT': 'ПРИБЫЛЬ',
+  'CLIENTS': 'КЛИЕНТЫ',
+  'ACTION': 'ТРЕБУЕТСЯ',
+  'Walk-in': 'Без записи',
+  'Finance': 'Финансы',
+  'Add Service': 'Добавить услугу',
+  'Add Employee': 'Добавить сотрудника',
+  'No Bookings Today': 'Сегодня записей нет',
+  "You're all clear for now. New bookings will appear here.":
+      'Пока всё свободно. Новые записи появятся здесь.',
+  'Create Walk-in': 'Создать запись без предварительной записи',
+  'Unable to Load Bookings': 'Не удалось загрузить записи',
+  'Please check your connection and try again.':
+      'Проверьте подключение и попробуйте снова.',
+  'Booking status updated to {status}': 'Статус записи изменён на {status}',
 };
