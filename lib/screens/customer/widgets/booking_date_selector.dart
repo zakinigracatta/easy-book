@@ -23,6 +23,12 @@ class BookingDateSelector extends StatelessWidget {
     final daysList =
         List.generate(14, (index) => today.add(Duration(days: index)));
     final material = MaterialLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.cardDark : AppColors.cardLight;
+    final borderColor =
+        isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight;
+    final mutedColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +41,6 @@ class BookingDateSelector extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
               ),
             ),
             TextButton.icon(
@@ -45,29 +50,18 @@ class BookingDateSelector extends StatelessWidget {
                   initialDate: selectedDate,
                   firstDate: today,
                   lastDate: maxDate,
-                  builder: (context, child) {
-                    return Theme(
-                      data: Theme.of(context).copyWith(
-                        colorScheme: const ColorScheme.dark(
-                          primary: AppColors.primary,
-                          surface: AppColors.cardDark,
-                        ),
-                      ),
-                      child: child!,
-                    );
-                  },
                 );
                 if (picked != null) onDateSelected(picked);
               },
               icon: const Icon(
                 Icons.calendar_month_rounded,
                 size: 18,
-                color: AppColors.primaryLight,
+                color: AppColors.primary,
               ),
               label: Text(
                 material.formatMonthYear(selectedDate),
                 style: const TextStyle(
-                  color: AppColors.primaryLight,
+                  color: AppColors.primary,
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                 ),
@@ -98,21 +92,21 @@ class BookingDateSelector extends StatelessWidget {
                     color: isSelected
                         ? AppColors.primary
                         : (isToday
-                            ? AppColors.primary.withValues(alpha: 0.15)
-                            : AppColors.cardDark),
+                            ? AppColors.primary.withValues(alpha: 0.12)
+                            : cardColor),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.primary
                           : (isToday
                               ? AppColors.primary.withValues(alpha: 0.5)
-                              : AppColors.glassBorderDark),
+                              : borderColor),
                       width: isSelected || isToday ? 2 : 1,
                     ),
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.4),
+                              color: AppColors.primary.withValues(alpha: 0.25),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -129,9 +123,7 @@ class BookingDateSelector extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: isSelected
                               ? Colors.white
-                              : (isToday
-                                  ? AppColors.primaryLight
-                                  : AppColors.textMutedDark),
+                              : (isToday ? AppColors.primary : mutedColor),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -142,7 +134,7 @@ class BookingDateSelector extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: isSelected
                               ? Colors.white
-                              : AppColors.textPrimaryDark,
+                              : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
