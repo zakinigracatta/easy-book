@@ -16,10 +16,15 @@ export const rescheduleBooking = onCall(async (request) => {
 
   const callerUid = request.auth.uid;
   const data = request.data || {};
-  const bookingId = typeof data.bookingId === 'string' ? data.bookingId.trim() : '';
+  const bookingId =
+    typeof data.bookingId === 'string' ? data.bookingId.trim() : '';
   const newRequestedStartRaw = data.newRequestedStartAt;
 
-  if (!bookingId || bookingId.length > 200 || typeof newRequestedStartRaw !== 'string') {
+  if (
+    !bookingId ||
+    bookingId.length > 200 ||
+    typeof newRequestedStartRaw !== 'string'
+  ) {
     throw new HttpsError(
       'invalid-argument',
       'MISSING_ARGUMENTS: bookingId and newRequestedStartAt are required.'
@@ -61,8 +66,6 @@ export const rescheduleBooking = onCall(async (request) => {
     const customerId = bookingData.customerId;
     const currentStatus = bookingData.status;
 
-    // Rescheduling is only safe before service starts. This also preserves
-    // completed/no-show finance history from being mutated afterwards.
     if (currentStatus !== 'pending' && currentStatus !== 'confirmed') {
       throw new HttpsError(
         'failed-precondition',
@@ -90,15 +93,6 @@ export const rescheduleBooking = onCall(async (request) => {
       );
     }
 
-    const context = await validateBookingRequirements(
-      db,
-      transaction,
-      businessId,
-      serviceId,
-      staffId,
-      newStartAt
-    );
-
     let oldStartAt: Date;
     let oldEndAt: Date;
     if (
@@ -110,6 +104,13 @@ export const rescheduleBooking = onCall(async (request) => {
       oldStartAt = new Date(bookingData.startTimestamp || Date.now());
     }
 
+    if (oldStartAt.getTime() <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'CANNOT_RESCHEDULE: The original appointment has already started.'
+      );
+    }
+
     if (
       bookingData.endDateTime &&
       typeof bookingData.endDateTime.toDate === 'function'
@@ -119,6 +120,15 @@ export const rescheduleBooking = onCall(async (request) => {
       const duration = bookingData.durationMinutes || 30;
       oldEndAt = new Date(oldStartAt.getTime() + duration * 60 * 1000);
     }
+
+    const context = await validateBookingRequirements(
+      db,
+      transaction,
+      businessId,
+      serviceId,
+      staffId,
+      newStartAt
+    );
 
     const oldLockObjects = generateIntervalSlotLockIds(
       businessId,
