@@ -236,11 +236,13 @@ class BookingFunctionsService {
     }
     if (msg.contains('BUSINESS_NOT_ACCEPTING_BOOKINGS') ||
         msg.contains('BUSINESS_NOT_FOUND') ||
+        msg.contains('BUSINESS_NOT_VERIFIED') ||
+        msg.contains('BUSINESS_NOT_PUBLISHED') ||
         msg.contains('OUTSIDE_BUSINESS_HOURS')) {
       return BusinessClosedException(
         msg.contains('OUTSIDE_BUSINESS_HOURS')
             ? 'The selected time is outside the business operating hours.'
-            : 'The business is currently closed or not accepting online bookings.',
+            : 'The business is not currently available for public booking.',
       );
     }
     if (msg.contains('STAFF_INACTIVE') ||
