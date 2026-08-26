@@ -16,13 +16,19 @@ class BusinessNavTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const tabs = ['Services', 'Specialists', 'Reviews', 'About'];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.cardDark : AppColors.cardLight;
+    final borderColor =
+        isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight;
+    final mutedColor =
+        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
 
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.glassBorderDark),
+        border: Border.all(color: borderColor),
       ),
       padding: const EdgeInsets.all(4),
       child: Row(
@@ -40,7 +46,7 @@ class BusinessNavTabs extends StatelessWidget {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.4),
+                            color: AppColors.primary.withValues(alpha: 0.25),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -50,8 +56,9 @@ class BusinessNavTabs extends StatelessWidget {
                 child: Text(
                   context.tr(tabs[index]),
                   style: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textMutedDark,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected ? Colors.white : mutedColor,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.w600,
                     fontSize: 13,
                   ),
                 ),
