@@ -14,6 +14,12 @@ import '../../widgets/rating_stars.dart';
 class FavoritesScreen extends ConsumerWidget {
   const FavoritesScreen({super.key});
 
+  Color _mutedColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AppColors.textMutedDark
+        : AppColors.textMutedLight;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider);
@@ -42,23 +48,30 @@ class FavoritesScreen extends ConsumerWidget {
                     separatorBuilder: (_, __) => const SizedBox(height: 14),
                     itemBuilder: (context, index) {
                       final businessId = ids[index];
-                      final businessAsync = ref.watch(businessDetailProvider(businessId));
+                      final businessAsync =
+                          ref.watch(businessDetailProvider(businessId));
 
                       return businessAsync.when(
                         loading: () => const GlassCard(
                           child: SizedBox(
                             height: 84,
-                            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
                           ),
                         ),
                         error: (error, stackTrace) => GlassCard(
                           child: ListTile(
                             leading: const Icon(Icons.storefront_outlined),
-                            title: Text(context.tr('Could not load this business')),
+                            title: Text(
+                              context.tr('Could not load this business'),
+                            ),
                             trailing: IconButton(
                               tooltip: context.tr('Retry'),
                               icon: const Icon(Icons.refresh_rounded),
-                              onPressed: () => ref.invalidate(businessDetailProvider(businessId)),
+                              onPressed: () => ref.invalidate(
+                                businessDetailProvider(businessId),
+                              ),
                             ),
                           ),
                         ),
@@ -66,11 +79,15 @@ class FavoritesScreen extends ConsumerWidget {
                           if (business == null) {
                             return GlassCard(
                               child: ListTile(
-                                leading: const Icon(Icons.storefront_outlined),
-                                title: Text(context.tr('Business no longer available')),
+                                leading:
+                                    const Icon(Icons.storefront_outlined),
+                                title: Text(
+                                  context.tr('Business no longer available'),
+                                ),
                                 trailing: IconButton(
                                   tooltip: context.tr('Remove from favorites'),
-                                  icon: const Icon(Icons.delete_outline_rounded),
+                                  icon:
+                                      const Icon(Icons.delete_outline_rounded),
                                   onPressed: () => _removeFavorite(
                                     context,
                                     ref,
@@ -82,7 +99,12 @@ class FavoritesScreen extends ConsumerWidget {
                             );
                           }
 
-                          return _businessCard(context, ref, user.id, business);
+                          return _businessCard(
+                            context,
+                            ref,
+                            user.id,
+                            business,
+                          );
                         },
                       );
                     },
@@ -127,14 +149,22 @@ class FavoritesScreen extends ConsumerWidget {
                   business.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  business.address.isEmpty ? business.category : business.address,
+                  business.address.isEmpty
+                      ? business.category
+                      : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _mutedColor(context),
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -156,7 +186,8 @@ class FavoritesScreen extends ConsumerWidget {
           IconButton(
             tooltip: context.tr('Remove from favorites'),
             icon: const Icon(Icons.favorite_rounded, color: Colors.redAccent),
-            onPressed: () => _removeFavorite(context, ref, userId, business.id),
+            onPressed: () =>
+                _removeFavorite(context, ref, userId, business.id),
           ),
         ],
       ),
@@ -178,7 +209,11 @@ class FavoritesScreen extends ConsumerWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr('Could not update favorites. Please try again.'))),
+        SnackBar(
+          content: Text(
+            context.tr('Could not update favorites. Please try again.'),
+          ),
+        ),
       );
     }
   }
@@ -189,7 +224,11 @@ class FavoritesScreen extends ConsumerWidget {
       height: 80,
       alignment: Alignment.center,
       color: AppColors.primary.withValues(alpha: 0.08),
-      child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 32),
+      child: const Icon(
+        Icons.storefront_rounded,
+        color: AppColors.primary,
+        size: 32,
+      ),
     );
   }
 
@@ -204,13 +243,18 @@ class FavoritesScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               context.tr('Sign in to save favorites'),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              context.tr('Your favorite salons and businesses will stay synced with your account.'),
+              context.tr(
+                'Your favorite salons and businesses will stay synced with your account.',
+              ),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textMutedDark),
+              style: TextStyle(color: _mutedColor(context)),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -240,7 +284,7 @@ class FavoritesScreen extends ConsumerWidget {
         Text(
           context.tr('Tap the heart on a business to save it here.'),
           textAlign: TextAlign.center,
-          style: const TextStyle(color: AppColors.textMutedDark),
+          style: TextStyle(color: _mutedColor(context)),
         ),
         const SizedBox(height: 20),
         Center(
