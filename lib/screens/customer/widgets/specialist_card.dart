@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/staff_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
@@ -95,10 +96,14 @@ class SpecialistCard extends StatelessWidget {
                       if (staff.experienceYears > 0) ...[
                         const SizedBox(width: 10),
                         Text(
-                          context.tr('• {count} yrs experience', params: {'count': staff.experienceYears}),
+                          context.tr(
+                            '• {count} yrs experience',
+                            params: {'count': staff.experienceYears},
+                          ),
                           style: TextStyle(
                             fontSize: 11,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
