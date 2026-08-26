@@ -23,6 +23,10 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
   AvailableSlot? _selectedSlot;
   late DateTime _selectedDate;
 
+  Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
+      ? AppColors.textMutedDark
+      : AppColors.textMutedLight;
+
   @override
   void initState() {
     super.initState();
@@ -59,7 +63,9 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.tr('No available specialist was resolved for this time slot.'),
+            context.tr(
+              'No available specialist was resolved for this time slot.',
+            ),
           ),
         ),
       );
@@ -97,7 +103,6 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.bgDark,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
@@ -110,7 +115,9 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, __) => Center(
             child: Text(
-              context.tr('Unable to load the business details. Please try again.'),
+              context.tr(
+                'Unable to load the business details. Please try again.',
+              ),
               style: const TextStyle(color: AppColors.error),
               textAlign: TextAlign.center,
             ),
@@ -120,7 +127,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
               return Center(
                 child: Text(
                   context.tr('Salon not found.'),
-                  style: const TextStyle(color: AppColors.textMutedDark),
+                  style: TextStyle(color: _mutedColor),
                 ),
               );
             }
@@ -177,7 +184,8 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                                 context.tr(
                                   'Unable to load time slots. Please try again.',
                                 ),
-                                style: const TextStyle(color: AppColors.error),
+                                style:
+                                    const TextStyle(color: AppColors.error),
                                 textAlign: TextAlign.center,
                               ),
                             ),
