@@ -11,7 +11,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
-  ForgotPasswordScreen({super.key});
+  const ForgotPasswordScreen({super.key});
 
   @override
   ConsumerState<ForgotPasswordScreen> createState() =>
@@ -90,7 +90,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/login'),
         ),
@@ -98,18 +98,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 context.tr('Forgot Password? 🔑'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 context.tr(
                   "Enter your email address and we'll send you a link to reset your password.",
@@ -120,12 +120,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   height: 1.4,
                 ),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               if (_emailSent)
                 GlassCard(
                   child: Column(
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 30,
                         backgroundColor: AppColors.success,
                         child: Icon(
@@ -134,15 +134,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Text(
                         context.tr('Reset Link Sent'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         context.tr(
                           'If an account exists for this email, a password reset link has been sent. Please check your inbox and follow the instructions.',
@@ -154,7 +154,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           height: 1.4,
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       CustomButton(
                         text: context.tr('Back to Login'),
                         onPressed: () => context.go('/login'),
@@ -173,9 +173,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         keyboardType: TextInputType.emailAddress,
                       ),
                       if (_errorMessageKey != null) ...[
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.error.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
@@ -185,16 +185,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.error_outline_rounded,
                                 size: 18,
                                 color: AppColors.error,
                               ),
-                              SizedBox(width: 8),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   context.tr(_errorMessageKey!),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: AppColors.error,
                                     fontSize: 13,
                                   ),
@@ -204,7 +204,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                           ),
                         ),
                       ],
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       CustomButton(
                         text: context.tr('Send Reset Link'),
                         isLoading: _isLoading,

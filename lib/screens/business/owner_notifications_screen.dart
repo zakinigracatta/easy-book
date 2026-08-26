@@ -12,7 +12,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
 
 class OwnerNotificationsScreen extends ConsumerWidget {
-  OwnerNotificationsScreen({super.key});
+  const OwnerNotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +28,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop()
                 ? context.pop()
                 : context.go('/owner-dashboard'),
@@ -48,7 +48,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
             }
 
             return ListView.builder(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notification = notifications[index];
@@ -57,7 +57,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                 final timeAgo = DateFormat('hh:mm a').format(notification.createdAt);
 
                 return Padding(
-                  padding: EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: GlassCard(
                     onTap: () async {
                       final businessId =
@@ -97,7 +97,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                             Container(
                               width: 8,
                               height: 8,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: AppColors.accent,
                                 shape: BoxShape.circle,
                               ),
@@ -107,7 +107,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             context.tr(notification.body),
                             style: TextStyle(
@@ -115,7 +115,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
@@ -134,7 +134,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => Center(
+          loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (_, __) => OwnerEmptyStateWidget(
@@ -143,7 +143,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
             description: context.tr('Could not fetch notification inbox.'),
           ),
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
       ),
     );
   }

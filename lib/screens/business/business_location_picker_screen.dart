@@ -24,7 +24,7 @@ class BusinessLocationSelection {
 }
 
 class BusinessLocationPickerScreen extends StatefulWidget {
-  BusinessLocationPickerScreen({
+  const BusinessLocationPickerScreen({
     super.key,
     this.initialLatitude = 0,
     this.initialLongitude = 0,
@@ -68,7 +68,7 @@ class _BusinessLocationPickerScreenState
       appBar: AppBar(
         title: Text(context.tr('Set Precise Business Location')),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
       ),
@@ -96,7 +96,7 @@ class _BusinessLocationPickerScreenState
               ),
             ],
           ),
-          IgnorePointer(
+          const IgnorePointer(
             child: Center(
               child: Padding(
                 padding: EdgeInsets.only(bottom: 38),
@@ -118,12 +118,12 @@ class _BusinessLocationPickerScreenState
               borderRadius: BorderRadius.circular(16),
               color: Theme.of(context).colorScheme.surface,
               child: Padding(
-                padding: EdgeInsets.all(14),
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    Icon(Icons.touch_app_rounded,
+                    const Icon(Icons.touch_app_rounded,
                         color: AppColors.primaryLight),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(context.tr('Move the map until the pin is exactly on the salon entrance.'),
                         style: TextStyle(
@@ -146,12 +146,12 @@ class _BusinessLocationPickerScreenState
               backgroundColor: Theme.of(context).colorScheme.surface,
               onPressed: _locating ? null : _useCurrentLocation,
               child: _locating
-                  ? SizedBox(
+                  ? const SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Icon(Icons.my_location_rounded,
+                  : const Icon(Icons.my_location_rounded,
                       color: AppColors.primaryLight),
             ),
           ),
@@ -163,7 +163,7 @@ class _BusinessLocationPickerScreenState
               top: false,
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  minimumSize: Size.fromHeight(56),
+                  minimumSize: const Size.fromHeight(56),
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -177,9 +177,9 @@ class _BusinessLocationPickerScreenState
                     ),
                   );
                 },
-                icon: Icon(Icons.check_circle_outline_rounded),
+                icon: const Icon(Icons.check_circle_outline_rounded),
                 label: Text(context.tr('Confirm This Location'),
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -207,7 +207,7 @@ class _BusinessLocationPickerScreenState
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(
+        locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           timeLimit: Duration(seconds: 15),
         ),

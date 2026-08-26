@@ -10,7 +10,7 @@ import '../../models/business_model.dart';
 import '../../l10n/app_localizations.dart';
 
 class BusinessWorkingHoursScreen extends ConsumerStatefulWidget {
-  BusinessWorkingHoursScreen({super.key});
+  const BusinessWorkingHoursScreen({super.key});
 
   @override
   ConsumerState<BusinessWorkingHoursScreen> createState() =>
@@ -61,7 +61,7 @@ class _BusinessWorkingHoursScreenState
         appBar: AppBar(
           title: Text(context.tr('Business Working Hours')),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
@@ -70,17 +70,17 @@ class _BusinessWorkingHoursScreenState
           data: (business) {
             _initializeFromBusiness(business);
             return SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GlassCard(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Icon(Icons.schedule_rounded,
+                        const Icon(Icons.schedule_rounded,
                             color: AppColors.primaryLight, size: 28),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +92,7 @@ class _BusinessWorkingHoursScreenState
                                   color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Text(context.tr('Set exact opening and closing times. Customer availability follows these hours.'),
                                 style: TextStyle(
                                   fontSize: 12,
@@ -105,25 +105,25 @@ class _BusinessWorkingHoursScreenState
                       ],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   ..._days.map(_buildDayCard),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   CustomButton(
                     text: 'Save Working Hours',
                     isLoading: _isLoading,
                     onPressed: () => _save(business),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                 ],
               ),
             );
           },
-          loading: () => Center(
+          loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (error, _) => Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Text('Unable to load working hours: $error'),
             ),
           ),
@@ -135,8 +135,8 @@ class _BusinessWorkingHoursScreenState
   Widget _buildDayCard(String day) {
     final hours = _hoursMap[day]!;
     return GlassCard(
-      padding: EdgeInsets.all(14),
-      margin: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
       child: Column(
         children: [
           Row(
@@ -159,10 +159,10 @@ class _BusinessWorkingHoursScreenState
                   color: hours.isClosed ? AppColors.error : AppColors.success,
                 ),
               ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Switch(
                 value: !hours.isClosed,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (open) {
                   setState(() {
                     _hoursMap[day] = DailyHours(
@@ -177,7 +177,7 @@ class _BusinessWorkingHoursScreenState
             ],
           ),
           if (!hours.isClosed) ...[
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -188,7 +188,7 @@ class _BusinessWorkingHoursScreenState
                     onTap: () => _pickTime(day, isOpening: true),
                   ),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(
                   child: _TimeButton(
                     label: 'Closes',
@@ -296,7 +296,7 @@ class _TimeButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Theme.of(context).dividerColor),
@@ -305,7 +305,7 @@ class _TimeButton extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, size: 18, color: AppColors.primaryLight),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +313,7 @@ class _TimeButton extends StatelessWidget {
                   Text(label,
                       style: TextStyle(
                           fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     value,
                     style: TextStyle(

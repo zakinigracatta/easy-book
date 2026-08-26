@@ -12,7 +12,7 @@ class ReviewsSection extends StatelessWidget {
   final int totalReviews;
   final List<ReviewModel> reviews;
 
-  ReviewsSection({
+  const ReviewsSection({
     super.key,
     required this.averageRating,
     required this.totalReviews,
@@ -23,13 +23,13 @@ class ReviewsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     if (reviews.isEmpty) {
       return Container(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
         child: Column(
           children: [
             Icon(Icons.rate_review_outlined,
                 size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(context.tr('No reviews yet.\nBe the first to review after your appointment.'),
               style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
               textAlign: TextAlign.center,
@@ -62,15 +62,15 @@ class ReviewsSection extends StatelessWidget {
                 children: [
                   Text(
                     averageRating.toStringAsFixed(1),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   RatingStars(rating: averageRating, size: 16),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(
                     '$totalReviews reviews',
                     style: TextStyle(
@@ -80,19 +80,19 @@ class ReviewsSection extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
               Container(width: 1, height: 70, color: Theme.of(context).dividerColor),
-              SizedBox(width: 20),
+              const SizedBox(width: 20),
 
               // Rating Distribution Progress Bars
               Expanded(
                 child: Column(
                   children: [
-                    _barRow('5 ★', count5 / totalCount),
-                    _barRow('4 ★', count4 / totalCount),
-                    _barRow('3 ★', count3 / totalCount),
-                    _barRow('2 ★', count2 / totalCount),
-                    _barRow('1 ★', count1 / totalCount),
+                    _barRow(context, '5 ★', count5 / totalCount),
+                    _barRow(context, '4 ★', count4 / totalCount),
+                    _barRow(context, '3 ★', count3 / totalCount),
+                    _barRow(context, '2 ★', count2 / totalCount),
+                    _barRow(context, '1 ★', count1 / totalCount),
                   ],
                 ),
               ),
@@ -100,19 +100,19 @@ class ReviewsSection extends StatelessWidget {
           ),
         ),
 
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Text(context.tr('Customer Reviews'),
-          style: TextStyle(
+          style: const TextStyle(
               fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
 
         // List of Reviews
         ListView.separated(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: reviews.length,
-          separatorBuilder: (context, index) => SizedBox(height: 12),
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final r = reviews[index];
             const defaultAvatar =
@@ -140,14 +140,14 @@ class ReviewsSection extends StatelessWidget {
                               height: 40),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               r.userName,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                   color: Colors.white),
@@ -156,7 +156,7 @@ class ReviewsSection extends StatelessWidget {
                                 r.serviceName!.isNotEmpty)
                               Text(
                                 r.serviceName!,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.primaryLight),
                               ),
@@ -170,9 +170,9 @@ class ReviewsSection extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   RatingStars(rating: r.rating, size: 14),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     r.comment,
                     style: TextStyle(
@@ -190,9 +190,9 @@ class ReviewsSection extends StatelessWidget {
     );
   }
 
-  Widget _barRow(String label, double pct) {
+  Widget _barRow(BuildContext context, String label, double pct) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
           SizedBox(
@@ -205,7 +205,7 @@ class ReviewsSection extends StatelessWidget {
                   fontWeight: FontWeight.bold),
             ),
           ),
-          SizedBox(width: 6),
+          const SizedBox(width: 6),
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(4),

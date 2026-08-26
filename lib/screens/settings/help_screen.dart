@@ -4,7 +4,7 @@ import '../../widgets/glass_card.dart';
 import '../../l10n/app_localizations.dart';
 
 class HelpScreen extends StatelessWidget {
-  HelpScreen({super.key});
+  const HelpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class HelpScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -34,7 +34,7 @@ class HelpScreen extends StatelessWidget {
           title: Text(context.tr('Help & Support Center')),
         ),
         body: ListView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           children: const [
             GlassCard(
               child: ListTile(

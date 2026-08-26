@@ -13,7 +13,7 @@ class BookingBottomBar extends ConsumerWidget {
   final BusinessModel business;
   final VoidCallback? onBookNowTap;
 
-  BookingBottomBar({
+  const BookingBottomBar({
     super.key,
     required this.business,
     this.onBookNowTap,
@@ -44,7 +44,7 @@ class BookingBottomBar extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(top: BorderSide(color: borderColor, width: 1)),
         boxShadow: [
           BoxShadow(
@@ -52,14 +52,14 @@ class BookingBottomBar extends ConsumerWidget {
                 ? AppColors.shadowDark
                 : AppColors.shadowLight.withValues(alpha: 0.12),
             blurRadius: 16,
-            offset: Offset(0, -4),
+            offset: const Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
             children: [
               Expanded(
@@ -78,20 +78,20 @@ class BookingBottomBar extends ConsumerWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
                               CurrencyFormatter.format(totalPrice),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             '•  $totalDuration ${context.tr('min')}',
                             style: TextStyle(
@@ -104,14 +104,14 @@ class BookingBottomBar extends ConsumerWidget {
                     ] else ...[
                       Text(
                         business.name,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         context.tr(
                           canBook
@@ -124,7 +124,7 @@ class BookingBottomBar extends ConsumerWidget {
                   ],
                 ),
               ),
-              SizedBox(width: 16),
+              const SizedBox(width: 16),
               ElevatedButton(
                 onPressed: canBook
                     ? () async {
@@ -151,7 +151,7 @@ class BookingBottomBar extends ConsumerWidget {
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: canBook ? AppColors.primary : cardColor,
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 14,
                   ),
@@ -162,7 +162,7 @@ class BookingBottomBar extends ConsumerWidget {
                 ),
                 child: Text(
                   context.tr(canBook ? buttonText : 'Unavailable'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),

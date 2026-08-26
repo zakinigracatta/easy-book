@@ -6,7 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 
 class LocationScreen extends StatelessWidget {
-  LocationScreen({super.key});
+  const LocationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class LocationScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Salon Location & Directions')),
@@ -33,11 +33,11 @@ class LocationScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.location_on_rounded, size: 70, color: AppColors.primary),
-                    SizedBox(height: 12),
+                    const Icon(Icons.location_on_rounded, size: 70, color: AppColors.primary),
+                    const SizedBox(height: 12),
                     Text(
                       context.tr('Executive Barber Lounge Map View'),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ],
                 ),
@@ -52,16 +52,16 @@ class LocationScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(context.tr('142 Luxury Blvd, Downtown NYC'),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       context.tr('Open today: 9:00 AM - 9:00 PM • Free Parking'),
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      icon: Icon(Icons.directions_rounded),
+                      icon: const Icon(Icons.directions_rounded),
                       label: Text(context.tr('Get Directions')),
                       onPressed: () {},
                     ),

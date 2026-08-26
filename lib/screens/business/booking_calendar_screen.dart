@@ -11,7 +11,7 @@ import '../../providers/owner_providers.dart';
 import '../../l10n/app_localizations.dart';
 
 class BookingCalendarScreen extends ConsumerStatefulWidget {
-  BookingCalendarScreen({super.key});
+  const BookingCalendarScreen({super.key});
 
   @override
   ConsumerState<BookingCalendarScreen> createState() =>
@@ -39,7 +39,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -51,7 +51,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
           title: Text(context.tr('Owner Booking Calendar')),
           actions: [
             IconButton(
-              icon: Icon(Icons.add_rounded),
+              icon: const Icon(Icons.add_rounded),
               tooltip: 'Add Booking for Date',
               onPressed: () => context.push('/quick-walk-in'),
             ),
@@ -61,12 +61,12 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
           children: [
             // Calendar Month & Day DatePicker Container
             GlassCard(
-              margin: EdgeInsets.all(16),
-              padding: EdgeInsets.all(8),
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               child: CalendarDatePicker(
                 initialDate: _selectedDate,
-                firstDate: DateTime.now().subtract(Duration(days: 90)),
-                lastDate: DateTime.now().add(Duration(days: 180)),
+                firstDate: DateTime.now().subtract(const Duration(days: 90)),
+                lastDate: DateTime.now().add(const Duration(days: 180)),
                 onDateChanged: (d) {
                   setState(() => _selectedDate = d);
                 },
@@ -75,7 +75,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
 
             // Date Header Banner
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -89,16 +89,16 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                   ),
                   TextButton.icon(
                     onPressed: () => context.push('/quick-walk-in'),
-                    icon: Icon(Icons.add_rounded, size: 16),
+                    icon: const Icon(Icons.add_rounded, size: 16),
                     label: Text(context.tr('New Booking'),
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
             ),
 
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
 
             // Bookings List for Selected Date
             Expanded(
@@ -122,7 +122,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                   }
 
                   return ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: dateBookings.length,
                     itemBuilder: (context, index) {
                       final b = dateBookings[index];
@@ -137,9 +137,9 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                     },
                   );
                 },
-                loading: () => Center(
+                loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (_, __) => OwnerEmptyStateWidget(
+                error: (_, __) => const OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Calendar',
                   description:
@@ -149,7 +149,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 2),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 2),
       ),
     );
   }

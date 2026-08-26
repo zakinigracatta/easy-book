@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  WelcomeScreen({super.key});
+  const WelcomeScreen({super.key});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -26,12 +26,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     _logoController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 900),
     );
 
     _contentController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 800),
     );
 
     _logoScale = CurvedAnimation(
@@ -45,7 +45,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
 
     _contentSlide = Tween<Offset>(
-      begin: Offset(0, 0.4),
+      begin: const Offset(0, 0.4),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -62,7 +62,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _logoController.forward();
 
     Future.delayed(
-      Duration(milliseconds: 500),
+      const Duration(milliseconds: 500),
       () {
         _contentController.forward();
       },
@@ -82,7 +82,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       body: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -105,10 +105,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     child: Container(
                       width: 130,
                       height: 130,
-                      padding: EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           colors: [
                             Color(0xFF9C27FF),
                             Color(0xFF3F51FF),
@@ -131,7 +131,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     ),
                   ),
                 ),
-                SizedBox(height: 35),
+                const SizedBox(height: 35),
                 FadeTransition(
                   opacity: _contentFade,
                   child: SlideTransition(
@@ -139,28 +139,28 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     child: Column(
                       children: [
                         Text(context.tr("Easy Book"),
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 34,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1,
                           ),
                         ),
-                        SizedBox(height: 45),
+                        const SizedBox(height: 45),
                         _button(
                           context,
                           "Customer Portal",
                           Icons.person,
                           '/home',
                         ),
-                        SizedBox(height: 18),
+                        const SizedBox(height: 18),
                         _button(
                           context,
                           "Business Portal",
                           Icons.store,
                           '/owner-login',
                         ),
-                        SizedBox(height: 18),
+                        const SizedBox(height: 18),
                         _button(
                           context,
                           "Admin Portal",
@@ -195,7 +195,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         icon: Icon(icon),
         label: Text(
           text,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
           ),

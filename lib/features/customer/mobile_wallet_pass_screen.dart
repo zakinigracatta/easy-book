@@ -38,9 +38,9 @@ class MobileWalletPassScreen extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              GlassCard(
+              const GlassCard(
                 backgroundColor: AppColors.secondary,
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(

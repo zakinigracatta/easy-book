@@ -10,7 +10,7 @@ import 'customer_profile_modal.dart';
 import '../../l10n/app_localizations.dart';
 
 class CustomerManagementScreen extends ConsumerStatefulWidget {
-  CustomerManagementScreen({super.key});
+  const CustomerManagementScreen({super.key});
 
   @override
   ConsumerState<CustomerManagementScreen> createState() =>
@@ -39,7 +39,7 @@ class _CustomerManagementScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -54,7 +54,7 @@ class _CustomerManagementScreenState
           children: [
             // Search Input
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: TextField(
                 onChanged: (val) =>
                     setState(() => _searchQuery = val.toLowerCase()),
@@ -67,7 +67,7 @@ class _CustomerManagementScreenState
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.surface,
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
@@ -87,7 +87,7 @@ class _CustomerManagementScreenState
                   }).toList();
 
                   if (filtered.isEmpty) {
-                    return OwnerEmptyStateWidget(
+                    return const OwnerEmptyStateWidget(
                       icon: Icons.people_outline_rounded,
                       title: 'No Customers Found',
                       description:
@@ -96,12 +96,12 @@ class _CustomerManagementScreenState
                   }
 
                   return ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final c = filtered[index];
                       return Padding(
-                        padding: EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: GlassCard(
                           onTap: () {
                             showModalBottomSheet(
@@ -118,7 +118,7 @@ class _CustomerManagementScreenState
                                   AppColors.primary.withValues(alpha: 0.2),
                               child: Text(
                                 c.name[0].toUpperCase(),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryLight,
                                 ),
@@ -142,17 +142,17 @@ class _CustomerManagementScreenState
                               children: [
                                 Text(
                                   'AED ${c.totalSpent.toStringAsFixed(0)}',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.success,
                                     fontSize: 14,
                                   ),
                                 ),
                                 if (c.noShowCount > 0) ...[
-                                  SizedBox(height: 2),
+                                  const SizedBox(height: 2),
                                   Text(
                                     '${c.noShowCount} No-Shows',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 10,
                                       color: AppColors.warning,
                                       fontWeight: FontWeight.bold,
@@ -167,9 +167,9 @@ class _CustomerManagementScreenState
                     },
                   );
                 },
-                loading: () => Center(
+                loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (_, __) => OwnerEmptyStateWidget(
+                error: (_, __) => const OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Customers',
                   description: 'Failed to retrieve customer CRM database.',
@@ -178,7 +178,7 @@ class _CustomerManagementScreenState
             ),
           ],
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
       ),
     );
   }

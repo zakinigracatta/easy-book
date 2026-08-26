@@ -11,7 +11,7 @@ class OwnerStatCard extends StatelessWidget {
   final Color iconColor;
   final String? subtitle;
 
-  OwnerStatCard({
+  const OwnerStatCard({
     super.key,
     required this.label,
     required this.value,
@@ -27,7 +27,7 @@ class OwnerStatCard extends StatelessWidget {
         isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
 
     return GlassCard(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -35,7 +35,7 @@ class OwnerStatCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: iconColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
@@ -53,16 +53,16 @@ class OwnerStatCard extends StatelessWidget {
                 ),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.5,
             ),
           ),
-          SizedBox(height: 2),
+          const SizedBox(height: 2),
           Text(
             context.tr(label),
             style: TextStyle(

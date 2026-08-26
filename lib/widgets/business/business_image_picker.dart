@@ -10,7 +10,7 @@ class BusinessImagePicker extends StatelessWidget {
   final VoidCallback? onDeleteImage;
   final bool isLoading;
 
-  BusinessImagePicker({
+  const BusinessImagePicker({
     super.key,
     this.currentImageUrl,
     required this.label,
@@ -24,7 +24,7 @@ class BusinessImagePicker extends StatelessWidget {
     final hasImage = currentImageUrl != null && currentImageUrl!.isNotEmpty;
 
     return GlassCard(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -36,7 +36,7 @@ class BusinessImagePicker extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           GestureDetector(
             onTap: isLoading ? null : onPickImage,
             child: Container(
@@ -54,7 +54,7 @@ class BusinessImagePicker extends StatelessWidget {
                     : null,
               ),
               child: isLoading
-                  ? Center(
+                  ? const Center(
                       child: CircularProgressIndicator(
                         color: AppColors.primary,
                       ),
@@ -63,12 +63,12 @@ class BusinessImagePicker extends StatelessWidget {
                       ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.add_a_photo_rounded,
                               size: 32,
                               color: AppColors.primaryLight,
                             ),
-                            SizedBox(height: 6),
+                            const SizedBox(height: 6),
                             Text(context.tr('Tap to upload image'),
                               style: TextStyle(
                                 fontSize: 12,
@@ -79,7 +79,7 @@ class BusinessImagePicker extends StatelessWidget {
                         )
                       : Container(
                           alignment: Alignment.topRight,
-                          padding: EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(8),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -88,19 +88,19 @@ class BusinessImagePicker extends StatelessWidget {
                                 backgroundColor:
                                     Colors.black.withValues(alpha: 0.6),
                                 child: IconButton(
-                                  icon: Icon(Icons.edit_rounded,
+                                  icon: const Icon(Icons.edit_rounded,
                                       size: 14, color: Colors.white),
                                   onPressed: onPickImage,
                                 ),
                               ),
                               if (onDeleteImage != null) ...[
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 CircleAvatar(
                                   radius: 16,
                                   backgroundColor:
                                       AppColors.error.withValues(alpha: 0.8),
                                   child: IconButton(
-                                    icon: Icon(Icons.delete_rounded,
+                                    icon: const Icon(Icons.delete_rounded,
                                         size: 14, color: Colors.white),
                                     onPressed: onDeleteImage,
                                   ),

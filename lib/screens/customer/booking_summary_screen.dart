@@ -11,7 +11,7 @@ import '../../widgets/glass_card.dart';
 import 'widgets/booking_progress_header.dart';
 
 class BookingSummaryScreen extends ConsumerWidget {
-  BookingSummaryScreen({super.key});
+  const BookingSummaryScreen({super.key});
 
   static Color _mutedColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
@@ -45,14 +45,14 @@ class BookingSummaryScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Booking Summary')),
         ),
         body: businessState.when(
-          loading: () => Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, __) => _errorState(
             context,
             'Unable to load the business details. Please try again.',
@@ -66,40 +66,40 @@ class BookingSummaryScreen extends ConsumerWidget {
             }
 
             return SingleChildScrollView(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  BookingProgressHeader(currentStep: 3),
-                  SizedBox(height: 20),
+                  const BookingProgressHeader(currentStep: 3),
+                  const SizedBox(height: 20),
                   GlassCard(
                     child: Row(
                       children: [
                         Container(
-                          padding: EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.primary.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.storefront_rounded,
                             color: AppColors.primary,
                             size: 24,
                           ),
                         ),
-                        SizedBox(width: 14),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 business.name,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
                                 business.address,
                                 maxLines: 2,
@@ -115,7 +115,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,13 +125,13 @@ class BookingSummaryScreen extends ConsumerWidget {
                           'Services',
                           onEdit: () => context.push('/booking-service'),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         if (services.isNotEmpty)
                           ...services.map((service) {
                             final price =
                                 service.discountPrice ?? service.price;
                             return Padding(
-                              padding: EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.only(bottom: 10),
                               child: Row(
                                 children: [
                                   Expanded(
@@ -141,7 +141,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                                       children: [
                                         Text(
                                           service.name,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -162,7 +162,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                                         price,
                                         currency: service.currency,
                                       ),
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.primary,
                                       ),
@@ -178,7 +178,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                             draft.serviceName ?? 'Service',
                             CurrencyFormatter.format(totalPrice),
                           ),
-                        Divider(height: 22),
+                        const Divider(height: 22),
                         _summaryRow(
                           context,
                           'Total duration',
@@ -187,7 +187,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,21 +197,21 @@ class BookingSummaryScreen extends ConsumerWidget {
                           'Appointment',
                           onEdit: () => context.push('/booking-time'),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         _infoRow(
                           context,
                           Icons.calendar_today_rounded,
                           'Date',
                           dateStr,
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         _infoRow(
                           context,
                           Icons.access_time_rounded,
                           'Time',
                           timeStr,
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         _infoRow(
                           context,
                           Icons.person_outline_rounded,
@@ -221,19 +221,19 @@ class BookingSummaryScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           context.tr('Total'),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -245,7 +245,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                               textDirection: TextDirection.ltr,
                               child: Text(
                                 CurrencyFormatter.format(totalPrice),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primary,
@@ -257,7 +257,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   CustomButton(
                     text: 'Continue to Confirmation',
                     onPressed: draft.isComplete
@@ -305,7 +305,7 @@ class BookingSummaryScreen extends ConsumerWidget {
       children: [
         Text(
           context.tr(title),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),
@@ -327,9 +327,9 @@ class BookingSummaryScreen extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox.shrink(),
+        const SizedBox.shrink(),
         Icon(icon, size: 17, color: AppColors.primary),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         SizedBox(
           width: 90,
           child: Text(
@@ -343,7 +343,7 @@ class BookingSummaryScreen extends ConsumerWidget {
         Expanded(
           child: Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
@@ -366,10 +366,10 @@ class BookingSummaryScreen extends ConsumerWidget {
             style: TextStyle(color: _mutedColor(context)),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Text(
           value,
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -378,22 +378,22 @@ class BookingSummaryScreen extends ConsumerWidget {
   static Widget _errorState(BuildContext context, String message) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(28),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline_rounded,
               size: 48,
               color: AppColors.error,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               context.tr(message),
               textAlign: TextAlign.center,
               style: TextStyle(color: _mutedColor(context)),
             ),
-            SizedBox(height: 14),
+            const SizedBox(height: 14),
             OutlinedButton(
               onPressed: () => context.go('/home'),
               child: Text(context.tr('Back to Home')),

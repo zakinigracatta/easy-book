@@ -4,7 +4,7 @@ import '../../../theme/app_colors.dart';
 class BookingProgressHeader extends StatelessWidget {
   final int currentStep; // 1 = Specialist, 2 = Date & Time, 3 = Summary
 
-  BookingProgressHeader({
+  const BookingProgressHeader({
     super.key,
     required this.currentStep,
   });
@@ -14,7 +14,7 @@ class BookingProgressHeader extends StatelessWidget {
     final steps = ['Specialist', 'Date & Time', 'Summary'];
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
@@ -45,7 +45,7 @@ class BookingProgressHeader extends StatelessWidget {
                   ),
                   alignment: Alignment.center,
                   child: isDone
-                      ? Icon(Icons.check_rounded,
+                      ? const Icon(Icons.check_rounded,
                           size: 14, color: Colors.white)
                       : Text(
                           '$stepNum',
@@ -58,7 +58,7 @@ class BookingProgressHeader extends StatelessWidget {
                           ),
                         ),
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     steps[index],
@@ -77,7 +77,7 @@ class BookingProgressHeader extends StatelessWidget {
                 ),
                 if (index < steps.length - 1)
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(Icons.chevron_right_rounded,
                         size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),

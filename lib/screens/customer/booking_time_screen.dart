@@ -13,7 +13,7 @@ import 'widgets/booking_progress_header.dart';
 import 'widgets/time_slot_grid.dart';
 
 class BookingTimeScreen extends ConsumerStatefulWidget {
-  BookingTimeScreen({super.key});
+  const BookingTimeScreen({super.key});
 
   @override
   ConsumerState<BookingTimeScreen> createState() => _BookingTimeScreenState();
@@ -105,20 +105,20 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Select Appointment Time')),
         ),
         body: businessState.when(
-          loading: () => Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, __) => Center(
             child: Text(
               context.tr(
                 'Unable to load the business details. Please try again.',
               ),
-              style: TextStyle(color: AppColors.error),
+              style: const TextStyle(color: AppColors.error),
               textAlign: TextAlign.center,
             ),
           ),
@@ -133,11 +133,11 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
             }
 
             return eligibleStaffState.when(
-              loading: () => Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) => Center(
                 child: Text(
                   context.tr('Unable to load specialists. Please try again.'),
-                  style: TextStyle(color: AppColors.error),
+                  style: const TextStyle(color: AppColors.error),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -154,12 +154,12 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                 );
 
                 return Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      BookingProgressHeader(currentStep: 2),
-                      SizedBox(height: 16),
+                      const BookingProgressHeader(currentStep: 2),
+                      const SizedBox(height: 16),
                       BookingDateSelector(
                         selectedDate: _selectedDate,
                         onDateSelected: (date) {
@@ -169,11 +169,11 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                           });
                         },
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       Expanded(
                         child: SingleChildScrollView(
                           child: engineSlotsState.when(
-                            loading: () => TimeSlotGrid(
+                            loading: () => const TimeSlotGrid(
                               slots: [],
                               selectedSlotTime: null,
                               onSlotSelected: _noop,
@@ -185,7 +185,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                                   'Unable to load time slots. Please try again.',
                                 ),
                                 style:
-                                    TextStyle(color: AppColors.error),
+                                    const TextStyle(color: AppColors.error),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -199,7 +199,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       engineSlotsState.maybeWhen(
                         data: (_) => CustomButton(
                           text: 'Review Booking Summary',
@@ -207,7 +207,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                               ? () => _onNext(eligibleStaff)
                               : null,
                         ),
-                        orElse: () => SizedBox.shrink(),
+                        orElse: () => const SizedBox.shrink(),
                       ),
                     ],
                   ),

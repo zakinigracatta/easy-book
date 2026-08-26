@@ -11,7 +11,7 @@ import '../../models/review_model.dart';
 import '../../l10n/app_localizations.dart';
 
 class OwnerReviewsScreen extends ConsumerWidget {
-  OwnerReviewsScreen({super.key});
+  const OwnerReviewsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,14 +28,14 @@ class OwnerReviewsScreen extends ConsumerWidget {
         appBar: AppBar(
           title: Text(context.tr('Customer Reviews & Ratings')),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
         ),
         body: reviewsAsync.when(
           data: (reviews) => _buildContent(context, ref, reviews),
-          loading: () => Center(
+          loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (error, _) => OwnerEmptyStateWidget(
@@ -44,7 +44,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
             description: error.toString(),
           ),
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
       ),
     );
   }
@@ -55,7 +55,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
     List<ReviewModel> reviews,
   ) {
     if (reviews.isEmpty) {
-      return OwnerEmptyStateWidget(
+      return const OwnerEmptyStateWidget(
         icon: Icons.rate_review_rounded,
         title: 'No Reviews Yet',
         description: 'Customer reviews will appear here once submitted.',
@@ -79,15 +79,16 @@ class OwnerReviewsScreen extends ConsumerWidget {
         await ref.read(ownerReviewsProvider.future);
       },
       child: ListView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         children: [
           _buildOverviewCard(
+            context: context,
             average: average,
             total: reviews.length,
             replied: repliedCount,
             distribution: distribution,
           ),
-          SizedBox(height: 18),
+          const SizedBox(height: 18),
           Text(context.tr('Client Feedback'),
             style: TextStyle(
               fontSize: 17,
@@ -95,24 +96,25 @@ class OwnerReviewsScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           ...reviews.map(
             (review) => _buildReviewCard(context, ref, review),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
   Widget _buildOverviewCard({
+    required BuildContext context,
     required double average,
     required int total,
     required int replied,
     required Map<int, int> distribution,
   }) {
     return GlassCard(
-      padding: EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       child: Column(
         children: [
           Row(
@@ -129,7 +131,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Row(
                     children: List.generate(5, (index) {
                       final filled = index + 1 <= average.round();
@@ -140,7 +142,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                       );
                     }),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     '$total reviews',
                     style: TextStyle(
@@ -150,12 +152,13 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              SizedBox(width: 22),
+              const SizedBox(width: 22),
               Expanded(
                 child: Column(
                   children: [
                     for (var star = 5; star >= 1; star--)
                       _ratingBar(
+                        context,
                         star,
                         total == 0 ? 0 : (distribution[star] ?? 0) / total,
                       ),
@@ -164,12 +167,12 @@ class OwnerReviewsScreen extends ConsumerWidget {
               ),
             ],
           ),
-          Divider(height: 26),
+          const Divider(height: 26),
           Row(
             children: [
-              Icon(Icons.reply_all_rounded,
+              const Icon(Icons.reply_all_rounded,
                   size: 18, color: AppColors.primaryLight),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 '$replied of $total reviews replied to',
                 style: TextStyle(
@@ -185,9 +188,9 @@ class OwnerReviewsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _ratingBar(int star, double value) {
+  Widget _ratingBar(BuildContext context, int star, double value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 5),
+      padding: const EdgeInsets.only(bottom: 5),
       child: Row(
         children: [
           SizedBox(
@@ -200,8 +203,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Icon(Icons.star_rounded, size: 11, color: AppColors.gold),
-          SizedBox(width: 5),
+          const Icon(Icons.star_rounded, size: 11, color: AppColors.gold),
+          const SizedBox(width: 5),
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5),
@@ -226,8 +229,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
   ) {
     final reply = review.businessReply?.trim();
     return GlassCard(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -244,14 +247,14 @@ class OwnerReviewsScreen extends ConsumerWidget {
                         review.userName.isEmpty
                             ? '?'
                             : review.userName[0].toUpperCase(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryLight,
                         ),
                       )
                     : null,
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,7 +283,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
               ),
               Container(
                 padding:
-                    EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: BoxDecoration(
                   color: AppColors.gold.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
@@ -288,9 +291,9 @@ class OwnerReviewsScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.star_rounded,
+                    const Icon(Icons.star_rounded,
                         size: 14, color: AppColors.gold),
-                    SizedBox(width: 3),
+                    const SizedBox(width: 3),
                     Text(
                       review.rating.toStringAsFixed(1),
                       style: TextStyle(
@@ -304,7 +307,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
               ),
             ],
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
             review.comment,
             style: TextStyle(
@@ -314,10 +317,10 @@ class OwnerReviewsScreen extends ConsumerWidget {
             ),
           ),
           if (reply != null && reply.isNotEmpty) ...[
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
@@ -330,17 +333,17 @@ class OwnerReviewsScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.storefront_rounded,
+                      const Icon(Icons.storefront_rounded,
                           size: 15, color: AppColors.primaryLight),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Text(context.tr('Business reply'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryLight,
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       if (review.businessReplyAt != null)
                         Text(
                           DateFormat('MMM d').format(review.businessReplyAt!),
@@ -351,7 +354,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                         ),
                     ],
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(
                     reply,
                     style: TextStyle(
@@ -363,7 +366,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
               ),
             ),
           ],
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
@@ -400,7 +403,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
           minLines: 3,
           maxLines: 6,
           maxLength: 500,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'Write an official business response…',
           ),
         ),

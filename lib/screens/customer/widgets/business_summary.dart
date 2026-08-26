@@ -8,7 +8,7 @@ class BusinessSummary extends StatelessWidget {
   final BusinessModel business;
   final String? distanceText;
 
-  BusinessSummary({
+  const BusinessSummary({
     super.key,
     required this.business,
     this.distanceText,
@@ -34,7 +34,7 @@ class BusinessSummary extends StatelessWidget {
             Expanded(
               child: Text(
                 business.name,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.5,
@@ -42,9 +42,9 @@ class BusinessSummary extends StatelessWidget {
               ),
             ),
             if (business.isVerified) ...[
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.success.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -55,15 +55,15 @@ class BusinessSummary extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.verified_rounded,
                       color: AppColors.success,
                       size: 14,
                     ),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       context.tr('VERIFIED'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
@@ -76,20 +76,20 @@ class BusinessSummary extends StatelessWidget {
             ],
           ],
         ),
-        SizedBox(height: 6),
+        const SizedBox(height: 6),
         Text(
           business.category,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Row(
           children: [
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.gold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
@@ -99,15 +99,15 @@ class BusinessSummary extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.star_rounded,
                     color: AppColors.gold,
                     size: 16,
                   ),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   Text(
                     business.rating.toStringAsFixed(1),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColors.gold,
                       fontSize: 13,
@@ -116,7 +116,7 @@ class BusinessSummary extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Text(
               context.tr(
                 '{count} reviews',
@@ -130,11 +130,11 @@ class BusinessSummary extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Row(
           children: [
             Icon(Icons.location_on_outlined, color: mutedColor, size: 16),
-            SizedBox(width: 6),
+            const SizedBox(width: 6),
             Expanded(
               child: Text(
                 business.address,
@@ -144,9 +144,9 @@ class BusinessSummary extends StatelessWidget {
               ),
             ),
             if (distanceText != null && distanceText!.isNotEmpty) ...[
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: chipColor,
                   borderRadius: BorderRadius.circular(6),
@@ -163,9 +163,9 @@ class BusinessSummary extends StatelessWidget {
             ],
           ],
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: (statusInfo.isOpen ? AppColors.success : AppColors.error)
                 .withValues(alpha: 0.1),
@@ -187,7 +187,7 @@ class BusinessSummary extends StatelessWidget {
                       statusInfo.isOpen ? AppColors.success : AppColors.error,
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   context.tr(statusInfo.statusText),

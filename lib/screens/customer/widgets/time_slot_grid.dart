@@ -11,7 +11,7 @@ class TimeSlotGrid extends StatelessWidget {
   final ValueChanged<AvailableSlot> onSlotSelected;
   final bool isLoading;
 
-  TimeSlotGrid({
+  const TimeSlotGrid({
     super.key,
     required this.slots,
     required this.selectedSlotTime,
@@ -30,15 +30,15 @@ class TimeSlotGrid extends StatelessWidget {
 
     if (isLoading) {
       return Container(
-        padding: EdgeInsets.symmetric(vertical: 32),
+        padding: const EdgeInsets.symmetric(vertical: 32),
         alignment: Alignment.center,
         child: Column(
           children: [
-            CircularProgressIndicator(
+            const CircularProgressIndicator(
               strokeWidth: 2,
               color: AppColors.primary,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               context.tr('Checking available appointment times...'),
               style: TextStyle(color: mutedColor, fontSize: 13),
@@ -50,19 +50,19 @@ class TimeSlotGrid extends StatelessWidget {
 
     if (slots.isEmpty) {
       return GlassCard(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             Icon(Icons.event_busy_rounded, size: 44, color: mutedColor),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               context.tr('No available times for this date.'),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
               context.tr(
                 'Please select another date or choose Any Available Specialist.',
@@ -93,7 +93,7 @@ class TimeSlotGrid extends StatelessWidget {
             secondaryColor,
           ),
           _slotGrid(context, morningSlots),
-          SizedBox(height: 18),
+          const SizedBox(height: 18),
         ],
         if (afternoonSlots.isNotEmpty) ...[
           _periodHeader(
@@ -103,7 +103,7 @@ class TimeSlotGrid extends StatelessWidget {
             secondaryColor,
           ),
           _slotGrid(context, afternoonSlots),
-          SizedBox(height: 18),
+          const SizedBox(height: 18),
         ],
         if (eveningSlots.isNotEmpty) ...[
           _periodHeader(
@@ -113,7 +113,7 @@ class TimeSlotGrid extends StatelessWidget {
             secondaryColor,
           ),
           _slotGrid(context, eveningSlots),
-          SizedBox(height: 18),
+          const SizedBox(height: 18),
         ],
       ],
     );
@@ -126,12 +126,12 @@ class TimeSlotGrid extends StatelessWidget {
     Color secondaryColor,
   ) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          SizedBox.shrink(),
+          const SizedBox.shrink(),
           Icon(icon, size: 16, color: AppColors.primary),
-          SizedBox(width: 6),
+          const SizedBox(width: 6),
           Text(
             context.tr(title),
             style: TextStyle(
@@ -148,8 +148,8 @@ class TimeSlotGrid extends StatelessWidget {
   Widget _slotGrid(BuildContext context, List<AvailableSlot> periodSlots) {
     return GridView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,

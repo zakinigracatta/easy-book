@@ -11,7 +11,7 @@ class ServiceCard extends StatelessWidget {
   final VoidCallback onBookTap;
   final VoidCallback? cardTap;
 
-  ServiceCard({
+  const ServiceCard({
     super.key,
     required this.service,
     this.isSelected = false,
@@ -29,7 +29,7 @@ class ServiceCard extends StatelessWidget {
       onTap: cardTap ?? onBookTap,
       borderColor: isSelected ? AppColors.primary : null,
       child: Padding(
-        padding: EdgeInsets.all(4),
+        padding: const EdgeInsets.all(4),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -53,7 +53,7 @@ class ServiceCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: 12),
+              const SizedBox(width: 12),
             ],
 
             // Service Details
@@ -63,18 +63,18 @@ class ServiceCard extends StatelessWidget {
                 children: [
                   Text(
                     service.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       Icon(Icons.access_time_rounded,
                           size: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
                         service.duration,
                         style: TextStyle(
@@ -87,7 +87,7 @@ class ServiceCard extends StatelessWidget {
                   ),
                   if (service.description != null &&
                       service.description!.isNotEmpty) ...[
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     Text(
                       service.description!,
                       style: TextStyle(
@@ -99,7 +99,7 @@ class ServiceCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
                   // Price Display
                   Row(
@@ -107,14 +107,14 @@ class ServiceCard extends StatelessWidget {
                       Text(
                         CurrencyFormatter.format(effectivePrice,
                             currency: service.currency),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.primaryLight,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                       if (hasDiscount) ...[
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           CurrencyFormatter.format(service.price,
                               currency: service.currency),
@@ -131,7 +131,7 @@ class ServiceCard extends StatelessWidget {
               ),
             ),
 
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
 
             // Book / Select Button
             ElevatedButton(
@@ -140,7 +140,7 @@ class ServiceCard extends StatelessWidget {
                 backgroundColor:
                     isSelected ? AppColors.accent : AppColors.primary,
                 padding:
-                    EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
@@ -149,7 +149,7 @@ class ServiceCard extends StatelessWidget {
               child: Text(
                 isSelected ? 'Selected ✓' : 'Book',
                 style:
-                    TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ),
           ],

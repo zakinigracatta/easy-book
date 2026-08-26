@@ -8,7 +8,7 @@ import '../../../l10n/app_localizations.dart';
 class AboutSection extends StatelessWidget {
   final BusinessModel business;
 
-  AboutSection({
+  const AboutSection({
     super.key,
     required this.business,
   });
@@ -24,13 +24,13 @@ class AboutSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(context.tr('About Business'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text(
                 business.description.isNotEmpty
                     ? business.description
@@ -45,7 +45,7 @@ class AboutSection extends StatelessWidget {
           ),
         ),
 
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
 
         // Amenities & Facilities
         if (business.amenities.isNotEmpty) ...[
@@ -54,13 +54,13 @@ class AboutSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(context.tr('Amenities & Features'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -82,7 +82,7 @@ class AboutSection extends StatelessWidget {
                     }
 
                     return Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Theme.of(context).scaffoldBackgroundColor,
@@ -94,7 +94,7 @@ class AboutSection extends StatelessWidget {
                         children: [
                           Icon(iconData,
                               size: 16, color: AppColors.primaryLight),
-                          SizedBox(width: 6),
+                          const SizedBox(width: 6),
                           Text(
                             amenity,
                             style: TextStyle(
@@ -111,7 +111,7 @@ class AboutSection extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
         ],
 
         // Contact & Location Card
@@ -120,29 +120,29 @@ class AboutSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(context.tr('Contact & Location'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 14),
-              _contactRow(
+              const SizedBox(height: 14),
+              _contactRow(context, 
                   Icons.location_on_outlined, 'Address', business.address),
               if (business.phone != null && business.phone!.isNotEmpty) ...[
-                SizedBox(height: 12),
-                _contactRow(Icons.phone_outlined, 'Phone', business.phone!),
+                const SizedBox(height: 12),
+                _contactRow(context, Icons.phone_outlined, 'Phone', business.phone!),
               ],
               if (business.website != null && business.website!.isNotEmpty) ...[
-                SizedBox(height: 12),
-                _contactRow(
+                const SizedBox(height: 12),
+                _contactRow(context, 
                     Icons.language_outlined, 'Website', business.website!),
               ],
             ],
           ),
         ),
 
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
 
         // Weekly Working Hours
         WorkingHoursSection(workingHours: business.workingHours),
@@ -150,19 +150,19 @@ class AboutSection extends StatelessWidget {
     );
   }
 
-  Widget _contactRow(IconData icon, String label, String value) {
+  Widget _contactRow(BuildContext context, IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, size: 16, color: AppColors.primaryLight),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,10 +175,10 @@ class AboutSection extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 2),
+              const SizedBox(height: 2),
               Text(
                 value,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 13,
                   color: Colors.white,
                   fontWeight: FontWeight.w500,

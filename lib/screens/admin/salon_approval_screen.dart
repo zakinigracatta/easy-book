@@ -7,7 +7,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 
 class SalonApprovalScreen extends StatelessWidget {
-  SalonApprovalScreen({super.key});
+  const SalonApprovalScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class SalonApprovalScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop()
                 ? context.pop()
                 : context.go('/admin-dashboard'),
@@ -39,7 +39,7 @@ class SalonApprovalScreen extends StatelessWidget {
             if (snapshot.hasError) {
               return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Text(
                     context.tr('Unable to load pending businesses.'),
                     textAlign: TextAlign.center,
@@ -49,23 +49,23 @@ class SalonApprovalScreen extends StatelessWidget {
             }
 
             if (!snapshot.hasData) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
 
             final docs = snapshot.data!.docs;
             if (docs.isEmpty) {
               return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.verified_rounded,
                         size: 56,
                         color: AppColors.success,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
                         context.tr('No pending business approvals.'),
                         textAlign: TextAlign.center,
@@ -77,7 +77,7 @@ class SalonApprovalScreen extends StatelessWidget {
             }
 
             return ListView.builder(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               itemCount: docs.length,
               itemBuilder: (context, index) {
                 final doc = docs[index];
@@ -88,24 +88,24 @@ class SalonApprovalScreen extends StatelessWidget {
                 final phone = (data['phone'] ?? '').toString();
 
                 return Padding(
-                  padding: EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: GlassCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           name,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
                         if (category.isNotEmpty) ...[
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(category),
                         ],
                         if (address.isNotEmpty) ...[
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Text(
                             address,
                             style: TextStyle(
@@ -114,7 +114,7 @@ class SalonApprovalScreen extends StatelessWidget {
                           ),
                         ],
                         if (phone.isNotEmpty) ...[
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
@@ -125,7 +125,7 @@ class SalonApprovalScreen extends StatelessWidget {
                             ),
                           ),
                         ],
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
@@ -133,10 +133,10 @@ class SalonApprovalScreen extends StatelessWidget {
                               onPressed: () => _reject(context, doc.reference),
                               child: Text(
                                 context.tr('Reject'),
-                                style: TextStyle(color: AppColors.error),
+                                style: const TextStyle(color: AppColors.error),
                               ),
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             ElevatedButton(
                               onPressed: () => _approve(context, doc.reference),
                               child: Text(context.tr('Approve Partner')),

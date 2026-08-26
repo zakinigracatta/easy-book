@@ -1,19 +1,18 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../../theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 
 class GallerySection extends StatelessWidget {
   final List<String> galleryUrls;
 
-  GallerySection({
+  const GallerySection({
     super.key,
     required this.galleryUrls,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (galleryUrls.isEmpty) return SizedBox.shrink();
+    if (galleryUrls.isEmpty) return const SizedBox.shrink();
 
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     final thumbnailCacheWidth = (160 * devicePixelRatio)
@@ -25,19 +24,19 @@ class GallerySection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(context.tr('Photo Gallery'),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         SizedBox(
           height: 120,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: galleryUrls.length,
-            separatorBuilder: (context, index) => SizedBox(width: 10),
+            separatorBuilder: (context, index) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final url = galleryUrls[index];
               return RepaintBoundary(
@@ -50,7 +49,7 @@ class GallerySection extends StatelessWidget {
                     fit: BoxFit.cover,
                     memCacheWidth: thumbnailCacheWidth,
                     maxWidthDiskCache: thumbnailCacheWidth,
-                    fadeInDuration: Duration(milliseconds: 100),
+                    fadeInDuration: const Duration(milliseconds: 100),
                     fadeOutDuration: Duration.zero,
                     placeholder: (context, url) =>
                         Container(color: Theme.of(context).colorScheme.surface),
@@ -69,7 +68,7 @@ class GallerySection extends StatelessWidget {
             },
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
       ],
     );
   }

@@ -7,7 +7,7 @@ import '../theme/app_colors.dart';
 class CustomerBottomNav extends StatelessWidget {
   final int currentIndex;
 
-  CustomerBottomNav({super.key, required this.currentIndex});
+  const CustomerBottomNav({super.key, required this.currentIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class CustomerBottomNav extends StatelessWidget {
     ];
 
     return Container(
-      margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       height: 64,
       decoration: BoxDecoration(
         color: (isDark ? Theme.of(context).colorScheme.surface : AppColors.cardLight)
@@ -36,7 +36,7 @@ class CustomerBottomNav extends StatelessWidget {
           BoxShadow(
             color: isDark ? AppColors.shadowDark : AppColors.shadowLight,
             blurRadius: 16,
-            offset: Offset(0, 8),
+            offset: const Offset(0, 8),
           ),
         ],
       ),
@@ -82,8 +82,8 @@ class CustomerBottomNav extends StatelessWidget {
         if (!isSelected) context.go(route);
       },
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.12)
@@ -98,7 +98,7 @@ class CustomerBottomNav extends StatelessWidget {
               size: 22,
               color: isSelected ? AppColors.primary : mutedColor,
             ),
-            SizedBox(height: 2),
+            const SizedBox(height: 2),
             Text(
               context.tr(label),
               style: TextStyle(

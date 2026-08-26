@@ -12,7 +12,7 @@ import 'widgets/selected_services_summary.dart';
 import 'widgets/specialist_option_card.dart';
 
 class BookingSpecialistScreen extends ConsumerStatefulWidget {
-  BookingSpecialistScreen({super.key});
+  const BookingSpecialistScreen({super.key});
 
   @override
   ConsumerState<BookingSpecialistScreen> createState() =>
@@ -100,18 +100,18 @@ class _BookingSpecialistScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Select Specialist')),
         ),
         body: Padding(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              BookingProgressHeader(currentStep: 1),
-              SizedBox(height: 16),
+              const BookingProgressHeader(currentStep: 1),
+              const SizedBox(height: 16),
               if (selectedServices.isNotEmpty) ...[
                 SelectedServicesSummary(
                   services: selectedServices,
@@ -123,7 +123,7 @@ class _BookingSpecialistScreenState
                     }
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
               ],
               Align(
                 alignment: AlignmentDirectional.centerStart,
@@ -132,12 +132,12 @@ class _BookingSpecialistScreenState
                   children: [
                     Text(
                       context.tr('Choose a Specialist'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       context.tr(
                         'Select your preferred specialist or choose anyone available.',
@@ -150,17 +150,17 @@ class _BookingSpecialistScreenState
                   ],
                 ),
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               Expanded(
                 child: eligibleStaffState.when(
                   loading: () =>
-                      Center(child: CircularProgressIndicator()),
+                      const Center(child: CircularProgressIndicator()),
                   error: (_, __) => Center(
                     child: Text(
                       context.tr(
                         'Unable to load specialists. Please try again.',
                       ),
-                      style: TextStyle(color: AppColors.error),
+                      style: const TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -188,12 +188,12 @@ class _BookingSpecialistScreenState
                             });
                           },
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         ...eligibleStaff.map((staff) {
                           final isSelected =
                               !_anySpecialist && _selectedStaffId == staff.id;
                           return Padding(
-                            padding: EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.only(bottom: 12),
                             child: SpecialistOptionCard(
                               staff: staff,
                               isSelected: isSelected,
@@ -218,7 +218,7 @@ class _BookingSpecialistScreenState
                       ? () => _onNext(eligibleStaff)
                       : null,
                 ),
-                orElse: () => SizedBox.shrink(),
+                orElse: () => const SizedBox.shrink(),
               ),
             ],
           ),

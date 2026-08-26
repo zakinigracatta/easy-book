@@ -110,7 +110,7 @@ class CustomerProfileScreen extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.gold.withOpacity(0.15),
+                                color: AppColors.gold.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text('Gold Member',
@@ -359,7 +359,7 @@ class CustomerProfileScreen extends StatelessWidget {
               // Logout Button
               GlassCard(
                 onTap: () => context.go('/welcome'),
-                borderColor: AppColors.error.withOpacity(0.4),
+                borderColor: AppColors.error.withValues(alpha: 0.4),
                 child: const Row(
                   children: [
                     Icon(Icons.logout_rounded,

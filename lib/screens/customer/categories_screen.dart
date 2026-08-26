@@ -6,7 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 
 class CategoriesScreen extends StatelessWidget {
-  CategoriesScreen({super.key});
+  const CategoriesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +29,14 @@ class CategoriesScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('All Service Categories')),
         ),
         body: GridView.builder(
-          padding: EdgeInsets.all(20),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          padding: const EdgeInsets.all(20),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
@@ -56,13 +56,13 @@ class CategoriesScreen extends StatelessWidget {
                     backgroundColor: color.withValues(alpha: 0.2),
                     child: Icon(category['icon'] as IconData, color: color, size: 28),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Text(
                     context.tr(category['name'] as String),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     context.tr(category['count'] as String),
                     style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),

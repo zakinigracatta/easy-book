@@ -7,14 +7,13 @@ import '../../../models/business_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../services/auth_guard.dart';
-import '../../../theme/app_colors.dart';
 import '../../../l10n/app_localizations.dart';
 
 class BusinessHero extends ConsumerWidget {
   final BusinessModel business;
   final VoidCallback? onShare;
 
-  BusinessHero({
+  const BusinessHero({
     super.key,
     required this.business,
     this.onShare,
@@ -40,18 +39,18 @@ class BusinessHero extends ConsumerWidget {
           child: AspectRatio(
             aspectRatio: 16 / 10,
             child: imageUrl.isEmpty
-                ? _coverPlaceholder()
+                ? _coverPlaceholder(context)
                 : CachedNetworkImage(
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
                     memCacheWidth: heroCacheWidth,
                     maxWidthDiskCache: heroCacheWidth,
-                    fadeInDuration: Duration(milliseconds: 120),
+                    fadeInDuration: const Duration(milliseconds: 120),
                     fadeOutDuration: Duration.zero,
                     placeholder: (context, url) => Container(
                       color: Theme.of(context).colorScheme.surface,
                     ),
-                    errorWidget: (context, url, error) => _coverPlaceholder(),
+                    errorWidget: (context, url, error) => _coverPlaceholder(context),
                   ),
           ),
         ),
@@ -73,7 +72,7 @@ class BusinessHero extends ConsumerWidget {
         ),
         SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -121,7 +120,7 @@ class BusinessHero extends ConsumerWidget {
                         }
                       },
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     _circleIconButton(
                       icon: Icons.share_rounded,
                       onTap: onShare ??
@@ -143,7 +142,7 @@ class BusinessHero extends ConsumerWidget {
     );
   }
 
-  Widget _coverPlaceholder() {
+  Widget _coverPlaceholder(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.surface,
       alignment: Alignment.center,
@@ -163,7 +162,7 @@ class BusinessHero extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.45),
           shape: BoxShape.circle,

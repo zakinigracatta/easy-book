@@ -12,7 +12,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
-  VerifyEmailScreen({super.key});
+  const VerifyEmailScreen({super.key});
 
   @override
   ConsumerState<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
@@ -186,7 +186,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
-              icon: Icon(Icons.logout_rounded),
+              icon: const Icon(Icons.logout_rounded),
               tooltip: context.tr('Logout'),
               onPressed: _handleLogout,
             ),
@@ -194,26 +194,26 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(height: 20),
-                Icon(
+                const SizedBox(height: 20),
+                const Icon(
                   Icons.mark_email_unread_rounded,
                   size: 80,
                   color: AppColors.primary,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Text(
                   context.tr('Verify Your Email'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
                   context.tr(
                     'We sent a verification link to:\n{email}',
@@ -226,7 +226,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 GlassCard(
                   child: Column(
                     children: [
@@ -240,13 +240,13 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                       CustomButton(
                         text: context.tr("I've verified my email"),
                         isLoading: _isChecking,
                         onPressed: _isChecking ? null : _handleCheckVerification,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       CustomButton(
                         text: context.tr('Resend verification email'),
                         isLoading: _isResending,
@@ -256,7 +256,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 TextButton.icon(
                   onPressed: _handleLogout,
                   icon: Icon(

@@ -17,7 +17,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
 
 class OwnerDashboardScreen extends ConsumerWidget {
-  OwnerDashboardScreen({super.key});
+  const OwnerDashboardScreen({super.key});
 
   Color _mutedColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
@@ -51,7 +51,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
         context.canPop() ? context.pop() : context.go('/welcome');
       },
       child: Scaffold(
-        drawer: AppDrawer(portalType: 'business'),
+        drawer: const AppDrawer(portalType: 'business'),
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
@@ -62,8 +62,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
               await Future<void>.delayed(Duration.zero);
             },
             child: SingleChildScrollView(
-              physics: AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 90),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -77,39 +77,39 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     loading: () => _buildHeaderSkeleton(context),
                     error: (_, __) => _buildHeaderSkeleton(context),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   _buildMetricsSection(
                     context,
                     bookingsAsync,
                     todayFinanceAsync,
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Text(
                     context.tr('Quick Actions'),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   _buildQuickActions(context),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         context.tr('Upcoming Bookings'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       TextButton.icon(
                         onPressed: () => context.push('/owner-bookings'),
-                        icon: Icon(Icons.arrow_forward_rounded, size: 16),
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 16),
                         label: Text(
                           context.tr('View All'),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             color: AppColors.accent,
@@ -118,14 +118,14 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   _buildUpcomingBookingsList(context, ref, bookingsAsync),
                 ],
               ),
             ),
           ),
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 0),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 0),
       ),
     );
   }
@@ -139,7 +139,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
     final acceptingBookings = business.acceptingBookings == true;
 
     return GlassCard(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Builder(
@@ -156,7 +156,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                         : null,
                     child: business.imageUrl == null ||
                             business.imageUrl.toString().isEmpty
-                        ? Icon(
+                        ? const Icon(
                             Icons.storefront_rounded,
                             color: Colors.white,
                             size: 24,
@@ -167,12 +167,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     bottom: 0,
                     right: 0,
                     child: Container(
-                      padding: EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
                         color: _cardColor(context),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.menu_rounded,
                         size: 14,
                         color: AppColors.primary,
@@ -183,7 +183,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,12 +192,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   business.name.toString(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Wrap(
                   spacing: 8,
                   runSpacing: 6,
@@ -206,15 +206,15 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.star_rounded,
                           size: 16,
                           color: AppColors.gold,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           '${business.rating}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -227,7 +227,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                           .read(ownerBusinessProvider.notifier)
                           .toggleAcceptingBookings(!acceptingBookings),
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 8,
                           vertical: 4,
                         ),
@@ -257,7 +257,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                                 shape: BoxShape.circle,
                               ),
                             ),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
                               context.tr(
                                 acceptingBookings ? 'OPEN' : 'CLOSED',
@@ -284,13 +284,13 @@ class OwnerDashboardScreen extends ConsumerWidget {
             icon: Badge(
               isLabelVisible: unreadNotificationsCount > 0,
               label: Text('$unreadNotificationsCount'),
-              child: Icon(Icons.notifications_outlined),
+              child: const Icon(Icons.notifications_outlined),
             ),
             onPressed: () => context.push('/owner-notifications'),
           ),
           IconButton(
             tooltip: context.tr('Settings'),
-            icon: Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push('/salon-management'),
           ),
         ],
@@ -300,26 +300,26 @@ class OwnerDashboardScreen extends ConsumerWidget {
 
   Widget _buildHeaderSkeleton(BuildContext context) {
     return GlassCard(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           CircleAvatar(
             radius: 26,
             backgroundColor: _mutedColor(context).withValues(alpha: 0.2),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   context.tr('Easy Book Business'),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   context.tr('Loading business details...'),
                   style: TextStyle(
@@ -389,7 +389,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     subtitle: 'TODAY',
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: OwnerStatCard(
                     label: 'Recognized Revenue',
@@ -401,7 +401,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -413,7 +413,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     subtitle: 'COSTS',
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: OwnerStatCard(
                     label: "Today's Net Profit",
@@ -425,7 +425,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -437,7 +437,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     subtitle: 'CLIENTS',
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: OwnerStatCard(
                     label: 'Pending Bookings',
@@ -452,8 +452,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
           ],
         );
       },
-      loading: () => Center(child: CircularProgressIndicator()),
-      error: (_, __) => Row(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => const Row(
         children: [
           Expanded(
             child: OwnerStatCard(
@@ -488,7 +488,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
             onTap: () => context.push('/quick-walk-in'),
           ),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           child: QuickActionCard(
             title: 'Finance',
@@ -497,7 +497,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
             onTap: () => context.push('/sales-report'),
           ),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           child: QuickActionCard(
             title: 'Add Service',
@@ -506,7 +506,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
             onTap: () => context.push('/add-service'),
           ),
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           child: QuickActionCard(
             title: 'Add Employee',
@@ -571,8 +571,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
           }).toList(),
         );
       },
-      loading: () => Center(child: CircularProgressIndicator()),
-      error: (_, __) => OwnerEmptyStateWidget(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => const OwnerEmptyStateWidget(
         icon: Icons.error_outline_rounded,
         title: 'Unable to Load Bookings',
         description: 'Please check your connection and try again.',

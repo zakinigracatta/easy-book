@@ -9,7 +9,7 @@ import '../../widgets/customer_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
 
 class CustomerProfileScreen extends ConsumerWidget {
-  CustomerProfileScreen({super.key});
+  const CustomerProfileScreen({super.key});
 
   Color _mutedColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
@@ -33,12 +33,12 @@ class CustomerProfileScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('Customer Profile'))),
       body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(20, 10, 20, 90),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 90),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             GlassCard(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
                   CircleAvatar(
@@ -50,7 +50,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                     child: avatarUrl.isEmpty
                         ? Text(
                             initial,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
@@ -58,20 +58,20 @@ class CustomerProfileScreen extends ConsumerWidget {
                           )
                         : null,
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           displayName,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (secondaryText.isNotEmpty) ...[
-                          SizedBox(height: 3),
+                          const SizedBox(height: 3),
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
@@ -84,7 +84,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                           ),
                         ],
                         if (phone.isNotEmpty && email.isNotEmpty) ...[
-                          SizedBox(height: 3),
+                          const SizedBox(height: 3),
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
@@ -102,7 +102,7 @@ class CustomerProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _profileOption(
               context,
               Icons.chat_rounded,
@@ -133,7 +133,7 @@ class CustomerProfileScreen extends ConsumerWidget {
               'About App',
               () => context.push('/about'),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             GlassCard(
               onTap: () async {
                 await ref.read(authProvider.notifier).logout();
@@ -142,11 +142,11 @@ class CustomerProfileScreen extends ConsumerWidget {
               borderColor: AppColors.error,
               child: Row(
                 children: [
-                  Icon(Icons.logout_rounded, color: AppColors.error),
-                  SizedBox(width: 14),
+                  const Icon(Icons.logout_rounded, color: AppColors.error),
+                  const SizedBox(width: 14),
                   Text(
                     context.tr('Logout'),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.error,
                       fontWeight: FontWeight.bold,
                     ),
@@ -157,7 +157,7 @@ class CustomerProfileScreen extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: CustomerBottomNav(currentIndex: 4),
+      bottomNavigationBar: const CustomerBottomNav(currentIndex: 4),
     );
   }
 
@@ -168,7 +168,7 @@ class CustomerProfileScreen extends ConsumerWidget {
     VoidCallback onTap,
   ) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
         onTap: onTap,
         child: Row(
@@ -177,10 +177,10 @@ class CustomerProfileScreen extends ConsumerWidget {
             Row(
               children: [
                 Icon(icon, color: AppColors.primary, size: 20),
-                SizedBox(width: 14),
+                const SizedBox(width: 14),
                 Text(
                   context.tr(title),
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ],
             ),

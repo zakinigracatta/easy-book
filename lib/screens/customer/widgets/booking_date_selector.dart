@@ -8,7 +8,7 @@ class BookingDateSelector extends StatelessWidget {
   final ValueChanged<DateTime> onDateSelected;
   final int maxDays;
 
-  BookingDateSelector({
+  const BookingDateSelector({
     super.key,
     required this.selectedDate,
     required this.onDateSelected,
@@ -38,7 +38,7 @@ class BookingDateSelector extends StatelessWidget {
           children: [
             Text(
               context.tr('Select Date'),
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -53,14 +53,14 @@ class BookingDateSelector extends StatelessWidget {
                 );
                 if (picked != null) onDateSelected(picked);
               },
-              icon: Icon(
+              icon: const Icon(
                 Icons.calendar_month_rounded,
                 size: 18,
                 color: AppColors.primary,
               ),
               label: Text(
                 material.formatMonthYear(selectedDate),
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -69,13 +69,13 @@ class BookingDateSelector extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         SizedBox(
           height: 76,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: daysList.length,
-            separatorBuilder: (context, index) => SizedBox(width: 8),
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final date = daysList[index];
               final isSelected = DateUtils.isSameDay(date, selectedDate);
@@ -85,9 +85,9 @@ class BookingDateSelector extends StatelessWidget {
               return GestureDetector(
                 onTap: () => onDateSelected(date),
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 200),
                   width: 62,
-                  padding: EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primary
@@ -108,7 +108,7 @@ class BookingDateSelector extends StatelessWidget {
                             BoxShadow(
                               color: AppColors.primary.withValues(alpha: 0.25),
                               blurRadius: 8,
-                              offset: Offset(0, 2),
+                              offset: const Offset(0, 2),
                             ),
                           ]
                         : const [],
@@ -126,7 +126,7 @@ class BookingDateSelector extends StatelessWidget {
                               : (isToday ? AppColors.primary : mutedColor),
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         material.formatDecimal(date.day),
                         style: TextStyle(

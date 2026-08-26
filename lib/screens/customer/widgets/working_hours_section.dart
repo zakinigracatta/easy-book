@@ -7,7 +7,7 @@ import '../../../l10n/app_localizations.dart';
 class WorkingHoursSection extends StatelessWidget {
   final WorkingHoursModel workingHours;
 
-  WorkingHoursSection({
+  const WorkingHoursSection({
     super.key,
     required this.workingHours,
   });
@@ -32,11 +32,11 @@ class WorkingHoursSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.schedule_rounded,
+              const Icon(Icons.schedule_rounded,
                   color: AppColors.primaryLight, size: 18),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(context.tr('Working Hours'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -44,7 +44,7 @@ class WorkingHoursSection extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           Column(
             children: days.map((day) {
               final isToday = day == todayName;
@@ -55,8 +55,8 @@ class WorkingHoursSection extends StatelessWidget {
 
               return Container(
                 padding:
-                    EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                margin: EdgeInsets.only(bottom: 4),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
                   color: isToday
                       ? AppColors.primary.withValues(alpha: 0.15)
@@ -83,16 +83,16 @@ class WorkingHoursSection extends StatelessWidget {
                           ),
                         ),
                         if (isToday) ...[
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(context.tr('TODAY'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,

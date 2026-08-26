@@ -15,7 +15,7 @@ import '../../widgets/glass_card.dart';
 class AddEditEmployeeScreen extends ConsumerStatefulWidget {
   final StaffModel? initialStaff;
 
-  AddEditEmployeeScreen({super.key, this.initialStaff});
+  const AddEditEmployeeScreen({super.key, this.initialStaff});
 
   @override
   ConsumerState<AddEditEmployeeScreen> createState() =>
@@ -84,20 +84,20 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
             context.tr(isEditing ? 'Edit Employee' : 'Add New Employee'),
           ),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop()
                 ? context.pop()
                 : context.go('/employee-management'),
           ),
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
                 GlassCard(
-                  padding: EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -109,7 +109,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      SizedBox(height: 14),
+                      const SizedBox(height: 14),
                       CustomTextField(
                         controller: _nameController,
                         label: 'Employee Full Name *',
@@ -119,7 +119,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                                 ? context.tr('Please enter employee name')
                                 : null,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       CustomTextField(
                         controller: _roleController,
                         label: 'Job Title / Specialty *',
@@ -129,21 +129,21 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                                 ? context.tr('Please enter job title')
                                 : null,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       CustomTextField(
                         controller: _experienceController,
                         label: 'Years of Experience',
                         prefixIcon: Icons.workspace_premium_rounded,
                         keyboardType: TextInputType.number,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       CustomTextField(
                         controller: _bioController,
                         label: 'Professional Bio',
                         prefixIcon: Icons.notes_rounded,
                         maxLines: 4,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         value: _isActive,
@@ -170,9 +170,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 14),
+                const SizedBox(height: 14),
                 GlassCard(
-                  padding: EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -184,7 +184,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         context.tr(
                           'Use one clear profile photo and up to 8 portfolio photos.',
@@ -194,7 +194,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      SizedBox(height: 14),
+                      const SizedBox(height: 14),
                       BusinessImagePicker(
                         label: context.tr('Main Profile Photo'),
                         currentImageUrl: _avatarUrlController.text,
@@ -206,9 +206,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                             _uploadProgress != null && _uploadLabel == 'Profile',
                       ),
                       if (_uploadProgress != null) ...[
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         LinearProgressIndicator(value: _uploadProgress),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           '${context.tr(_uploadLabel)} ${(100 * _uploadProgress!).round()}%',
                           style: TextStyle(
@@ -217,7 +217,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           ),
                         ),
                       ],
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
@@ -233,7 +233,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           TextButton.icon(
                             onPressed:
                                 _galleryUrls.length >= 8 ? null : _pickGallery,
-                            icon: Icon(Icons.add_photo_alternate_rounded),
+                            icon: const Icon(Icons.add_photo_alternate_rounded),
                             label: Text('${_galleryUrls.length}/8'),
                           ),
                         ],
@@ -241,7 +241,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                       if (_galleryUrls.isEmpty)
                         Container(
                           width: double.infinity,
-                          padding: EdgeInsets.all(18),
+                          padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(14),
@@ -265,7 +265,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                             scrollDirection: Axis.horizontal,
                             itemCount: _galleryUrls.length,
                             separatorBuilder: (_, __) =>
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final url = _galleryUrls[index];
                               return Stack(
@@ -285,13 +285,13 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                                     child: InkWell(
                                       onTap: () => _removeGalleryPhoto(url),
                                       child: Container(
-                                        padding: EdgeInsets.all(5),
+                                        padding: const EdgeInsets.all(5),
                                         decoration: BoxDecoration(
                                           color: Colors.black
                                               .withValues(alpha: 0.65),
                                           shape: BoxShape.circle,
                                         ),
-                                        child: Icon(
+                                        child: const Icon(
                                           Icons.close_rounded,
                                           size: 14,
                                           color: Colors.white,
@@ -308,12 +308,12 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                   ),
                 ),
                 if (isEditing) ...[
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
                   GlassCard(
-                    padding: EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(14),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: Icon(
+                      leading: const Icon(
                         Icons.schedule_rounded,
                         color: AppColors.primaryLight,
                       ),
@@ -333,18 +333,18 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      trailing: Icon(Icons.chevron_right_rounded),
+                      trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () => context.push('/employee-schedule'),
                     ),
                   ),
                 ],
-                SizedBox(height: 18),
+                const SizedBox(height: 18),
                 CustomButton(
                   text: isEditing ? 'Update Employee' : 'Add Employee to Team',
                   isLoading: _isLoading,
                   onPressed: _saveEmployee,
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
               ],
             ),
           ),

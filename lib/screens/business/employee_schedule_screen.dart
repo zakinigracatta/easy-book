@@ -11,7 +11,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class EmployeeScheduleScreen extends ConsumerStatefulWidget {
-  EmployeeScheduleScreen({super.key});
+  const EmployeeScheduleScreen({super.key});
 
   @override
   ConsumerState<EmployeeScheduleScreen> createState() =>
@@ -49,13 +49,13 @@ class _EmployeeScheduleScreenState
         appBar: AppBar(
           title: Text(context.tr('Employee Working Hours')),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
           actions: [
             IconButton(
-              icon: Icon(Icons.event_busy_rounded),
+              icon: const Icon(Icons.event_busy_rounded),
               tooltip: context.tr('Time Off / Leave'),
               onPressed: () => context.push('/employee-time-off'),
             ),
@@ -66,7 +66,7 @@ class _EmployeeScheduleScreenState
             if (staffList.isEmpty) {
               return Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Text(
                     context.tr(
                       'Add an employee before configuring working hours.',
@@ -79,17 +79,17 @@ class _EmployeeScheduleScreenState
 
             final selected = _resolveSelectedStaff(staffList);
             return SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GlassCard(
-                    padding: EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(14),
                     child: DropdownButtonFormField<String>(
                       initialValue: selected.id,
                       decoration: InputDecoration(
                         labelText: context.tr('Staff member'),
-                        prefixIcon: Icon(Icons.badge_rounded),
+                        prefixIcon: const Icon(Icons.badge_rounded),
                       ),
                       items: staffList
                           .map(
@@ -109,7 +109,7 @@ class _EmployeeScheduleScreenState
                       },
                     ),
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
                   Text(
                     context.tr('Weekly schedule'),
                     style: TextStyle(
@@ -118,7 +118,7 @@ class _EmployeeScheduleScreenState
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     context.tr(
                       'These hours directly control when customers can book this employee.',
@@ -128,20 +128,20 @@ class _EmployeeScheduleScreenState
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   ..._days.map(_buildDayCard),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   CustomButton(
                     text: 'Save Employee Schedule',
                     isLoading: _isSaving,
                     onPressed: () => _save(selected),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                 ],
               ),
             );
           },
-          loading: () => Center(
+          loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (_, __) => Center(
@@ -198,8 +198,8 @@ class _EmployeeScheduleScreenState
   Widget _buildDayCard(String day) {
     final hours = _schedule[day]!;
     return GlassCard(
-      padding: EdgeInsets.all(14),
-      margin: EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
       child: Column(
         children: [
           Row(
@@ -234,7 +234,7 @@ class _EmployeeScheduleScreenState
             ],
           ),
           if (hours.isWorking) ...[
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -245,7 +245,7 @@ class _EmployeeScheduleScreenState
                     onTap: () => _pickTime(day, _TimeField.shiftStart),
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _ScheduleTimeButton(
                     label: 'Shift ends',
@@ -256,7 +256,7 @@ class _EmployeeScheduleScreenState
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -267,7 +267,7 @@ class _EmployeeScheduleScreenState
                     onTap: () => _pickTime(day, _TimeField.breakStart),
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _ScheduleTimeButton(
                     label: 'Break ends',
@@ -415,7 +415,7 @@ class _ScheduleTimeButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: EdgeInsets.all(11),
+        padding: const EdgeInsets.all(11),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(12),
@@ -424,7 +424,7 @@ class _ScheduleTimeButton extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, size: 17, color: AppColors.primaryLight),
-            SizedBox(width: 7),
+            const SizedBox(width: 7),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,7 +436,7 @@ class _ScheduleTimeButton extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Directionality(
                     textDirection: TextDirection.ltr,
                     child: Text(

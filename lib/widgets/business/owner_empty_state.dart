@@ -11,7 +11,7 @@ class OwnerEmptyStateWidget extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onActionTap;
 
-  OwnerEmptyStateWidget({
+  const OwnerEmptyStateWidget({
     super.key,
     required this.icon,
     required this.title,
@@ -28,30 +28,30 @@ class OwnerEmptyStateWidget extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: GlassCard(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, size: 40, color: AppColors.primary),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 context.tr(title),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               Text(
                 context.tr(description),
                 textAlign: TextAlign.center,
@@ -62,10 +62,10 @@ class OwnerEmptyStateWidget extends StatelessWidget {
                 ),
               ),
               if (actionLabel != null && onActionTap != null) ...[
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton.icon(
                   onPressed: onActionTap,
-                  icon: Icon(Icons.add_rounded, size: 18),
+                  icon: const Icon(Icons.add_rounded, size: 18),
                   label: Text(context.tr(actionLabel!)),
                 ),
               ],

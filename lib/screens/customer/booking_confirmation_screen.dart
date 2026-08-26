@@ -14,7 +14,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class BookingConfirmationScreen extends ConsumerStatefulWidget {
-  BookingConfirmationScreen({super.key});
+  const BookingConfirmationScreen({super.key});
 
   @override
   ConsumerState<BookingConfirmationScreen> createState() =>
@@ -205,28 +205,28 @@ class _BookingConfirmationScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Confirm Booking')),
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
               GlassCard(
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
                     Text(
                       draft.businessName ?? context.tr('Business'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Divider(height: 24),
+                    const Divider(height: 24),
                     _row(
                       'Service',
                       draft.serviceName ?? context.tr('Not selected'),
@@ -240,7 +240,7 @@ class _BookingConfirmationScreenState
                       'Date & Time',
                       '$dateStr • ${draft.timeSlot ?? context.tr('Not selected')}',
                     ),
-                    Divider(height: 24),
+                    const Divider(height: 24),
                     _row(
                       'Total Price',
                       CurrencyFormatter.format(draft.totalPrice),
@@ -250,7 +250,7 @@ class _BookingConfirmationScreenState
                   ],
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 context.tr(
                   'Your appointment is created only after this confirmation succeeds.',
@@ -258,7 +258,7 @@ class _BookingConfirmationScreenState
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: _mutedColor),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               CustomButton(
                 text: 'Confirm Booking',
                 isLoading: _isCreating,
@@ -288,7 +288,7 @@ class _BookingConfirmationScreenState
     );
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -296,7 +296,7 @@ class _BookingConfirmationScreenState
             context.tr(title),
             style: TextStyle(color: _mutedColor),
           ),
-          SizedBox(width: 16),
+          const SizedBox(width: 16),
           Expanded(
             child: Align(
               alignment: AlignmentDirectional.centerEnd,

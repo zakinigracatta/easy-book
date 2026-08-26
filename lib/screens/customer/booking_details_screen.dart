@@ -11,7 +11,7 @@ import '../../widgets/glass_card.dart';
 class BookingDetailsScreen extends StatelessWidget {
   final BookingModel? booking;
 
-  BookingDetailsScreen({super.key, this.booking});
+  const BookingDetailsScreen({super.key, this.booking});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class BookingDetailsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/my-bookings'),
           ),
@@ -36,7 +36,7 @@ class BookingDetailsScreen extends StatelessWidget {
         body: currentBooking == null
             ? Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -45,12 +45,12 @@ class BookingDetailsScreen extends StatelessWidget {
                         size: 52,
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
                         context.tr('No booking details provided.'),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       FilledButton(
                         onPressed: () => context.go('/my-bookings'),
                         child: Text(context.tr('My Bookings')),
@@ -79,18 +79,18 @@ class _BookingDetailsBody extends StatelessWidget {
     final notes = booking.notes?.trim() ?? '';
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           GlassCard(
             child: Column(
               children: [
-                Icon(
+                const Icon(
                   Icons.confirmation_number_outlined,
                   size: 82,
                   color: AppColors.primary,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   context.tr('Booking Ref'),
                   style: TextStyle(
@@ -98,13 +98,13 @@ class _BookingDetailsBody extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Directionality(
                   textDirection: TextDirection.ltr,
                   child: SelectableText(
                     '#${booking.id}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -113,45 +113,45 @@ class _BookingDetailsBody extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           GlassCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   booking.businessName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 17,
                   ),
                 ),
-                Divider(height: 24),
+                const Divider(height: 24),
                 _detailRow(
                   context,
                   context.tr('Service'),
                   booking.serviceName,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Specialist'),
                   booking.staffName,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Time'),
                   dateText,
                   forceLtr: true,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Status'),
                   statusText,
                   valueColor: _statusColor(booking.status),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Price'),
@@ -159,7 +159,7 @@ class _BookingDetailsBody extends StatelessWidget {
                   forceLtr: true,
                 ),
                 if (notes.isNotEmpty) ...[
-                  Divider(height: 24),
+                  const Divider(height: 24),
                   Text(
                     context.tr('Notes'),
                     style: TextStyle(
@@ -167,7 +167,7 @@ class _BookingDetailsBody extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Text(notes),
                 ],
               ],
@@ -204,7 +204,7 @@ class _BookingDetailsBody extends StatelessWidget {
             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
           flex: 3,
           child: forceLtr

@@ -8,7 +8,7 @@ import '../theme/app_colors.dart';
 class AppDrawer extends StatelessWidget {
   final String portalType;
 
-  AppDrawer({super.key, required this.portalType});
+  const AppDrawer({super.key, required this.portalType});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class AppDrawer extends StatelessWidget {
                 context.tr(isBusiness
                     ? 'Salon Management Center'
                     : 'Platform Super Admin'),
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               accountEmail: Text(
                 signedInEmail,
@@ -82,7 +82,7 @@ class AppDrawer extends StatelessWidget {
                       ),
                       title: Text(
                         context.tr(item['title'] as String),
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       onTap: () {
                         Navigator.pop(context);
@@ -104,10 +104,10 @@ class AppDrawer extends StatelessWidget {
                   ),
                   ListTile(
                     leading:
-                        Icon(Icons.logout_rounded, color: AppColors.error),
+                        const Icon(Icons.logout_rounded, color: AppColors.error),
                     title: Text(
                       context.tr('Exit Portal'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.error,
                         fontWeight: FontWeight.bold,
                       ),

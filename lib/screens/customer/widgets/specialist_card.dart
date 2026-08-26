@@ -8,7 +8,7 @@ class SpecialistCard extends StatelessWidget {
   final StaffModel staff;
   final VoidCallback? onTap;
 
-  SpecialistCard({
+  const SpecialistCard({
     super.key,
     required this.staff,
     this.onTap,
@@ -28,7 +28,7 @@ class SpecialistCard extends StatelessWidget {
     return GlassCard(
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.all(4),
+        padding: const EdgeInsets.all(4),
         child: Row(
           children: [
             ClipRRect(
@@ -40,7 +40,7 @@ class SpecialistCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 memCacheWidth: avatarCacheWidth,
                 maxWidthDiskCache: avatarCacheWidth,
-                fadeInDuration: Duration(milliseconds: 100),
+                fadeInDuration: const Duration(milliseconds: 100),
                 fadeOutDuration: Duration.zero,
                 placeholder: (context, url) =>
                     Container(color: Theme.of(context).colorScheme.surface),
@@ -56,44 +56,44 @@ class SpecialistCard extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 14),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     staff.name,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     staff.roleTitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.primaryLight,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.star_rounded,
+                      const Icon(Icons.star_rounded,
                           color: AppColors.gold, size: 15),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Text(
                         staff.rating.toStringAsFixed(1),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.gold,
                         ),
                       ),
                       if (staff.experienceYears > 0) ...[
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Text(
                           '•  ${staff.experienceYears} yrs experience',
                           style: TextStyle(

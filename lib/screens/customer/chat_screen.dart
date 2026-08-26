@@ -5,7 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 
 class ChatScreen extends StatelessWidget {
-  ChatScreen({super.key});
+  const ChatScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class ChatScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Salon Live Support')),
@@ -28,13 +28,13 @@ class ChatScreen extends StatelessWidget {
           children: [
             Expanded(
               child: ListView(
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 children: [
-                  _msgBubble(
+                  _msgBubble(context, 
                     context.tr('Hello! Can I request Marcus for my 10 AM appointment?'),
                     isMe: true,
                   ),
-                  _msgBubble(
+                  _msgBubble(context, 
                     context.tr('Hi Ahmed! Yes, Marcus Vance is assigned to your booking.'),
                     isMe: false,
                   ),
@@ -42,7 +42,7 @@ class ChatScreen extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Expanded(
@@ -55,11 +55,11 @@ class ChatScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   CircleAvatar(
                     backgroundColor: AppColors.primary,
                     child: IconButton(
-                      icon: Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                      icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
                       onPressed: () {},
                     ),
                   ),
@@ -72,17 +72,17 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  Widget _msgBubble(String text, {required bool isMe}) {
+  Widget _msgBubble(BuildContext context, String text, {required bool isMe}) {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: EdgeInsets.only(bottom: 12),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isMe ? AppColors.primary : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: Text(text, style: TextStyle(color: Colors.white)),
+        child: Text(text, style: const TextStyle(color: Colors.white)),
       ),
     );
   }

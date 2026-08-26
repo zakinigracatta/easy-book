@@ -6,11 +6,10 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
-import '../../models/booking_model.dart';
 import '../../l10n/app_localizations.dart';
 
 class OwnerBookingsScreen extends ConsumerWidget {
-  OwnerBookingsScreen({super.key});
+  const OwnerBookingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -42,7 +41,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -54,7 +53,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
           title: Text(context.tr('Bookings Management')),
           actions: [
             IconButton(
-              icon: Icon(Icons.person_add_alt_1_rounded),
+              icon: const Icon(Icons.person_add_alt_1_rounded),
               tooltip: 'New Walk-in',
               onPressed: () => context.push('/quick-walk-in'),
             ),
@@ -64,7 +63,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
           children: [
             // Search Input
             Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: TextField(
                 onChanged: (val) => ref
                     .read(ownerBookingSearchQueryProvider.notifier)
@@ -77,7 +76,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.onSurfaceVariant),
                   suffixIcon: searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: Icon(Icons.clear_rounded, size: 18),
+                          icon: const Icon(Icons.clear_rounded, size: 18),
                           onPressed: () => ref
                               .read(ownerBookingSearchQueryProvider.notifier)
                               .state = '',
@@ -86,7 +85,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                   filled: true,
                   fillColor: Theme.of(context).colorScheme.surface,
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
@@ -99,7 +98,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppColors.primary),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -108,12 +107,12 @@ class OwnerBookingsScreen extends ConsumerWidget {
             // Horizontal Filter Chips
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: filters.map((f) {
                   final isSelected = activeFilter == f;
                   return Padding(
-                    padding: EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
                       selected: isSelected,
                       label: Text(f),
@@ -143,7 +142,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
               ),
             ),
 
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
 
             // Bookings List View
             Expanded(
@@ -162,7 +161,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
 
                   return ListView.builder(
                     padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: filteredBookings.length,
                     itemBuilder: (context, index) {
                       final booking = filteredBookings[index];
@@ -186,9 +185,9 @@ class OwnerBookingsScreen extends ConsumerWidget {
                     },
                   );
                 },
-                loading: () => Center(
+                loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (err, _) => OwnerEmptyStateWidget(
+                error: (err, _) => const OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Bookings',
                   description: 'An error occurred while retrieving bookings.',
@@ -197,7 +196,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
             ),
           ],
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 1),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 1),
       ),
     );
   }

@@ -11,7 +11,7 @@ import '../../services/media_upload_service.dart';
 import '../../l10n/app_localizations.dart';
 
 class OwnerGalleryScreen extends ConsumerStatefulWidget {
-  OwnerGalleryScreen({super.key});
+  const OwnerGalleryScreen({super.key});
 
   @override
   ConsumerState<OwnerGalleryScreen> createState() => _OwnerGalleryScreenState();
@@ -48,13 +48,13 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
         appBar: AppBar(
           title: Text(context.tr('Business Photos & Gallery')),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
           actions: [
             IconButton(
-              icon: Icon(Icons.add_a_photo_rounded),
+              icon: const Icon(Icons.add_a_photo_rounded),
               tooltip: 'Upload Photos',
               onPressed: _uploadProgress == null ? _showUploadDialog : null,
             ),
@@ -64,13 +64,13 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
           children: [
             if (_uploadProgress != null)
               Container(
-                padding: EdgeInsets.fromLTRB(16, 10, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
                 color: Theme.of(context).colorScheme.surface,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     LinearProgressIndicator(value: _uploadProgress),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 5),
                     Text(
                       _uploadStatus,
                       style: TextStyle(
@@ -83,12 +83,12 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
               ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: _categories.map((entry) {
                   final isSelected = _selectedCategory == entry.$1;
                   return Padding(
-                    padding: EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
                       selected: isSelected,
                       label: Text(entry.$2),
@@ -121,9 +121,9 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   }
 
                   return GridView.builder(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -134,7 +134,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                         _buildPhotoCard(filtered[index]),
                   );
                 },
-                loading: () => Center(
+                loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.primary),
                 ),
                 error: (error, _) => OwnerEmptyStateWidget(
@@ -146,7 +146,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
       ),
     );
   }
@@ -162,13 +162,13 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
               fit: StackFit.expand,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.vertical(
+                  borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
                   child: Image.network(
                     image.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Center(
+                    errorBuilder: (_, __, ___) => const Center(
                       child: Icon(Icons.broken_image_outlined),
                     ),
                   ),
@@ -179,7 +179,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   child: IconButton.filledTonal(
                     tooltip: 'Delete photo',
                     onPressed: () => _confirmDelete(image),
-                    icon: Icon(Icons.delete_outline_rounded, size: 18),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
                   ),
                 ),
                 Positioned(
@@ -187,14 +187,14 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   left: 8,
                   child: Container(
                     padding:
-                        EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(7),
                     ),
                     child: Text(
                       _categoryLabel(image.category),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
@@ -207,7 +207,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
           ),
           if (image.caption.isNotEmpty)
             Padding(
-              padding: EdgeInsets.all(9),
+              padding: const EdgeInsets.all(9),
               child: Text(
                 image.caption,
                 maxLines: 2,
@@ -236,8 +236,8 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: category,
-                decoration: InputDecoration(
+                initialValue: category,
+                decoration: const InputDecoration(
                   labelText: 'Photo category',
                   prefixIcon: Icon(Icons.category_outlined),
                 ),
@@ -254,17 +254,17 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   if (value != null) setDialogState(() => category = value);
                 },
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               TextField(
                 controller: captionController,
                 maxLines: 2,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Caption (optional)',
                   prefixIcon: Icon(Icons.notes_rounded),
                   helperText: 'The caption will be applied to this upload batch.',
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Text(context.tr('You can select up to 10 photos at once.'),
                 style: TextStyle(
                   fontSize: 11,
@@ -283,7 +283,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                 dialogContext,
                 (category: category, caption: captionController.text.trim()),
               ),
-              icon: Icon(Icons.photo_library_outlined),
+              icon: const Icon(Icons.photo_library_outlined),
               label: Text(context.tr('Choose Photos')),
             ),
           ],

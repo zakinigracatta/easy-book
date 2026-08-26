@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../theme/app_colors.dart';
 import '../glass_card.dart';
 
 class QuickActionCard extends StatelessWidget {

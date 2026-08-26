@@ -13,7 +13,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  LoginScreen({super.key});
+  const LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -117,7 +117,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
@@ -125,23 +125,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 context.tr('Welcome Back 👋'),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Text(
                 context.tr('Sign in to access your portal'),
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
@@ -149,7 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onTap: () =>
                           setState(() => _selectedRole = UserRole.customer),
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: _selectedRole == UserRole.customer
                               ? AppColors.primary
@@ -164,19 +164,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Center(
                           child: Text(
                             context.tr('Customer'),
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
                       onTap: () =>
                           setState(() => _selectedRole = UserRole.owner),
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: _selectedRole == UserRole.owner
                               ? AppColors.accent
@@ -191,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Center(
                           child: Text(
                             context.tr('Business Owner'),
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -199,7 +199,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               GlassCard(
                 child: Column(
                   children: [
@@ -209,14 +209,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     CustomTextField(
                       controller: _passwordController,
                       label: context.tr('Password'),
                       obscureText: true,
                       prefixIcon: Icons.lock_outline_rounded,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -231,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     CustomButton(
                       text: context.tr('Sign In'),
                       isLoading: _isLoading,
@@ -243,7 +243,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Column(
                 children: [
                   Row(
@@ -270,7 +270,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onPressed: () => context.push('/business-register'),
                         child: Text(
                           context.tr('Owner Register'),
-                          style: TextStyle(color: AppColors.accent),
+                          style: const TextStyle(color: AppColors.accent),
                         ),
                       ),
                     ],

@@ -9,7 +9,7 @@ class ServiceCategorySection extends StatefulWidget {
   final List<String> selectedServiceIds;
   final Function(ServiceModel) onServiceSelect;
 
-  ServiceCategorySection({
+  const ServiceCategorySection({
     super.key,
     required this.services,
     required this.selectedServiceIds,
@@ -27,13 +27,13 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
   Widget build(BuildContext context) {
     if (widget.services.isEmpty) {
       return Container(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
         child: Column(
           children: [
             Icon(Icons.design_services_outlined,
                 size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(context.tr('No services are available at the moment.'),
               style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
               textAlign: TextAlign.center,
@@ -69,7 +69,7 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
                 final catName = categoriesMap[catId]!;
                 final isSelected = _selectedCategory == catId;
                 return Padding(
-                  padding: EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
                     label: Text(catName),
                     selected: isSelected,
@@ -101,15 +101,15 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
               }).toList(),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
         ],
 
         // Services List
         ListView.separated(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: filteredServices.length,
-          separatorBuilder: (context, index) => SizedBox(height: 12),
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final service = filteredServices[index];
             final isSelected = widget.selectedServiceIds.contains(service.id);

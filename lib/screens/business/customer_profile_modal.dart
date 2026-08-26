@@ -12,7 +12,7 @@ import '../../l10n/app_localizations.dart';
 class CustomerProfileModal extends ConsumerStatefulWidget {
   final CustomerProfileModel customer;
 
-  CustomerProfileModal({super.key, required this.customer});
+  const CustomerProfileModal({super.key, required this.customer});
 
   @override
   ConsumerState<CustomerProfileModal> createState() =>
@@ -46,7 +46,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -66,7 +66,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                   child: (c.avatarUrl == null || c.avatarUrl!.isEmpty)
                       ? Text(
                           c.name[0].toUpperCase(),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primaryLight,
@@ -74,7 +74,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                         )
                       : null,
                 ),
-                SizedBox(width: 14),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +87,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         c.phone,
                         style: TextStyle(
@@ -96,7 +96,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                         ),
                       ),
                       if (c.email != null) ...[
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           c.email!,
                           style: TextStyle(
@@ -111,7 +111,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               ],
             ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             // Metrics Summary Grid
             Row(
@@ -120,14 +120,14 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                   child: _metricBox(
                       'Visits', '${c.completedVisits}', AppColors.primaryLight),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _metricBox(
                       'Total Spent',
                       'AED ${c.totalSpent.toStringAsFixed(0)}',
                       AppColors.success),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _metricBox(
                       'No-Shows', '${c.noShowCount}', AppColors.warning),
@@ -135,15 +135,15 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               ],
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             GlassCard(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Icon(Icons.history_rounded,
+                  const Icon(Icons.history_rounded,
                       size: 18, color: AppColors.accent),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(context.tr('Last Visit: '),
                       style: TextStyle(
                           fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -160,7 +160,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
             ),
 
             if (c.favoriteServices.isNotEmpty) ...[
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               Text(context.tr('Favorite Services'),
                 style: TextStyle(
                   fontSize: 13,
@@ -168,7 +168,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
@@ -178,7 +178,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                     side: BorderSide(color: Theme.of(context).dividerColor),
                     label: Text(
                       srv,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.accent,
                         fontWeight: FontWeight.bold,
@@ -189,7 +189,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               ),
             ],
 
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
             // Private Internal Owner Notes Section
             Text(context.tr('Private Owner Notes (Internal Only)'),
@@ -199,7 +199,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             CustomTextField(
               controller: _notesController,
               label: 'e.g. Likes espresso, sensitive skin, prefers Ahmed.',
@@ -207,7 +207,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               prefixIcon: Icons.lock_outline_rounded,
             ),
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             CustomButton(
               text: 'Save Private Notes',
@@ -240,7 +240,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
 
   Widget _metricBox(String label, String value, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
@@ -256,7 +256,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               color: color,
             ),
           ),
-          SizedBox(height: 2),
+          const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(

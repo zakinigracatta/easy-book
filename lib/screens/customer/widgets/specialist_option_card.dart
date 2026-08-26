@@ -11,7 +11,7 @@ class SpecialistOptionCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  SpecialistOptionCard({
+  const SpecialistOptionCard({
     super.key,
     this.staff,
     this.isAnySpecialist = false,
@@ -38,10 +38,10 @@ class SpecialistOptionCard extends StatelessWidget {
                 border:
                     Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
               ),
-              child: Icon(Icons.people_alt_rounded,
+              child: const Icon(Icons.people_alt_rounded,
                   color: AppColors.accent, size: 26),
             ),
-            SizedBox(width: 14),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,22 +49,22 @@ class SpecialistOptionCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(context.tr('Any Available Specialist'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(context.tr('RECOMMENDED'),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -73,7 +73,7 @@ class SpecialistOptionCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(context.tr('Maximum slot options across all eligible staff'),
                     style: TextStyle(
                       fontSize: 12,
@@ -83,7 +83,7 @@ class SpecialistOptionCard extends StatelessWidget {
                 ],
               ),
             ),
-            _radioIndicator(isSelected),
+            _radioIndicator(context, isSelected),
           ],
         ),
       );
@@ -112,44 +112,44 @@ class SpecialistOptionCard extends StatelessWidget {
                   width: 56, height: 56, fit: BoxFit.cover),
             ),
           ),
-          SizedBox(width: 14),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   s.name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   s.roleTitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.primaryLight,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.star_rounded,
+                    const Icon(Icons.star_rounded,
                         color: AppColors.gold, size: 14),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
                       '${s.rating.toStringAsFixed(1)} (${s.reviewCount})',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.gold,
                       ),
                     ),
                     if (s.experienceYears > 0) ...[
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         '•  ${s.experienceYears} yrs exp',
                         style: TextStyle(
@@ -163,13 +163,13 @@ class SpecialistOptionCard extends StatelessWidget {
               ],
             ),
           ),
-          _radioIndicator(isSelected),
+          _radioIndicator(context, isSelected),
         ],
       ),
     );
   }
 
-  Widget _radioIndicator(bool selected) {
+  Widget _radioIndicator(BuildContext context, bool selected) {
     return Container(
       width: 22,
       height: 22,
@@ -182,7 +182,7 @@ class SpecialistOptionCard extends StatelessWidget {
         color: selected ? AppColors.primary : Colors.transparent,
       ),
       child: selected
-          ? Icon(
+          ? const Icon(
               Icons.check_rounded,
               size: 14,
               color: Colors.white,

@@ -12,7 +12,7 @@ import '../../widgets/glass_card.dart';
 import 'owner_expenses_screen.dart';
 
 class OwnerFinanceScreen extends ConsumerWidget {
-  OwnerFinanceScreen({super.key});
+  const OwnerFinanceScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +27,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
           IconButton(
             tooltip: context.tr('Refresh'),
             onPressed: () => ref.invalidate(ownerProfitAndLossProvider),
-            icon: Icon(Icons.refresh_rounded),
+            icon: const Icon(Icons.refresh_rounded),
           ),
         ],
       ),
@@ -37,13 +37,13 @@ class OwnerFinanceScreen extends ConsumerWidget {
           await ref.read(ownerProfitAndLossProvider.future);
         },
         child: ListView(
-          physics: AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(16, 12, 16, 28),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
           children: [
             _periodCard(context, ref, range),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             reportAsync.when(
-              loading: () => Padding(
+              loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
                 child: Center(
                   child: CircularProgressIndicator(color: AppColors.primary),
@@ -52,18 +52,18 @@ class OwnerFinanceScreen extends ConsumerWidget {
               error: (_, __) => _errorCard(context, ref),
               data: (report) => _reportBody(context, report, currency),
             ),
-            SizedBox(height: 18),
+            const SizedBox(height: 18),
             GlassCard(
               onTap: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => OwnerExpensesScreen(),
+                    builder: (_) => const OwnerExpensesScreen(),
                   ),
                 );
                 ref.invalidate(ownerProfitAndLossProvider);
               },
               child: ListTile(
-                leading: Icon(
+                leading: const Icon(
                   Icons.receipt_long_rounded,
                   color: AppColors.accent,
                 ),
@@ -77,21 +77,21 @@ class OwnerFinanceScreen extends ConsumerWidget {
                 subtitle: Text(
                   context.tr('Add, edit and archive owner-only business costs'),
                 ),
-                trailing: Icon(Icons.chevron_right_rounded),
+                trailing: const Icon(Icons.chevron_right_rounded),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             GlassCard(
-              padding: EdgeInsets.all(14),
+              padding: const EdgeInsets.all(14),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline_rounded,
                     color: AppColors.primaryLight,
                     size: 20,
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       context.tr(
@@ -110,7 +110,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
+      bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
     );
   }
 
@@ -124,7 +124,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
     final to = material.formatMediumDate(range.to);
 
     return GlassCard(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -135,7 +135,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -153,12 +153,12 @@ class OwnerFinanceScreen extends ConsumerWidget {
               ),
               TextButton.icon(
                 onPressed: () => _selectRange(context, ref, range),
-                icon: Icon(Icons.date_range_rounded, size: 18),
+                icon: const Icon(Icons.date_range_rounded, size: 18),
                 label: Text(context.tr('Change')),
               ),
             ],
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -191,7 +191,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                 AppColors.success,
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: _metricCard(
                 context,
@@ -203,7 +203,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
             ),
           ],
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
@@ -217,7 +217,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                 report.netProfit >= 0 ? AppColors.success : AppColors.error,
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: _metricCard(
                 context,
@@ -229,7 +229,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
             ),
           ],
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
@@ -241,7 +241,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                 AppColors.primaryLight,
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: _metricCard(
                 context,
@@ -253,21 +253,21 @@ class OwnerFinanceScreen extends ConsumerWidget {
             ),
           ],
         ),
-        SizedBox(height: 18),
+        const SizedBox(height: 18),
         _sectionCard(
           context,
           title: 'Cost Structure',
           subtitle: 'Expenses grouped into business cost areas',
           children: _buildExpenseGroupRows(context, report, currency),
         ),
-        SizedBox(height: 14),
+        const SizedBox(height: 14),
         _sectionCard(
           context,
           title: 'Revenue by Service',
           subtitle: 'Completed-booking revenue by service',
           children: _buildRevenueRows(context, report, currency),
         ),
-        SizedBox(height: 14),
+        const SizedBox(height: 14),
         _sectionCard(
           context,
           title: 'Detailed Expense Categories',
@@ -285,7 +285,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
     required List<Widget> children,
   }) {
     return GlassCard(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -297,7 +297,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          SizedBox(height: 3),
+          const SizedBox(height: 3),
           Text(
             context.tr(subtitle),
             style: TextStyle(
@@ -305,7 +305,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           ...children,
         ],
       ),
@@ -393,7 +393,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
     String? detail,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -409,7 +409,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                   ),
                 ),
                 if (detail != null) ...[
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
                     detail,
                     style: TextStyle(
@@ -421,7 +421,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
               ],
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Directionality(
             textDirection: TextDirection.ltr,
             child: Text(
@@ -441,7 +441,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
   List<Widget> _emptyRows(BuildContext context, String message) {
     return [
       Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Center(
           child: Text(
             context.tr(message),
@@ -461,12 +461,12 @@ class OwnerFinanceScreen extends ConsumerWidget {
     Color color,
   ) {
     return GlassCard(
-      padding: EdgeInsets.all(14),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 22),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Directionality(
             textDirection: TextDirection.ltr,
             child: Text(
@@ -480,7 +480,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
               ),
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             context.tr(label),
             style: TextStyle(
@@ -495,15 +495,15 @@ class OwnerFinanceScreen extends ConsumerWidget {
 
   Widget _errorCard(BuildContext context, WidgetRef ref) {
     return GlassCard(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline_rounded,
             color: AppColors.error,
             size: 32,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             context.tr('Finance data unavailable'),
             style: TextStyle(
@@ -511,7 +511,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          SizedBox(height: 6),
+          const SizedBox(height: 6),
           Text(
             context.tr(
               'We could not load the finance report. Check your connection and try again.',
@@ -522,10 +522,10 @@ class OwnerFinanceScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => ref.invalidate(ownerProfitAndLossProvider),
-            icon: Icon(Icons.refresh_rounded, size: 18),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
             label: Text(context.tr('Try Again')),
           ),
         ],

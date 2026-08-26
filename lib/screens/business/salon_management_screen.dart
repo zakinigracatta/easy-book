@@ -15,7 +15,7 @@ import '../../widgets/glass_card.dart';
 import 'business_location_picker_screen.dart';
 
 class SalonManagementScreen extends ConsumerStatefulWidget {
-  SalonManagementScreen({super.key});
+  const SalonManagementScreen({super.key});
 
   @override
   ConsumerState<SalonManagementScreen> createState() =>
@@ -99,7 +99,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
         appBar: AppBar(
           title: Text(context.tr('Business Management')),
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_rounded),
+            icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
@@ -108,41 +108,41 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
           data: (business) {
             _hydrate(business);
             return SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatusCard(),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
                     _buildMediaCard(business),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
                     _buildProfileCard(),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
                     _buildLocationCard(),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
                     _buildAmenitiesCard(),
-                    SizedBox(height: 14),
+                    const SizedBox(height: 14),
                     _buildManagementShortcuts(),
-                    SizedBox(height: 18),
+                    const SizedBox(height: 18),
                     CustomButton(
                       text: 'Save Business Profile',
                       isLoading: _isLoading,
                       onPressed: () => _updateProfile(business),
                     ),
-                    SizedBox(height: 28),
+                    const SizedBox(height: 28),
                   ],
                 ),
               ),
             );
           },
-          loading: () => Center(
+          loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (_, __) => Center(
             child: Padding(
-              padding: EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               child: Text(
                 context.tr('Unable to load business profile. Please try again.'),
                 textAlign: TextAlign.center,
@@ -150,14 +150,14 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
       ),
     );
   }
 
   Widget _buildStatusCard() {
     return GlassCard(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
@@ -175,7 +175,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
               color: _acceptingBookings ? AppColors.success : AppColors.error,
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +187,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
                   context.tr(
                     _acceptingBookings
@@ -214,7 +214,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildMediaCard(BusinessModel business) {
     return GlassCard(
-      padding: EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -223,7 +223,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Main Business Photo',
             subtitle: 'Upload a real cover image from the device.',
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           BusinessImagePicker(
             label: context.tr('Logo / Main Cover Image'),
             currentImageUrl: _logoUrlController.text,
@@ -232,9 +232,9 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                 _logoUrlController.text.isEmpty ? null : _deleteMainPhoto,
           ),
           if (_uploadProgress != null) ...[
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             LinearProgressIndicator(value: _uploadProgress),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Text(
               '${context.tr('Uploading')} ${(100 * _uploadProgress!).round()}%',
               style: TextStyle(
@@ -243,10 +243,10 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
               ),
             ),
           ],
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => context.push('/owner-gallery'),
-            icon: Icon(Icons.collections_rounded),
+            icon: const Icon(Icons.collections_rounded),
             label: Text(context.tr('Manage Multiple Business Photos')),
           ),
         ],
@@ -256,7 +256,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildProfileCard() {
     return GlassCard(
-      padding: EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -265,7 +265,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Business Details',
             subtitle: 'Information customers see on your public profile.',
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           CustomTextField(
             controller: _nameController,
             label: 'Business Name *',
@@ -274,26 +274,26 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                 ? context.tr('Enter business name')
                 : null,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           CustomTextField(
             controller: _categoryController,
             label: 'Category',
             prefixIcon: Icons.category_rounded,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           CustomTextField(
             controller: _phoneController,
             label: 'Contact Phone Number',
             prefixIcon: Icons.phone_rounded,
             keyboardType: TextInputType.phone,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           CustomTextField(
             controller: _websiteController,
             label: 'Website / Social Link',
             prefixIcon: Icons.language_rounded,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           CustomTextField(
             controller: _descriptionController,
             label: 'Business Description',
@@ -308,7 +308,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
   Widget _buildLocationCard() {
     final hasPin = _latitude != 0 || _longitude != 0;
     return GlassCard(
-      padding: EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -317,18 +317,18 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Business Location',
             subtitle: 'Save the address and pin the exact entrance on Google Maps.',
           ),
-          SizedBox(height: 14),
+          const SizedBox(height: 14),
           CustomTextField(
             controller: _addressController,
             label: 'Full Address',
             prefixIcon: Icons.location_on_outlined,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           InkWell(
             onTap: _openLocationPicker,
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding: EdgeInsets.all(14),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -344,7 +344,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                         : Icons.add_location_alt_rounded,
                     color: hasPin ? AppColors.success : AppColors.primaryLight,
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,7 +360,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           context.tr(
                             hasPin
@@ -390,7 +390,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildAmenitiesCard() {
     return GlassCard(
-      padding: EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -399,7 +399,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Amenities & Features',
             subtitle: 'Select the facilities available at your business.',
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -409,7 +409,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                 selected: selected,
                 label: Text(context.tr(amenity)),
                 avatar: selected
-                    ? Icon(Icons.check_rounded, size: 16)
+                    ? const Icon(Icons.check_rounded, size: 16)
                     : null,
                 onSelected: (value) {
                   setState(() {
@@ -426,7 +426,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildManagementShortcuts() {
     return GlassCard(
-      padding: EdgeInsets.all(18),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -435,7 +435,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'More Management',
             subtitle: 'Manage the parts customers interact with most.',
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           _ManagementTile(
             icon: Icons.schedule_rounded,
             title: 'Business Working Hours',
@@ -578,7 +578,7 @@ class _SectionTitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, color: AppColors.primaryLight, size: 22),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,7 +591,7 @@ class _SectionTitle extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              SizedBox(height: 2),
+              const SizedBox(height: 2),
               Text(
                 context.tr(subtitle),
                 style: TextStyle(

@@ -6,7 +6,7 @@ import '../core/constants/app_colors.dart';
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
 
-  CustomBottomNavBar({
+  const CustomBottomNavBar({
     super.key,
     required this.currentIndex,
   });
@@ -16,9 +16,9 @@ class CustomBottomNavBar extends StatelessWidget {
     final routes = ['/home', '/search', '/bookings', '/chat-list', '/profile'];
 
     return Container(
-      margin: EdgeInsets.all(16),
+      margin: const EdgeInsets.all(16),
       child: GlassCard(
-        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         borderRadius: 25,
         child: BottomNavigationBar(
           currentIndex: currentIndex < routes.length ? currentIndex : 0,
@@ -55,7 +55,7 @@ class CustomBottomNavBar extends StatelessWidget {
 class BottomNavBar extends StatelessWidget {
   final String currentPath;
 
-  BottomNavBar({
+  const BottomNavBar({
     super.key,
     required this.currentPath,
   });

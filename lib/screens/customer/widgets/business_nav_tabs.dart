@@ -7,7 +7,7 @@ class BusinessNavTabs extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onTabSelected;
 
-  BusinessNavTabs({
+  const BusinessNavTabs({
     super.key,
     required this.selectedIndex,
     required this.onTabSelected,
@@ -30,7 +30,7 @@ class BusinessNavTabs extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
       ),
-      padding: EdgeInsets.all(4),
+      padding: const EdgeInsets.all(4),
       child: Row(
         children: List.generate(tabs.length, (index) {
           final isSelected = selectedIndex == index;
@@ -38,7 +38,7 @@ class BusinessNavTabs extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onTabSelected(index),
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 200),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary : Colors.transparent,
@@ -48,7 +48,7 @@ class BusinessNavTabs extends StatelessWidget {
                           BoxShadow(
                             color: AppColors.primary.withValues(alpha: 0.25),
                             blurRadius: 8,
-                            offset: Offset(0, 2),
+                            offset: const Offset(0, 2),
                           ),
                         ]
                       : const [],
