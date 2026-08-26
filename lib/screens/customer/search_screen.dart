@@ -48,6 +48,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     super.dispose();
   }
 
+  Color _mutedColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AppColors.textMutedDark
+        : AppColors.textMutedLight;
+  }
+
   @override
   Widget build(BuildContext context) {
     final businessesAsync = ref.watch(customerSearchBusinessesProvider(_query));
@@ -74,14 +80,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 return RefreshIndicator(
                   onRefresh: () async {
                     ref.invalidate(customerSearchBusinessesProvider(_query));
-                    await ref.read(customerSearchBusinessesProvider(_query).future);
+                    await ref.read(
+                      customerSearchBusinessesProvider(_query).future,
+                    );
                   },
                   child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                     itemCount: businesses.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) => _businessTile(context, businesses[index]),
+                    itemBuilder: (context, index) =>
+                        _businessTile(context, businesses[index]),
                   ),
                 );
               },
@@ -95,6 +104,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _businessTile(BuildContext context, BusinessModel business) {
     final imageUrl = business.imageUrl.trim();
+    final mutedColor = _mutedColor(context);
 
     return GlassCard(
       onTap: () => context.push('/salon/${business.id}'),
@@ -124,22 +134,31 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         business.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                     if (business.isVerified)
                       const Padding(
                         padding: EdgeInsets.only(left: 4),
-                        child: Icon(Icons.verified_rounded, size: 16, color: AppColors.primary),
+                        child: Icon(
+                          Icons.verified_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  business.address.isEmpty ? business.category : business.address,
+                  business.address.isEmpty
+                      ? business.category
+                      : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark),
+                  style: TextStyle(fontSize: 12, color: mutedColor),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -170,7 +189,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       height: 72,
       alignment: Alignment.center,
       color: AppColors.primary.withValues(alpha: 0.08),
-      child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 30),
+      child: const Icon(
+        Icons.storefront_rounded,
+        color: AppColors.primary,
+        size: 30,
+      ),
     );
   }
 
@@ -195,7 +218,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         Text(
           context.tr('Try another search or check again later.'),
           textAlign: TextAlign.center,
-          style: const TextStyle(color: AppColors.textMutedDark),
+          style: TextStyle(color: _mutedColor(context)),
         ),
       ],
     );
@@ -216,7 +239,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             const SizedBox(height: 12),
             TextButton.icon(
-              onPressed: () => ref.invalidate(customerSearchBusinessesProvider(_query)),
+              onPressed: () =>
+                  ref.invalidate(customerSearchBusinessesProvider(_query)),
               icon: const Icon(Icons.refresh_rounded),
               label: Text(context.tr('Try Again')),
             ),
