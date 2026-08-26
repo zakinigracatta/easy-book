@@ -6,6 +6,21 @@ import {
 } from './bookingLocks';
 import { validateBookingRequirements } from './bookingValidation';
 
+function requiredId(value: unknown, name: string): string {
+  if (typeof value !== 'string' || value.trim().length === 0 || value.length > 200) {
+    throw new HttpsError(
+      'invalid-argument',
+      `INVALID_${name.toUpperCase()}: ${name} must be a valid identifier.`
+    );
+  }
+  return value.trim();
+}
+
+function cleanText(value: unknown, maxLength: number): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().slice(0, maxLength);
+}
+
 export const createBooking = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError(
@@ -14,26 +29,32 @@ export const createBooking = onCall(async (request) => {
     );
   }
 
+  if (request.auth.token.email && request.auth.token.email_verified !== true) {
+    throw new HttpsError(
+      'failed-precondition',
+      'EMAIL_NOT_VERIFIED: Verify your email address before creating a booking.'
+    );
+  }
+
   const customerId = request.auth.uid;
   const data = request.data || {};
-
-  const businessId = data.businessId;
-  const serviceId = data.serviceId;
-  const staffId = data.staffId;
+  const businessId = requiredId(data.businessId, 'businessId');
+  const serviceId = requiredId(data.serviceId, 'serviceId');
+  const staffId = requiredId(data.staffId, 'staffId');
   const requestedStartRaw = data.requestedStartAt;
-  const customerName = data.customerName || '';
-  const customerPhone = data.customerPhone || '';
-  const notes = data.notes || '';
+  const customerName = cleanText(data.customerName, 120) || 'Valued Customer';
+  const customerPhone = cleanText(data.customerPhone, 40);
+  const notes = cleanText(data.notes, 1000);
 
-  if (!businessId || !serviceId || !staffId || !requestedStartRaw) {
+  if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
     throw new HttpsError(
       'invalid-argument',
-      'MISSING_ARGUMENTS: businessId, serviceId, staffId, and requestedStartAt are required.'
+      'INVALID_START_TIME: requestedStartAt must be an ISO-8601 date string.'
     );
   }
 
   const requestedStartAt = new Date(requestedStartRaw);
-  if (isNaN(requestedStartAt.getTime())) {
+  if (Number.isNaN(requestedStartAt.getTime())) {
     throw new HttpsError(
       'invalid-argument',
       'INVALID_START_TIME: requestedStartAt must be a valid date.'
@@ -41,11 +62,16 @@ export const createBooking = onCall(async (request) => {
   }
 
   validateCanonical15MinAlignment(requestedStartAt);
+  if (requestedStartAt.getTime() <= Date.now()) {
+    throw new HttpsError(
+      'failed-precondition',
+      'START_TIME_IN_PAST: A customer booking must start in the future.'
+    );
+  }
 
   const db = admin.firestore();
 
-  return await db.runTransaction(async (transaction) => {
-    // 1. Authoritative Validation & Price/Duration calculation
+  return db.runTransaction(async (transaction) => {
     const context = await validateBookingRequirements(
       db,
       transaction,
@@ -55,7 +81,6 @@ export const createBooking = onCall(async (request) => {
       requestedStartAt
     );
 
-    // 2. Lock IDs generation
     const lockObjects = generateIntervalSlotLockIds(
       businessId,
       staffId,
@@ -63,7 +88,6 @@ export const createBooking = onCall(async (request) => {
       context.calculatedEndAt
     );
 
-    // 3. Check Lock Availability
     for (const lock of lockObjects) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
       const lockSnap = await transaction.get(lockRef);
@@ -75,7 +99,6 @@ export const createBooking = onCall(async (request) => {
       }
     }
 
-    // 4. Create Non-Sensitive Booking Slots Locks
     const bookingDocRef = db.collection('bookings').doc();
     const primarySlotLockId = lockObjects[0].lockId;
 
@@ -92,7 +115,6 @@ export const createBooking = onCall(async (request) => {
       });
     }
 
-    // 5. Create Authoritative Booking Snapshot Document
     const bookingPayload = {
       id: bookingDocRef.id,
       customerId,
