@@ -1,21 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'firebase_options.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
-  // ضروري قبل أي عملية async في Flutter
   WidgetsFlutterBinding.ensureInitialized();
 
-  // تشغيل Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // تشغيل التطبيق
   runApp(
     const ProviderScope(
       child: EasyBookApp(),
@@ -34,6 +32,16 @@ class EasyBookApp extends StatelessWidget {
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ar'),
+        Locale('ru'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       routerConfig: appRouter,
     );
   }
