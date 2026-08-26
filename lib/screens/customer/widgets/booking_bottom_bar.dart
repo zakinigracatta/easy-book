@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/currency_formatter.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/business_model.dart';
 import '../../../providers/app_providers.dart';
 import '../../../services/auth_guard.dart';
@@ -59,7 +60,9 @@ class BookingBottomBar extends ConsumerWidget {
                   children: [
                     if (hasSelection) ...[
                       Text(
-                        '$count ${count == 1 ? 'service' : 'services'} selected',
+                        count == 1
+                            ? '1 ${context.tr('service selected')}'
+                            : '$count ${context.tr('services selected')}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondaryDark,
@@ -82,7 +85,7 @@ class BookingBottomBar extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '•  $totalDuration min',
+                            '•  $totalDuration ${context.tr('min')}',
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.textMutedDark,
@@ -103,9 +106,11 @@ class BookingBottomBar extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        canBook
-                            ? 'Select a service or tap Book Now'
-                            : 'Online booking is currently unavailable',
+                        context.tr(
+                          canBook
+                              ? 'Select a service or tap Book Now'
+                              : 'Online booking is currently unavailable',
+                        ),
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMutedDark,
@@ -153,7 +158,7 @@ class BookingBottomBar extends ConsumerWidget {
                   elevation: canBook ? 4 : 0,
                 ),
                 child: Text(
-                  canBook ? buttonText : 'Unavailable',
+                  context.tr(canBook ? buttonText : 'Unavailable'),
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
