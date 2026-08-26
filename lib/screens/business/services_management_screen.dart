@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_colors.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/business_bottom_nav.dart';
-import '../../widgets/business/owner_empty_state.dart';
-import '../../providers/owner_providers.dart';
+
+import '../../core/utils/currency_formatter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/service_model.dart';
+import '../../providers/owner_providers.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/business/owner_empty_state.dart';
+import '../../widgets/business_bottom_nav.dart';
+import '../../widgets/glass_card.dart';
 
 class ServicesManagementScreen extends ConsumerWidget {
   const ServicesManagementScreen({super.key});
@@ -19,30 +22,21 @@ class ServicesManagementScreen extends ConsumerWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/owner-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/owner-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/owner-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
-          title: const Text('Services Menu Management'),
+          title: Text(context.tr('Services Menu Management')),
           actions: [
             IconButton(
               icon: const Icon(Icons.add_circle_outline_rounded),
-              tooltip: 'Add Service',
+              tooltip: context.tr('Add Service'),
               onPressed: () => context.push('/add-service'),
             ),
           ],
@@ -63,7 +57,7 @@ class ServicesManagementScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               itemCount: services.length,
               itemBuilder: (context, index) {
-                final s = services[index];
+                final service = services[index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: GlassCard(
@@ -79,18 +73,19 @@ class ServicesManagementScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
-                                image: (s.imageUrl != null &&
-                                        s.imageUrl!.isNotEmpty)
+                                image: service.imageUrl?.isNotEmpty == true
                                     ? DecorationImage(
-                                        image: NetworkImage(s.imageUrl!),
+                                        image: NetworkImage(service.imageUrl!),
                                         fit: BoxFit.cover,
                                       )
                                     : null,
                               ),
-                              child: (s.imageUrl == null || s.imageUrl!.isEmpty)
-                                  ? const Icon(Icons.design_services_rounded,
-                                      color: AppColors.primaryLight)
-                                  : null,
+                              child: service.imageUrl?.isNotEmpty == true
+                                  ? null
+                                  : const Icon(
+                                      Icons.design_services_rounded,
+                                      color: AppColors.primaryLight,
+                                    ),
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -101,7 +96,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          s.name,
+                                          service.name,
                                           style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
@@ -109,23 +104,26 @@ class ServicesManagementScreen extends ConsumerWidget {
                                           ),
                                         ),
                                       ),
-                                      // Active / Disabled status chip
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 3),
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: s.isActive
-                                              ? AppColors.success
-                                                  .withValues(alpha: 0.15)
-                                              : AppColors.error
-                                                  .withValues(alpha: 0.15),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                                          color: (service.isActive
+                                                  ? AppColors.success
+                                                  : AppColors.error)
+                                              .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Text(
-                                          s.isActive ? 'Available' : 'Disabled',
+                                          context.tr(
+                                            service.isActive
+                                                ? 'Available'
+                                                : 'Disabled',
+                                          ),
                                           style: TextStyle(
-                                            color: s.isActive
+                                            color: service.isActive
                                                 ? AppColors.success
                                                 : AppColors.error,
                                             fontSize: 10,
@@ -137,17 +135,16 @@ class ServicesManagementScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${s.categoryName} • ${s.durationMinutes} min',
+                                    '${service.categoryName} • ${service.durationMinutes} ${context.tr('min')}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textMutedDark,
                                     ),
                                   ),
-                                  if (s.description != null &&
-                                      s.description!.isNotEmpty) ...[
+                                  if (service.description?.isNotEmpty == true) ...[
                                     const SizedBox(height: 6),
                                     Text(
-                                      s.description!,
+                                      service.description!,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
@@ -163,65 +160,86 @@ class ServicesManagementScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 12),
                         const Divider(
-                            color: AppColors.glassBorderDark, height: 1),
+                          color: AppColors.glassBorderDark,
+                          height: 1,
+                        ),
                         const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'AED ${s.price.toStringAsFixed(0)}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    decoration: s.discountPrice != null
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                    color: s.discountPrice != null
-                                        ? AppColors.textMutedDark
-                                        : AppColors.primaryLight,
-                                  ),
-                                ),
-                                if (s.discountPrice != null) ...[
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'AED ${s.discountPrice!.toStringAsFixed(0)}',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.success,
+                            Flexible(
+                              child: Row(
+                                children: [
+                                  Directionality(
+                                    textDirection: TextDirection.ltr,
+                                    child: Text(
+                                      CurrencyFormatter.format(
+                                        service.price,
+                                        currency: service.currency,
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: service.discountPrice != null
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                        color: service.discountPrice != null
+                                            ? AppColors.textMutedDark
+                                            : AppColors.primaryLight,
+                                      ),
                                     ),
                                   ),
+                                  if (service.discountPrice != null) ...[
+                                    const SizedBox(width: 8),
+                                    Directionality(
+                                      textDirection: TextDirection.ltr,
+                                      child: Text(
+                                        CurrencyFormatter.format(
+                                          service.discountPrice!,
+                                          currency: service.currency,
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.success,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
-
-                            // Actions: Toggle Active, Edit, Delete
                             Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Switch(
-                                  value: s.isActive,
-                                  activeColor: AppColors.primary,
-                                  onChanged: (_) {
-                                    ref
-                                        .read(ownerServicesProvider.notifier)
-                                        .toggleServiceActive(s);
-                                  },
+                                  value: service.isActive,
+                                  activeThumbColor: AppColors.primary,
+                                  onChanged: (_) => ref
+                                      .read(ownerServicesProvider.notifier)
+                                      .toggleServiceActive(service),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.edit_rounded,
-                                      size: 18, color: AppColors.accent),
+                                  tooltip: context.tr('Edit'),
+                                  icon: const Icon(
+                                    Icons.edit_rounded,
+                                    size: 18,
+                                    color: AppColors.accent,
+                                  ),
                                   onPressed: () => context.push(
                                     '/add-service',
-                                    extra: s,
+                                    extra: service,
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline_rounded,
-                                      size: 18, color: AppColors.error),
+                                  tooltip: context.tr('Delete'),
+                                  icon: const Icon(
+                                    Icons.delete_outline_rounded,
+                                    size: 18,
+                                    color: AppColors.error,
+                                  ),
                                   onPressed: () =>
-                                      _confirmDelete(context, ref, s),
+                                      _confirmDelete(context, ref, service),
                                 ),
                               ],
                             ),
@@ -235,7 +253,8 @@ class ServicesManagementScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary)),
+            child: CircularProgressIndicator(color: AppColors.primary),
+          ),
           error: (_, __) => const OwnerEmptyStateWidget(
             icon: Icons.error_outline_rounded,
             title: 'Unable to Load Services',
@@ -248,38 +267,51 @@ class ServicesManagementScreen extends ConsumerWidget {
   }
 
   void _confirmDelete(
-      BuildContext context, WidgetRef ref, ServiceModel service) {
-    showDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ServiceModel service,
+  ) {
+    showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.cardDark,
-        title: const Text('Delete Service',
-            style: TextStyle(color: AppColors.textPrimaryDark)),
+        title: Text(
+          context.tr('Delete Service'),
+          style: const TextStyle(color: AppColors.textPrimaryDark),
+        ),
         content: Text(
-          'Are you sure you want to delete "${service.name}"? If this service has existing bookings, consider disabling it instead.',
+          context.tr(
+            'Are you sure you want to delete this service? If it has existing bookings, consider disabling it instead.',
+          ),
           style: const TextStyle(color: AppColors.textMutedDark),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textMutedDark)),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              context.tr('Cancel'),
+              style: const TextStyle(color: AppColors.textMutedDark),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            onPressed: () {
-              Navigator.pop(ctx);
-              ref
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              await ref
                   .read(ownerServicesProvider.notifier)
                   .deleteService(service.id);
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Service deleted'),
+                SnackBar(
+                  content: Text(context.tr('Service deleted')),
                   backgroundColor: AppColors.error,
                 ),
               );
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: Text(
+              context.tr('Delete'),
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
