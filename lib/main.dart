@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
+import 'providers/locale_provider.dart';
 import 'routes/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -22,17 +23,20 @@ Future<void> main() async {
   );
 }
 
-class EasyBookApp extends StatelessWidget {
+class EasyBookApp extends ConsumerWidget {
   const EasyBookApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+
     return MaterialApp.router(
       onGenerateTitle: (context) => context.tr('Easy Book'),
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
+      locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
