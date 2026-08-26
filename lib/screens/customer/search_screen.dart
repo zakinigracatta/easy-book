@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/business_model.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
@@ -49,18 +50,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final businessesAsync =
-        ref.watch(customerSearchBusinessesProvider(_query));
+    final businessesAsync = ref.watch(customerSearchBusinessesProvider(_query));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Search & Explore')),
+      appBar: AppBar(title: Text(context.tr('Search & Explore'))),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: CustomTextField(
               controller: _searchController,
-              label: 'Search salons, spas or locations',
+              label: context.tr('Search salons, spas or locations'),
               prefixIcon: Icons.search,
             ),
           ),
@@ -69,24 +69,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => _errorState(),
               data: (businesses) {
-                if (businesses.isEmpty) {
-                  return _emptyState();
-                }
+                if (businesses.isEmpty) return _emptyState();
 
                 return RefreshIndicator(
                   onRefresh: () async {
                     ref.invalidate(customerSearchBusinessesProvider(_query));
-                    await ref
-                        .read(customerSearchBusinessesProvider(_query).future);
+                    await ref.read(customerSearchBusinessesProvider(_query).future);
                   },
                   child: ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                     itemCount: businesses.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      return _businessTile(context, businesses[index]);
-                    },
+                    itemBuilder: (context, index) => _businessTile(context, businesses[index]),
                   ),
                 );
               },
@@ -129,20 +124,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         business.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),
                     if (business.isVerified)
                       const Padding(
                         padding: EdgeInsets.only(left: 4),
-                        child: Icon(
-                          Icons.verified_rounded,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
+                        child: Icon(Icons.verified_rounded, size: 16, color: AppColors.primary),
                       ),
                   ],
                 ),
@@ -151,19 +139,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   business.address.isEmpty ? business.category : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textMutedDark,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
                     RatingStars(rating: business.rating),
                     const SizedBox(width: 6),
-                    Text(
-                      '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
-                      style: const TextStyle(fontSize: 11),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ),
                   ],
                 ),
@@ -182,15 +170,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       height: 72,
       alignment: Alignment.center,
       color: AppColors.primary.withValues(alpha: 0.08),
-      child: const Icon(
-        Icons.storefront_rounded,
-        color: AppColors.primary,
-        size: 30,
-      ),
+      child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 30),
     );
   }
 
   Widget _emptyState() {
+    final title = _query.isEmpty
+        ? context.tr('No businesses available yet')
+        : context.tr('No results for “{query}”', params: {'query': _query});
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
@@ -199,17 +187,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         const Icon(Icons.search_off_rounded, size: 52),
         const SizedBox(height: 14),
         Text(
-          _query.isEmpty
-              ? 'No businesses available yet'
-              : 'No results for “$_query”',
+          title,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Try another search or check again later.',
+        Text(
+          context.tr('Try another search or check again later.'),
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textMutedDark),
+          style: const TextStyle(color: AppColors.textMutedDark),
         ),
       ],
     );
@@ -224,16 +210,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           children: [
             const Icon(Icons.cloud_off_rounded, size: 48),
             const SizedBox(height: 12),
-            const Text(
-              'Could not load search results',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              context.tr('Could not load search results'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             TextButton.icon(
-              onPressed: () =>
-                  ref.invalidate(customerSearchBusinessesProvider(_query)),
+              onPressed: () => ref.invalidate(customerSearchBusinessesProvider(_query)),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try again'),
+              label: Text(context.tr('Try Again')),
             ),
           ],
         ),

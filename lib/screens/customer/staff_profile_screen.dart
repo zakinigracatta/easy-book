@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../l10n/app_localizations.dart';
+import '../../services/auth_guard.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
-import '../../services/auth_guard.dart';
 
 class StaffProfileScreen extends StatelessWidget {
   const StaffProfileScreen({super.key});
@@ -15,24 +17,21 @@ class StaffProfileScreen extends StatelessWidget {
         'title': 'Master Barber & Stylist',
         'rating': 4.9,
         'exp': '8 yrs exp',
-        'img':
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80'
+        'img': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
       },
       {
         'name': 'Elena Rostova',
         'title': 'Senior Hair Colorist',
         'rating': 5.0,
         'exp': '6 yrs exp',
-        'img':
-            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80'
+        'img': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
       },
       {
         'name': 'David Kim',
         'title': 'Spa Massage Therapist',
         'rating': 4.8,
         'exp': '10 yrs exp',
-        'img':
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80'
+        'img': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
       },
     ];
 
@@ -40,32 +39,22 @@ class StaffProfileScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Staff & Specialists'),
+          title: Text(context.tr('Staff & Specialists')),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),
           itemCount: staff.length,
           itemBuilder: (context, index) {
-            final s = staff[index];
+            final specialist = staff[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: GlassCard(
@@ -79,28 +68,33 @@ class StaffProfileScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 30,
-                      backgroundImage: NetworkImage(s['img'] as String),
+                      backgroundImage: NetworkImage(specialist['img'] as String),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(s['name'] as String,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text(s['title'] as String,
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.grey)),
+                          Text(
+                            specialist['name'] as String,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          Text(
+                            context.tr(specialist['title'] as String),
+                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              RatingStars(rating: s['rating'] as double),
+                              RatingStars(rating: specialist['rating'] as double),
                               const SizedBox(width: 6),
-                              Text('${s['rating']} • ${s['exp']}',
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold)),
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: Text(
+                                  '${specialist['rating']} • ${context.tr(specialist['exp'] as String)}',
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -114,10 +108,9 @@ class StaffProfileScreen extends StatelessWidget {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8)),
-                      child:
-                          const Text('Select', style: TextStyle(fontSize: 12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                      child: Text(context.tr('Select'), style: const TextStyle(fontSize: 12)),
                     ),
                   ],
                 ),

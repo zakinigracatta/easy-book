@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/business_model.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
@@ -28,31 +29,21 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final businessesAsync = ref.watch(businessesProvider);
     final title = selectedCategory == 'all'
-        ? 'Top Salons & Spas'
-        : '$selectedCategory Businesses';
+        ? context.tr('Top Salons & Spas')
+        : context.tr('{category} Businesses', params: {'category': selectedCategory});
 
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(title),
         ),
@@ -60,9 +51,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stackTrace) => _errorState(ref),
           data: (businesses) {
-            if (businesses.isEmpty) {
-              return _emptyState(selectedCategory);
-            }
+            if (businesses.isEmpty) return _emptyState(selectedCategory);
 
             return RefreshIndicator(
               onRefresh: () async {
@@ -74,9 +63,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                 padding: const EdgeInsets.all(20),
                 itemCount: businesses.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  return _businessCard(context, businesses[index]);
-                },
+                itemBuilder: (context, index) => _businessCard(context, businesses[index]),
               ),
             );
           },
@@ -119,20 +106,13 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                         business.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),
                     if (business.isVerified)
                       const Padding(
                         padding: EdgeInsets.only(left: 4),
-                        child: Icon(
-                          Icons.verified_rounded,
-                          size: 17,
-                          color: AppColors.primary,
-                        ),
+                        child: Icon(Icons.verified_rounded, size: 17, color: AppColors.primary),
                       ),
                   ],
                 ),
@@ -141,28 +121,25 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                   business.address.isEmpty ? business.category : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textMutedDark,
-                  ),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     RatingStars(rating: business.rating),
                     const SizedBox(width: 6),
-                    Text(
-                      '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  isOpen ? 'Open for booking' : 'Currently unavailable',
+                  context.tr(isOpen ? 'Open for booking' : 'Currently unavailable'),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -183,15 +160,18 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
       height: 90,
       alignment: Alignment.center,
       color: AppColors.primary.withValues(alpha: 0.08),
-      child: const Icon(
-        Icons.storefront_rounded,
-        color: AppColors.primary,
-        size: 34,
-      ),
+      child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 34),
     );
   }
 
   Widget _emptyState(String selectedCategory) {
+    final title = selectedCategory == 'all'
+        ? context.tr('No businesses available yet')
+        : context.tr(
+            'No {category} businesses available',
+            params: {'category': selectedCategory},
+          );
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
@@ -200,17 +180,15 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
         const Icon(Icons.storefront_outlined, size: 56),
         const SizedBox(height: 14),
         Text(
-          selectedCategory == 'all'
-              ? 'No businesses available yet'
-              : 'No $selectedCategory businesses available',
+          title,
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'New businesses will appear here once they are available.',
+        Text(
+          context.tr('New businesses will appear here once they are available.'),
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textMutedDark),
+          style: const TextStyle(color: AppColors.textMutedDark),
         ),
       ],
     );
@@ -225,15 +203,15 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
           children: [
             const Icon(Icons.cloud_off_rounded, size: 48),
             const SizedBox(height: 12),
-            const Text(
-              'Could not load businesses',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            Text(
+              context.tr('Could not load businesses'),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: () => ref.invalidate(businessesProvider),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try again'),
+              label: Text(context.tr('Try Again')),
             ),
           ],
         ),

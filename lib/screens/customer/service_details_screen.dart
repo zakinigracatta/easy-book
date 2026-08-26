@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_button.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_guard.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/glass_card.dart';
 
 class ServiceDetailsScreen extends StatelessWidget {
   const ServiceDetailsScreen({super.key});
@@ -13,26 +15,16 @@ class ServiceDetailsScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Service Information'),
+          title: Text(context.tr('Service Information')),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -44,27 +36,39 @@ class ServiceDetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Royal Haircut & Beard Sculpting',
-                        style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Text('\$65.00 • 45 minutes',
-                        style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold)),
-                    const Divider(height: 24),
-                    const Text('Service Highlights:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
                     const Text(
-                        '• Precision hair consultation & custom styling\n• Hot towel facial wrap & beard oil conditioning\n• Scalp massage and premium hair wash finish'),
+                      'Royal Haircut & Beard Sculpting',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        'AED 65.00 • 45 ${context.tr('minutes')}',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 24),
+                    Text(
+                      context.tr('Service Highlights:'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      context.tr(
+                        '• Precision hair consultation & custom styling\n• Hot towel facial wrap & beard oil conditioning\n• Scalp massage and premium hair wash finish',
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: 'Proceed to Booking',
+                text: context.tr('Proceed to Booking'),
                 onPressed: () async {
                   final allowed = await requireLogin(context);
                   if (allowed && context.mounted) {
