@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../glass_card.dart';
 
@@ -34,12 +36,11 @@ class QuickActionCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            title,
+            context.tr(title),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
             ),
           ),
         ],
