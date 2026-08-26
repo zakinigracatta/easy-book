@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_text.dart';
+import '../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
-  const AboutScreen({super.key});
+  AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class AboutScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -31,9 +32,9 @@ class AboutScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('About Easy Book'),
+          title: Text(context.tr('About Easy Book')),
         ),
-        body: const Padding(
+        body: Padding(
           padding: EdgeInsets.all(20),
           child: Column(
             children: [
@@ -51,8 +52,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8),
-                    Text(
-                      'Next-generation native Flutter reservation app for barbers, hair salons, spas and beauty clinics.',
+                    Text(context.tr('Next-generation native Flutter reservation app for barbers, hair salons, spas and beauty clinics.'),
                       textAlign: TextAlign.center,
                     ),
                   ],

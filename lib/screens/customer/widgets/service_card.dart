@@ -11,7 +11,7 @@ class ServiceCard extends StatelessWidget {
   final VoidCallback onBookTap;
   final VoidCallback? cardTap;
 
-  const ServiceCard({
+  ServiceCard({
     super.key,
     required this.service,
     this.isSelected = false,
@@ -29,7 +29,7 @@ class ServiceCard extends StatelessWidget {
       onTap: cardTap ?? onBookTap,
       borderColor: isSelected ? AppColors.primary : null,
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: EdgeInsets.all(4),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -43,17 +43,17 @@ class ServiceCard extends StatelessWidget {
                   height: 70,
                   fit: BoxFit.cover,
                   placeholder: (context, url) =>
-                      Container(color: AppColors.cardDark),
+                      Container(color: Theme.of(context).colorScheme.surface),
                   errorWidget: (context, url, err) => Container(
                     width: 70,
                     height: 70,
-                    color: AppColors.cardDark,
-                    child: const Icon(Icons.content_cut_rounded,
-                        color: AppColors.textMutedDark),
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Icon(Icons.content_cut_rounded,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
             ],
 
             // Service Details
@@ -63,23 +63,23 @@ class ServiceCard extends StatelessWidget {
                 children: [
                   Text(
                     service.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.access_time_rounded,
-                          size: 13, color: AppColors.textMutedDark),
-                      const SizedBox(width: 4),
+                      Icon(Icons.access_time_rounded,
+                          size: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      SizedBox(width: 4),
                       Text(
                         service.duration,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -87,19 +87,19 @@ class ServiceCard extends StatelessWidget {
                   ),
                   if (service.description != null &&
                       service.description!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Text(
                       service.description!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondaryDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
 
                   // Price Display
                   Row(
@@ -107,19 +107,19 @@ class ServiceCard extends StatelessWidget {
                       Text(
                         CurrencyFormatter.format(effectivePrice,
                             currency: service.currency),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.primaryLight,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                       if (hasDiscount) ...[
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text(
                           CurrencyFormatter.format(service.price,
                               currency: service.currency),
-                          style: const TextStyle(
-                            color: AppColors.textMutedDark,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 12,
                             decoration: TextDecoration.lineThrough,
                           ),
@@ -131,7 +131,7 @@ class ServiceCard extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
 
             // Book / Select Button
             ElevatedButton(
@@ -140,7 +140,7 @@ class ServiceCard extends StatelessWidget {
                 backgroundColor:
                     isSelected ? AppColors.accent : AppColors.primary,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
@@ -149,7 +149,7 @@ class ServiceCard extends StatelessWidget {
               child: Text(
                 isSelected ? 'Selected ✓' : 'Book',
                 style:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),
             ),
           ],

@@ -13,7 +13,7 @@ class BookingBottomBar extends ConsumerWidget {
   final BusinessModel business;
   final VoidCallback? onBookNowTap;
 
-  const BookingBottomBar({
+  BookingBottomBar({
     super.key,
     required this.business,
     this.onBookNowTap,
@@ -29,13 +29,13 @@ class BookingBottomBar extends ConsumerWidget {
         business.acceptingBookings &&
         business.businessStatus == 'open';
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? AppColors.cardDark : AppColors.cardLight;
+    final cardColor = isDark ? Theme.of(context).colorScheme.surface : AppColors.cardLight;
     final borderColor =
-        isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight;
+        isDark ? Theme.of(context).dividerColor : AppColors.glassBorderLight;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
     final secondaryColor = isDark
-        ? AppColors.textSecondaryDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
         : AppColors.textSecondaryLight;
 
     final hasSelection = count > 0;
@@ -44,7 +44,7 @@ class BookingBottomBar extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(top: BorderSide(color: borderColor, width: 1)),
         boxShadow: [
           BoxShadow(
@@ -52,14 +52,14 @@ class BookingBottomBar extends ConsumerWidget {
                 ? AppColors.shadowDark
                 : AppColors.shadowLight.withValues(alpha: 0.12),
             blurRadius: 16,
-            offset: const Offset(0, -4),
+            offset: Offset(0, -4),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           child: Row(
             children: [
               Expanded(
@@ -78,20 +78,20 @@ class BookingBottomBar extends ConsumerWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Row(
                         children: [
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
                               CurrencyFormatter.format(totalPrice),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Text(
                             '•  $totalDuration ${context.tr('min')}',
                             style: TextStyle(
@@ -104,14 +104,14 @@ class BookingBottomBar extends ConsumerWidget {
                     ] else ...[
                       Text(
                         business.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         context.tr(
                           canBook
@@ -124,7 +124,7 @@ class BookingBottomBar extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
               ElevatedButton(
                 onPressed: canBook
                     ? () async {
@@ -151,7 +151,7 @@ class BookingBottomBar extends ConsumerWidget {
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: canBook ? AppColors.primary : cardColor,
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 14,
                   ),
@@ -162,7 +162,7 @@ class BookingBottomBar extends ConsumerWidget {
                 ),
                 child: Text(
                   context.tr(canBook ? buttonText : 'Unavailable'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),

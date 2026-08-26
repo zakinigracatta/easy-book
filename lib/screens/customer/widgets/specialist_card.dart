@@ -8,7 +8,7 @@ class SpecialistCard extends StatelessWidget {
   final StaffModel staff;
   final VoidCallback? onTap;
 
-  const SpecialistCard({
+  SpecialistCard({
     super.key,
     required this.staff,
     this.onTap,
@@ -28,7 +28,7 @@ class SpecialistCard extends StatelessWidget {
     return GlassCard(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(4),
+        padding: EdgeInsets.all(4),
         child: Row(
           children: [
             ClipRRect(
@@ -40,65 +40,65 @@ class SpecialistCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 memCacheWidth: avatarCacheWidth,
                 maxWidthDiskCache: avatarCacheWidth,
-                fadeInDuration: const Duration(milliseconds: 100),
+                fadeInDuration: Duration(milliseconds: 100),
                 fadeOutDuration: Duration.zero,
                 placeholder: (context, url) =>
-                    Container(color: AppColors.cardDark),
+                    Container(color: Theme.of(context).colorScheme.surface),
                 errorWidget: (context, url, err) => Container(
                   width: 64,
                   height: 64,
-                  color: AppColors.cardDark,
+                  color: Theme.of(context).colorScheme.surface,
                   alignment: Alignment.center,
-                  child: const Icon(
+                  child: Icon(
                     Icons.person_rounded,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     staff.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     staff.roleTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       color: AppColors.primaryLight,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.star_rounded,
+                      Icon(Icons.star_rounded,
                           color: AppColors.gold, size: 15),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
                         staff.rating.toStringAsFixed(1),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColors.gold,
                         ),
                       ),
                       if (staff.experienceYears > 0) ...[
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Text(
                           '•  ${staff.experienceYears} yrs experience',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],

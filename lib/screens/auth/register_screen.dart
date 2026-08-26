@@ -11,7 +11,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+  RegisterScreen({super.key});
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -111,7 +111,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
@@ -119,34 +119,34 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
+                Icon(
                   Icons.person_add_alt_1_rounded,
                   size: 60,
                   color: AppColors.primary,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   context.tr('Create Customer Account'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text(
                   context.tr('Create your Easy Book account'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.textMutedDark,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Center(
                   child: Stack(
                     children: [
@@ -155,7 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         backgroundColor: AppColors.primary,
                         backgroundImage: NetworkImage(_profileImageUrl),
                       ),
-                      const Positioned(
+                      Positioned(
                         bottom: 0,
                         right: 0,
                         child: CircleAvatar(
@@ -171,7 +171,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 GlassCard(
                   child: Column(
                     children: [
@@ -180,28 +180,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         label: context.tr('Full Name'),
                         prefixIcon: Icons.person_outline,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
                         label: context.tr('Phone Number'),
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _emailController,
                         label: context.tr('Email'),
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _passwordController,
                         label: context.tr('Password'),
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       CustomButton(
                         text: context.tr('Create Account'),
                         isLoading: _isLoading,
@@ -210,19 +210,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       context.tr('Already have an account? '),
-                      style: const TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     TextButton(
                       onPressed: () => context.push('/login'),
                       child: Text(
                         context.tr('Sign In'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.primaryLight,
                           fontWeight: FontWeight.bold,
                         ),

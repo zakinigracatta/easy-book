@@ -8,9 +8,10 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class BookingCalendarScreen extends ConsumerStatefulWidget {
-  const BookingCalendarScreen({super.key});
+  BookingCalendarScreen({super.key});
 
   @override
   ConsumerState<BookingCalendarScreen> createState() =>
@@ -38,7 +39,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -47,10 +48,10 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               }
             },
           ),
-          title: const Text('Owner Booking Calendar'),
+          title: Text(context.tr('Owner Booking Calendar')),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_rounded),
+              icon: Icon(Icons.add_rounded),
               tooltip: 'Add Booking for Date',
               onPressed: () => context.push('/quick-walk-in'),
             ),
@@ -60,12 +61,12 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
           children: [
             // Calendar Month & Day DatePicker Container
             GlassCard(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(8),
+              margin: EdgeInsets.all(16),
+              padding: EdgeInsets.all(8),
               child: CalendarDatePicker(
                 initialDate: _selectedDate,
-                firstDate: DateTime.now().subtract(const Duration(days: 90)),
-                lastDate: DateTime.now().add(const Duration(days: 180)),
+                firstDate: DateTime.now().subtract(Duration(days: 90)),
+                lastDate: DateTime.now().add(Duration(days: 180)),
                 onDateChanged: (d) {
                   setState(() => _selectedDate = d);
                 },
@@ -74,22 +75,22 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
 
             // Date Header Banner
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Bookings for ${DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   TextButton.icon(
                     onPressed: () => context.push('/quick-walk-in'),
-                    icon: const Icon(Icons.add_rounded, size: 16),
-                    label: const Text('New Booking',
+                    icon: Icon(Icons.add_rounded, size: 16),
+                    label: Text(context.tr('New Booking'),
                         style: TextStyle(
                             fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
@@ -97,7 +98,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               ),
             ),
 
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
 
             // Bookings List for Selected Date
             Expanded(
@@ -121,7 +122,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
                     itemCount: dateBookings.length,
                     itemBuilder: (context, index) {
                       final b = dateBookings[index];
@@ -136,9 +137,9 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                     },
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (_, __) => const OwnerEmptyStateWidget(
+                error: (_, __) => OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Calendar',
                   description:
@@ -148,7 +149,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 2),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 2),
       ),
     );
   }

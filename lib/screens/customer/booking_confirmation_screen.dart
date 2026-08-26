@@ -14,7 +14,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class BookingConfirmationScreen extends ConsumerStatefulWidget {
-  const BookingConfirmationScreen({super.key});
+  BookingConfirmationScreen({super.key});
 
   @override
   ConsumerState<BookingConfirmationScreen> createState() =>
@@ -26,7 +26,7 @@ class _BookingConfirmationScreenState
   bool _isCreating = false;
 
   Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
-      ? AppColors.textMutedDark
+      ? Theme.of(context).colorScheme.onSurfaceVariant
       : AppColors.textMutedLight;
 
   Future<void> _confirmBooking() async {
@@ -205,28 +205,28 @@ class _BookingConfirmationScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Confirm Booking')),
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
               GlassCard(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   children: [
                     Text(
                       draft.businessName ?? context.tr('Business'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const Divider(height: 24),
+                    Divider(height: 24),
                     _row(
                       'Service',
                       draft.serviceName ?? context.tr('Not selected'),
@@ -240,7 +240,7 @@ class _BookingConfirmationScreenState
                       'Date & Time',
                       '$dateStr • ${draft.timeSlot ?? context.tr('Not selected')}',
                     ),
-                    const Divider(height: 24),
+                    Divider(height: 24),
                     _row(
                       'Total Price',
                       CurrencyFormatter.format(draft.totalPrice),
@@ -250,7 +250,7 @@ class _BookingConfirmationScreenState
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
                 context.tr(
                   'Your appointment is created only after this confirmation succeeds.',
@@ -258,7 +258,7 @@ class _BookingConfirmationScreenState
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: _mutedColor),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               CustomButton(
                 text: 'Confirm Booking',
                 isLoading: _isCreating,
@@ -288,7 +288,7 @@ class _BookingConfirmationScreenState
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -296,7 +296,7 @@ class _BookingConfirmationScreenState
             context.tr(title),
             style: TextStyle(color: _mutedColor),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Align(
               alignment: AlignmentDirectional.centerEnd,

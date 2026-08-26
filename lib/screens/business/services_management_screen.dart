@@ -12,7 +12,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
 
 class ServicesManagementScreen extends ConsumerWidget {
-  const ServicesManagementScreen({super.key});
+  ServicesManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,14 +28,14 @@ class ServicesManagementScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
           title: Text(context.tr('Services Menu Management')),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_circle_outline_rounded),
+              icon: Icon(Icons.add_circle_outline_rounded),
               tooltip: context.tr('Add Service'),
               onPressed: () => context.push('/add-service'),
             ),
@@ -54,14 +54,14 @@ class ServicesManagementScreen extends ConsumerWidget {
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               itemCount: services.length,
               itemBuilder: (context, index) {
                 final service = services[index];
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: EdgeInsets.only(bottom: 12),
                   child: GlassCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Row(
@@ -82,12 +82,12 @@ class ServicesManagementScreen extends ConsumerWidget {
                               ),
                               child: service.imageUrl?.isNotEmpty == true
                                   ? null
-                                  : const Icon(
+                                  : Icon(
                                       Icons.design_services_rounded,
                                       color: AppColors.primaryLight,
                                     ),
                             ),
-                            const SizedBox(width: 14),
+                            SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,15 +97,15 @@ class ServicesManagementScreen extends ConsumerWidget {
                                       Expanded(
                                         child: Text(
                                           service.name,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.textPrimaryDark,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                         ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
+                                        padding: EdgeInsets.symmetric(
                                           horizontal: 8,
                                           vertical: 3,
                                         ),
@@ -133,23 +133,23 @@ class ServicesManagementScreen extends ConsumerWidget {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     '${service.categoryName} • ${service.durationMinutes} ${context.tr('min')}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textMutedDark,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   if (service.description?.isNotEmpty == true) ...[
-                                    const SizedBox(height: 6),
+                                    SizedBox(height: 6),
                                     Text(
                                       service.description!,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondaryDark,
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ],
@@ -158,12 +158,12 @@ class ServicesManagementScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        const Divider(
-                          color: AppColors.glassBorderDark,
+                        SizedBox(height: 12),
+                        Divider(
+                          color: Theme.of(context).dividerColor,
                           height: 1,
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -184,13 +184,13 @@ class ServicesManagementScreen extends ConsumerWidget {
                                             ? TextDecoration.lineThrough
                                             : null,
                                         color: service.discountPrice != null
-                                            ? AppColors.textMutedDark
+                                            ? Theme.of(context).colorScheme.onSurfaceVariant
                                             : AppColors.primaryLight,
                                       ),
                                     ),
                                   ),
                                   if (service.discountPrice != null) ...[
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     Directionality(
                                       textDirection: TextDirection.ltr,
                                       child: Text(
@@ -198,7 +198,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                                           service.discountPrice!,
                                           currency: service.currency,
                                         ),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.success,
@@ -221,7 +221,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                                 ),
                                 IconButton(
                                   tooltip: context.tr('Edit'),
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.edit_rounded,
                                     size: 18,
                                     color: AppColors.accent,
@@ -233,7 +233,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                                 ),
                                 IconButton(
                                   tooltip: context.tr('Delete'),
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.delete_outline_rounded,
                                     size: 18,
                                     color: AppColors.error,
@@ -252,16 +252,16 @@ class ServicesManagementScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
-          error: (_, __) => const OwnerEmptyStateWidget(
+          error: (_, __) => OwnerEmptyStateWidget(
             icon: Icons.error_outline_rounded,
             title: 'Unable to Load Services',
             description: 'Could not fetch business services menu.',
           ),
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 3),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 3),
       ),
     );
   }
@@ -274,23 +274,23 @@ class ServicesManagementScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.cardDark,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
           context.tr('Delete Service'),
-          style: const TextStyle(color: AppColors.textPrimaryDark),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         content: Text(
           context.tr(
             'Are you sure you want to delete this service? If it has existing bookings, consider disabling it instead.',
           ),
-          style: const TextStyle(color: AppColors.textMutedDark),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               context.tr('Cancel'),
-              style: const TextStyle(color: AppColors.textMutedDark),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
           ElevatedButton(
@@ -310,7 +310,7 @@ class ServicesManagementScreen extends ConsumerWidget {
             },
             child: Text(
               context.tr('Delete'),
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
             ),
           ),
         ],

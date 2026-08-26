@@ -7,9 +7,10 @@ import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/booking_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class OwnerBookingsScreen extends ConsumerWidget {
-  const OwnerBookingsScreen({super.key});
+  OwnerBookingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,7 +42,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -50,10 +51,10 @@ class OwnerBookingsScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Bookings Management'),
+          title: Text(context.tr('Bookings Management')),
           actions: [
             IconButton(
-              icon: const Icon(Icons.person_add_alt_1_rounded),
+              icon: Icon(Icons.person_add_alt_1_rounded),
               tooltip: 'New Walk-in',
               onPressed: () => context.push('/quick-walk-in'),
             ),
@@ -63,42 +64,42 @@ class OwnerBookingsScreen extends ConsumerWidget {
           children: [
             // Search Input
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: TextField(
                 onChanged: (val) => ref
                     .read(ownerBookingSearchQueryProvider.notifier)
                     .state = val,
                 decoration: InputDecoration(
                   hintText: 'Search by customer, phone, or ID...',
-                  hintStyle: const TextStyle(
-                      fontSize: 13, color: AppColors.textMutedDark),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppColors.textMutedDark),
+                  hintStyle: TextStyle(
+                      fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   suffixIcon: searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          icon: Icon(Icons.clear_rounded, size: 18),
                           onPressed: () => ref
                               .read(ownerBookingSearchQueryProvider.notifier)
                               .state = '',
                         )
                       : null,
                   filled: true,
-                  fillColor: AppColors.cardDark,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                        BorderSide(color: Theme.of(context).dividerColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                        BorderSide(color: Theme.of(context).dividerColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: AppColors.primary),
+                    borderSide: BorderSide(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -107,12 +108,12 @@ class OwnerBookingsScreen extends ConsumerWidget {
             // Horizontal Filter Chips
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: filters.map((f) {
                   final isSelected = activeFilter == f;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: EdgeInsets.only(right: 8),
                     child: FilterChip(
                       selected: isSelected,
                       label: Text(f),
@@ -121,16 +122,16 @@ class OwnerBookingsScreen extends ConsumerWidget {
                         fontWeight:
                             isSelected ? FontWeight.bold : FontWeight.normal,
                         color:
-                            isSelected ? Colors.white : AppColors.textMutedDark,
+                            isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.cardDark,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
                           color: isSelected
                               ? AppColors.primary
-                              : AppColors.glassBorderDark,
+                              : Theme.of(context).dividerColor,
                         ),
                       ),
                       onSelected: (_) {
@@ -142,7 +143,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             // Bookings List View
             Expanded(
@@ -161,7 +162,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
 
                   return ListView.builder(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     itemCount: filteredBookings.length,
                     itemBuilder: (context, index) {
                       final booking = filteredBookings[index];
@@ -185,7 +186,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                     },
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
                 error: (err, _) => OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
@@ -196,7 +197,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
             ),
           ],
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 1),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 1),
       ),
     );
   }

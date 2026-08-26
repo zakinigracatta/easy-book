@@ -7,9 +7,10 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import 'customer_profile_modal.dart';
+import '../../l10n/app_localizations.dart';
 
 class CustomerManagementScreen extends ConsumerStatefulWidget {
-  const CustomerManagementScreen({super.key});
+  CustomerManagementScreen({super.key});
 
   @override
   ConsumerState<CustomerManagementScreen> createState() =>
@@ -38,7 +39,7 @@ class _CustomerManagementScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -47,30 +48,30 @@ class _CustomerManagementScreenState
               }
             },
           ),
-          title: const Text('Customer Database & CRM'),
+          title: Text(context.tr('Customer Database & CRM')),
         ),
         body: Column(
           children: [
             // Search Input
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: TextField(
                 onChanged: (val) =>
                     setState(() => _searchQuery = val.toLowerCase()),
                 decoration: InputDecoration(
                   hintText: 'Search clients by name or phone...',
-                  hintStyle: const TextStyle(
-                      fontSize: 13, color: AppColors.textMutedDark),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppColors.textMutedDark),
+                  hintStyle: TextStyle(
+                      fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   filled: true,
-                  fillColor: AppColors.cardDark,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                        BorderSide(color: Theme.of(context).dividerColor),
                   ),
                 ),
               ),
@@ -95,12 +96,12 @@ class _CustomerManagementScreenState
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final c = filtered[index];
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: EdgeInsets.only(bottom: 10),
                         child: GlassCard(
                           onTap: () {
                             showModalBottomSheet(
@@ -117,7 +118,7 @@ class _CustomerManagementScreenState
                                   AppColors.primary.withValues(alpha: 0.2),
                               child: Text(
                                 c.name[0].toUpperCase(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryLight,
                                 ),
@@ -125,15 +126,15 @@ class _CustomerManagementScreenState
                             ),
                             title: Text(
                               c.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                  color: AppColors.textPrimaryDark),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             ),
                             subtitle: Text(
                               '${c.phone} • ${c.completedVisits} visits',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textMutedDark),
+                              style: TextStyle(
+                                  fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                             trailing: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -141,17 +142,17 @@ class _CustomerManagementScreenState
                               children: [
                                 Text(
                                   'AED ${c.totalSpent.toStringAsFixed(0)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.success,
                                     fontSize: 14,
                                   ),
                                 ),
                                 if (c.noShowCount > 0) ...[
-                                  const SizedBox(height: 2),
+                                  SizedBox(height: 2),
                                   Text(
                                     '${c.noShowCount} No-Shows',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 10,
                                       color: AppColors.warning,
                                       fontWeight: FontWeight.bold,
@@ -166,9 +167,9 @@ class _CustomerManagementScreenState
                     },
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (_, __) => const OwnerEmptyStateWidget(
+                error: (_, __) => OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Customers',
                   description: 'Failed to retrieve customer CRM database.',
@@ -177,7 +178,7 @@ class _CustomerManagementScreenState
             ),
           ],
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
       ),
     );
   }

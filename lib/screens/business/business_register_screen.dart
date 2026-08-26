@@ -11,7 +11,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
 
 class BusinessRegisterScreen extends ConsumerStatefulWidget {
-  const BusinessRegisterScreen({super.key});
+  BusinessRegisterScreen({super.key});
 
   @override
   ConsumerState<BusinessRegisterScreen> createState() =>
@@ -132,7 +132,7 @@ class _BusinessRegisterScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
@@ -140,34 +140,34 @@ class _BusinessRegisterScreenState
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
+                Icon(
                   Icons.storefront_rounded,
                   size: 60,
                   color: AppColors.accent,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   context.tr('Partner Account Creation'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Text(
                   context.tr('Register your salon or spa with Easy Book.'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.textMutedDark,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Center(
                   child: Stack(
                     children: [
@@ -186,7 +186,7 @@ class _BusinessRegisterScreenState
                           ),
                         ),
                       ),
-                      const Positioned(
+                      Positioned(
                         bottom: 0,
                         right: 0,
                         child: CircleAvatar(
@@ -202,7 +202,7 @@ class _BusinessRegisterScreenState
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 GlassCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,20 +212,20 @@ class _BusinessRegisterScreenState
                         label: context.tr('Business Name'),
                         prefixIcon: Icons.storefront_rounded,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       Text(
                         context.tr('Business Category'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondaryDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         initialValue: _selectedCategory,
-                        dropdownColor: AppColors.cardDark,
+                        dropdownColor: Theme.of(context).colorScheme.surface,
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(
+                          prefixIcon: Icon(
                             Icons.category_rounded,
                             size: 20,
                           ),
@@ -247,34 +247,34 @@ class _BusinessRegisterScreenState
                           }
                         },
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
                         label: context.tr('Phone Number'),
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _emailController,
                         label: context.tr('Business Email'),
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _passwordController,
                         label: context.tr('Password'),
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _locationController,
                         label: context.tr('Physical Address / Location'),
                         prefixIcon: Icons.location_on_outlined,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       CustomButton(
                         text: context.tr('Create Business Account'),
                         backgroundColor: AppColors.accent,
@@ -284,19 +284,19 @@ class _BusinessRegisterScreenState
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       context.tr('Already registered? '),
-                      style: const TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     TextButton(
                       onPressed: () => context.push('/owner-login'),
                       child: Text(
                         context.tr('Partner Sign In'),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.accent,
                           fontWeight: FontWeight.bold,
                         ),

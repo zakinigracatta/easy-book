@@ -6,7 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 
 class BookingSuccessScreen extends StatelessWidget {
-  const BookingSuccessScreen({super.key});
+  BookingSuccessScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,45 +18,45 @@ class BookingSuccessScreen extends StatelessWidget {
       child: Scaffold(
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
+                  padding: EdgeInsets.all(24),
+                  decoration: BoxDecoration(
                     color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check_rounded,
                     color: Colors.white,
                     size: 64,
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Text(
                   context.tr('Booking Confirmed!'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   context.tr(
                     'Your appointment has been successfully scheduled. You can review all details in My Bookings.',
                   ),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.textMutedDark),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
-                const SizedBox(height: 36),
+                SizedBox(height: 36),
                 CustomButton(
                   text: 'View My Bookings',
                   onPressed: () => context.go('/my-bookings'),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 CustomButton(
                   text: 'Back to Home',
                   isOutlined: true,

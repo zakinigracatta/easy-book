@@ -13,7 +13,7 @@ class BusinessQuickActions extends ConsumerWidget {
   final VoidCallback? onDirectionsTap;
   final VoidCallback? onShareTap;
 
-  const BusinessQuickActions({
+  BusinessQuickActions({
     super.key,
     required this.business,
     this.onDirectionsTap,
@@ -127,7 +127,7 @@ class BusinessQuickActions extends ConsumerWidget {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
@@ -136,13 +136,13 @@ class BusinessQuickActions extends ConsumerWidget {
             ),
             child: Icon(icon, color: activeColor, size: 20),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondaryDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],

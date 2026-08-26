@@ -12,7 +12,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class VerifyEmailScreen extends ConsumerStatefulWidget {
-  const VerifyEmailScreen({super.key});
+  VerifyEmailScreen({super.key});
 
   @override
   ConsumerState<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
@@ -186,7 +186,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.logout_rounded),
+              icon: Icon(Icons.logout_rounded),
               tooltip: context.tr('Logout'),
               onPressed: _handleLogout,
             ),
@@ -194,39 +194,39 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
-                const Icon(
+                SizedBox(height: 20),
+                Icon(
                   Icons.mark_email_unread_rounded,
                   size: 80,
                   color: AppColors.primary,
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 Text(
                   context.tr('Verify Your Email'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   context.tr(
                     'We sent a verification link to:\n{email}',
                     params: {'email': email},
                   ),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 GlassCard(
                   child: Column(
                     children: [
@@ -235,18 +235,18 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                           'Please check your email inbox and click the verification link before proceeding.',
                         ),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: AppColors.textSecondaryDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       CustomButton(
                         text: context.tr("I've verified my email"),
                         isLoading: _isChecking,
                         onPressed: _isChecking ? null : _handleCheckVerification,
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       CustomButton(
                         text: context.tr('Resend verification email'),
                         isLoading: _isResending,
@@ -256,18 +256,18 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 TextButton.icon(
                   onPressed: _handleLogout,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.logout_rounded,
                     size: 18,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   label: Text(
                     context.tr('Logout / Use another account'),
-                    style: const TextStyle(
-                      color: AppColors.textMutedDark,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

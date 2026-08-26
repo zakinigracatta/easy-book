@@ -10,7 +10,7 @@ class SelectedServicesSummary extends StatelessWidget {
   final List<ServiceModel> services;
   final VoidCallback? onEditTap;
 
-  const SelectedServicesSummary({
+  SelectedServicesSummary({
     super.key,
     required this.services,
     this.onEditTap,
@@ -18,7 +18,7 @@ class SelectedServicesSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (services.isEmpty) return const SizedBox.shrink();
+    if (services.isEmpty) return SizedBox.shrink();
 
     final totalPrice = services.fold<double>(
       0,
@@ -38,7 +38,7 @@ class SelectedServicesSummary extends StatelessWidget {
             children: [
               Text(
                 context.tr('Selected Services'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -49,7 +49,7 @@ class SelectedServicesSummary extends StatelessWidget {
                   onTap: onEditTap,
                   child: Text(
                     context.tr('Change'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primaryLight,
@@ -58,22 +58,22 @@ class SelectedServicesSummary extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Column(
             children: services.map((service) {
               final price = service.discountPrice ?? service.price;
               return Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: EdgeInsets.only(bottom: 6),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
                         service.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -83,12 +83,12 @@ class SelectedServicesSummary extends StatelessWidget {
                       children: [
                         Text(
                           service.duration,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Directionality(
                           textDirection: TextDirection.ltr,
                           child: Text(
@@ -96,7 +96,7 @@ class SelectedServicesSummary extends StatelessWidget {
                               price,
                               currency: service.currency,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryLight,
@@ -110,15 +110,15 @@ class SelectedServicesSummary extends StatelessWidget {
               );
             }).toList(),
           ),
-          const Divider(color: AppColors.glassBorderDark, height: 16),
+          Divider(color: Theme.of(context).dividerColor, height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 '${context.tr('Total Duration')}: $totalDuration ${context.tr('min')}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -126,7 +126,7 @@ class SelectedServicesSummary extends StatelessWidget {
                 textDirection: TextDirection.ltr,
                 child: Text(
                   '${context.tr('Subtotal')}: ${CurrencyFormatter.format(totalPrice)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

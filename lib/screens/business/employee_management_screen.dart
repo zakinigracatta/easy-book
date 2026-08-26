@@ -6,9 +6,10 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class EmployeeManagementScreen extends ConsumerWidget {
-  const EmployeeManagementScreen({super.key});
+  EmployeeManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +29,7 @@ class EmployeeManagementScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -37,10 +38,10 @@ class EmployeeManagementScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Team & Employees'),
+          title: Text(context.tr('Team & Employees')),
           actions: [
             IconButton(
-              icon: const Icon(Icons.person_add_alt_1_rounded),
+              icon: Icon(Icons.person_add_alt_1_rounded),
               tooltip: 'Add Employee',
               onPressed: () => context.push('/add-employee'),
             ),
@@ -60,14 +61,14 @@ class EmployeeManagementScreen extends ConsumerWidget {
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               itemCount: staffList.length,
               itemBuilder: (context, index) {
                 final st = staffList[index];
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: EdgeInsets.only(bottom: 12),
                   child: GlassCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     child: Row(
                       children: [
                         CircleAvatar(
@@ -78,11 +79,11 @@ class EmployeeManagementScreen extends ConsumerWidget {
                               ? NetworkImage(st.avatarUrl)
                               : null,
                           child: st.avatarUrl.isEmpty
-                              ? const Icon(Icons.person_rounded,
+                              ? Icon(Icons.person_rounded,
                                   color: AppColors.primaryLight, size: 24)
                               : null,
                         ),
-                        const SizedBox(width: 14),
+                        SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,15 +93,15 @@ class EmployeeManagementScreen extends ConsumerWidget {
                                   Expanded(
                                     child: Text(
                                       st.name,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimaryDark,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                       ),
                                     ),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
+                                    padding: EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
                                       color: st.isActive
@@ -123,34 +124,34 @@ class EmployeeManagementScreen extends ConsumerWidget {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 2),
+                              SizedBox(height: 2),
                               Text(
                                 st.roleTitle,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   color: AppColors.accent,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.star_rounded,
+                                  Icon(Icons.star_rounded,
                                       size: 14, color: AppColors.gold),
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: 4),
                                   Text(
                                     '${st.rating} (${st.reviewCount} reviews)',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.textMutedDark,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  SizedBox(width: 12),
                                   Text(
                                     '${st.experienceYears} yrs exp',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.textMutedDark,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],
@@ -159,13 +160,13 @@ class EmployeeManagementScreen extends ConsumerWidget {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.calendar_month_rounded,
+                          icon: Icon(Icons.calendar_month_rounded,
                               color: AppColors.primaryLight, size: 20),
                           tooltip: 'Working Hours & Schedule',
                           onPressed: () => context.push('/employee-schedule'),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit_rounded,
+                          icon: Icon(Icons.edit_rounded,
                               color: AppColors.accent, size: 20),
                           onPressed: () =>
                               context.push('/add-employee', extra: st),
@@ -177,15 +178,15 @@ class EmployeeManagementScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
               child: CircularProgressIndicator(color: AppColors.primary)),
-          error: (_, __) => const OwnerEmptyStateWidget(
+          error: (_, __) => OwnerEmptyStateWidget(
             icon: Icons.error_outline_rounded,
             title: 'Unable to Load Employees',
             description: 'Could not retrieve team members.',
           ),
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
       ),
     );
   }

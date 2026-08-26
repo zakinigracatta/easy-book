@@ -18,7 +18,7 @@ final customerSearchBusinessesProvider =
 });
 
 class SearchScreen extends ConsumerStatefulWidget {
-  const SearchScreen({super.key});
+  SearchScreen({super.key});
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
@@ -50,7 +50,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Color _mutedColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
-        ? AppColors.textMutedDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
         : AppColors.textMutedLight;
   }
 
@@ -63,7 +63,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: CustomTextField(
               controller: _searchController,
               label: context.tr('Search salons, spas or locations'),
@@ -72,7 +72,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
           Expanded(
             child: businessesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => _errorState(),
               data: (businesses) {
                 if (businesses.isEmpty) return _emptyState();
@@ -85,10 +85,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     );
                   },
                   child: ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
+                    physics: AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(16, 8, 16, 90),
                     itemCount: businesses.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, __) => SizedBox(height: 12),
                     itemBuilder: (context, index) =>
                         _businessTile(context, businesses[index]),
                   ),
@@ -98,7 +98,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const CustomerBottomNav(currentIndex: 1),
+      bottomNavigationBar: CustomerBottomNav(currentIndex: 1),
     );
   }
 
@@ -122,7 +122,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     errorBuilder: (_, __, ___) => _imagePlaceholder(),
                   ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,14 +134,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         business.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
                       ),
                     ),
                     if (business.isVerified)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(left: 4),
                         child: Icon(
                           Icons.verified_rounded,
@@ -151,7 +151,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   business.address.isEmpty
                       ? business.category
@@ -160,16 +160,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: mutedColor),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6),
                 Row(
                   children: [
                     RatingStars(rating: business.rating),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: Text(
                         '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
-                        style: const TextStyle(fontSize: 11),
+                        style: TextStyle(fontSize: 11),
                       ),
                     ),
                   ],
@@ -177,7 +177,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded),
+          Icon(Icons.chevron_right_rounded),
         ],
       ),
     );
@@ -189,7 +189,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       height: 72,
       alignment: Alignment.center,
       color: AppColors.primary.withValues(alpha: 0.08),
-      child: const Icon(
+      child: Icon(
         Icons.storefront_rounded,
         color: AppColors.primary,
         size: 30,
@@ -203,18 +203,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         : context.tr('No results for “{query}”', params: {'query': _query});
 
     return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(24),
+      physics: AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.all(24),
       children: [
-        const SizedBox(height: 100),
-        const Icon(Icons.search_off_rounded, size: 52),
-        const SizedBox(height: 14),
+        SizedBox(height: 100),
+        Icon(Icons.search_off_rounded, size: 52),
+        SizedBox(height: 14),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           context.tr('Try another search or check again later.'),
           textAlign: TextAlign.center,
@@ -227,21 +227,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _errorState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.cloud_off_rounded, size: 48),
-            const SizedBox(height: 12),
+            Icon(Icons.cloud_off_rounded, size: 48),
+            SizedBox(height: 12),
             Text(
               context.tr('Could not load search results'),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextButton.icon(
               onPressed: () =>
                   ref.invalidate(customerSearchBusinessesProvider(_query)),
-              icon: const Icon(Icons.refresh_rounded),
+              icon: Icon(Icons.refresh_rounded),
               label: Text(context.tr('Try Again')),
             ),
           ],

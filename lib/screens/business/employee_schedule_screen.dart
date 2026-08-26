@@ -11,7 +11,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class EmployeeScheduleScreen extends ConsumerStatefulWidget {
-  const EmployeeScheduleScreen({super.key});
+  EmployeeScheduleScreen({super.key});
 
   @override
   ConsumerState<EmployeeScheduleScreen> createState() =>
@@ -49,13 +49,13 @@ class _EmployeeScheduleScreenState
         appBar: AppBar(
           title: Text(context.tr('Employee Working Hours')),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.event_busy_rounded),
+              icon: Icon(Icons.event_busy_rounded),
               tooltip: context.tr('Time Off / Leave'),
               onPressed: () => context.push('/employee-time-off'),
             ),
@@ -66,7 +66,7 @@ class _EmployeeScheduleScreenState
             if (staffList.isEmpty) {
               return Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(24),
                   child: Text(
                     context.tr(
                       'Add an employee before configuring working hours.',
@@ -79,17 +79,17 @@ class _EmployeeScheduleScreenState
 
             final selected = _resolveSelectedStaff(staffList);
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GlassCard(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(14),
                     child: DropdownButtonFormField<String>(
                       initialValue: selected.id,
                       decoration: InputDecoration(
                         labelText: context.tr('Staff member'),
-                        prefixIcon: const Icon(Icons.badge_rounded),
+                        prefixIcon: Icon(Icons.badge_rounded),
                       ),
                       items: staffList
                           .map(
@@ -109,39 +109,39 @@ class _EmployeeScheduleScreenState
                       },
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   Text(
                     context.tr('Weekly schedule'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     context.tr(
                       'These hours directly control when customers can book this employee.',
                     ),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   ..._days.map(_buildDayCard),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   CustomButton(
                     text: 'Save Employee Schedule',
                     isLoading: _isSaving,
                     onPressed: () => _save(selected),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                 ],
               ),
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (_, __) => Center(
@@ -198,8 +198,8 @@ class _EmployeeScheduleScreenState
   Widget _buildDayCard(String day) {
     final hours = _schedule[day]!;
     return GlassCard(
-      padding: const EdgeInsets.all(14),
-      margin: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: 10),
       child: Column(
         children: [
           Row(
@@ -207,10 +207,10 @@ class _EmployeeScheduleScreenState
               Expanded(
                 child: Text(
                   context.tr(day),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -234,7 +234,7 @@ class _EmployeeScheduleScreenState
             ],
           ),
           if (hours.isWorking) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -245,7 +245,7 @@ class _EmployeeScheduleScreenState
                     onTap: () => _pickTime(day, _TimeField.shiftStart),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: _ScheduleTimeButton(
                     label: 'Shift ends',
@@ -256,7 +256,7 @@ class _EmployeeScheduleScreenState
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -267,7 +267,7 @@ class _EmployeeScheduleScreenState
                     onTap: () => _pickTime(day, _TimeField.breakStart),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: _ScheduleTimeButton(
                     label: 'Break ends',
@@ -415,36 +415,36 @@ class _ScheduleTimeButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(11),
+        padding: EdgeInsets.all(11),
         decoration: BoxDecoration(
-          color: AppColors.glassBgDark,
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.glassBorderDark),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           children: [
             Icon(icon, size: 17, color: AppColors.primaryLight),
-            const SizedBox(width: 7),
+            SizedBox(width: 7),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     context.tr(label),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 9,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Directionality(
                     textDirection: TextDirection.ltr,
                     child: Text(
                       value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimaryDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),

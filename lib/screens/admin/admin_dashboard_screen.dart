@@ -8,7 +8,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_text.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
-  const AdminDashboardScreen({super.key});
+  AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,19 +28,19 @@ class AdminDashboardScreen extends StatelessWidget {
           title: Text(context.tr('Super Admin Center')),
           leading: Builder(
             builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu_rounded),
+              icon: Icon(Icons.menu_rounded),
               onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
           ),
         ),
-        drawer: const AppDrawer(portalType: 'admin'),
+        drawer: AppDrawer(portalType: 'admin'),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GlassCard(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 backgroundColor: AppColors.error.withValues(alpha: 0.15),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -50,13 +50,13 @@ class AdminDashboardScreen extends StatelessWidget {
                       children: [
                         Text(
                           context.tr('Platform Revenue MTD'),
-                          style: const TextStyle(
-                            color: AppColors.textMutedDark,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 13,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        const GradientText(
+                        SizedBox(height: 4),
+                        GradientText(
                           '\$124,500',
                           style: TextStyle(
                             fontSize: 30,
@@ -65,7 +65,7 @@ class AdminDashboardScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const Icon(
+                    Icon(
                       Icons.shield_rounded,
                       size: 40,
                       color: AppColors.error,
@@ -73,12 +73,12 @@ class AdminDashboardScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Text(
                 context.tr('Admin Management Control'),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _adminTile(
                 context,
                 'User & Account Management',
@@ -123,18 +123,18 @@ class AdminDashboardScreen extends StatelessWidget {
     String route,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: GlassCard(
         onTap: () => context.push(route),
         child: ListTile(
           leading: Icon(icon, color: AppColors.error),
           title: Text(
             context.tr(title),
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
-          trailing: const Icon(
+          trailing: Icon(
             Icons.chevron_right_rounded,
-            color: AppColors.textMutedDark,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ),

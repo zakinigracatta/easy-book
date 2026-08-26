@@ -11,7 +11,7 @@ import '../../widgets/glass_card.dart';
 class CancelBookingScreen extends ConsumerStatefulWidget {
   final String? bookingId;
 
-  const CancelBookingScreen({super.key, this.bookingId});
+  CancelBookingScreen({super.key, this.bookingId});
 
   @override
   ConsumerState<CancelBookingScreen> createState() =>
@@ -79,7 +79,7 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -91,38 +91,38 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
           title: Text(context.tr('Cancel Booking')),
         ),
         body: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
               GlassCard(
                 borderColor: AppColors.error,
                 child: Column(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.warning_amber_rounded,
                       size: 50,
                       color: AppColors.error,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     Text(
                       context.tr('Are you sure you want to cancel?'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       context.tr(
                         'This will cancel the appointment and release the reserved time slot.',
                       ),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
               ),
-              const Spacer(),
+              Spacer(),
               CustomButton(
                 text: context.tr('Confirm Cancellation'),
                 backgroundColor: AppColors.error,

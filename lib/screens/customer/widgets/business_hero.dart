@@ -8,12 +8,13 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../services/auth_guard.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BusinessHero extends ConsumerWidget {
   final BusinessModel business;
   final VoidCallback? onShare;
 
-  const BusinessHero({
+  BusinessHero({
     super.key,
     required this.business,
     this.onShare,
@@ -45,10 +46,10 @@ class BusinessHero extends ConsumerWidget {
                     fit: BoxFit.cover,
                     memCacheWidth: heroCacheWidth,
                     maxWidthDiskCache: heroCacheWidth,
-                    fadeInDuration: const Duration(milliseconds: 120),
+                    fadeInDuration: Duration(milliseconds: 120),
                     fadeOutDuration: Duration.zero,
                     placeholder: (context, url) => Container(
-                      color: AppColors.cardDark,
+                      color: Theme.of(context).colorScheme.surface,
                     ),
                     errorWidget: (context, url, error) => _coverPlaceholder(),
                   ),
@@ -72,7 +73,7 @@ class BusinessHero extends ConsumerWidget {
         ),
         SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -112,16 +113,15 @@ class BusinessHero extends ConsumerWidget {
                         } catch (_) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Could not update favorites. Please try again.',
+                            SnackBar(
+                              content: Text(context.tr('Could not update favorites. Please try again.'),
                               ),
                             ),
                           );
                         }
                       },
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     _circleIconButton(
                       icon: Icons.share_rounded,
                       onTap: onShare ??
@@ -145,12 +145,12 @@ class BusinessHero extends ConsumerWidget {
 
   Widget _coverPlaceholder() {
     return Container(
-      color: AppColors.cardDark,
+      color: Theme.of(context).colorScheme.surface,
       alignment: Alignment.center,
-      child: const Icon(
+      child: Icon(
         Icons.storefront_rounded,
         size: 64,
-        color: AppColors.textMutedDark,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -163,7 +163,7 @@ class BusinessHero extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(10),
+        padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.45),
           shape: BoxShape.circle,

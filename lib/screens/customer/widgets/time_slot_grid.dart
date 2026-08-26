@@ -11,7 +11,7 @@ class TimeSlotGrid extends StatelessWidget {
   final ValueChanged<AvailableSlot> onSlotSelected;
   final bool isLoading;
 
-  const TimeSlotGrid({
+  TimeSlotGrid({
     super.key,
     required this.slots,
     required this.selectedSlotTime,
@@ -23,22 +23,22 @@ class TimeSlotGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+        isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
     final secondaryColor = isDark
-        ? AppColors.textSecondaryDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
         : AppColors.textSecondaryLight;
 
     if (isLoading) {
       return Container(
-        padding: const EdgeInsets.symmetric(vertical: 32),
+        padding: EdgeInsets.symmetric(vertical: 32),
         alignment: Alignment.center,
         child: Column(
           children: [
-            const CircularProgressIndicator(
+            CircularProgressIndicator(
               strokeWidth: 2,
               color: AppColors.primary,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               context.tr('Checking available appointment times...'),
               style: TextStyle(color: mutedColor, fontSize: 13),
@@ -50,19 +50,19 @@ class TimeSlotGrid extends StatelessWidget {
 
     if (slots.isEmpty) {
       return GlassCard(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           children: [
             Icon(Icons.event_busy_rounded, size: 44, color: mutedColor),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               context.tr('No available times for this date.'),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Text(
               context.tr(
                 'Please select another date or choose Any Available Specialist.',
@@ -93,7 +93,7 @@ class TimeSlotGrid extends StatelessWidget {
             secondaryColor,
           ),
           _slotGrid(context, morningSlots),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
         ],
         if (afternoonSlots.isNotEmpty) ...[
           _periodHeader(
@@ -103,7 +103,7 @@ class TimeSlotGrid extends StatelessWidget {
             secondaryColor,
           ),
           _slotGrid(context, afternoonSlots),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
         ],
         if (eveningSlots.isNotEmpty) ...[
           _periodHeader(
@@ -113,7 +113,7 @@ class TimeSlotGrid extends StatelessWidget {
             secondaryColor,
           ),
           _slotGrid(context, eveningSlots),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
         ],
       ],
     );
@@ -126,12 +126,12 @@ class TimeSlotGrid extends StatelessWidget {
     Color secondaryColor,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          const SizedBox.shrink(),
+          SizedBox.shrink(),
           Icon(icon, size: 16, color: AppColors.primary),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           Text(
             context.tr(title),
             style: TextStyle(
@@ -148,8 +148,8 @@ class TimeSlotGrid extends StatelessWidget {
   Widget _slotGrid(BuildContext context, List<AvailableSlot> periodSlots) {
     return GridView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,

@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/staff_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SpecialistOptionCard extends StatelessWidget {
   final StaffModel? staff;
@@ -10,7 +11,7 @@ class SpecialistOptionCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const SpecialistOptionCard({
+  SpecialistOptionCard({
     super.key,
     this.staff,
     this.isAnySpecialist = false,
@@ -37,34 +38,32 @@ class SpecialistOptionCard extends StatelessWidget {
                 border:
                     Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
               ),
-              child: const Icon(Icons.people_alt_rounded,
+              child: Icon(Icons.people_alt_rounded,
                   color: AppColors.accent, size: 26),
             ),
-            const SizedBox(width: 14),
+            SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        'Any Available Specialist',
+                      Text(context.tr('Any Available Specialist'),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(
+                        padding: EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'RECOMMENDED',
+                        child: Text(context.tr('RECOMMENDED'),
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
@@ -74,12 +73,11 @@ class SpecialistOptionCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Maximum slot options across all eligible staff',
+                  SizedBox(height: 4),
+                  Text(context.tr('Maximum slot options across all eligible staff'),
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -114,49 +112,49 @@ class SpecialistOptionCard extends StatelessWidget {
                   width: 56, height: 56, fit: BoxFit.cover),
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   s.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 2),
+                SizedBox(height: 2),
                 Text(
                   s.roleTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: AppColors.primaryLight,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded,
+                    Icon(Icons.star_rounded,
                         color: AppColors.gold, size: 14),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       '${s.rating.toStringAsFixed(1)} (${s.reviewCount})',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: AppColors.gold,
                       ),
                     ),
                     if (s.experienceYears > 0) ...[
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         '•  ${s.experienceYears} yrs exp',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -178,13 +176,13 @@ class SpecialistOptionCard extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected ? AppColors.primary : AppColors.textMutedDark,
+          color: selected ? AppColors.primary : Theme.of(context).colorScheme.onSurfaceVariant,
           width: 2,
         ),
         color: selected ? AppColors.primary : Colors.transparent,
       ),
       child: selected
-          ? const Icon(
+          ? Icon(
               Icons.check_rounded,
               size: 14,
               color: Colors.white,

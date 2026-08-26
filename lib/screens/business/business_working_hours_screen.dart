@@ -7,9 +7,10 @@ import '../../widgets/custom_button.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/working_hours_model.dart';
 import '../../models/business_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class BusinessWorkingHoursScreen extends ConsumerStatefulWidget {
-  const BusinessWorkingHoursScreen({super.key});
+  BusinessWorkingHoursScreen({super.key});
 
   @override
   ConsumerState<BusinessWorkingHoursScreen> createState() =>
@@ -58,9 +59,9 @@ class _BusinessWorkingHoursScreenState
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Business Working Hours'),
+          title: Text(context.tr('Business Working Hours')),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
@@ -69,11 +70,11 @@ class _BusinessWorkingHoursScreenState
           data: (business) {
             _initializeFromBusiness(business);
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const GlassCard(
+                  GlassCard(
                     padding: EdgeInsets.all(16),
                     child: Row(
                       children: [
@@ -84,20 +85,18 @@ class _BusinessWorkingHoursScreenState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Operating Hours',
+                              Text(context.tr('Operating Hours'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimaryDark,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               SizedBox(height: 3),
-                              Text(
-                                'Set exact opening and closing times. Customer availability follows these hours.',
+                              Text(context.tr('Set exact opening and closing times. Customer availability follows these hours.'),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textMutedDark,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -106,25 +105,25 @@ class _BusinessWorkingHoursScreenState
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   ..._days.map(_buildDayCard),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   CustomButton(
                     text: 'Save Working Hours',
                     isLoading: _isLoading,
                     onPressed: () => _save(business),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                 ],
               ),
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (error, _) => Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               child: Text('Unable to load working hours: $error'),
             ),
           ),
@@ -136,8 +135,8 @@ class _BusinessWorkingHoursScreenState
   Widget _buildDayCard(String day) {
     final hours = _hoursMap[day]!;
     return GlassCard(
-      padding: const EdgeInsets.all(14),
-      margin: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: 10),
       child: Column(
         children: [
           Row(
@@ -145,10 +144,10 @@ class _BusinessWorkingHoursScreenState
               Expanded(
                 child: Text(
                   day,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -160,7 +159,7 @@ class _BusinessWorkingHoursScreenState
                   color: hours.isClosed ? AppColors.error : AppColors.success,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
               Switch(
                 value: !hours.isClosed,
                 activeColor: AppColors.primary,
@@ -178,7 +177,7 @@ class _BusinessWorkingHoursScreenState
             ],
           ),
           if (!hours.isClosed) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -189,7 +188,7 @@ class _BusinessWorkingHoursScreenState
                     onTap: () => _pickTime(day, isOpening: true),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: _TimeButton(
                     label: 'Closes',
@@ -235,8 +234,8 @@ class _BusinessWorkingHoursScreenState
       await ref.read(ownerBusinessProvider.notifier).updateBusiness(updated);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Business working hours updated.'),
+        SnackBar(
+          content: Text(context.tr('Business working hours updated.')),
           backgroundColor: AppColors.success,
         ),
       );
@@ -297,30 +296,30 @@ class _TimeButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.glassBorderDark),
-          color: AppColors.glassBgDark,
+          border: Border.all(color: Theme.of(context).dividerColor),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
         ),
         child: Row(
           children: [
             Icon(icon, size: 18, color: AppColors.primaryLight),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
-                          fontSize: 10, color: AppColors.textMutedDark)),
-                  const SizedBox(height: 2),
+                      style: TextStyle(
+                          fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  SizedBox(height: 2),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],

@@ -8,7 +8,7 @@ import '../theme/app_colors.dart';
 class AppDrawer extends StatelessWidget {
   final String portalType;
 
-  const AppDrawer({super.key, required this.portalType});
+  AppDrawer({super.key, required this.portalType});
 
   @override
   Widget build(BuildContext context) {
@@ -39,22 +39,22 @@ class AppDrawer extends StatelessWidget {
     final items = isBusiness ? businessItems : adminItems;
 
     return Drawer(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: AppColors.cardDark),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
               accountName: Text(
                 context.tr(isBusiness
                     ? 'Salon Management Center'
                     : 'Platform Super Admin'),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
               accountEmail: Text(
                 signedInEmail,
-                style: const TextStyle(
-                  color: AppColors.textMutedDark,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
@@ -82,7 +82,7 @@ class AppDrawer extends StatelessWidget {
                       ),
                       title: Text(
                         context.tr(item['title'] as String),
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                       onTap: () {
                         Navigator.pop(context);
@@ -90,11 +90,11 @@ class AppDrawer extends StatelessWidget {
                       },
                     ),
                   ),
-                  const Divider(color: AppColors.glassBorderDark),
+                  Divider(color: Theme.of(context).dividerColor),
                   ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.settings_rounded,
-                      color: AppColors.textSecondaryDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     title: Text(context.tr('Settings')),
                     onTap: () {
@@ -104,10 +104,10 @@ class AppDrawer extends StatelessWidget {
                   ),
                   ListTile(
                     leading:
-                        const Icon(Icons.logout_rounded, color: AppColors.error),
+                        Icon(Icons.logout_rounded, color: AppColors.error),
                     title: Text(
                       context.tr('Exit Portal'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.error,
                         fontWeight: FontWeight.bold,
                       ),

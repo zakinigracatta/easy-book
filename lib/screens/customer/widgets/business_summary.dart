@@ -8,7 +8,7 @@ class BusinessSummary extends StatelessWidget {
   final BusinessModel business;
   final String? distanceText;
 
-  const BusinessSummary({
+  BusinessSummary({
     super.key,
     required this.business,
     this.distanceText,
@@ -19,11 +19,11 @@ class BusinessSummary extends StatelessWidget {
     final statusInfo = business.workingHours.getStatus();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final secondaryColor = isDark
-        ? AppColors.textSecondaryDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
         : AppColors.textSecondaryLight;
     final mutedColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
-    final chipColor = isDark ? AppColors.glassBgDark : AppColors.glassBgLight;
+        isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
+    final chipColor = isDark ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.35) : AppColors.glassBgLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +34,7 @@ class BusinessSummary extends StatelessWidget {
             Expanded(
               child: Text(
                 business.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.5,
@@ -42,9 +42,9 @@ class BusinessSummary extends StatelessWidget {
               ),
             ),
             if (business.isVerified) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.success.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
@@ -55,15 +55,15 @@ class BusinessSummary extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.verified_rounded,
                       color: AppColors.success,
                       size: 14,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
                       context.tr('VERIFIED'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
@@ -76,20 +76,20 @@ class BusinessSummary extends StatelessWidget {
             ],
           ],
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         Text(
           business.category,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: AppColors.gold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
@@ -99,15 +99,15 @@ class BusinessSummary extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.star_rounded,
                     color: AppColors.gold,
                     size: 16,
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     business.rating.toStringAsFixed(1),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColors.gold,
                       fontSize: 13,
@@ -116,7 +116,7 @@ class BusinessSummary extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Text(
               context.tr(
                 '{count} reviews',
@@ -130,11 +130,11 @@ class BusinessSummary extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Row(
           children: [
             Icon(Icons.location_on_outlined, color: mutedColor, size: 16),
-            const SizedBox(width: 6),
+            SizedBox(width: 6),
             Expanded(
               child: Text(
                 business.address,
@@ -144,9 +144,9 @@ class BusinessSummary extends StatelessWidget {
               ),
             ),
             if (distanceText != null && distanceText!.isNotEmpty) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: chipColor,
                   borderRadius: BorderRadius.circular(6),
@@ -163,9 +163,9 @@ class BusinessSummary extends StatelessWidget {
             ],
           ],
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: (statusInfo.isOpen ? AppColors.success : AppColors.error)
                 .withValues(alpha: 0.1),
@@ -187,7 +187,7 @@ class BusinessSummary extends StatelessWidget {
                       statusInfo.isOpen ? AppColors.success : AppColors.error,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Flexible(
                 child: Text(
                   context.tr(statusInfo.statusText),

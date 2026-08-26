@@ -6,7 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 
 class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({super.key});
+  CategoriesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +29,14 @@ class CategoriesScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('All Service Categories')),
         ),
         body: GridView.builder(
-          padding: const EdgeInsets.all(20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          padding: EdgeInsets.all(20),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
@@ -56,16 +56,16 @@ class CategoriesScreen extends StatelessWidget {
                     backgroundColor: color.withValues(alpha: 0.2),
                     child: Icon(category['icon'] as IconData, color: color, size: 28),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Text(
                     context.tr(category['name'] as String),
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     context.tr(category['count'] as String),
-                    style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark),
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

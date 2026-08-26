@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({super.key});
+  WelcomeScreen({super.key});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -25,12 +26,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: Duration(milliseconds: 900),
     );
 
     _contentController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 800),
     );
 
     _logoScale = CurvedAnimation(
@@ -44,7 +45,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
 
     _contentSlide = Tween<Offset>(
-      begin: const Offset(0, 0.4),
+      begin: Offset(0, 0.4),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -61,7 +62,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _logoController.forward();
 
     Future.delayed(
-      const Duration(milliseconds: 500),
+      Duration(milliseconds: 500),
       () {
         _contentController.forward();
       },
@@ -81,7 +82,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -104,10 +105,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     child: Container(
                       width: 130,
                       height: 130,
-                      padding: const EdgeInsets.all(12),
+                      padding: EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [
                             Color(0xFF9C27FF),
                             Color(0xFF3F51FF),
@@ -130,15 +131,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     ),
                   ),
                 ),
-                const SizedBox(height: 35),
+                SizedBox(height: 35),
                 FadeTransition(
                   opacity: _contentFade,
                   child: SlideTransition(
                     position: _contentSlide,
                     child: Column(
                       children: [
-                        const Text(
-                          "Easy Book",
+                        Text(context.tr("Easy Book"),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 34,
@@ -146,21 +146,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             letterSpacing: 1,
                           ),
                         ),
-                        const SizedBox(height: 45),
+                        SizedBox(height: 45),
                         _button(
                           context,
                           "Customer Portal",
                           Icons.person,
                           '/home',
                         ),
-                        const SizedBox(height: 18),
+                        SizedBox(height: 18),
                         _button(
                           context,
                           "Business Portal",
                           Icons.store,
                           '/owner-login',
                         ),
-                        const SizedBox(height: 18),
+                        SizedBox(height: 18),
                         _button(
                           context,
                           "Admin Portal",
@@ -195,7 +195,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         icon: Icon(icon),
         label: Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.bold,
           ),

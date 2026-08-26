@@ -11,7 +11,7 @@ class GlassCard extends StatelessWidget {
   final Color? backgroundColor;
   final Color? borderColor;
 
-  const GlassCard({
+  GlassCard({
     super.key,
     required this.child,
     this.padding,
@@ -26,9 +26,9 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = backgroundColor ??
-        (isDark ? AppColors.glassBgDark : AppColors.glassBgLight);
+        (isDark ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.35) : AppColors.glassBgLight);
     final border = borderColor ??
-        (isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight);
+        (isDark ? Theme.of(context).dividerColor : AppColors.glassBorderLight);
 
     Widget content = Container(
       margin: margin,
@@ -40,7 +40,7 @@ class GlassCard extends StatelessWidget {
           BoxShadow(
             color: isDark ? AppColors.shadowDark : AppColors.shadowLight,
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -49,7 +49,7 @@ class GlassCard extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Padding(
-            padding: padding ?? const EdgeInsets.all(16.0),
+            padding: padding ?? EdgeInsets.all(16.0),
             child: child,
           ),
         ),

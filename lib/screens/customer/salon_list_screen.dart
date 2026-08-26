@@ -10,7 +10,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
 
 class SalonListScreen extends ConsumerStatefulWidget {
-  const SalonListScreen({super.key});
+  SalonListScreen({super.key});
 
   @override
   ConsumerState<SalonListScreen> createState() => _SalonListScreenState();
@@ -18,7 +18,7 @@ class SalonListScreen extends ConsumerStatefulWidget {
 
 class _SalonListScreenState extends ConsumerState<SalonListScreen> {
   Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
-      ? AppColors.textMutedDark
+      ? Theme.of(context).colorScheme.onSurfaceVariant
       : AppColors.textMutedLight;
 
   @override
@@ -49,14 +49,14 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(title),
         ),
         body: businessesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => Center(child: CircularProgressIndicator()),
           error: (error, stackTrace) => _errorState(ref),
           data: (businesses) {
             if (businesses.isEmpty) return _emptyState(selectedCategory);
@@ -67,10 +67,10 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                 await ref.read(businessesProvider.future);
               },
               child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(20),
                 itemCount: businesses.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                separatorBuilder: (_, __) => SizedBox(height: 16),
                 itemBuilder: (context, index) =>
                     _businessCard(context, businesses[index]),
               ),
@@ -103,7 +103,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                     errorBuilder: (_, __, ___) => _imagePlaceholder(),
                   ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,14 +115,14 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                         business.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                     ),
                     if (business.isVerified)
-                      const Padding(
+                      Padding(
                         padding: EdgeInsets.only(left: 4),
                         child: Icon(
                           Icons.verified_rounded,
@@ -132,7 +132,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                       ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   business.address.isEmpty
                       ? business.category
@@ -141,16 +141,16 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: _mutedColor),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Row(
                   children: [
                     RatingStars(rating: business.rating),
-                    const SizedBox(width: 6),
+                    SizedBox(width: 6),
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: Text(
                         '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -158,7 +158,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   context.tr(
                     isOpen ? 'Open for booking' : 'Currently unavailable',
@@ -183,7 +183,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
       height: 90,
       alignment: Alignment.center,
       color: AppColors.primary.withValues(alpha: 0.08),
-      child: const Icon(
+      child: Icon(
         Icons.storefront_rounded,
         color: AppColors.primary,
         size: 34,
@@ -200,18 +200,18 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
           );
 
     return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(24),
+      physics: AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.all(24),
       children: [
-        const SizedBox(height: 120),
-        const Icon(Icons.storefront_outlined, size: 56),
-        const SizedBox(height: 14),
+        SizedBox(height: 120),
+        Icon(Icons.storefront_outlined, size: 56),
+        SizedBox(height: 14),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Text(
           context.tr(
             'New businesses will appear here once they are available.',
@@ -226,20 +226,20 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
   Widget _errorState(WidgetRef ref) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.cloud_off_rounded, size: 48),
-            const SizedBox(height: 12),
+            Icon(Icons.cloud_off_rounded, size: 48),
+            SizedBox(height: 12),
             Text(
               context.tr('Could not load businesses'),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextButton.icon(
               onPressed: () => ref.invalidate(businessesProvider),
-              icon: const Icon(Icons.refresh_rounded),
+              icon: Icon(Icons.refresh_rounded),
               label: Text(context.tr('Try Again')),
             ),
           ],

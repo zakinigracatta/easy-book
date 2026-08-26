@@ -3,17 +3,17 @@ import 'package:shimmer/shimmer.dart';
 import '../../../theme/app_colors.dart';
 
 class SalonDetailsShimmer extends StatelessWidget {
-  const SalonDetailsShimmer({super.key});
+  SalonDetailsShimmer({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Shimmer.fromColors(
-        baseColor: AppColors.cardDark,
-        highlightColor: AppColors.glassBgDark,
+        baseColor: Theme.of(context).colorScheme.surface,
+        highlightColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
         child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -23,26 +23,26 @@ class SalonDetailsShimmer extends StatelessWidget {
                 color: Colors.white,
               ),
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Title
                     Container(height: 24, width: 220, decoration: _boxDec()),
-                    const SizedBox(height: 10),
+                    SizedBox(height: 10),
                     // Category
                     Container(height: 14, width: 120, decoration: _boxDec()),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     // Rating & Location
                     Row(
                       children: [
                         Container(height: 20, width: 60, decoration: _boxDec()),
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
                         Container(
                             height: 14, width: 140, decoration: _boxDec()),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     // Quick Actions
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -53,26 +53,26 @@ class SalonDetailsShimmer extends StatelessWidget {
                             Container(
                                 height: 48,
                                 width: 48,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                     color: Colors.white,
                                     shape: BoxShape.circle)),
-                            const SizedBox(height: 6),
+                            SizedBox(height: 6),
                             Container(
                                 height: 10, width: 36, decoration: _boxDec()),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     // Tabs
                     Container(height: 44, decoration: _boxDec()),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     // Service Cards
                     Column(
                       children: List.generate(
                         3,
                         (index) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: EdgeInsets.only(bottom: 12),
                           child: Container(
                             height: 80,
                             decoration: _boxDec(),

@@ -7,14 +7,14 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class OTPVerificationScreen extends StatelessWidget {
-  const OTPVerificationScreen({super.key});
+  OTPVerificationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: Icon(Icons.arrow_back_rounded),
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
@@ -22,31 +22,31 @@ class OTPVerificationScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             children: [
-              const Icon(
+              Icon(
                 Icons.mark_email_read_rounded,
                 size: 70,
                 color: AppColors.primary,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
                 context.tr('Enter 4-Digit Code'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 context.tr(
                   'We sent a verification code to your registered mobile number.',
                 ),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(color: Colors.grey),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               GlassCard(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -56,11 +56,11 @@ class OTPVerificationScreen extends StatelessWidget {
                       width: 50,
                       height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.bgDark,
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.primary),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           '•',
                           style: TextStyle(
@@ -73,7 +73,7 @@ class OTPVerificationScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               CustomButton(
                 text: context.tr('Verify Code'),
                 onPressed: () => context.go('/home'),

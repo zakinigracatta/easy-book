@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import '../../../models/service_model.dart';
 import '../../../theme/app_colors.dart';
 import 'service_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ServiceCategorySection extends StatefulWidget {
   final List<ServiceModel> services;
   final List<String> selectedServiceIds;
   final Function(ServiceModel) onServiceSelect;
 
-  const ServiceCategorySection({
+  ServiceCategorySection({
     super.key,
     required this.services,
     required this.selectedServiceIds,
@@ -26,16 +27,15 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
   Widget build(BuildContext context) {
     if (widget.services.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32),
         alignment: Alignment.center,
-        child: const Column(
+        child: Column(
           children: [
             Icon(Icons.design_services_outlined,
-                size: 48, color: AppColors.textMutedDark),
+                size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
             SizedBox(height: 12),
-            Text(
-              'No services are available at the moment.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 14),
+            Text(context.tr('No services are available at the moment.'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -69,7 +69,7 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
                 final catName = categoriesMap[catId]!;
                 final isSelected = _selectedCategory == catId;
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: EdgeInsets.only(right: 8),
                   child: FilterChip(
                     label: Text(catName),
                     selected: isSelected,
@@ -79,11 +79,11 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
                       });
                     },
                     selectedColor: AppColors.primary,
-                    backgroundColor: AppColors.cardDark,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
                     labelStyle: TextStyle(
                       color: isSelected
                           ? Colors.white
-                          : AppColors.textSecondaryDark,
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.w500,
                       fontSize: 12,
@@ -93,7 +93,7 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
                       side: BorderSide(
                         color: isSelected
                             ? AppColors.primary
-                            : AppColors.glassBorderDark,
+                            : Theme.of(context).dividerColor,
                       ),
                     ),
                   ),
@@ -101,15 +101,15 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
               }).toList(),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
         ],
 
         // Services List
         ListView.separated(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          physics: NeverScrollableScrollPhysics(),
           itemCount: filteredServices.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          separatorBuilder: (context, index) => SizedBox(height: 12),
           itemBuilder: (context, index) {
             final service = filteredServices[index];
             final isSelected = widget.selectedServiceIds.contains(service.id);

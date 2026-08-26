@@ -13,7 +13,7 @@ import '../../widgets/glass_card.dart';
 class RescheduleBookingScreen extends ConsumerStatefulWidget {
   final BookingModel? booking;
 
-  const RescheduleBookingScreen({super.key, this.booking});
+  RescheduleBookingScreen({super.key, this.booking});
 
   @override
   ConsumerState<RescheduleBookingScreen> createState() =>
@@ -28,8 +28,8 @@ class _RescheduleBookingScreenState extends ConsumerState<RescheduleBookingScree
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.booking?.startDateTime.add(const Duration(days: 1)) ??
-        DateTime.now().add(const Duration(days: 1));
+    _selectedDate = widget.booking?.startDateTime.add(Duration(days: 1)) ??
+        DateTime.now().add(Duration(days: 1));
   }
 
   int _parseSlotHour(String slotStr) {
@@ -126,35 +126,35 @@ class _RescheduleBookingScreenState extends ConsumerState<RescheduleBookingScree
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('Reschedule Booking'))),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Card(
               color: Colors.white.withValues(alpha: 0.05),
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       booking.businessName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       '${booking.serviceName} • ${context.tr('Specialist')}: ${booking.staffName}',
-                      style: const TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(Icons.access_time_filled, size: 14, color: AppColors.primary),
-                        const SizedBox(width: 6),
+                        Icon(Icons.access_time_filled, size: 14, color: AppColors.primary),
+                        SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             '${context.tr('Current')}: ${Formatters.formatDateTime(booking.startDateTime)}',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                           ),
                         ),
                       ],
@@ -163,33 +163,33 @@ class _RescheduleBookingScreenState extends ConsumerState<RescheduleBookingScree
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Text(
               context.tr('Select New Date'),
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             SizedBox(
               height: 120,
               child: CalendarDatePicker(
                 initialDate: _selectedDate,
                 firstDate: DateTime.now(),
-                lastDate: DateTime.now().add(const Duration(days: 60)),
+                lastDate: DateTime.now().add(Duration(days: 60)),
                 onDateChanged: (date) => setState(() {
                   _selectedDate = date;
                   _selectedSlot = null;
                 }),
               ),
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             Text(
               context.tr('Select New Time'),
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             Expanded(
               child: slotsState.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => Center(child: CircularProgressIndicator()),
                 error: (_, __) => Center(
                   child: Text(context.tr('Unable to load time slots. Please try again.')),
                 ),
@@ -202,7 +202,7 @@ class _RescheduleBookingScreenState extends ConsumerState<RescheduleBookingScree
 
                   _selectedSlot ??= availableSlots.first;
                   return GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
@@ -236,7 +236,7 @@ class _RescheduleBookingScreenState extends ConsumerState<RescheduleBookingScree
                 },
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             CustomButton(
               text: context.tr(_isLoading ? 'Processing...' : 'Confirm Reschedule'),
               onPressed: _isLoading ? null : _handleConfirmReschedule,

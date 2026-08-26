@@ -11,17 +11,17 @@ import '../../widgets/customer_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
 
 class MyBookingsScreen extends ConsumerWidget {
-  const MyBookingsScreen({super.key});
+  MyBookingsScreen({super.key});
 
   Color _mutedColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
-        ? AppColors.textMutedDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
         : AppColors.textMutedLight;
   }
 
   Color _secondaryColor(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark
-        ? AppColors.textSecondaryDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
         : AppColors.textSecondaryLight;
   }
 
@@ -36,32 +36,32 @@ class MyBookingsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: context.tr('Refresh'),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded),
             onPressed: () =>
                 ref.read(appointmentsProvider.notifier).loadAppointments(),
           ),
         ],
       ),
       body: appointmentsState.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.error_outline_rounded,
                   size: 48,
                   color: AppColors.error,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Text(
                   context.tr('Unable to load bookings. Please try again.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: mutedColor),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => ref
                       .read(appointmentsProvider.notifier)
@@ -83,22 +83,22 @@ class MyBookingsScreen extends ConsumerWidget {
                     size: 60,
                     color: mutedColor,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     context.tr('No Bookings Found'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text(
                     context.tr(
                       'You have not scheduled any appointments yet.',
                     ),
                     style: TextStyle(color: mutedColor),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () => context.go('/home'),
                     child: Text(context.tr('Book Now')),
@@ -109,7 +109,7 @@ class MyBookingsScreen extends ConsumerWidget {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 90),
+            padding: EdgeInsets.fromLTRB(20, 10, 20, 90),
             itemCount: bookings.length,
             itemBuilder: (context, index) {
               final booking = bookings[index];
@@ -131,7 +131,7 @@ class MyBookingsScreen extends ConsumerWidget {
                   booking.status.name.substring(1);
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 14),
+                padding: EdgeInsets.only(bottom: 14),
                 child: GlassCard(
                   onTap: () =>
                       context.push('/booking-details', extra: booking),
@@ -144,7 +144,7 @@ class MyBookingsScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               booking.businessName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -152,7 +152,7 @@ class MyBookingsScreen extends ConsumerWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                               horizontal: 10,
                               vertical: 4,
                             ),
@@ -171,7 +171,7 @@ class MyBookingsScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       Directionality(
                         textDirection: TextDirection.ltr,
                         child: Text(
@@ -182,7 +182,7 @@ class MyBookingsScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         '${context.tr('Specialist')}: ${booking.staffName}',
                         style: TextStyle(
@@ -190,7 +190,7 @@ class MyBookingsScreen extends ConsumerWidget {
                           color: mutedColor,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -198,7 +198,7 @@ class MyBookingsScreen extends ConsumerWidget {
                             textDirection: TextDirection.ltr,
                             child: Text(
                               CurrencyFormatter.format(booking.servicePrice),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: AppColors.primary,
@@ -215,10 +215,10 @@ class MyBookingsScreen extends ConsumerWidget {
                                   ),
                                   child: Text(
                                     context.tr('Reschedule'),
-                                    style: const TextStyle(fontSize: 11),
+                                    style: TextStyle(fontSize: 11),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 OutlinedButton(
                                   onPressed: () => context.push(
                                     '/cancel-booking',
@@ -226,7 +226,7 @@ class MyBookingsScreen extends ConsumerWidget {
                                   ),
                                   child: Text(
                                     context.tr('Cancel'),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 11,
                                       color: AppColors.error,
                                     ),
@@ -244,7 +244,7 @@ class MyBookingsScreen extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: const CustomerBottomNav(currentIndex: 2),
+      bottomNavigationBar: CustomerBottomNav(currentIndex: 2),
     );
   }
 }

@@ -8,11 +8,12 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/business/business_image_picker.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/service_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class AddServiceScreen extends ConsumerStatefulWidget {
   final ServiceModel? initialService;
 
-  const AddServiceScreen({super.key, this.initialService});
+  AddServiceScreen({super.key, this.initialService});
 
   @override
   ConsumerState<AddServiceScreen> createState() => _AddServiceScreenState();
@@ -69,7 +70,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -81,13 +82,13 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
           title: Text(isEditing ? 'Edit Service' : 'Add New Service'),
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
                 GlassCard(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -104,7 +105,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
 
                       // Category Field
                       CustomTextField(
@@ -113,7 +114,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         prefixIcon: Icons.category_rounded,
                       ),
 
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
 
                       // Price & Discount Price Fields
                       Row(
@@ -124,7 +125,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                               label: 'Price (AED) *',
                               prefixIcon: Icons.payments_rounded,
                               keyboardType:
-                                  const TextInputType.numberWithOptions(
+                                  TextInputType.numberWithOptions(
                                       decimal: true),
                               validator: (val) {
                                 if (val == null ||
@@ -135,21 +136,21 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                               },
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: CustomTextField(
                               controller: _discountController,
                               label: 'Discount Price',
                               prefixIcon: Icons.discount_rounded,
                               keyboardType:
-                                  const TextInputType.numberWithOptions(
+                                  TextInputType.numberWithOptions(
                                       decimal: true),
                             ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
 
                       // Duration Dropdown in minutes
                       DropdownButtonFormField<int>(
@@ -160,25 +161,25 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         decoration: InputDecoration(
                           labelText: 'Service Duration *',
                           labelStyle:
-                              const TextStyle(color: AppColors.textMutedDark),
-                          prefixIcon: const Icon(Icons.timer_outlined,
+                              TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          prefixIcon: Icon(Icons.timer_outlined,
                               color: AppColors.primaryLight),
                           filled: true,
-                          fillColor: AppColors.bgDark,
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                                color: AppColors.glassBorderDark),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).dividerColor),
                           ),
                         ),
-                        dropdownColor: AppColors.cardDark,
+                        dropdownColor: Theme.of(context).colorScheme.surface,
                         items: _durationOptions.map((mins) {
                           return DropdownMenuItem(
                             value: mins,
                             child: Text(
                               '$mins minutes',
-                              style: const TextStyle(
-                                  color: AppColors.textPrimaryDark,
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 14),
                             ),
                           );
@@ -190,7 +191,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
 
                       // Description Field
                       CustomTextField(
@@ -200,7 +201,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         maxLines: 3,
                       ),
 
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Image URL Picker Widget
                       BusinessImagePicker(
@@ -217,29 +218,27 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         },
                       ),
 
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
 
                       // Availability Switch
                       SwitchListTile(
                         value: _isActive,
                         activeColor: AppColors.primary,
-                        title: const Text(
-                          'Available for Booking',
+                        title: Text(context.tr('Available for Booking'),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        subtitle: const Text(
-                          'Disable to temporarily stop accepting new bookings for this service.',
+                        subtitle: Text(context.tr('Disable to temporarily stop accepting new bookings for this service.'),
                           style: TextStyle(
-                              fontSize: 11, color: AppColors.textMutedDark),
+                              fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         onChanged: (val) => setState(() => _isActive = val),
                       ),
 
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
 
                       // Save / Submit Button
                       CustomButton(

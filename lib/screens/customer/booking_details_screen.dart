@@ -11,7 +11,7 @@ import '../../widgets/glass_card.dart';
 class BookingDetailsScreen extends StatelessWidget {
   final BookingModel? booking;
 
-  const BookingDetailsScreen({super.key, this.booking});
+  BookingDetailsScreen({super.key, this.booking});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class BookingDetailsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/my-bookings'),
           ),
@@ -36,21 +36,21 @@ class BookingDetailsScreen extends StatelessWidget {
         body: currentBooking == null
             ? Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(24),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.event_busy_rounded,
                         size: 52,
-                        color: AppColors.textMutedDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       Text(
                         context.tr('No booking details provided.'),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       FilledButton(
                         onPressed: () => context.go('/my-bookings'),
                         child: Text(context.tr('My Bookings')),
@@ -79,32 +79,32 @@ class _BookingDetailsBody extends StatelessWidget {
     final notes = booking.notes?.trim() ?? '';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: Column(
         children: [
           GlassCard(
             child: Column(
               children: [
-                const Icon(
+                Icon(
                   Icons.confirmation_number_outlined,
                   size: 82,
                   color: AppColors.primary,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 Text(
                   context.tr('Booking Ref'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Directionality(
                   textDirection: TextDirection.ltr,
                   child: SelectableText(
                     '#${booking.id}',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -113,45 +113,45 @@ class _BookingDetailsBody extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           GlassCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   booking.businessName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 17,
                   ),
                 ),
-                const Divider(height: 24),
+                Divider(height: 24),
                 _detailRow(
                   context,
                   context.tr('Service'),
                   booking.serviceName,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Specialist'),
                   booking.staffName,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Time'),
                   dateText,
                   forceLtr: true,
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Status'),
                   statusText,
                   valueColor: _statusColor(booking.status),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: 10),
                 _detailRow(
                   context,
                   context.tr('Price'),
@@ -159,15 +159,15 @@ class _BookingDetailsBody extends StatelessWidget {
                   forceLtr: true,
                 ),
                 if (notes.isNotEmpty) ...[
-                  const Divider(height: 24),
+                  Divider(height: 24),
                   Text(
                     context.tr('Notes'),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: 6),
                   Text(notes),
                 ],
               ],
@@ -190,7 +190,7 @@ class _BookingDetailsBody extends StatelessWidget {
       textAlign: TextAlign.end,
       style: TextStyle(
         fontWeight: FontWeight.w600,
-        color: valueColor ?? AppColors.textPrimaryDark,
+        color: valueColor ?? Theme.of(context).colorScheme.onSurface,
       ),
     );
 
@@ -201,10 +201,10 @@ class _BookingDetailsBody extends StatelessWidget {
           flex: 2,
           child: Text(
             label,
-            style: const TextStyle(color: AppColors.textMutedDark),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           flex: 3,
           child: forceLtr

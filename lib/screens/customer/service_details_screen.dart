@@ -7,7 +7,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class ServiceDetailsScreen extends StatelessWidget {
-  const ServiceDetailsScreen({super.key});
+  ServiceDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,26 +21,25 @@ class ServiceDetailsScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Service Information')),
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GlassCard(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Royal Haircut & Beard Sculpting',
+                    Text(context.tr('Royal Haircut & Beard Sculpting'),
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: Text(
@@ -52,12 +51,12 @@ class ServiceDetailsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const Divider(height: 24),
+                    Divider(height: 24),
                     Text(
                       context.tr('Service Highlights:'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       context.tr(
                         '• Precision hair consultation & custom styling\n• Hot towel facial wrap & beard oil conditioning\n• Scalp massage and premium hair wash finish',
@@ -66,7 +65,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               CustomButton(
                 text: context.tr('Proceed to Booking'),
                 onPressed: () async {

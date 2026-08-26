@@ -3,11 +3,12 @@ import '../../../models/business_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
 import 'working_hours_section.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AboutSection extends StatelessWidget {
   final BusinessModel business;
 
-  const AboutSection({
+  AboutSection({
     super.key,
     required this.business,
   });
@@ -22,22 +23,21 @@ class AboutSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'About Business',
+              Text(context.tr('About Business'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Text(
                 business.description.isNotEmpty
                     ? business.description
                     : 'Welcome to ${business.name}. We provide premium quality grooming and wellness services.',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textSecondaryDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
               ),
@@ -45,7 +45,7 @@ class AboutSection extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
 
         // Amenities & Facilities
         if (business.amenities.isNotEmpty) ...[
@@ -53,15 +53,14 @@ class AboutSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Amenities & Features',
+                Text(context.tr('Amenities & Features'),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -83,25 +82,25 @@ class AboutSection extends StatelessWidget {
                     }
 
                     return Container(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.bgDark,
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.glassBorderDark),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(iconData,
                               size: 16, color: AppColors.primaryLight),
-                          const SizedBox(width: 6),
+                          SizedBox(width: 6),
                           Text(
                             amenity,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondaryDark,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -112,7 +111,7 @@ class AboutSection extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
         ],
 
         // Contact & Location Card
@@ -120,23 +119,22 @@ class AboutSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Contact & Location',
+              Text(context.tr('Contact & Location'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               _contactRow(
                   Icons.location_on_outlined, 'Address', business.address),
               if (business.phone != null && business.phone!.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 _contactRow(Icons.phone_outlined, 'Phone', business.phone!),
               ],
               if (business.website != null && business.website!.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 _contactRow(
                     Icons.language_outlined, 'Website', business.website!),
               ],
@@ -144,7 +142,7 @@ class AboutSection extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
 
         // Weekly Working Hours
         WorkingHoursSection(workingHours: business.workingHours),
@@ -157,30 +155,30 @@ class AboutSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, size: 16, color: AppColors.primaryLight),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   color: Colors.white,
                   fontWeight: FontWeight.w500,

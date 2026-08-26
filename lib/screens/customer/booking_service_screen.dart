@@ -11,7 +11,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class BookingServiceScreen extends ConsumerStatefulWidget {
-  const BookingServiceScreen({super.key});
+  BookingServiceScreen({super.key});
 
   @override
   ConsumerState<BookingServiceScreen> createState() =>
@@ -70,29 +70,29 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Select Service')),
         ),
         body: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
               Expanded(
                 child: servicesState.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () => Center(child: CircularProgressIndicator()),
                   error: (_, __) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline_rounded,
                           size: 48,
                           color: AppColors.error,
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         Text(
                           context.tr('Unable to load services. Please try again.'),
                           textAlign: TextAlign.center,
@@ -105,7 +105,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
                       return Center(
                         child: Text(
                           context.tr('No services available for this salon.'),
-                          style: const TextStyle(color: AppColors.textMutedDark),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       );
                     }
@@ -119,7 +119,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
                         final isSelected = _selectedServiceId == service.id;
                         final price = service.discountPrice ?? service.price;
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: EdgeInsets.only(bottom: 12),
                           child: GlassCard(
                             onTap: () =>
                                 setState(() => _selectedServiceId = service.id),
@@ -128,7 +128,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
                             child: ListTile(
                               title: Text(
                                 service.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                               subtitle: Text(service.duration),
                               trailing: Directionality(
@@ -159,7 +159,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
                   onPressed:
                       services.isNotEmpty ? () => _onNext(services) : null,
                 ),
-                orElse: () => const SizedBox.shrink(),
+                orElse: () => SizedBox.shrink(),
               ),
             ],
           ),

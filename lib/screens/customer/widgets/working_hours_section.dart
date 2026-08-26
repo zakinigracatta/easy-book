@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../models/working_hours_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class WorkingHoursSection extends StatelessWidget {
   final WorkingHoursModel workingHours;
 
-  const WorkingHoursSection({
+  WorkingHoursSection({
     super.key,
     required this.workingHours,
   });
@@ -29,13 +30,12 @@ class WorkingHoursSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.schedule_rounded,
                   color: AppColors.primaryLight, size: 18),
               SizedBox(width: 8),
-              Text(
-                'Working Hours',
+              Text(context.tr('Working Hours'),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -44,7 +44,7 @@ class WorkingHoursSection extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           Column(
             children: days.map((day) {
               final isToday = day == todayName;
@@ -55,8 +55,8 @@ class WorkingHoursSection extends StatelessWidget {
 
               return Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                margin: const EdgeInsets.only(bottom: 4),
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                margin: EdgeInsets.only(bottom: 4),
                 decoration: BoxDecoration(
                   color: isToday
                       ? AppColors.primary.withValues(alpha: 0.15)
@@ -83,16 +83,15 @@ class WorkingHoursSection extends StatelessWidget {
                           ),
                         ),
                         if (isToday) ...[
-                          const SizedBox(width: 8),
+                          SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(
+                            padding: EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              'TODAY',
+                            child: Text(context.tr('TODAY'),
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
@@ -111,7 +110,7 @@ class WorkingHoursSection extends StatelessWidget {
                             ? AppColors.error
                             : (isToday
                                 ? AppColors.primaryLight
-                                : AppColors.textSecondaryDark),
+                                : Theme.of(context).colorScheme.onSurfaceVariant),
                         fontSize: 13,
                       ),
                     ),

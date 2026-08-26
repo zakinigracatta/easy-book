@@ -15,7 +15,7 @@ import '../../widgets/glass_card.dart';
 import 'business_location_picker_screen.dart';
 
 class SalonManagementScreen extends ConsumerStatefulWidget {
-  const SalonManagementScreen({super.key});
+  SalonManagementScreen({super.key});
 
   @override
   ConsumerState<SalonManagementScreen> createState() =>
@@ -99,7 +99,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
         appBar: AppBar(
           title: Text(context.tr('Business Management')),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
@@ -108,41 +108,41 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
           data: (business) {
             _hydrate(business);
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStatusCard(),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     _buildMediaCard(business),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     _buildProfileCard(),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     _buildLocationCard(),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     _buildAmenitiesCard(),
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     _buildManagementShortcuts(),
-                    const SizedBox(height: 18),
+                    SizedBox(height: 18),
                     CustomButton(
                       text: 'Save Business Profile',
                       isLoading: _isLoading,
                       onPressed: () => _updateProfile(business),
                     ),
-                    const SizedBox(height: 28),
+                    SizedBox(height: 28),
                   ],
                 ),
               ),
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           error: (_, __) => Center(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(24),
               child: Text(
                 context.tr('Unable to load business profile. Please try again.'),
                 textAlign: TextAlign.center,
@@ -150,14 +150,14 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
       ),
     );
   }
 
   Widget _buildStatusCard() {
     return GlassCard(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
@@ -175,28 +175,28 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
               color: _acceptingBookings ? AppColors.success : AppColors.error,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   context.tr('Online Booking Status'),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: 3),
                 Text(
                   context.tr(
                     _acceptingBookings
                         ? 'Customers can currently book your business.'
                         : 'New online bookings are temporarily paused.',
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -214,7 +214,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildMediaCard(BusinessModel business) {
     return GlassCard(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -223,7 +223,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Main Business Photo',
             subtitle: 'Upload a real cover image from the device.',
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           BusinessImagePicker(
             label: context.tr('Logo / Main Cover Image'),
             currentImageUrl: _logoUrlController.text,
@@ -232,21 +232,21 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                 _logoUrlController.text.isEmpty ? null : _deleteMainPhoto,
           ),
           if (_uploadProgress != null) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             LinearProgressIndicator(value: _uploadProgress),
-            const SizedBox(height: 5),
+            SizedBox(height: 5),
             Text(
               '${context.tr('Uploading')} ${(100 * _uploadProgress!).round()}%',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textMutedDark,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => context.push('/owner-gallery'),
-            icon: const Icon(Icons.collections_rounded),
+            icon: Icon(Icons.collections_rounded),
             label: Text(context.tr('Manage Multiple Business Photos')),
           ),
         ],
@@ -256,7 +256,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildProfileCard() {
     return GlassCard(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -265,7 +265,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Business Details',
             subtitle: 'Information customers see on your public profile.',
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           CustomTextField(
             controller: _nameController,
             label: 'Business Name *',
@@ -274,26 +274,26 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                 ? context.tr('Enter business name')
                 : null,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           CustomTextField(
             controller: _categoryController,
             label: 'Category',
             prefixIcon: Icons.category_rounded,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           CustomTextField(
             controller: _phoneController,
             label: 'Contact Phone Number',
             prefixIcon: Icons.phone_rounded,
             keyboardType: TextInputType.phone,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           CustomTextField(
             controller: _websiteController,
             label: 'Website / Social Link',
             prefixIcon: Icons.language_rounded,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           CustomTextField(
             controller: _descriptionController,
             label: 'Business Description',
@@ -308,7 +308,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
   Widget _buildLocationCard() {
     final hasPin = _latitude != 0 || _longitude != 0;
     return GlassCard(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -317,24 +317,24 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Business Location',
             subtitle: 'Save the address and pin the exact entrance on Google Maps.',
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           CustomTextField(
             controller: _addressController,
             label: 'Full Address',
             prefixIcon: Icons.location_on_outlined,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           InkWell(
             onTap: _openLocationPicker,
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding: const EdgeInsets.all(14),
+              padding: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: hasPin ? AppColors.success : AppColors.glassBorderDark,
+                  color: hasPin ? AppColors.success : Theme.of(context).dividerColor,
                 ),
-                color: AppColors.glassBgDark,
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
               ),
               child: Row(
                 children: [
@@ -344,7 +344,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                         : Icons.add_location_alt_rounded,
                     color: hasPin ? AppColors.success : AppColors.primaryLight,
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,29 +355,29 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                                 ? 'Precise location saved'
                                 : 'Set precise location',
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
                           context.tr(
                             hasPin
                                 ? 'Tap to adjust the salon pin on Google Maps.'
                                 : 'Open the map and place the pin on the exact entrance.',
                           ),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.chevron_right_rounded,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -390,7 +390,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildAmenitiesCard() {
     return GlassCard(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -399,7 +399,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'Amenities & Features',
             subtitle: 'Select the facilities available at your business.',
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -409,7 +409,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                 selected: selected,
                 label: Text(context.tr(amenity)),
                 avatar: selected
-                    ? const Icon(Icons.check_rounded, size: 16)
+                    ? Icon(Icons.check_rounded, size: 16)
                     : null,
                 onSelected: (value) {
                   setState(() {
@@ -426,7 +426,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
 
   Widget _buildManagementShortcuts() {
     return GlassCard(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -435,7 +435,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             title: 'More Management',
             subtitle: 'Manage the parts customers interact with most.',
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           _ManagementTile(
             icon: Icons.schedule_rounded,
             title: 'Business Working Hours',
@@ -578,25 +578,25 @@ class _SectionTitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, color: AppColors.primaryLight, size: 22),
-        const SizedBox(width: 10),
+        SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 context.tr(title),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimaryDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: 2),
               Text(
                 context.tr(subtitle),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -625,15 +625,15 @@ class _ManagementTile extends StatelessWidget {
       leading: Icon(icon, color: AppColors.primaryLight),
       title: Text(
         context.tr(title),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimaryDark,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right_rounded,
-        color: AppColors.textMutedDark,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
       onTap: onTap,
     );

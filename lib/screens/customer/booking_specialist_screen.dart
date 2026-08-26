@@ -12,7 +12,7 @@ import 'widgets/selected_services_summary.dart';
 import 'widgets/specialist_option_card.dart';
 
 class BookingSpecialistScreen extends ConsumerStatefulWidget {
-  const BookingSpecialistScreen({super.key});
+  BookingSpecialistScreen({super.key});
 
   @override
   ConsumerState<BookingSpecialistScreen> createState() =>
@@ -25,7 +25,7 @@ class _BookingSpecialistScreenState
   bool _anySpecialist = true;
 
   Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
-      ? AppColors.textMutedDark
+      ? Theme.of(context).colorScheme.onSurfaceVariant
       : AppColors.textMutedLight;
 
   @override
@@ -100,18 +100,18 @@ class _BookingSpecialistScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Select Specialist')),
         ),
         body: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
-              const BookingProgressHeader(currentStep: 1),
-              const SizedBox(height: 16),
+              BookingProgressHeader(currentStep: 1),
+              SizedBox(height: 16),
               if (selectedServices.isNotEmpty) ...[
                 SelectedServicesSummary(
                   services: selectedServices,
@@ -123,7 +123,7 @@ class _BookingSpecialistScreenState
                     }
                   },
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
               Align(
                 alignment: AlignmentDirectional.centerStart,
@@ -132,12 +132,12 @@ class _BookingSpecialistScreenState
                   children: [
                     Text(
                       context.tr('Choose a Specialist'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       context.tr(
                         'Select your preferred specialist or choose anyone available.',
@@ -150,17 +150,17 @@ class _BookingSpecialistScreenState
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               Expanded(
                 child: eligibleStaffState.when(
                   loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                      Center(child: CircularProgressIndicator()),
                   error: (_, __) => Center(
                     child: Text(
                       context.tr(
                         'Unable to load specialists. Please try again.',
                       ),
-                      style: const TextStyle(color: AppColors.error),
+                      style: TextStyle(color: AppColors.error),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -188,12 +188,12 @@ class _BookingSpecialistScreenState
                             });
                           },
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         ...eligibleStaff.map((staff) {
                           final isSelected =
                               !_anySpecialist && _selectedStaffId == staff.id;
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
+                            padding: EdgeInsets.only(bottom: 12),
                             child: SpecialistOptionCard(
                               staff: staff,
                               isSelected: isSelected,
@@ -218,7 +218,7 @@ class _BookingSpecialistScreenState
                       ? () => _onNext(eligibleStaff)
                       : null,
                 ),
-                orElse: () => const SizedBox.shrink(),
+                orElse: () => SizedBox.shrink(),
               ),
             ],
           ),

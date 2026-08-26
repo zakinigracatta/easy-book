@@ -13,7 +13,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -117,7 +117,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: Icon(Icons.arrow_back_rounded),
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
@@ -125,23 +125,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 context.tr('Welcome Back 👋'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Text(
                 context.tr('Sign in to access your portal'),
-                style: const TextStyle(color: AppColors.textMutedDark),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
@@ -149,49 +149,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       onTap: () =>
                           setState(() => _selectedRole = UserRole.customer),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: _selectedRole == UserRole.customer
                               ? AppColors.primary
-                              : AppColors.cardDark,
+                              : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _selectedRole == UserRole.customer
                                 ? AppColors.primary
-                                : AppColors.glassBorderDark,
+                                : Theme.of(context).dividerColor,
                           ),
                         ),
                         child: Center(
                           child: Text(
                             context.tr('Customer'),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
                       onTap: () =>
                           setState(() => _selectedRole = UserRole.owner),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: _selectedRole == UserRole.owner
                               ? AppColors.accent
-                              : AppColors.cardDark,
+                              : Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: _selectedRole == UserRole.owner
                                 ? AppColors.accent
-                                : AppColors.glassBorderDark,
+                                : Theme.of(context).dividerColor,
                           ),
                         ),
                         child: Center(
                           child: Text(
                             context.tr('Business Owner'),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -199,7 +199,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               GlassCard(
                 child: Column(
                   children: [
@@ -209,29 +209,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     CustomTextField(
                       controller: _passwordController,
                       label: context.tr('Password'),
                       obscureText: true,
                       prefixIcon: Icons.lock_outline_rounded,
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => context.push('/forgot-password'),
                         child: Text(
                           context.tr('Forgot Password?'),
-                          style: const TextStyle(
-                            color: AppColors.textMutedDark,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     CustomButton(
                       text: context.tr('Sign In'),
                       isLoading: _isLoading,
@@ -243,7 +243,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Column(
                 children: [
                   Row(
@@ -251,7 +251,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       Text(
                         context.tr('Register as Customer? '),
-                        style: const TextStyle(color: AppColors.textMutedDark),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       TextButton(
                         onPressed: () => context.push('/register'),
@@ -264,13 +264,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       Text(
                         context.tr('Register as Partner? '),
-                        style: const TextStyle(color: AppColors.textMutedDark),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       TextButton(
                         onPressed: () => context.push('/business-register'),
                         child: Text(
                           context.tr('Owner Register'),
-                          style: const TextStyle(color: AppColors.accent),
+                          style: TextStyle(color: AppColors.accent),
                         ),
                       ),
                     ],

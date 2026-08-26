@@ -7,11 +7,12 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../models/customer_profile_model.dart';
 import '../../providers/owner_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class CustomerProfileModal extends ConsumerStatefulWidget {
   final CustomerProfileModel customer;
 
-  const CustomerProfileModal({super.key, required this.customer});
+  CustomerProfileModal({super.key, required this.customer});
 
   @override
   ConsumerState<CustomerProfileModal> createState() =>
@@ -43,8 +44,8 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
         top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.cardDark,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SingleChildScrollView(
@@ -65,7 +66,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                   child: (c.avatarUrl == null || c.avatarUrl!.isEmpty)
                       ? Text(
                           c.name[0].toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primaryLight,
@@ -73,34 +74,34 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                         )
                       : null,
                 ),
-                const SizedBox(width: 14),
+                SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         c.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         c.phone,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       if (c.email != null) ...[
-                        const SizedBox(height: 2),
+                        SizedBox(height: 2),
                         Text(
                           c.email!,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -110,7 +111,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               ],
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             // Metrics Summary Grid
             Row(
@@ -119,14 +120,14 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                   child: _metricBox(
                       'Visits', '${c.completedVisits}', AppColors.primaryLight),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: _metricBox(
                       'Total Spent',
                       'AED ${c.totalSpent.toStringAsFixed(0)}',
                       AppColors.success),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: _metricBox(
                       'No-Shows', '${c.noShowCount}', AppColors.warning),
@@ -134,24 +135,24 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               ],
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             GlassCard(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               child: Row(
                 children: [
-                  const Icon(Icons.history_rounded,
+                  Icon(Icons.history_rounded,
                       size: 18, color: AppColors.accent),
-                  const SizedBox(width: 8),
-                  const Text('Last Visit: ',
+                  SizedBox(width: 8),
+                  Text(context.tr('Last Visit: '),
                       style: TextStyle(
-                          fontSize: 13, color: AppColors.textMutedDark)),
+                          fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   Text(
                     lastVisitStr,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -159,26 +160,25 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
             ),
 
             if (c.favoriteServices.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              const Text(
-                'Favorite Services',
+              SizedBox(height: 14),
+              Text(context.tr('Favorite Services'),
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6),
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
                 children: c.favoriteServices.map((srv) {
                   return Chip(
-                    backgroundColor: AppColors.bgDark,
-                    side: const BorderSide(color: AppColors.glassBorderDark),
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                     label: Text(
                       srv,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         color: AppColors.accent,
                         fontWeight: FontWeight.bold,
@@ -189,18 +189,17 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               ),
             ],
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // Private Internal Owner Notes Section
-            const Text(
-              'Private Owner Notes (Internal Only)',
+            Text(context.tr('Private Owner Notes (Internal Only)'),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textMutedDark,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             CustomTextField(
               controller: _notesController,
               label: 'e.g. Likes espresso, sensitive skin, prefers Ahmed.',
@@ -208,7 +207,7 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               prefixIcon: Icons.lock_outline_rounded,
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             CustomButton(
               text: 'Save Private Notes',
@@ -225,8 +224,8 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                 if (mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Private customer notes saved!'),
+                    SnackBar(
+                      content: Text(context.tr('Private customer notes saved!')),
                       backgroundColor: AppColors.success,
                     ),
                   );
@@ -241,11 +240,11 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
 
   Widget _metricBox(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
-        color: AppColors.bgDark,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.glassBorderDark),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -257,12 +256,12 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
               color: color,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
