@@ -16,10 +16,10 @@ export const rescheduleBooking = onCall(async (request) => {
 
   const callerUid = request.auth.uid;
   const data = request.data || {};
-  const bookingId = data.bookingId;
+  const bookingId = typeof data.bookingId === 'string' ? data.bookingId.trim() : '';
   const newRequestedStartRaw = data.newRequestedStartAt;
 
-  if (!bookingId || !newRequestedStartRaw) {
+  if (!bookingId || bookingId.length > 200 || typeof newRequestedStartRaw !== 'string') {
     throw new HttpsError(
       'invalid-argument',
       'MISSING_ARGUMENTS: bookingId and newRequestedStartAt are required.'
@@ -27,7 +27,7 @@ export const rescheduleBooking = onCall(async (request) => {
   }
 
   const newStartAt = new Date(newRequestedStartRaw);
-  if (isNaN(newStartAt.getTime())) {
+  if (Number.isNaN(newStartAt.getTime())) {
     throw new HttpsError(
       'invalid-argument',
       'INVALID_START_TIME: newRequestedStartAt must be a valid date.'
@@ -35,11 +35,16 @@ export const rescheduleBooking = onCall(async (request) => {
   }
 
   validateCanonical15MinAlignment(newStartAt);
+  if (newStartAt.getTime() <= Date.now()) {
+    throw new HttpsError(
+      'failed-precondition',
+      'START_TIME_IN_PAST: A rescheduled appointment must start in the future.'
+    );
+  }
 
   const db = admin.firestore();
 
-  return await db.runTransaction(async (transaction) => {
-    // 1. Read existing booking
+  return db.runTransaction(async (transaction) => {
     const bookingRef = db.collection('bookings').doc(bookingId);
     const bookingSnap = await transaction.get(bookingRef);
     if (!bookingSnap.exists) {
@@ -56,14 +61,15 @@ export const rescheduleBooking = onCall(async (request) => {
     const customerId = bookingData.customerId;
     const currentStatus = bookingData.status;
 
-    if (currentStatus === 'cancelled' || currentStatus === 'completed') {
+    // Rescheduling is only safe before service starts. This also preserves
+    // completed/no-show finance history from being mutated afterwards.
+    if (currentStatus !== 'pending' && currentStatus !== 'confirmed') {
       throw new HttpsError(
         'failed-precondition',
         `CANNOT_RESCHEDULE: Cannot reschedule a ${currentStatus} appointment.`
       );
     }
 
-    // Verify caller authorization
     let isAuthorized = false;
     if (customerId && customerId === callerUid) {
       isAuthorized = true;
@@ -73,9 +79,7 @@ export const rescheduleBooking = onCall(async (request) => {
       if (bizSnap.exists) {
         const bizData = bizSnap.data() || {};
         const ownerId = bizData.ownerId || bizData.owner_id;
-        if (ownerId === callerUid) {
-          isAuthorized = true;
-        }
+        isAuthorized = ownerId === callerUid;
       }
     }
 
@@ -86,7 +90,6 @@ export const rescheduleBooking = onCall(async (request) => {
       );
     }
 
-    // 2. Validate new start time against Business, Service, Staff, Shift, Breaks, Leave
     const context = await validateBookingRequirements(
       db,
       transaction,
@@ -96,21 +99,25 @@ export const rescheduleBooking = onCall(async (request) => {
       newStartAt
     );
 
-    // Calculate old vs new locks
     let oldStartAt: Date;
     let oldEndAt: Date;
-
-    if (bookingData.startDateTime && typeof bookingData.startDateTime.toDate === 'function') {
+    if (
+      bookingData.startDateTime &&
+      typeof bookingData.startDateTime.toDate === 'function'
+    ) {
       oldStartAt = bookingData.startDateTime.toDate();
     } else {
       oldStartAt = new Date(bookingData.startTimestamp || Date.now());
     }
 
-    if (bookingData.endDateTime && typeof bookingData.endDateTime.toDate === 'function') {
+    if (
+      bookingData.endDateTime &&
+      typeof bookingData.endDateTime.toDate === 'function'
+    ) {
       oldEndAt = bookingData.endDateTime.toDate();
     } else {
-      const dur = bookingData.durationMinutes || 30;
-      oldEndAt = new Date(oldStartAt.getTime() + dur * 60 * 1000);
+      const duration = bookingData.durationMinutes || 30;
+      oldEndAt = new Date(oldStartAt.getTime() + duration * 60 * 1000);
     }
 
     const oldLockObjects = generateIntervalSlotLockIds(
@@ -126,37 +133,33 @@ export const rescheduleBooking = onCall(async (request) => {
       context.calculatedEndAt
     );
 
-    const oldLockIds = new Set(oldLockObjects.map((l) => l.lockId));
-    const newLockIds = new Set(newLockObjects.map((l) => l.lockId));
-
+    const oldLockIds = new Set(oldLockObjects.map((lock) => lock.lockId));
+    const newLockIds = new Set(newLockObjects.map((lock) => lock.lockId));
     const locksToKeep = new Set(
-      [...oldLockIds].filter((x) => newLockIds.has(x))
+      [...oldLockIds].filter((lockId) => newLockIds.has(lockId))
     );
-    const locksToDelete = [...oldLockIds].filter((x) => !newLockIds.has(x));
-    const locksToCreate = newLockObjects.filter((l) => !locksToKeep.has(l.lockId));
+    const locksToDelete = [...oldLockIds].filter(
+      (lockId) => !newLockIds.has(lockId)
+    );
+    const locksToCreate = newLockObjects.filter(
+      (lock) => !locksToKeep.has(lock.lockId)
+    );
 
-    // Check availability of new locks
     for (const lock of locksToCreate) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
       const lockSnap = await transaction.get(lockRef);
-      if (lockSnap.exists) {
-        const data = lockSnap.data() || {};
-        if (data.bookingId !== bookingId) {
-          throw new HttpsError(
-            'already-exists',
-            'SLOT_CONFLICT: The target time slot is already booked by another customer.'
-          );
-        }
+      if (lockSnap.exists && lockSnap.data()?.bookingId !== bookingId) {
+        throw new HttpsError(
+          'already-exists',
+          'SLOT_CONFLICT: The target time slot is already booked by another customer.'
+        );
       }
     }
 
-    // Delete obsolete old locks
     for (const lockId of locksToDelete) {
-      const lockRef = db.collection('booking_slots').doc(lockId);
-      transaction.delete(lockRef);
+      transaction.delete(db.collection('booking_slots').doc(lockId));
     }
 
-    // Create new required locks
     for (const lock of locksToCreate) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
       transaction.set(lockRef, {
@@ -170,7 +173,6 @@ export const rescheduleBooking = onCall(async (request) => {
       });
     }
 
-    // Update booking document
     const primarySlotLockId = newLockObjects[0].lockId;
     transaction.update(bookingRef, {
       startDateTime: admin.firestore.Timestamp.fromDate(newStartAt),
