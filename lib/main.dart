@@ -29,9 +29,9 @@ class EasyBookApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Easy Book - Luxury Salon Ecosystem',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.system,
       supportedLocales: const [
         Locale('en'),
         Locale('ar'),
