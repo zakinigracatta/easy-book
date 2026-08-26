@@ -1,5 +1,6 @@
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
+
 import '../core/domain_exceptions.dart';
 import '../models/booking_model.dart';
 
@@ -9,7 +10,8 @@ class BookingFunctionsService {
   BookingFunctionsService([FirebaseFunctions? functions])
       : _functions = functions ?? FirebaseFunctions.instance;
 
-  /// Invokes trusted backend createBooking Cloud Function.
+  String _utcIso(DateTime value) => value.toUtc().toIso8601String();
+
   Future<BookingModel> createBooking({
     required String businessId,
     required String serviceId,
@@ -25,7 +27,10 @@ class BookingFunctionsService {
         'businessId': businessId,
         'serviceId': serviceId,
         'staffId': staffId,
-        'requestedStartAt': requestedStartAt.toIso8601String(),
+        // Always send an absolute instant. Dart local ISO strings omit the UTC
+        // offset and were previously interpreted as UTC by Cloud Functions,
+        // shifting UAE appointments by four hours.
+        'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
         'notes': notes,
@@ -34,7 +39,7 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
@@ -65,11 +70,11 @@ class BookingFunctionsService {
       if (e is DomainException) rethrow;
       debugPrint('CREATE_BOOKING_UNKNOWN_ERROR: $e');
       throw DomainException(
-          'Failed to process booking request. Please try again.');
+        'Failed to process booking request. Please try again.',
+      );
     }
   }
 
-  /// Invokes trusted backend createWalkInBooking Cloud Function for business owners.
   Future<BookingModel> createWalkInBooking({
     required String businessId,
     required String serviceId,
@@ -85,7 +90,7 @@ class BookingFunctionsService {
         'businessId': businessId,
         'serviceId': serviceId,
         'staffId': staffId,
-        'requestedStartAt': requestedStartAt.toIso8601String(),
+        'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
         'notes': notes,
@@ -94,7 +99,7 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
@@ -125,11 +130,11 @@ class BookingFunctionsService {
       if (e is DomainException) rethrow;
       debugPrint('CREATE_WALK_IN_UNKNOWN_ERROR: $e');
       throw DomainException(
-          'Failed to create walk-in booking. Please try again.');
+        'Failed to create walk-in booking. Please try again.',
+      );
     }
   }
 
-  /// Invokes trusted backend cancelBooking Cloud Function.
   Future<bool> cancelBooking({
     required String bookingId,
     String? cancelReason,
@@ -153,7 +158,6 @@ class BookingFunctionsService {
     }
   }
 
-  /// Invokes trusted backend rescheduleBooking Cloud Function.
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newRequestedStartAt,
@@ -162,11 +166,11 @@ class BookingFunctionsService {
       final callable = _functions.httpsCallable('rescheduleBooking');
       final response = await callable.call({
         'bookingId': bookingId,
-        'newRequestedStartAt': newRequestedStartAt.toIso8601String(),
+        'newRequestedStartAt': _utcIso(newRequestedStartAt),
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
-      final endDateTime = DateTime.parse(resData['endDateTime'] as String);
+      final endDateTime = DateTime.parse(resData['endDateTime'] as String).toLocal();
 
       return BookingModel(
         id: bookingId,
@@ -193,11 +197,11 @@ class BookingFunctionsService {
     } catch (e) {
       if (e is DomainException) rethrow;
       throw DomainException(
-          'Failed to reschedule appointment. Please try again.');
+        'Failed to reschedule appointment. Please try again.',
+      );
     }
   }
 
-  /// Invokes trusted backend updateBookingStatus Cloud Function for owner status transitions.
   Future<bool> updateBookingStatus({
     required String bookingId,
     required BookingStatus newStatus,
@@ -217,7 +221,8 @@ class BookingFunctionsService {
     } catch (e) {
       if (e is DomainException) rethrow;
       throw DomainException(
-          'Failed to update booking status. Please try again.');
+        'Failed to update booking status. Please try again.',
+      );
     }
   }
 
@@ -226,12 +231,14 @@ class BookingFunctionsService {
 
     if (e.code == 'already-exists' || msg.contains('SLOT_CONFLICT')) {
       return SlotConflictException(
-          'This time slot was just booked by another customer. Please select another available time.');
+        'This time slot was just booked by another customer. Please select another available time.',
+      );
     }
     if (msg.contains('BUSINESS_NOT_ACCEPTING_BOOKINGS') ||
         msg.contains('BUSINESS_NOT_FOUND')) {
       return BusinessClosedException(
-          'The business is currently closed or not accepting online bookings.');
+        'The business is currently closed or not accepting online bookings.',
+      );
     }
     if (msg.contains('STAFF_INACTIVE') ||
         msg.contains('STAFF_NOT_WORKING_DAY') ||
@@ -239,21 +246,30 @@ class BookingFunctionsService {
         msg.contains('STAFF_ON_LEAVE') ||
         msg.contains('STAFF_INELIGIBLE')) {
       return EmployeeUnavailableException(
-          'The selected specialist is unavailable during this time slot.');
+        'The selected specialist is unavailable during this time slot.',
+      );
     }
     if (msg.contains('SERVICE_NOT_FOUND') || msg.contains('SERVICE_INACTIVE')) {
       return ServiceUnavailableException(
-          'The selected service is currently unavailable.');
+        'The selected service is currently unavailable.',
+      );
     }
     if (e.code == 'permission-denied' || e.code == 'unauthenticated') {
       return AuthorizationException(
-          'You are not authorized to perform this booking operation.');
+        'You are not authorized to perform this booking operation.',
+      );
     }
-    if (msg.contains('INVALID_CANONICAL_ALIGNMENT')) {
+    if (msg.contains('INVALID_CANONICAL_ALIGNMENT') ||
+        msg.contains('START_TIME_IN_PAST')) {
       return InvalidBookingTimeException(
-          'Appointment start time must be aligned to 15-minute intervals.');
+        msg.contains('START_TIME_IN_PAST')
+            ? 'Please select a future appointment time.'
+            : 'Appointment start time must be aligned to 15-minute intervals.',
+      );
     }
 
-    return DomainException('Booking transaction error: $msg');
+    return DomainException(
+      'We could not complete the booking operation. Please try again.',
+    );
   }
 }
