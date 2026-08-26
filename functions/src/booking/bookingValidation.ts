@@ -58,9 +58,10 @@ export function parseTimeStringToMinutes(raw: string): number {
 }
 
 function resolveTimeZone(raw: unknown): string {
-  const candidate = typeof raw === 'string' && raw.trim().length > 0
-    ? raw.trim()
-    : DEFAULT_TIME_ZONE;
+  const candidate =
+    typeof raw === 'string' && raw.trim().length > 0
+      ? raw.trim()
+      : DEFAULT_TIME_ZONE;
   try {
     new Intl.DateTimeFormat('en-US', { timeZone: candidate }).format(new Date());
     return candidate;
@@ -118,16 +119,32 @@ function validateWithinInterval(
   code: string,
   message: string
 ): void {
-  // Same-day schedules are canonical in the current Easy Book model. If an
-  // owner configures an overnight shift (end <= start), accept the part after
-  // start or before end instead of treating every late appointment as invalid.
-  const inside = intervalEnd > intervalStart
-    ? startMinute >= intervalStart && endMinute <= intervalEnd
-    : startMinute >= intervalStart || endMinute <= intervalEnd;
+  // The Flutter availability engine currently models one calendar-day window.
+  // Reject overnight configuration here as well so client and server never
+  // disagree about a slot that crosses midnight.
+  if (intervalEnd <= intervalStart) {
+    throw new HttpsError(
+      'failed-precondition',
+      'INVALID_WORKING_HOURS: Overnight working-hour intervals are not supported yet.'
+    );
+  }
 
-  if (!inside) {
+  if (startMinute < intervalStart || endMinute > intervalEnd) {
     throw new HttpsError('failed-precondition', `${code}: ${message}`);
   }
+}
+
+function readString(
+  source: Record<string, unknown>,
+  ...keys: string[]
+): string | null {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  return null;
 }
 
 export async function validateBookingRequirements(
@@ -169,7 +186,10 @@ export async function validateBookingRequirements(
     .doc(serviceId);
   const srvSnap = await transaction.get(srvRef);
   if (!srvSnap.exists) {
-    throw new HttpsError('not-found', 'SERVICE_NOT_FOUND: Service does not exist.');
+    throw new HttpsError(
+      'not-found',
+      'SERVICE_NOT_FOUND: Service does not exist.'
+    );
   }
   const srvData = srvSnap.data() || {};
   if ((srvData.isActive ?? srvData.is_active) === false) {
@@ -224,7 +244,10 @@ export async function validateBookingRequirements(
     .doc(staffId);
   const staffSnap = await transaction.get(staffRef);
   if (!staffSnap.exists) {
-    throw new HttpsError('not-found', 'STAFF_NOT_FOUND: Staff member does not exist.');
+    throw new HttpsError(
+      'not-found',
+      'STAFF_NOT_FOUND: Staff member does not exist.'
+    );
   }
   const staffData = staffSnap.data() || {};
   if ((staffData.isActive ?? staffData.is_active) === false) {
@@ -251,21 +274,15 @@ export async function validateBookingRequirements(
   // four hours and being compared against the wrong work shift.
   const localStart = zonedParts(requestedStartAt, timeZone);
   const localEnd = zonedParts(calculatedEndAt, timeZone);
-
-  const workingDays: number[] | null = Array.isArray(staffData.workingDays)
-    ? staffData.workingDays.map(Number)
-    : Array.isArray(staffData.working_days)
-      ? staffData.working_days.map(Number)
-      : null;
-  if (workingDays && !workingDays.includes(localStart.dayNumber)) {
+  if (localStart.dateKey !== localEnd.dateKey) {
     throw new HttpsError(
       'failed-precondition',
-      'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
+      'OUTSIDE_BUSINESS_HOURS: Appointments crossing midnight are not supported.'
     );
   }
 
-  // Business opening hours are authoritative as well. Older records may not
-  // contain them, in which case staff hours remain the limiting schedule.
+  // Business opening hours are authoritative. Older records may not contain
+  // them, in which case staff hours remain the limiting schedule.
   const businessHours = bizData.workingHours ?? bizData.working_hours;
   if (businessHours && typeof businessHours === 'object') {
     const dayConfig =
@@ -278,16 +295,14 @@ export async function validateBookingRequirements(
           'OUTSIDE_BUSINESS_HOURS: Business is closed on the selected day.'
         );
       }
-      const openRaw = dayConfig.open;
-      const closeRaw = dayConfig.close;
-      if (typeof openRaw === 'string' && typeof closeRaw === 'string') {
-        const openMinute = parseTimeStringToMinutes(openRaw);
-        const closeMinute = parseTimeStringToMinutes(closeRaw);
+      const openRaw = readString(dayConfig, 'openTime', 'open_time', 'open');
+      const closeRaw = readString(dayConfig, 'closeTime', 'close_time', 'close');
+      if (openRaw && closeRaw) {
         validateWithinInterval(
           localStart.minuteOfDay,
           localEnd.minuteOfDay,
-          openMinute,
-          closeMinute,
+          parseTimeStringToMinutes(openRaw),
+          parseTimeStringToMinutes(closeRaw),
           'OUTSIDE_BUSINESS_HOURS',
           'Requested appointment is outside business operating hours.'
         );
@@ -295,34 +310,123 @@ export async function validateBookingRequirements(
     }
   }
 
-  const shiftStartStr = staffData.shiftStart || staffData.shift_start || null;
-  const shiftEndStr = staffData.shiftEnd || staffData.shift_end || null;
-  if (typeof shiftStartStr === 'string' && typeof shiftEndStr === 'string') {
-    const shiftStart = parseTimeStringToMinutes(shiftStartStr);
-    const shiftEnd = parseTimeStringToMinutes(shiftEndStr);
-    validateWithinInterval(
-      localStart.minuteOfDay,
-      localEnd.minuteOfDay,
-      shiftStart,
-      shiftEnd,
-      'OUTSIDE_STAFF_SHIFT',
-      'Requested appointment is outside the employee shift.'
-    );
-  } else {
-    if (typeof shiftStartStr === 'string') {
-      const shiftStart = parseTimeStringToMinutes(shiftStartStr);
-      if (localStart.minuteOfDay < shiftStart) {
+  // Mirror the Flutter availability engine: a per-day weekly schedule takes
+  // precedence over the legacy workingDays + global shift fields.
+  let usedWeeklySchedule = false;
+  const weeklySchedule = staffData.weeklySchedule ?? staffData.weekly_schedule;
+  if (weeklySchedule && typeof weeklySchedule === 'object') {
+    const rawDaySchedule =
+      weeklySchedule[localStart.dayName] ??
+      weeklySchedule[localStart.dayName.toLowerCase()];
+    if (rawDaySchedule && typeof rawDaySchedule === 'object') {
+      usedWeeklySchedule = true;
+      const daySchedule = rawDaySchedule as Record<string, unknown>;
+      if ((daySchedule.isWorking ?? daySchedule.is_working) === false) {
+        throw new HttpsError(
+          'failed-precondition',
+          'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
+        );
+      }
+
+      const dayOpen = readString(
+        daySchedule,
+        'openTime',
+        'open_time',
+        'open'
+      );
+      const dayClose = readString(
+        daySchedule,
+        'closeTime',
+        'close_time',
+        'close'
+      );
+      if (dayOpen && dayClose) {
+        validateWithinInterval(
+          localStart.minuteOfDay,
+          localEnd.minuteOfDay,
+          parseTimeStringToMinutes(dayOpen),
+          parseTimeStringToMinutes(dayClose),
+          'OUTSIDE_STAFF_SHIFT',
+          'Requested appointment is outside the employee shift.'
+        );
+      }
+
+      const breakStart = readString(
+        daySchedule,
+        'breakStart',
+        'break_start'
+      );
+      const breakEnd = readString(daySchedule, 'breakEnd', 'break_end');
+      if (breakStart && breakEnd) {
+        const breakStartMinute = parseTimeStringToMinutes(breakStart);
+        const breakEndMinute = parseTimeStringToMinutes(breakEnd);
+        if (breakEndMinute <= breakStartMinute) {
+          throw new HttpsError(
+            'failed-precondition',
+            'INVALID_WORKING_HOURS: Employee break end must be after break start.'
+          );
+        }
+        if (
+          localStart.minuteOfDay < breakEndMinute &&
+          localEnd.minuteOfDay > breakStartMinute
+        ) {
+          throw new HttpsError(
+            'failed-precondition',
+            'STAFF_ON_BREAK: Specialist is on a scheduled break during this interval.'
+          );
+        }
+      }
+    }
+  }
+
+  if (!usedWeeklySchedule) {
+    const workingDays: number[] | null = Array.isArray(staffData.workingDays)
+      ? staffData.workingDays.map(Number)
+      : Array.isArray(staffData.working_days)
+        ? staffData.working_days.map(Number)
+        : null;
+    if (workingDays && !workingDays.includes(localStart.dayNumber)) {
+      throw new HttpsError(
+        'failed-precondition',
+        'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
+      );
+    }
+
+    const shiftStartStr =
+      typeof staffData.shiftStart === 'string'
+        ? staffData.shiftStart
+        : typeof staffData.shift_start === 'string'
+          ? staffData.shift_start
+          : null;
+    const shiftEndStr =
+      typeof staffData.shiftEnd === 'string'
+        ? staffData.shiftEnd
+        : typeof staffData.shift_end === 'string'
+          ? staffData.shift_end
+          : null;
+
+    if (shiftStartStr && shiftEndStr) {
+      validateWithinInterval(
+        localStart.minuteOfDay,
+        localEnd.minuteOfDay,
+        parseTimeStringToMinutes(shiftStartStr),
+        parseTimeStringToMinutes(shiftEndStr),
+        'OUTSIDE_STAFF_SHIFT',
+        'Requested appointment is outside the employee shift.'
+      );
+    } else {
+      if (
+        shiftStartStr &&
+        localStart.minuteOfDay < parseTimeStringToMinutes(shiftStartStr)
+      ) {
         throw new HttpsError(
           'failed-precondition',
           'OUTSIDE_STAFF_SHIFT: Requested time is before employee shift start.'
         );
       }
-    }
-    if (typeof shiftEndStr === 'string') {
-      const shiftEnd = parseTimeStringToMinutes(shiftEndStr);
       if (
-        localStart.dateKey !== localEnd.dateKey ||
-        localEnd.minuteOfDay > shiftEnd
+        shiftEndStr &&
+        localEnd.minuteOfDay > parseTimeStringToMinutes(shiftEndStr)
       ) {
         throw new HttpsError(
           'failed-precondition',
@@ -332,37 +436,47 @@ export async function validateBookingRequirements(
     }
   }
 
-  const timeOffQuery = db
+  const timeOffCollection = db
     .collection('businesses')
     .doc(businessId)
-    .collection('timeOffs')
-    .where('employeeId', '==', staffId);
-  const toffSnap = await transaction.get(timeOffQuery);
+    .collection('timeOffs');
+  const currentTimeOffSnap = await transaction.get(
+    timeOffCollection.where('employeeId', '==', staffId)
+  );
+  const legacyTimeOffSnap = await transaction.get(
+    timeOffCollection.where('employee_id', '==', staffId)
+  );
+  const timeOffDocs = new Map<string, admin.firestore.QueryDocumentSnapshot>();
+  for (const doc of currentTimeOffSnap.docs) timeOffDocs.set(doc.id, doc);
+  for (const doc of legacyTimeOffSnap.docs) timeOffDocs.set(doc.id, doc);
 
   const reqStartMs = requestedStartAt.getTime();
   const reqEndMs = calculatedEndAt.getTime();
-  for (const doc of toffSnap.docs) {
-    const toff = doc.data();
-    let toffStartMs = 0;
-    let toffEndMs = 0;
+  for (const doc of timeOffDocs.values()) {
+    const timeOff = doc.data();
+    let timeOffStartMs = 0;
+    let timeOffEndMs = 0;
 
-    if (toff.startDate && typeof toff.startDate.toMillis === 'function') {
-      toffStartMs = toff.startDate.toMillis();
-    } else if (typeof toff.startDate === 'string') {
-      toffStartMs = new Date(toff.startDate).getTime();
+    if (
+      timeOff.startDate &&
+      typeof timeOff.startDate.toMillis === 'function'
+    ) {
+      timeOffStartMs = timeOff.startDate.toMillis();
+    } else if (typeof timeOff.startDate === 'string') {
+      timeOffStartMs = new Date(timeOff.startDate).getTime();
     }
 
-    if (toff.endDate && typeof toff.endDate.toMillis === 'function') {
-      toffEndMs = toff.endDate.toMillis();
-    } else if (typeof toff.endDate === 'string') {
-      toffEndMs = new Date(toff.endDate).getTime();
+    if (timeOff.endDate && typeof timeOff.endDate.toMillis === 'function') {
+      timeOffEndMs = timeOff.endDate.toMillis();
+    } else if (typeof timeOff.endDate === 'string') {
+      timeOffEndMs = new Date(timeOff.endDate).getTime();
     }
 
     if (
-      toffStartMs > 0 &&
-      toffEndMs > 0 &&
-      reqStartMs < toffEndMs &&
-      reqEndMs > toffStartMs
+      timeOffStartMs > 0 &&
+      timeOffEndMs > 0 &&
+      reqStartMs < timeOffEndMs &&
+      reqEndMs > timeOffStartMs
     ) {
       throw new HttpsError(
         'failed-precondition',
