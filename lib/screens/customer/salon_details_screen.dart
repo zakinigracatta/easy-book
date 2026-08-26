@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../models/business_model.dart';
 import '../../models/service_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/auth_guard.dart';
 import '../../theme/app_colors.dart';
-
+import 'widgets/about_section.dart';
+import 'widgets/booking_bottom_bar.dart';
 import 'widgets/business_hero.dart';
-import 'widgets/business_summary.dart';
-import 'widgets/business_quick_actions.dart';
 import 'widgets/business_nav_tabs.dart';
+import 'widgets/business_quick_actions.dart';
+import 'widgets/business_summary.dart';
+import 'widgets/gallery_section.dart';
+import 'widgets/reviews_section.dart';
+import 'widgets/salon_details_shimmer.dart';
 import 'widgets/service_category_section.dart';
 import 'widgets/specialist_card.dart';
-import 'widgets/reviews_section.dart';
-import 'widgets/about_section.dart';
-import 'widgets/gallery_section.dart';
-import 'widgets/booking_bottom_bar.dart';
-import 'widgets/salon_details_shimmer.dart';
 
 class SalonDetailsScreen extends ConsumerStatefulWidget {
   final String? businessId;
@@ -52,11 +52,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
@@ -71,6 +67,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
             }
 
             final servicesState = ref.watch(servicesProvider(business.id));
+            final canBook = business.isActive &&
+                business.acceptingBookings &&
+                business.businessStatus == 'open';
 
             return Column(
               children: [
@@ -80,24 +79,30 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         BusinessHero(business: business),
-                        if (!business.isActive)
+                        if (!canBook)
                           Container(
                             width: double.infinity,
                             color: AppColors.error.withValues(alpha: 0.2),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             child: const Row(
                               children: [
-                                Icon(Icons.info_outline_rounded,
-                                    color: AppColors.error, size: 18),
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  color: AppColors.error,
+                                  size: 18,
+                                ),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     'This salon is currently inactive or not accepting online bookings.',
                                     style: TextStyle(
-                                        color: AppColors.error,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold),
+                                      color: AppColors.error,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -109,11 +114,14 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               BusinessSummary(
-                                  business: business,
-                                  distanceText: '1.8 km away'),
+                                business: business,
+                                distanceText: '1.8 km away',
+                              ),
                               const SizedBox(height: 20),
                               const Divider(
-                                  color: AppColors.glassBorderDark, height: 1),
+                                color: AppColors.glassBorderDark,
+                                height: 1,
+                              ),
                               const SizedBox(height: 16),
                               BusinessQuickActions(business: business),
                               const SizedBox(height: 20),
@@ -150,44 +158,56 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                 ),
                 BookingBottomBar(
                   business: business,
-                  onBookNowTap: () async {
-                    final servicesList = servicesState.value ?? [];
-                    List<ServiceModel> selectedList = [];
+                  onBookNowTap: !canBook
+                      ? null
+                      : () async {
+                          final servicesList = servicesState.value ?? [];
+                          ServiceModel? selectedService;
 
-                    if (_selectedServiceIds.isNotEmpty) {
-                      selectedList = servicesList
-                          .where((s) => _selectedServiceIds.contains(s.id))
-                          .toList();
-                    }
+                          if (_selectedServiceIds.isNotEmpty) {
+                            final selectedId = _selectedServiceIds.first;
+                            for (final service in servicesList) {
+                              if (service.id == selectedId) {
+                                selectedService = service;
+                                break;
+                              }
+                            }
+                          }
 
-                    final currentDraft = ref.read(bookingDraftProvider);
-                    if (selectedList.isNotEmpty) {
-                      final first = selectedList.first;
-                      ref.read(bookingDraftProvider.notifier).state =
-                          currentDraft.copyWith(
-                        businessId: business.id,
-                        businessName: business.name,
-                        serviceId: first.id,
-                        serviceName: first.name,
-                        servicePrice: first.discountPrice ?? first.price,
-                        serviceDuration: first.duration,
-                        serviceDurationMinutes: first.durationMinutes,
-                        selectedServices: selectedList,
-                      );
-                    } else {
-                      ref.read(bookingDraftProvider.notifier).state =
-                          currentDraft.copyWith(
-                        businessId: business.id,
-                        businessName: business.name,
-                      );
-                    }
+                          final currentDraft = ref.read(bookingDraftProvider);
+                          if (selectedService != null) {
+                            ref.read(bookingDraftProvider.notifier).state =
+                                currentDraft.copyWith(
+                              businessId: business.id,
+                              businessName: business.name,
+                              serviceId: selectedService.id,
+                              serviceName: selectedService.name,
+                              servicePrice: selectedService.discountPrice ??
+                                  selectedService.price,
+                              serviceDuration: selectedService.duration,
+                              serviceDurationMinutes:
+                                  selectedService.durationMinutes,
+                              selectedServices: [selectedService],
+                            );
+                          } else {
+                            ref.read(bookingDraftProvider.notifier).state =
+                                currentDraft.copyWith(
+                              businessId: business.id,
+                              businessName: business.name,
+                              selectedServices: const [],
+                              serviceId: '',
+                              serviceName: '',
+                            );
+                          }
 
-                    final allowed = await requireLogin(context,
-                        targetRoute: '/booking-service');
-                    if (allowed && context.mounted) {
-                      context.push('/booking-service');
-                    }
-                  },
+                          final allowed = await requireLogin(
+                            context,
+                            targetRoute: '/booking-service',
+                          );
+                          if (allowed && context.mounted) {
+                            context.push('/booking-service');
+                          }
+                        },
                 ),
               ],
             );
@@ -206,46 +226,48 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
       case 0:
         return servicesState.when(
           loading: () => const Center(
-              child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator())),
-          error: (err, stack) => Text('Error loading services: $err',
-              style: const TextStyle(color: AppColors.error)),
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (err, stack) => Text(
+            'Error loading services: $err',
+            style: const TextStyle(color: AppColors.error),
+          ),
           data: (services) => ServiceCategorySection(
             services: services,
             selectedServiceIds: _selectedServiceIds,
             onServiceSelect: (service) {
               setState(() {
                 if (_selectedServiceIds.contains(service.id)) {
-                  _selectedServiceIds.remove(service.id);
+                  _selectedServiceIds.clear();
                 } else {
-                  _selectedServiceIds.add(service.id);
+                  _selectedServiceIds
+                    ..clear()
+                    ..add(service.id);
                 }
               });
 
-              final selectedList = services
-                  .where((s) => _selectedServiceIds.contains(s.id))
-                  .toList();
               final currentDraft = ref.read(bookingDraftProvider);
-              if (selectedList.isNotEmpty) {
-                final first = selectedList.first;
+              if (_selectedServiceIds.isNotEmpty) {
                 ref.read(bookingDraftProvider.notifier).state =
                     currentDraft.copyWith(
                   businessId: business.id,
                   businessName: business.name,
-                  serviceId: first.id,
-                  serviceName: first.name,
-                  servicePrice: first.discountPrice ?? first.price,
-                  serviceDuration: first.duration,
-                  serviceDurationMinutes: first.durationMinutes,
-                  selectedServices: selectedList,
+                  serviceId: service.id,
+                  serviceName: service.name,
+                  servicePrice: service.discountPrice ?? service.price,
+                  serviceDuration: service.duration,
+                  serviceDurationMinutes: service.durationMinutes,
+                  selectedServices: [service],
                 );
               } else {
                 ref.read(bookingDraftProvider.notifier).state =
                     currentDraft.copyWith(
                   businessId: business.id,
                   businessName: business.name,
-                  selectedServices: [],
+                  selectedServices: const [],
                   serviceId: '',
                   serviceName: '',
                 );
@@ -260,11 +282,15 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
             final staffState = tabRef.watch(staffProvider(business.id));
             return staffState.when(
               loading: () => const Center(
-                  child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator())),
-              error: (err, stack) => Text('Error loading specialists: $err',
-                  style: const TextStyle(color: AppColors.error)),
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (err, stack) => Text(
+                'Error loading specialists: $err',
+                style: const TextStyle(color: AppColors.error),
+              ),
               data: (staffList) {
                 if (staffList.isEmpty) {
                   return Container(
@@ -272,13 +298,18 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                     alignment: Alignment.center,
                     child: const Column(
                       children: [
-                        Icon(Icons.badge_outlined,
-                            size: 48, color: AppColors.textMutedDark),
+                        Icon(
+                          Icons.badge_outlined,
+                          size: 48,
+                          color: AppColors.textMutedDark,
+                        ),
                         SizedBox(height: 12),
                         Text(
                           'Specialist information is not available yet.',
                           style: TextStyle(
-                              color: AppColors.textMutedDark, fontSize: 14),
+                            color: AppColors.textMutedDark,
+                            fontSize: 14,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -310,11 +341,15 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
             final reviewsState = tabRef.watch(reviewsProvider(business.id));
             return reviewsState.when(
               loading: () => const Center(
-                  child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator())),
-              error: (err, stack) => Text('Error loading reviews: $err',
-                  style: const TextStyle(color: AppColors.error)),
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              error: (err, stack) => Text(
+                'Error loading reviews: $err',
+                style: const TextStyle(color: AppColors.error),
+              ),
               data: (reviewsList) => ReviewsSection(
                 averageRating: business.rating,
                 totalReviews: business.reviewCount,
@@ -339,27 +374,38 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
   }
 
   Widget _buildErrorView(
-      BuildContext context, WidgetRef ref, String businessId, Object err) {
+    BuildContext context,
+    WidgetRef ref,
+    String businessId,
+    Object err,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 56, color: AppColors.error),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 56,
+              color: AppColors.error,
+            ),
             const SizedBox(height: 16),
             const Text(
               'We couldn\'t load this salon.',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Please check your network connection and try again.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+              style: TextStyle(
+                color: AppColors.textMutedDark,
+                fontSize: 13,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -382,31 +428,33 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.storefront_outlined,
-                size: 56, color: AppColors.textMutedDark),
+            const Icon(
+              Icons.storefront_outlined,
+              size: 56,
+              color: AppColors.textMutedDark,
+            ),
             const SizedBox(height: 16),
             const Text(
               'Salon Not Found',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               'The requested business profile is no longer available.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+              style: TextStyle(
+                color: AppColors.textMutedDark,
+                fontSize: 13,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/home');
-                }
-              },
+              onPressed: () =>
+                  context.canPop() ? context.pop() : context.go('/home'),
               child: const Text('Go Back'),
             ),
           ],
