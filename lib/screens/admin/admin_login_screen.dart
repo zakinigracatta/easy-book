@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
@@ -35,7 +36,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter admin email and password.')),
+        SnackBar(
+          content: Text(context.tr('Please enter admin email and password.')),
+        ),
       );
       return;
     }
@@ -49,17 +52,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
           );
 
       final firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null) {
-        await firebaseUser.reload();
-      }
+      if (firebaseUser != null) await firebaseUser.reload();
       if (!mounted) return;
 
       final refreshedUser = FirebaseAuth.instance.currentUser;
       if (refreshedUser == null) {
-        throw FirebaseAuthException(
-          code: 'no-current-user',
-          message: 'Admin authentication could not be completed.',
-        );
+        throw FirebaseAuthException(code: 'no-current-user');
       }
 
       if (!refreshedUser.emailVerified) {
@@ -71,12 +69,17 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final message = switch (e.code) {
-        'role-mismatch' => 'This account is not authorized as an administrator.',
+        'role-mismatch' =>
+          context.tr('This account does not have administrator access.'),
         'invalid-credential' || 'wrong-password' || 'user-not-found' =>
-          'Invalid admin email or password.',
-        'too-many-requests' =>
-          'Too many sign-in attempts. Please wait and try again.',
-        _ => e.message ?? 'Admin authentication failed. Please try again.',
+          context.tr('Invalid admin email or password.'),
+        'too-many-requests' => context.tr(
+            'Too many sign-in attempts. Please wait and try again.',
+          ),
+        'network-request-failed' => context.tr(
+            'Network connection failed. Check your connection and try again.',
+          ),
+        _ => context.tr('Admin authentication failed. Please try again.'),
       };
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
@@ -84,8 +87,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Admin sign in is unavailable right now. Please try again.'),
+        SnackBar(
+          content: Text(
+            context.tr(
+              'Admin sign in is unavailable right now. Please try again.',
+            ),
+          ),
         ),
       );
     } finally {
@@ -99,15 +106,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: const Text('Admin Portal Login'),
+        title: Text(context.tr('Admin Portal Login')),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -121,16 +123,21 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 color: AppColors.error,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Super Admin Sign In',
+              Text(
+                context.tr('Super Admin Sign In'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Platform management, partner verification & payouts',
+              Text(
+                context.tr(
+                  'Platform management, partner verification & payouts',
+                ),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+                style: const TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 28),
               GlassCard(
@@ -138,23 +145,23 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   children: [
                     CustomTextField(
                       controller: _emailController,
-                      label: 'Admin Email',
+                      label: context.tr('Admin Email'),
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       controller: _passwordController,
-                      label: 'Password',
+                      label: context.tr('Password'),
                       obscureText: true,
                       prefixIcon: Icons.lock_outline,
                     ),
                     const SizedBox(height: 24),
                     CustomButton(
-                      text: 'Enter Admin Center',
+                      text: context.tr('Enter Admin Center'),
                       backgroundColor: AppColors.error,
                       isLoading: _isLoading,
-                      onPressed: _handleAdminLogin,
+                      onPressed: _isLoading ? null : _handleAdminLogin,
                     ),
                   ],
                 ),
