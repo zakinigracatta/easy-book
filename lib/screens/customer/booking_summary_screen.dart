@@ -13,11 +13,18 @@ import 'widgets/booking_progress_header.dart';
 class BookingSummaryScreen extends ConsumerWidget {
   const BookingSummaryScreen({super.key});
 
+  static Color _mutedColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? AppColors.textMutedDark
+        : AppColors.textMutedLight;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final draft = ref.watch(bookingDraftProvider);
     final businessId = draft.businessId ?? '';
     final businessState = ref.watch(businessDetailProvider(businessId));
+    final mutedColor = _mutedColor(context);
 
     final dateStr = draft.date != null
         ? MaterialLocalizations.of(context).formatFullDate(draft.date!)
@@ -36,7 +43,6 @@ class BookingSummaryScreen extends ConsumerWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.bgDark,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
@@ -77,7 +83,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                           ),
                           child: const Icon(
                             Icons.storefront_rounded,
-                            color: AppColors.primaryLight,
+                            color: AppColors.primary,
                             size: 24,
                           ),
                         ),
@@ -91,7 +97,6 @@ class BookingSummaryScreen extends ConsumerWidget {
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimaryDark,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -99,9 +104,9 @@ class BookingSummaryScreen extends ConsumerWidget {
                                 business.address,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textMutedDark,
+                                  color: mutedColor,
                                 ),
                               ),
                             ],
@@ -123,7 +128,8 @@ class BookingSummaryScreen extends ConsumerWidget {
                         const SizedBox(height: 12),
                         if (services.isNotEmpty)
                           ...services.map((service) {
-                            final price = service.discountPrice ?? service.price;
+                            final price =
+                                service.discountPrice ?? service.price;
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Row(
@@ -137,14 +143,13 @@ class BookingSummaryScreen extends ConsumerWidget {
                                           service.name,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w600,
-                                            color: AppColors.textPrimaryDark,
                                           ),
                                         ),
                                         Text(
                                           service.duration,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 11,
-                                            color: AppColors.textMutedDark,
+                                            color: mutedColor,
                                           ),
                                         ),
                                       ],
@@ -159,7 +164,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                                       ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.primaryLight,
+                                        color: AppColors.primary,
                                       ),
                                     ),
                                   ),
@@ -226,7 +231,6 @@ class BookingSummaryScreen extends ConsumerWidget {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -235,9 +239,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                           children: [
                             Text(
                               context.tr('Amount due'),
-                              style: const TextStyle(
-                                color: AppColors.textMutedDark,
-                              ),
+                              style: TextStyle(color: mutedColor),
                             ),
                             Directionality(
                               textDirection: TextDirection.ltr,
@@ -246,7 +248,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                                 style: const TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryLight,
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ),
@@ -283,7 +285,11 @@ class BookingSummaryScreen extends ConsumerWidget {
     final resolved = draft.resolvedStaffName?.trim() ?? '';
     if (resolved.isNotEmpty) return resolved;
     final selected = draft.staffName?.trim() ?? '';
-    if (selected.isNotEmpty) return selected;
+    if (selected.isNotEmpty) {
+      return selected == 'Any Available Specialist'
+          ? context.tr(selected)
+          : selected;
+    }
     return draft.anySpecialist
         ? context.tr('Any Available Specialist')
         : context.tr('Not selected');
@@ -302,7 +308,6 @@ class BookingSummaryScreen extends ConsumerWidget {
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimaryDark,
           ),
         ),
         TextButton(
@@ -322,15 +327,16 @@ class BookingSummaryScreen extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 17, color: AppColors.primaryLight),
+        const SizedBox.shrink(),
+        Icon(icon, size: 17, color: AppColors.primary),
         const SizedBox(width: 10),
         SizedBox(
           width: 90,
           child: Text(
             context.tr(title),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: AppColors.textMutedDark,
+              color: _mutedColor(context),
             ),
           ),
         ),
@@ -340,7 +346,6 @@ class BookingSummaryScreen extends ConsumerWidget {
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimaryDark,
             ),
           ),
         ),
@@ -358,16 +363,13 @@ class BookingSummaryScreen extends ConsumerWidget {
         Expanded(
           child: Text(
             context.tr(label),
-            style: const TextStyle(color: AppColors.textMutedDark),
+            style: TextStyle(color: _mutedColor(context)),
           ),
         ),
         const SizedBox(width: 12),
         Text(
           value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimaryDark,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -389,7 +391,7 @@ class BookingSummaryScreen extends ConsumerWidget {
             Text(
               context.tr(message),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textMutedDark),
+              style: TextStyle(color: _mutedColor(context)),
             ),
             const SizedBox(height: 14),
             OutlinedButton(
