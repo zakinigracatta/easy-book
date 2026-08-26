@@ -40,17 +40,9 @@ class OwnerEmptyStateWidget extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.event_available_rounded,
-                  size: 0,
-                  color: Colors.transparent,
-                ),
-              ),
-              Transform.translate(
-                offset: const Offset(0, -56),
                 child: Icon(icon, size: 40, color: AppColors.primary),
               ),
-              const SizedBox(height: 0),
+              const SizedBox(height: 16),
               Text(
                 context.tr(title),
                 textAlign: TextAlign.center,
