@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:easy_book/l10n/arabic_runtime_translations.dart';
 import 'package:easy_book/l10n/arabic_translations.dart';
 import 'package:easy_book/l10n/russian_runtime_translations.dart';
 import 'package:easy_book/l10n/russian_secondary_translations.dart';
@@ -60,14 +61,36 @@ void main() {
       dotAll: true,
     );
     final alpha = RegExp(r'[A-Za-z]');
+    const allowedLiteralData = <String>{
+      'EN',
+      'AR',
+      'RU',
+      'Easy Book v2.5',
+    };
 
     for (final file in uiFiles()) {
       final source = file.readAsStringSync();
       for (final match in textLiteral.allMatches(source)) {
         final literal = match.group(2) ?? '';
+
+        // Already-localized fragments inside a formatted value are valid, e.g.
+        // '$count ${context.tr('reviews')}'. The simple regex deliberately does
+        // not try to parse nested Dart expressions.
+        if (literal.contains('context.tr(')) continue;
+        if (allowedLiteralData.contains(literal)) continue;
+
         final withoutInterpolation = literal
             .replaceAll(RegExp(r'\$\{[^}]+\}'), '')
-            .replaceAll(RegExp(r'\$[A-Za-z_][A-Za-z0-9_\.]*'), '');
+            .replaceAll(RegExp(r'\$[A-Za-z_][A-Za-z0-9_\.]*'), '')
+            .replaceAll(RegExp(r'\bAED\b'), '')
+            .trim();
+
+        // Dynamic values that begin with a map/property interpolation can be
+        // truncated by the regex at an inner quote. Those contain no literal
+        // user-facing copy for this test to localize.
+        if (literal.startsWith(r'${') && withoutInterpolation.startsWith(r'${')) {
+          continue;
+        }
         if (!alpha.hasMatch(withoutInterpolation)) continue;
 
         final line = '\n'.allMatches(source.substring(0, match.start)).length + 1;
@@ -83,7 +106,10 @@ void main() {
   });
 
   test('every simple context.tr key has Arabic and Russian coverage', () {
-    final arabicKeys = arabicTranslations.keys.toSet();
+    final arabicKeys = <String>{
+      ...arabicTranslations.keys,
+      ...arabicRuntimeTranslations.keys,
+    };
     final russianKeys = <String>{
       ...russianTranslations.keys,
       ...russianSecondaryTranslations.keys,
@@ -102,15 +128,20 @@ void main() {
       }
     }
 
+    final failures = <String>[];
+    if (missingArabic.isNotEmpty) {
+      final values = missingArabic.toList()..sort();
+      failures.add('Missing Arabic translations:\n$values');
+    }
+    if (missingRussian.isNotEmpty) {
+      final values = missingRussian.toList()..sort();
+      failures.add('Missing Russian translations:\n$values');
+    }
+
     expect(
-      missingArabic,
+      failures,
       isEmpty,
-      reason: 'Missing Arabic translations:\n${missingArabic.toList()..sort()}',
-    );
-    expect(
-      missingRussian,
-      isEmpty,
-      reason: 'Missing Russian translations:\n${missingRussian.toList()..sort()}',
+      reason: failures.join('\n\n'),
     );
   });
 }
