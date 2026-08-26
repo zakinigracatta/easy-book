@@ -17,6 +17,10 @@ class SalonListScreen extends ConsumerStatefulWidget {
 }
 
 class _SalonListScreenState extends ConsumerState<SalonListScreen> {
+  Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
+      ? AppColors.textMutedDark
+      : AppColors.textMutedLight;
+
   @override
   void dispose() {
     ref.read(selectedCategoryProvider.notifier).state = 'all';
@@ -30,7 +34,10 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
     final businessesAsync = ref.watch(businessesProvider);
     final title = selectedCategory == 'all'
         ? context.tr('Top Salons & Spas')
-        : context.tr('{category} Businesses', params: {'category': selectedCategory});
+        : context.tr(
+            '{category} Businesses',
+            params: {'category': selectedCategory},
+          );
 
     return PopScope(
       canPop: context.canPop(),
@@ -43,7 +50,8 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(title),
         ),
@@ -63,7 +71,8 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                 padding: const EdgeInsets.all(20),
                 itemCount: businesses.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, index) => _businessCard(context, businesses[index]),
+                itemBuilder: (context, index) =>
+                    _businessCard(context, businesses[index]),
               ),
             );
           },
@@ -106,22 +115,31 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                         business.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                     if (business.isVerified)
                       const Padding(
                         padding: EdgeInsets.only(left: 4),
-                        child: Icon(Icons.verified_rounded, size: 17, color: AppColors.primary),
+                        child: Icon(
+                          Icons.verified_rounded,
+                          size: 17,
+                          color: AppColors.primary,
+                        ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  business.address.isEmpty ? business.category : business.address,
+                  business.address.isEmpty
+                      ? business.category
+                      : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textMutedDark),
+                  style: TextStyle(fontSize: 12, color: _mutedColor),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -132,18 +150,23 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
                       textDirection: TextDirection.ltr,
                       child: Text(
                         '${business.rating.toStringAsFixed(1)} (${business.reviewCount})',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  context.tr(isOpen ? 'Open for booking' : 'Currently unavailable'),
+                  context.tr(
+                    isOpen ? 'Open for booking' : 'Currently unavailable',
+                  ),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isOpen ? AppColors.success : AppColors.textMutedDark,
+                    color: isOpen ? AppColors.success : _mutedColor,
                   ),
                 ),
               ],
@@ -160,7 +183,11 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
       height: 90,
       alignment: Alignment.center,
       color: AppColors.primary.withValues(alpha: 0.08),
-      child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 34),
+      child: const Icon(
+        Icons.storefront_rounded,
+        color: AppColors.primary,
+        size: 34,
+      ),
     );
   }
 
@@ -186,9 +213,11 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          context.tr('New businesses will appear here once they are available.'),
+          context.tr(
+            'New businesses will appear here once they are available.',
+          ),
           textAlign: TextAlign.center,
-          style: const TextStyle(color: AppColors.textMutedDark),
+          style: TextStyle(color: _mutedColor),
         ),
       ],
     );
