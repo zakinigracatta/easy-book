@@ -329,3 +329,47 @@ test('17. Authenticated availability lock read -> ALLOW', async () => {
     aliceDb.collection('booking_slots').doc('slot_public').get()
   );
 });
+
+test('18. Customer reads admin_config -> DENY', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('admin_config').doc('sys_cfg').set({
+      setting: 'secret',
+    });
+  });
+
+  const aliceDb = testEnv.authenticatedContext('cust_alice').firestore();
+  await assertFails(aliceDb.collection('admin_config').doc('sys_cfg').get());
+});
+
+test('19. Owner reads admin_config -> DENY', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('owner_uid').set({
+      id: 'owner_uid',
+      role: 'owner',
+    });
+    await adminDb.collection('admin_config').doc('sys_cfg').set({
+      setting: 'secret',
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('owner_uid').firestore();
+  await assertFails(ownerDb.collection('admin_config').doc('sys_cfg').get());
+});
+
+test('20. Admin reads admin_config -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('admin_uid').set({
+      id: 'admin_uid',
+      role: 'admin',
+    });
+    await adminDb.collection('admin_config').doc('sys_cfg').set({
+      setting: 'secret',
+    });
+  });
+
+  const adminUserDb = testEnv.authenticatedContext('admin_uid').firestore();
+  await assertSucceeds(adminUserDb.collection('admin_config').doc('sys_cfg').get());
+});

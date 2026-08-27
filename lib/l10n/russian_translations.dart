@@ -1,4 +1,18 @@
 const Map<String, String> russianTranslations = <String, String>{
+  // Admin Portal
+  'Admin Sign In': 'Вход для администратора',
+  'Admin Portal is Available on Web Only': 'Портал администратора доступен только в веб-версии',
+  'Admin Portal is Available on Web Only. Please open Easy Book in a desktop browser to sign in.': 'Портал администратора доступен только в веб-версии. Пожалуйста, откройте Easy Book в браузере на ПК.',
+  'Platform management and administrative controls are restricted to the secure Web Admin Portal. Please open Easy Book in a desktop browser to sign in.': 'Управление платформой ограничено веб-порталом. Пожалуйста, откройте Easy Book в браузере на ПК.',
+  'Sign Out & Return': 'Выйти и вернуться',
+  'Access Denied': 'Доступ запрещен',
+  'You do not have administrative privileges to access this portal.': 'У вас нет прав администратора для доступа к этому порталу.',
+  'Admin email address must be verified.': 'Электронная почта администратора должна быть подтверждена.',
+  'Email Address': 'Адрес электронной почты',
+  'https://admin.easybook.ae': 'https://admin.easybook.ae',
+  'Invalid admin email or password.': 'Неверный email или пароль администратора.',
+  'Admin authentication failed. Please try again.': 'Ошибка аутентификации администратора. Попробуйте снова.',
+
   // Common
   'Easy Book': 'Easy Book',
   'Back': 'Назад',

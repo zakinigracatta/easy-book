@@ -160,13 +160,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           Icons.store,
                           '/owner-login',
                         ),
-                        const SizedBox(height: 18),
-                        _button(
-                          context,
-                          "Admin Portal",
-                          Icons.admin_panel_settings,
-                          '/admin-login',
-                        ),
                       ],
                     ),
                   ),

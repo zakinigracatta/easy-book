@@ -11,6 +11,14 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
 
+/// Admin Sign In screen — web only.
+///
+/// Uses real Firebase Authentication and verifies that the signed-in user
+/// has an admin or super_admin role. If the role doesn't match, the user
+/// is signed out and shown an error.
+///
+/// There is intentionally NO "Register" link. Admin accounts must be
+/// provisioned internally (Firebase Console or secure Cloud Function).
 class AdminLoginScreen extends ConsumerStatefulWidget {
   const AdminLoginScreen({super.key});
 
@@ -30,71 +38,75 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     super.dispose();
   }
 
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _handleAdminLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.tr('Please enter admin email and password.')),
-        ),
-      );
+      _showError(context.tr('Please enter admin email and password.'));
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(authProvider.notifier).login(
+      final user = await ref.read(authProvider.notifier).login(
             email,
             password,
             requestedRole: UserRole.admin,
           );
 
-      final firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null) await firebaseUser.reload();
       if (!mounted) return;
 
-      final refreshedUser = FirebaseAuth.instance.currentUser;
-      if (refreshedUser == null) {
-        throw FirebaseAuthException(code: 'no-current-user');
-      }
-
-      if (!refreshedUser.emailVerified) {
-        context.go('/verify-email');
+      // Verify admin role — this is the critical security check.
+      if (!user.isAdmin) {
+        await ref.read(authProvider.notifier).logout();
+        if (mounted) {
+          _showError(context.tr('You do not have administrative privileges to access this portal.'));
+        }
         return;
       }
 
-      context.go('/admin-dashboard');
+      // Verify email is verified
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null && !firebaseUser.emailVerified) {
+        await ref.read(authProvider.notifier).logout();
+        if (mounted) {
+          _showError(context.tr('Admin email address must be verified.'));
+        }
+        return;
+      }
+
+      if (mounted) {
+        context.go('/admin/dashboard');
+      }
     } on FirebaseAuthException catch (e) {
-      if (!mounted) return;
-      final message = switch (e.code) {
-        'role-mismatch' =>
-          context.tr('This account does not have administrator access.'),
-        'invalid-credential' || 'wrong-password' || 'user-not-found' =>
-          context.tr('Invalid admin email or password.'),
-        'too-many-requests' => context.tr(
-            'Too many sign-in attempts. Please wait and try again.',
-          ),
-        'network-request-failed' => context.tr(
-            'Network connection failed. Check your connection and try again.',
-          ),
-        _ => context.tr('Admin authentication failed. Please try again.'),
-      };
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.tr(
-              'Admin sign in is unavailable right now. Please try again.',
+      if (mounted) {
+        final message = switch (e.code) {
+          'role-mismatch' =>
+            context.tr('This account does not have administrator access.'),
+          'invalid-credential' || 'wrong-password' || 'user-not-found' =>
+            context.tr('Invalid admin email or password.'),
+          'too-many-requests' => context.tr(
+              'Too many sign-in attempts. Please wait and try again.',
             ),
-          ),
-        ),
-      );
+          'network-request-failed' => context.tr(
+              'Network connection failed. Check your connection and try again.',
+            ),
+          _ => e.message ?? context.tr('Admin authentication failed. Please try again.'),
+        };
+        _showError(message);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showError(context.tr('Admin sign in is unavailable right now. Please try again.'));
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -109,7 +121,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: Text(context.tr('Admin Portal Login')),
+        title: Text(context.tr('Admin Sign In')),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -124,7 +136,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                context.tr('Super Admin Sign In'),
+                context.tr('Admin Sign In'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 24,
@@ -133,11 +145,11 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                context.tr(
-                  'Platform management, partner verification & payouts',
-                ),
+                context.tr('Platform management, partner verification & payouts'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 28),
               GlassCard(
@@ -145,7 +157,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   children: [
                     CustomTextField(
                       controller: _emailController,
-                      label: context.tr('Admin Email'),
+                      label: context.tr('Email Address'),
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
@@ -158,14 +170,16 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     CustomButton(
-                      text: context.tr('Enter Admin Center'),
-                      backgroundColor: AppColors.error,
+                      text: context.tr('Admin Sign In'),
                       isLoading: _isLoading,
+                      backgroundColor: AppColors.error,
                       onPressed: _isLoading ? null : _handleAdminLogin,
                     ),
                   ],
                 ),
               ),
+              // Intentionally NO "Register as Admin" link here.
+              // Admin accounts are provisioned internally only.
             ],
           ),
         ),

@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 
+/// App drawer for Business Owner / Partner screens.
+/// Admin Portal is web-only and separate.
 class AppDrawer extends StatelessWidget {
   final String portalType;
 
@@ -12,7 +14,6 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isBusiness = portalType == 'business';
     final signedInEmail = FirebaseAuth.instance.currentUser?.email ?? '';
 
     final businessItems = [
@@ -27,17 +28,6 @@ class AppDrawer extends StatelessWidget {
       {'title': 'Promotions', 'icon': Icons.campaign_rounded, 'route': '/promotion-management'},
     ];
 
-    final adminItems = [
-      {'title': 'Admin Portal', 'icon': Icons.admin_panel_settings_rounded, 'route': '/admin-dashboard'},
-      {'title': 'Manage Users', 'icon': Icons.group_rounded, 'route': '/users-management'},
-      {'title': 'Salon Approvals', 'icon': Icons.verified_user_rounded, 'route': '/salon-approval'},
-      {'title': 'Payment Management', 'icon': Icons.payments_rounded, 'route': '/payment-management'},
-      {'title': 'Platform Analytics', 'icon': Icons.bar_chart_rounded, 'route': '/analytics'},
-      {'title': 'Reports & Logs', 'icon': Icons.summarize_rounded, 'route': '/reports'},
-    ];
-
-    final items = isBusiness ? businessItems : adminItems;
-
     return Drawer(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
@@ -46,9 +36,7 @@ class AppDrawer extends StatelessWidget {
             UserAccountsDrawerHeader(
               decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface),
               accountName: Text(
-                context.tr(isBusiness
-                    ? 'Salon Management Center'
-                    : 'Platform Super Admin'),
+                context.tr('Salon Management Center'),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               accountEmail: Text(
@@ -58,13 +46,10 @@ class AppDrawer extends StatelessWidget {
                   fontSize: 12,
                 ),
               ),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor:
-                    isBusiness ? AppColors.primary : AppColors.error,
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: AppColors.primary,
                 child: Icon(
-                  isBusiness
-                      ? Icons.storefront_rounded
-                      : Icons.security_rounded,
+                  Icons.storefront_rounded,
                   color: Colors.white,
                 ),
               ),
@@ -73,12 +58,11 @@ class AppDrawer extends StatelessWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  ...items.map(
+                  ...businessItems.map(
                     (item) => ListTile(
                       leading: Icon(
                         item['icon'] as IconData,
-                        color:
-                            isBusiness ? AppColors.primary : AppColors.accent,
+                        color: AppColors.primary,
                       ),
                       title: Text(
                         context.tr(item['title'] as String),

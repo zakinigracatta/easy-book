@@ -1,11 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/booking_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
 import '../models/user_model.dart';
+import '../providers/auth_provider.dart';
 
 // Auth Screens
 import '../screens/auth/forgot_password_screen.dart';
@@ -67,7 +69,7 @@ import '../screens/business/sales_report_screen.dart';
 import '../screens/business/salon_management_screen.dart';
 import '../screens/business/services_management_screen.dart';
 
-// Admin Screens
+// Admin Screens (preserved for Web Admin Portal)
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/admin/admin_login_screen.dart';
 import '../screens/admin/analytics_screen.dart';
@@ -75,15 +77,40 @@ import '../screens/admin/payment_management_screen.dart';
 import '../screens/admin/reports_screen.dart';
 import '../screens/admin/salon_approval_screen.dart';
 import '../screens/admin/users_management_screen.dart';
+import '../screens/admin/admin_access_denied_screen.dart';
+import '../screens/admin/web_only_admin_access_screen.dart';
 
 // General & Settings Screens
 import '../screens/settings/about_screen.dart';
 import '../screens/settings/help_screen.dart';
 import '../screens/settings/settings_screen.dart';
 
-final Map<String, UserRole> _roleCache = <String, UserRole>{};
+// ---------------------------------------------------------------------------
+// Admin & Authorization route constants — centralized for test access
+// ---------------------------------------------------------------------------
 
-const Set<String> _ownerOnlyRoutes = {
+/// All routes that require an admin or super_admin role.
+const adminProtectedRoutes = [
+  '/admin',
+  '/admin/dashboard',
+  '/admin/users',
+  '/admin/approvals',
+  '/admin/payments',
+  '/admin/analytics',
+  '/admin/reports',
+];
+
+/// Admin sign-in page (web only).
+const adminLoginRoute = '/admin/login';
+
+/// Shown to admin users on mobile (Admin Portal is web-only).
+const adminWebOnlyRoute = '/admin-web-only';
+
+/// Shown to non-admin users attempting to access /admin on web.
+const adminAccessDeniedRoute = '/admin/access-denied';
+
+/// All routes that require a Business Owner role.
+const ownerProtectedRoutes = [
   '/owner-dashboard',
   '/owner-bookings',
   '/quick-walk-in',
@@ -103,112 +130,118 @@ const Set<String> _ownerOnlyRoutes = {
   '/promotion-management',
   '/owner-more',
   '/owner-notifications',
-};
+];
 
-const Set<String> _adminOnlyRoutes = {
-  '/admin-dashboard',
-  '/users-management',
-  '/salon-approval',
-  '/payment-management',
-  '/analytics',
-  '/reports',
-};
-
-const Set<String> _customerPrivateRoutes = {
+/// All routes that require authentication for Customer actions.
+const customerProtectedRoutes = [
   '/payment',
   '/booking-success',
   '/my-bookings',
   '/booking-details',
-  '/cancel-booking',
   '/reschedule-booking',
+  '/cancel-booking',
   '/favorites',
   '/notifications',
   '/chat',
   '/customer-profile',
-};
+];
 
-bool _isOwnerRole(UserRole role) =>
-    role == UserRole.owner || role == UserRole.businessOwner;
+/// Pure, testable authorization decision function for route guarding.
+///
+/// Accepts [location], [isWeb], [hasFirebaseUser], [isEmailVerified], and [userModel].
+/// Returns the redirect route target string, or null if access is allowed.
+String? evaluateRouteGuard({
+  required String location,
+  required bool isWeb,
+  required bool hasFirebaseUser,
+  required bool isEmailVerified,
+  required UserModel? userModel,
+}) {
+  if (location == '/splash') return null;
 
-String _landingRoute(UserRole role) {
-  if (_isOwnerRole(role)) return '/owner-dashboard';
-  if (role == UserRole.admin) return '/admin-dashboard';
-  return '/home';
-}
-
-Future<UserRole> _resolveRole(User user) async {
-  final cached = _roleCache[user.uid];
-  if (cached != null) return cached;
-
-  final snapshot = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .get();
-
-  if (!snapshot.exists || snapshot.data() == null) {
-    _roleCache[user.uid] = UserRole.customer;
-    return UserRole.customer;
+  if (hasFirebaseUser && !isEmailVerified) {
+    const allowedUnverified = [
+      '/verify-email',
+      '/welcome',
+      '/login',
+      '/register',
+      '/business-register',
+      '/owner-login',
+      '/splash',
+      '/forgot-password',
+    ];
+    if (!allowedUnverified.contains(location)) {
+      return '/verify-email';
+    }
   }
 
-  final profile = UserModel.fromJson({
-    ...snapshot.data()!,
-    'id': user.uid,
-    'email': user.email ?? snapshot.data()!['email'] ?? '',
-  });
-  _roleCache[user.uid] = profile.role;
-  return profile.role;
+  // Owner / Business Partner route protection
+  if (ownerProtectedRoutes.contains(location)) {
+    if (!hasFirebaseUser) return '/owner-login';
+    if (userModel != null && !userModel.isOwnerRole) {
+      return '/home';
+    }
+  }
+
+  // Admin route protection — centralized FAIL CLOSED guard
+  if (adminProtectedRoutes.contains(location)) {
+    // On mobile, admin portal is not available — show web-only screen.
+    if (!isWeb) {
+      return adminWebOnlyRoute;
+    }
+
+    // Unauthenticated -> admin login
+    if (!hasFirebaseUser) return adminLoginRoute;
+
+    // Fail Closed: Authenticated user but profile/role is unresolved (null) OR not admin -> access denied
+    if (userModel == null || !userModel.isAdmin) {
+      return adminAccessDeniedRoute;
+    }
+  }
+
+  // Admin login page: only on web, and if already admin -> go to dashboard
+  if (location == adminLoginRoute) {
+    if (!isWeb) return adminWebOnlyRoute;
+    if (hasFirebaseUser && userModel != null && userModel.isAdmin) {
+      return '/admin/dashboard';
+    }
+  }
+
+  // Customer route protection
+  if (!hasFirebaseUser && customerProtectedRoutes.contains(location)) {
+    return '/login';
+  }
+
+  return null;
 }
+
+// ---------------------------------------------------------------------------
+// Router
+// ---------------------------------------------------------------------------
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
-  redirect: (context, state) async {
-    final path = state.matchedLocation;
-    if (path == '/splash') return null;
-
+  redirect: (context, state) {
     final user = FirebaseAuth.instance.currentUser;
-    final ownerRoute = _ownerOnlyRoutes.contains(path);
-    final adminRoute = _adminOnlyRoutes.contains(path);
-    final customerPrivateRoute = _customerPrivateRoutes.contains(path);
 
-    if (!ownerRoute && !adminRoute && !customerPrivateRoute) {
-      if (path == '/verify-email' && user == null) return '/login';
-      return null;
-    }
-
-    if (user == null) {
-      if (ownerRoute) return '/owner-login';
-      if (adminRoute) return '/admin-login';
-      return '/login';
-    }
-
-    if (!user.emailVerified) return '/verify-email';
-
-    UserRole role;
+    UserModel? currentUserModel;
     try {
-      role = await _resolveRole(user);
-    } catch (_) {
-      // Do not grant a privileged route if the role cannot be verified.
-      if (ownerRoute) return '/owner-login';
-      if (adminRoute) return '/admin-login';
-      return '/home';
-    }
+      final container = ProviderScope.containerOf(context, listen: false);
+      currentUserModel = container.read(authProvider);
+    } catch (_) {}
 
-    if (ownerRoute && !_isOwnerRole(role)) {
-      return role == UserRole.admin ? '/admin-dashboard' : '/owner-login';
-    }
-
-    if (adminRoute && role != UserRole.admin) {
-      return _isOwnerRole(role) ? '/owner-dashboard' : '/admin-login';
-    }
-
-    if (customerPrivateRoute && role != UserRole.customer) {
-      return _landingRoute(role);
-    }
-
-    return null;
+    return evaluateRouteGuard(
+      location: state.matchedLocation,
+      isWeb: kIsWeb,
+      hasFirebaseUser: user != null,
+      isEmailVerified: user?.emailVerified ?? true,
+      userModel: currentUserModel,
+    );
   },
   routes: [
-    // Auth
+    // =====================================================================
+    // Auth & Onboarding
+    // =====================================================================
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/welcome',
@@ -236,7 +269,9 @@ final appRouter = GoRouter(
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
 
-    // Customer
+    // =====================================================================
+    // Customer Screens (public browsing + protected actions)
+    // =====================================================================
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
     GoRoute(
@@ -345,7 +380,9 @@ final appRouter = GoRouter(
       builder: (context, state) => const CustomerProfileScreen(),
     ),
 
-    // Business Owner Dashboard & Portal
+    // =====================================================================
+    // Business Owner / Partner Screens
+    // =====================================================================
     GoRoute(
       path: '/owner-login',
       builder: (context, state) => const OwnerLoginScreen(),
@@ -433,34 +470,87 @@ final appRouter = GoRouter(
       builder: (context, state) => const OwnerNotificationsScreen(),
     ),
 
-    // Admin
+    // =====================================================================
+    // Admin Portal (Web-only — centrally guarded by redirect above)
+    // =====================================================================
     GoRoute(
-      path: '/admin-login',
+      path: adminLoginRoute,
       builder: (context, state) => const AdminLoginScreen(),
     ),
     GoRoute(
-      path: '/admin-dashboard',
+      path: '/admin',
       builder: (context, state) => const AdminDashboardScreen(),
     ),
     GoRoute(
-      path: '/users-management',
+      path: '/admin/dashboard',
+      builder: (context, state) => const AdminDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/admin/users',
       builder: (context, state) => const UsersManagementScreen(),
     ),
     GoRoute(
-      path: '/salon-approval',
+      path: '/admin/approvals',
       builder: (context, state) => const SalonApprovalScreen(),
     ),
     GoRoute(
-      path: '/payment-management',
+      path: '/admin/payments',
       builder: (context, state) => const PaymentManagementScreen(),
     ),
     GoRoute(
-      path: '/analytics',
+      path: '/admin/analytics',
       builder: (context, state) => const AnalyticsScreen(),
     ),
-    GoRoute(path: '/reports', builder: (context, state) => const ReportsScreen()),
+    GoRoute(
+      path: '/admin/reports',
+      builder: (context, state) => const ReportsScreen(),
+    ),
+    GoRoute(
+      path: adminAccessDeniedRoute,
+      builder: (context, state) => const AdminAccessDeniedScreen(),
+    ),
 
+    // Admin on mobile — web-only notice screen
+    GoRoute(
+      path: adminWebOnlyRoute,
+      builder: (context, state) => const WebOnlyAdminAccessScreen(),
+    ),
+
+    // =====================================================================
+    // Legacy admin routes — redirect to new paths for backward compatibility
+    // =====================================================================
+    GoRoute(
+      path: '/admin-login',
+      redirect: (context, state) => adminLoginRoute,
+    ),
+    GoRoute(
+      path: '/admin-dashboard',
+      redirect: (context, state) => '/admin/dashboard',
+    ),
+    GoRoute(
+      path: '/users-management',
+      redirect: (context, state) => '/admin/users',
+    ),
+    GoRoute(
+      path: '/salon-approval',
+      redirect: (context, state) => '/admin/approvals',
+    ),
+    GoRoute(
+      path: '/payment-management',
+      redirect: (context, state) => '/admin/payments',
+    ),
+    GoRoute(
+      path: '/analytics',
+      redirect: (context, state) => '/admin/analytics',
+    ),
+    GoRoute(
+      path: '/reports',
+      redirect: (context, state) => '/admin/reports',
+    ),
+
+    // =====================================================================
     // General & Settings
+    // =====================================================================
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),

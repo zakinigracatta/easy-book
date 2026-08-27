@@ -1,4 +1,4 @@
-enum UserRole { customer, owner, businessOwner, admin }
+enum UserRole { customer, owner, businessOwner, admin, superAdmin }
 
 class UserModel {
   final String id;
@@ -29,13 +29,23 @@ class UserModel {
     this.businessImageUrl,
   });
 
+  /// Whether this user has any admin-level role (admin or superAdmin).
+  bool get isAdmin =>
+      role == UserRole.admin || role == UserRole.superAdmin;
+
+  /// Whether this user has any business-owner role.
+  bool get isOwnerRole =>
+      role == UserRole.owner || role == UserRole.businessOwner;
+
   String get roleString {
     switch (role) {
+      case UserRole.superAdmin:
+        return 'super_admin';
+      case UserRole.admin:
+        return 'admin';
       case UserRole.owner:
       case UserRole.businessOwner:
         return 'owner';
-      case UserRole.admin:
-        return 'admin';
       case UserRole.customer:
         return 'customer';
     }
@@ -44,11 +54,11 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     final roleStr = (json['role'] ?? 'customer').toString().trim();
     final role = switch (roleStr) {
+      'super_admin' || 'superAdmin' => UserRole.superAdmin,
+      'admin' => UserRole.admin,
       'owner' || 'businessOwner' || 'business_owner' => UserRole.owner,
-      'admin' || 'superAdmin' || 'super_admin' => UserRole.admin,
       _ => UserRole.customer,
     };
-
     return UserModel(
       id: json['id'] as String? ?? '',
       email: json['email'] as String? ?? '',
