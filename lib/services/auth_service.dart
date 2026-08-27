@@ -270,16 +270,12 @@ class AuthService {
       return;
     }
 
-    final modernMatch = await _businesses
-        .where('ownerId', isEqualTo: user.id)
-        .limit(1)
-        .get();
+    final modernMatch =
+        await _businesses.where('ownerId', isEqualTo: user.id).limit(1).get();
     if (modernMatch.docs.isNotEmpty) return;
 
-    final legacyMatch = await _businesses
-        .where('owner_id', isEqualTo: user.id)
-        .limit(1)
-        .get();
+    final legacyMatch =
+        await _businesses.where('owner_id', isEqualTo: user.id).limit(1).get();
     if (legacyMatch.docs.isNotEmpty) return;
 
     final rawBusinessName = user.businessName?.trim() ?? '';

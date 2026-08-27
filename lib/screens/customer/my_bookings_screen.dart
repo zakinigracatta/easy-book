@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,7 @@ class MyBookingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Bookings'),
+        title: Text(l10nOf(context).myBookings),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
@@ -39,7 +40,7 @@ class MyBookingsScreen extends ConsumerWidget {
                 const Icon(Icons.error_outline_rounded,
                     size: 48, color: AppColors.error),
                 const SizedBox(height: 12),
-                Text('Error loading bookings: $err',
+                Text(l10nOf(context).bookingLoadFailedWithError('$err'),
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: AppColors.textMutedDark)),
                 const SizedBox(height: 16),
@@ -47,7 +48,7 @@ class MyBookingsScreen extends ConsumerWidget {
                   onPressed: () => ref
                       .read(appointmentsProvider.notifier)
                       .loadAppointments(),
-                  child: const Text('Retry'),
+                  child: Text(l10nOf(context).retry),
                 ),
               ],
             ),
@@ -62,16 +63,16 @@ class MyBookingsScreen extends ConsumerWidget {
                   const Icon(Icons.calendar_today_rounded,
                       size: 60, color: AppColors.textMutedDark),
                   const SizedBox(height: 16),
-                  const Text('No Bookings Found',
+                  Text(l10nOf(context).noBookingsFound,
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
-                  const Text('You have not scheduled any appointments yet.',
+                  Text(l10nOf(context).noCustomerBookings,
                       style: TextStyle(color: AppColors.textMutedDark)),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () => context.go('/home'),
-                    child: const Text('Book Now'),
+                    child: Text(l10nOf(context).bookNow),
                   ),
                 ],
               ),
@@ -87,7 +88,7 @@ class MyBookingsScreen extends ConsumerWidget {
               itemCount: bookings.length,
               itemBuilder: (context, index) {
                 final b = bookings[index];
-                final dateStr = DateFormat('dd MMM yyyy • hh:mm a')
+                final dateStr = DateFormat('dd MMM yyyy • hh:mm a', 'ar')
                     .format(b.startDateTime);
                 final isCancelled = b.status == BookingStatus.cancelled;
                 final isConfirmed = b.status == BookingStatus.confirmed;
@@ -100,14 +101,20 @@ class MyBookingsScreen extends ConsumerWidget {
                         ? AppColors.success
                         : (isPending ? AppColors.warning : Colors.blue));
 
-                final statusText =
-                    b.status.name[0].toUpperCase() + b.status.name.substring(1);
+                final statusText = switch (b.status) {
+                  BookingStatus.pending => l10nOf(context).pending,
+                  BookingStatus.confirmed => l10nOf(context).confirmed,
+                  BookingStatus.arrived => l10nOf(context).arrived,
+                  BookingStatus.inProgress => l10nOf(context).inProgress,
+                  BookingStatus.completed => l10nOf(context).completed,
+                  BookingStatus.cancelled => l10nOf(context).cancelled,
+                  BookingStatus.noShow => l10nOf(context).noShow,
+                };
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 14),
                   child: GlassCard(
-                    onTap: () =>
-                        context.push('/booking-details', extra: b),
+                    onTap: () => context.push('/booking-details', extra: b),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -145,10 +152,9 @@ class MyBookingsScreen extends ConsumerWidget {
                                 fontSize: 13,
                                 color: AppColors.textSecondaryDark)),
                         const SizedBox(height: 4),
-                        Text('Specialist: ${b.staffName}',
+                        Text(l10nOf(context).specialistName(b.staffName),
                             style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textMutedDark)),
+                                fontSize: 12, color: AppColors.textMutedDark)),
                         const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -171,15 +177,14 @@ class MyBookingsScreen extends ConsumerWidget {
                                       onPressed: () => context.push(
                                           '/reschedule-booking',
                                           extra: b),
-                                      child: const Text('Reschedule',
-                                          style: TextStyle(fontSize: 11)),
+                                      child: Text(l10nOf(context).reschedule,
+                                          style: const TextStyle(fontSize: 11)),
                                     ),
                                     OutlinedButton(
-                                      onPressed: () => context.push(
-                                          '/cancel-booking',
-                                          extra: b.id),
-                                      child: const Text('Cancel',
-                                          style: TextStyle(
+                                      onPressed: () => context
+                                          .push('/cancel-booking', extra: b.id),
+                                      child: Text(l10nOf(context).cancel,
+                                          style: const TextStyle(
                                               fontSize: 11,
                                               color: AppColors.error)),
                                     ),

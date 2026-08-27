@@ -8,6 +8,7 @@ import '../../models/review_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/auth_guard.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 import 'widgets/business_hero.dart';
 import 'widgets/business_summary.dart';
@@ -87,15 +88,15 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                             color: AppColors.error.withValues(alpha: 0.2),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 10),
-                            child: const Row(
+                            child: Row(
                               children: [
-                                Icon(Icons.info_outline_rounded,
+                                const Icon(Icons.info_outline_rounded,
                                     color: AppColors.error, size: 18),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'This salon is currently inactive or not accepting online bookings.',
-                                    style: TextStyle(
+                                    l10nOf(context).inactiveSalonNotice,
+                                    style: const TextStyle(
                                         color: AppColors.error,
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold),
@@ -113,7 +114,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                             children: [
                               BusinessSummary(
                                   business: business,
-                                  distanceText: '1.8 km away'),
+                                  distanceText: l10nOf(context)
+                                      .distanceKilometers('1.8')),
                               const SizedBox(height: 20),
                               const Divider(
                                   color: AppColors.glassBorderDark, height: 1),
@@ -213,7 +215,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
               child: Padding(
                   padding: EdgeInsets.all(24),
                   child: CircularProgressIndicator())),
-          error: (err, stack) => Text('Error loading services: $err',
+          error: (err, stack) => Text(l10nOf(context).servicesLoadError('$err'),
               style: const TextStyle(color: AppColors.error)),
           data: (services) => ServiceCategorySection(
             services: services,
@@ -266,21 +268,22 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
               child: Padding(
                   padding: EdgeInsets.all(24),
                   child: CircularProgressIndicator())),
-          error: (err, stack) => Text('Error loading specialists: $err',
+          error: (err, stack) => Text(
+              l10nOf(context).specialistsLoadError('$err'),
               style: const TextStyle(color: AppColors.error)),
           data: (staffList) {
             if (staffList.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(32),
                 alignment: Alignment.center,
-                child: const Column(
+                child: Column(
                   children: [
-                    Icon(Icons.badge_outlined,
+                    const Icon(Icons.badge_outlined,
                         size: 48, color: AppColors.textMutedDark),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
-                      'Specialist information is not available yet.',
-                      style: TextStyle(
+                      l10nOf(context).staffInformationUnavailable,
+                      style: const TextStyle(
                           color: AppColors.textMutedDark, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
@@ -311,7 +314,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
               child: Padding(
                   padding: EdgeInsets.all(24),
                   child: CircularProgressIndicator())),
-          error: (err, stack) => Text('Error loading reviews: $err',
+          error: (err, stack) => Text(l10nOf(context).errorWithDetails('$err'),
               style: const TextStyle(color: AppColors.error)),
           data: (reviewsList) => ReviewsSection(
             averageRating: business.rating,
@@ -346,18 +349,18 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
             const Icon(Icons.error_outline_rounded,
                 size: 56, color: AppColors.error),
             const SizedBox(height: 16),
-            const Text(
-              'We couldn\'t load this salon.',
-              style: TextStyle(
+            Text(
+              l10nOf(context).salonDataLoadFailed,
+              style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Please check your network connection and try again.',
+            Text(
+              l10nOf(context).checkConnection,
               style:
-                  TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                  const TextStyle(color: AppColors.textMutedDark, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -365,7 +368,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
               onPressed: () =>
                   ref.invalidate(businessDetailProvider(businessId)),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+              label: Text(l10nOf(context).retry),
             ),
           ],
         ),
@@ -383,17 +386,18 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
             const Icon(Icons.storefront_outlined,
                 size: 56, color: AppColors.textMutedDark),
             const SizedBox(height: 16),
-            const Text(
-              'Salon Not Found',
-              style: TextStyle(
+            Text(
+              l10nOf(context).salonNotFound,
+              style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'The requested business profile is no longer available.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+            Text(
+              l10nOf(context).requestedBusinessUnavailable,
+              style:
+                  const TextStyle(color: AppColors.textMutedDark, fontSize: 13),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -405,7 +409,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   context.go('/home');
                 }
               },
-              child: const Text('Go Back'),
+              child: Text(l10nOf(context).back),
             ),
           ],
         ),

@@ -28,8 +28,8 @@ class CustomButton extends StatelessWidget {
               color: backgroundColor ?? Theme.of(context).primaryColor,
               width: 1.5),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 20),
         ),
         child: _buildChild(context),
       );

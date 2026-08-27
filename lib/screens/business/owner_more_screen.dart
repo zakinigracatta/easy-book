@@ -5,6 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../providers/owner_providers.dart';
+import '../../l10n/l10n.dart';
 
 class OwnerMoreScreen extends ConsumerWidget {
   const OwnerMoreScreen({super.key});
@@ -12,11 +13,14 @@ class OwnerMoreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final businessAsync = ref.watch(ownerBusinessProvider);
+    final l10n = l10nOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTextColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final mutedTextColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final primaryTextColor = isDark
+        ? Theme.of(context).colorScheme.onSurface
+        : AppColors.textPrimaryLight;
+    final mutedTextColor = isDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : AppColors.textMutedLight;
 
     return PopScope(
       canPop: context.canPop(),
@@ -32,7 +36,7 @@ class OwnerMoreScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -41,16 +45,16 @@ class OwnerMoreScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Business Management Menu'),
+          title: Text(l10n.businessManagementMenu),
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               businessAsync.when(
                 data: (biz) => GlassCard(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -60,11 +64,11 @@ class OwnerMoreScreen extends ConsumerWidget {
                             ? NetworkImage(biz.imageUrl)
                             : null,
                         child: biz.imageUrl.isEmpty
-                            ? const Icon(Icons.storefront_rounded,
+                            ? Icon(Icons.storefront_rounded,
                                 color: Colors.white, size: 24)
                             : null,
                       ),
-                      const SizedBox(width: 14),
+                      SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +81,7 @@ class OwnerMoreScreen extends ConsumerWidget {
                                 color: primaryTextColor,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: 2),
                             Text(
                               biz.category,
                               style: TextStyle(
@@ -89,71 +93,71 @@ class OwnerMoreScreen extends ConsumerWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.edit_rounded,
-                            color: AppColors.accent),
+                        icon: Icon(Icons.edit_rounded, color: AppColors.accent),
                         onPressed: () => context.push('/salon-management'),
                       ),
                     ],
                   ),
                 ),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                loading: () => SizedBox.shrink(),
+                error: (_, __) => SizedBox.shrink(),
               ),
-              const SizedBox(height: 20),
-              _sectionHeader(context, 'BUSINESS'),
-              _menuTile(context, 'Business Profile', Icons.storefront_rounded,
+              SizedBox(height: 20),
+              _sectionHeader(context, l10n.business),
+              _menuTile(context, l10n.businessProfile, Icons.storefront_rounded,
                   '/salon-management'),
-              _menuTile(context, 'Photos & Gallery',
+              _menuTile(context, l10n.photosAndGallery,
                   Icons.photo_library_rounded, '/owner-gallery'),
-              _menuTile(context, 'Business Hours',
+              _menuTile(context, l10n.businessHours,
                   Icons.access_time_filled_rounded, '/business-hours'),
-              _menuTile(context, 'Services Menu', Icons.design_services_rounded,
-                  '/services-management'),
-              const SizedBox(height: 20),
-              _sectionHeader(context, 'TEAM'),
-              _menuTile(context, 'Employees & Specialists', Icons.badge_rounded,
-                  '/employee-management'),
-              _menuTile(context, 'Employee Rosters & Time Off',
+              _menuTile(context, l10n.servicesMenu,
+                  Icons.design_services_rounded, '/services-management'),
+              SizedBox(height: 20),
+              _sectionHeader(context, l10n.team),
+              _menuTile(context, l10n.employeesAndSpecialists,
+                  Icons.badge_rounded, '/employee-management'),
+              _menuTile(context, l10n.employeeRostersAndTimeOff,
                   Icons.calendar_month_rounded, '/employee-schedule'),
-              const SizedBox(height: 20),
-              _sectionHeader(context, 'CUSTOMERS'),
-              _menuTile(context, 'Customer Database & CRM',
+              SizedBox(height: 20),
+              _sectionHeader(context, l10n.customers),
+              _menuTile(context, l10n.customerDatabaseCrm,
                   Icons.people_alt_rounded, '/customer-management'),
-              _menuTile(context, 'Customer Reviews & Ratings',
+              _menuTile(context, l10n.customerReviewsAndRatings,
                   Icons.star_rounded, '/owner-reviews'),
-              const SizedBox(height: 20),
-              _sectionHeader(context, 'MARKETING'),
-              _menuTile(context, 'Offers & Promotions', Icons.campaign_rounded,
-                  '/promotion-management'),
-              const SizedBox(height: 20),
-              _sectionHeader(context, 'FINANCE'),
+              SizedBox(height: 20),
+              _sectionHeader(context, l10n.marketing),
+              _menuTile(context, l10n.offersAndPromotions,
+                  Icons.campaign_rounded, '/promotion-management'),
+              SizedBox(height: 20),
+              _sectionHeader(context, l10n.finance),
               _menuTile(
                 context,
-                'Finance, Expenses & Profit',
+                l10n.financeExpensesAndProfit,
                 Icons.account_balance_wallet_rounded,
                 '/sales-report',
               ),
-              const SizedBox(height: 20),
-              _sectionHeader(context, 'ACCOUNT'),
-              _menuTile(context, 'Notifications', Icons.notifications_rounded,
-                  '/owner-notifications'),
-              _menuTile(context, 'System Settings', Icons.settings_rounded,
+              SizedBox(height: 20),
+              _sectionHeader(context, l10n.account),
+              _menuTile(context, l10n.notifications,
+                  Icons.notifications_rounded, '/owner-notifications'),
+              _menuTile(context, l10n.systemSettings, Icons.settings_rounded,
                   '/settings'),
             ],
           ),
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
       ),
     );
   }
 
   Widget _sectionHeader(BuildContext context, String title) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mutedTextColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final mutedTextColor = isDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : AppColors.textMutedLight;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      padding: const EdgeInsetsDirectional.only(start: 4, bottom: 8),
       child: Text(
         title,
         style: TextStyle(
@@ -169,13 +173,15 @@ class OwnerMoreScreen extends ConsumerWidget {
   Widget _menuTile(
       BuildContext context, String title, IconData icon, String route) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryTextColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final mutedTextColor =
-        isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
+    final primaryTextColor = isDark
+        ? Theme.of(context).colorScheme.onSurface
+        : AppColors.textPrimaryLight;
+    final mutedTextColor = isDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : AppColors.textMutedLight;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: GlassCard(
         onTap: () => context.push(route),
         child: ListTile(

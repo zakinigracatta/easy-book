@@ -123,7 +123,8 @@ class FinanceReportRange {
   }
 }
 
-final ownerFinanceReportRangeProvider = StateProvider<FinanceReportRange>((ref) {
+final ownerFinanceReportRangeProvider =
+    StateProvider<FinanceReportRange>((ref) {
   final now = DateTime.now();
   return FinanceReportRange(
     from: DateTime(now.year, now.month, 1),
@@ -131,7 +132,8 @@ final ownerFinanceReportRangeProvider = StateProvider<FinanceReportRange>((ref) 
   );
 });
 
-final ownerProfitAndLossProvider = FutureProvider<ProfitAndLossSummary>((ref) async {
+final ownerProfitAndLossProvider =
+    FutureProvider<ProfitAndLossSummary>((ref) async {
   final businessId = await ref.watch(currentBusinessIdProvider.future);
   if (businessId.isEmpty) {
     throw StateError('No business is linked to this owner account.');

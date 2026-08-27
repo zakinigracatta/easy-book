@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
+import '../../l10n/l10n.dart';
 
 class UsersManagementScreen extends StatelessWidget {
   const UsersManagementScreen({super.key});
@@ -8,13 +9,21 @@ class UsersManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final users = [
-      {'name': 'Ahmed Mohamed', 'role': 'Customer', 'status': 'Active'},
+      {
+        'name': 'Ahmed Mohamed',
+        'role': l10nOf(context).customer,
+        'status': l10nOf(context).active
+      },
       {
         'name': 'Executive Barber Lounge',
-        'role': 'Business Partner',
-        'status': 'Verified'
+        'role': l10nOf(context).businessPartner,
+        'status': l10nOf(context).verified
       },
-      {'name': 'Sarah Jenkins', 'role': 'Customer', 'status': 'Active'},
+      {
+        'name': 'Sarah Jenkins',
+        'role': l10nOf(context).customer,
+        'status': l10nOf(context).active
+      },
     ];
 
     return PopScope(
@@ -40,7 +49,7 @@ class UsersManagementScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Users & Accounts Management'),
+          title: Text(l10nOf(context).usersAccountsManagement),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),

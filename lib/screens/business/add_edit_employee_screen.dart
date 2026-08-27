@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/l10n.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
@@ -49,7 +50,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
     );
     _avatarUrlController = TextEditingController(text: staff?.avatarUrl ?? '');
     _bioController = TextEditingController(text: staff?.bio ?? '');
-    _galleryUrls.addAll(staff?.galleryUrls ?? const []);
+    _galleryUrls.addAll(staff?.galleryUrls ?? []);
     _isActive = staff?.isActive ?? true;
   }
 
@@ -65,98 +66,99 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final isEditing = widget.initialStaff != null;
 
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          context.canPop()
-              ? context.pop()
-              : context.go('/employee-management');
+          context.canPop() ? context.pop() : context.go('/employee-management');
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isEditing ? 'Edit Employee' : 'Add New Employee'),
+          title: Text(isEditing ? l10n.editEmployee : l10n.addNewEmployee),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop()
                 ? context.pop()
                 : context.go('/employee-management'),
           ),
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
                 GlassCard(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Employee Profile',
+                      Text(
+                        l10n.employeeProfile,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _nameController,
-                        label: 'Employee Full Name *',
+                        label: l10n.employeeFullNameRequired,
                         prefixIcon: Icons.person_rounded,
                         validator: (value) =>
                             value == null || value.trim().isEmpty
-                                ? 'Please enter employee name'
+                                ? l10n.enterEmployeeName
                                 : null,
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       CustomTextField(
                         controller: _roleController,
-                        label: 'Job Title / Specialty *',
+                        label: l10n.jobTitleRequired,
                         prefixIcon: Icons.badge_rounded,
                         validator: (value) =>
                             value == null || value.trim().isEmpty
-                                ? 'Please enter job title'
+                                ? l10n.enterJobTitle
                                 : null,
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       CustomTextField(
                         controller: _experienceController,
-                        label: 'Years of Experience',
+                        label: l10n.yearsOfExperience,
                         prefixIcon: Icons.workspace_premium_rounded,
                         keyboardType: TextInputType.number,
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       CustomTextField(
                         controller: _bioController,
-                        label: 'Professional Bio',
+                        label: l10n.professionalBio,
                         prefixIcon: Icons.notes_rounded,
                         maxLines: 4,
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         value: _isActive,
-                        activeThumbColor: AppColors.primary,
-                        title: const Text(
-                          'Active & Bookable',
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: AppColors.success,
+                        title: Text(
+                          l10n.activeAndBookable,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        subtitle: const Text(
-                          'Inactive employees will not be offered for new bookings.',
+                        subtitle: Text(
+                          l10n.inactiveEmployeeHelp,
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         onChanged: (value) => setState(() => _isActive = value),
@@ -164,68 +166,70 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 GlassCard(
-                  padding: const EdgeInsets.all(18),
+                  padding: EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Photos',
+                      Text(
+                        l10n.photos,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Use one clear profile photo and up to 8 portfolio photos.',
+                      SizedBox(height: 4),
+                      Text(
+                        l10n.employeePhotosHelp,
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       BusinessImagePicker(
-                        label: 'Main Profile Photo',
+                        label: l10n.mainProfilePhoto,
                         currentImageUrl: _avatarUrlController.text,
                         onPickImage: _pickAvatar,
                         onDeleteImage: _avatarUrlController.text.isEmpty
                             ? null
                             : _deleteAvatar,
-                        isLoading:
-                            _uploadProgress != null && _uploadLabel == 'Profile',
+                        isLoading: _uploadProgress != null &&
+                            _uploadLabel == 'profile',
                       ),
                       if (_uploadProgress != null) ...[
-                        const SizedBox(height: 10),
+                        SizedBox(height: 10),
                         LinearProgressIndicator(value: _uploadProgress),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
-                          '$_uploadLabel ${(100 * _uploadProgress!).round()}%',
-                          style: const TextStyle(
+                          l10n.uploadingPercent(
+                              (100 * _uploadProgress!).round()),
+                          style: TextStyle(
                             fontSize: 10,
-                            color: AppColors.textMutedDark,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Portfolio Photos',
+                              l10n.portfolioPhotos,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimaryDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
                           TextButton.icon(
                             onPressed:
                                 _galleryUrls.length >= 8 ? null : _pickGallery,
-                            icon: const Icon(Icons.add_photo_alternate_rounded),
+                            icon: Icon(Icons.add_photo_alternate_rounded),
                             label: Text('${_galleryUrls.length}/8'),
                           ),
                         ],
@@ -233,19 +237,22 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                       if (_galleryUrls.isEmpty)
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(18),
+                          padding: EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: AppColors.glassBgDark,
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
                             borderRadius: BorderRadius.circular(14),
-                            border:
-                                Border.all(color: AppColors.glassBorderDark),
+                            border: Border.all(
+                                color: Theme.of(context).colorScheme.outline),
                           ),
-                          child: const Text(
-                            'No portfolio photos yet.',
+                          child: Text(
+                            l10n.noPortfolioPhotos,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textMutedDark,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
                         )
@@ -255,8 +262,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _galleryUrls.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 8),
+                            separatorBuilder: (_, __) => SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final url = _galleryUrls[index];
                               return Stack(
@@ -276,13 +282,13 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                                     child: InkWell(
                                       onTap: () => _removeGalleryPhoto(url),
                                       child: Container(
-                                        padding: const EdgeInsets.all(5),
+                                        padding: EdgeInsets.all(5),
                                         decoration: BoxDecoration(
                                           color: Colors.black
                                               .withValues(alpha: 0.65),
                                           shape: BoxShape.circle,
                                         ),
-                                        child: const Icon(
+                                        child: Icon(
                                           Icons.close_rounded,
                                           size: 14,
                                           color: Colors.white,
@@ -299,39 +305,40 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                   ),
                 ),
                 if (isEditing) ...[
-                  const SizedBox(height: 14),
+                  SizedBox(height: 14),
                   GlassCard(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(14),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.schedule_rounded,
+                      leading: Icon(Icons.schedule_rounded,
                           color: AppColors.primaryLight),
-                      title: const Text(
-                        'Working Hours & Breaks',
+                      title: Text(
+                        l10n.workAndBreakHours,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      subtitle: const Text(
-                        'Configure a different schedule for every day.',
+                      subtitle: Text(
+                        l10n.differentScheduleEachDay,
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      trailing: const Icon(Icons.chevron_right_rounded),
+                      trailing: Icon(Icons.chevron_right_rounded),
                       onTap: () => context.push('/employee-schedule'),
                     ),
                   ),
                 ],
-                const SizedBox(height: 18),
+                SizedBox(height: 18),
                 CustomButton(
-                  text: isEditing ? 'Update Employee' : 'Add Employee to Team',
+                  text:
+                      isEditing ? l10n.updateEmployee : l10n.addEmployeeToTeam,
                   isLoading: _isLoading,
                   onPressed: _saveEmployee,
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
               ],
             ),
           ),
@@ -351,7 +358,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       final businessId = await _businessId();
       setState(() {
         _uploadProgress = 0;
-        _uploadLabel = 'Profile';
+        _uploadLabel = 'profile';
       });
       final url = await _media.pickAndUploadImage(
         storageFolder: 'businesses/$businessId/employees/$_staffId',
@@ -368,8 +375,8 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Photo upload failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10nOf(context).imageUploadFailed(e.toString()))));
       }
     } finally {
       if (mounted) setState(() => _uploadProgress = null);
@@ -384,7 +391,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       final businessId = await _businessId();
       setState(() {
         _uploadProgress = 0;
-        _uploadLabel = 'Portfolio';
+        _uploadLabel = 'portfolio';
       });
       final urls = await _media.pickAndUploadMultipleImages(
         storageFolder: 'businesses/$businessId/employees/$_staffId',
@@ -392,7 +399,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
         onProgress: (current, total, progress) {
           if (mounted) {
             setState(() {
-              _uploadLabel = 'Photo $current of $total';
+              _uploadLabel = 'portfolio:$current/$total';
               _uploadProgress = progress;
             });
           }
@@ -403,8 +410,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Gallery upload failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content:
+                Text(l10nOf(context).portfolioUploadFailed(e.toString()))));
       }
     } finally {
       if (mounted) setState(() => _uploadProgress = null);
@@ -423,8 +431,8 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       await _media.deleteByUrl(url);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Could not delete photo: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(l10nOf(context).imageDeleteFailed(e.toString()))));
       }
     }
   }
@@ -468,20 +476,18 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
         SnackBar(
           content: Text(
             existing != null
-                ? 'Employee updated successfully.'
-                : 'Employee added successfully.',
+                ? l10nOf(context).employeeUpdatedSuccessfully
+                : l10nOf(context).employeeAddedSuccessfully,
           ),
           backgroundColor: AppColors.success,
         ),
       );
-      context.canPop()
-          ? context.pop()
-          : context.go('/employee-management');
+      context.canPop() ? context.pop() : context.go('/employee-management');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save employee: $e'),
+            content: Text(l10nOf(context).employeeSaveFailed(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );

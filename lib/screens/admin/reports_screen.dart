@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
+import '../../l10n/l10n.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -30,15 +31,15 @@ class ReportsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('System Audit Reports'),
+          title: Text(l10nOf(context).systemAuditReports),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
-          children: const [
+          children: [
             GlassCard(
               child: ListTile(
-                title: Text('Security & Database Audit Log'),
-                subtitle: Text('System operating normally. 0 breaches.'),
+                title: Text(l10nOf(context).securityDatabaseAuditLog),
+                subtitle: Text(l10nOf(context).systemOperatingNormally),
               ),
             ),
           ],

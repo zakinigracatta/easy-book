@@ -5,6 +5,7 @@ import '../../../models/business_model.dart';
 import '../../../providers/app_providers.dart';
 import '../../../services/google_maps_service.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class BusinessQuickActions extends ConsumerWidget {
   final BusinessModel business;
@@ -22,6 +23,7 @@ class BusinessQuickActions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final favorites = ref.watch(favoritesProvider);
     final isFavorite = favorites.contains(business.id);
+    final l10n = l10nOf(context);
 
     final hasPhone =
         business.phone != null && business.phone!.trim().isNotEmpty;
@@ -35,11 +37,14 @@ class BusinessQuickActions extends ConsumerWidget {
           _actionBtn(
             context,
             icon: Icons.phone_outlined,
-            label: 'Call',
+            label: l10n.call,
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Calling ${business.name}: ${business.phone}'),
+                  content: Text(l10n.callingBusiness(
+                    business.name,
+                    business.phone!,
+                  )),
                 ),
               );
             },
@@ -48,7 +53,7 @@ class BusinessQuickActions extends ConsumerWidget {
           _actionBtn(
             context,
             icon: Icons.directions_rounded,
-            label: 'Directions',
+            label: l10n.directions,
             onTap: onDirectionsTap ?? () => _showDirectionsSheet(context),
           ),
         _actionBtn(
@@ -57,7 +62,7 @@ class BusinessQuickActions extends ConsumerWidget {
               ? Icons.favorite_rounded
               : Icons.favorite_border_rounded,
           iconColor: isFavorite ? Colors.redAccent : null,
-          label: isFavorite ? 'Saved' : 'Favorite',
+          label: isFavorite ? l10n.saved : l10n.favorites,
           onTap: () {
             final set = Set<String>.from(ref.read(favoritesProvider));
             if (isFavorite) {
@@ -71,11 +76,11 @@ class BusinessQuickActions extends ConsumerWidget {
         _actionBtn(
           context,
           icon: Icons.share_outlined,
-          label: 'Share',
+          label: l10n.share,
           onTap: onShareTap ??
               () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Sharing ${business.name}...')),
+                  SnackBar(content: Text(l10n.sharingBusiness(business.name))),
                 );
               },
         ),
@@ -100,16 +105,16 @@ class BusinessQuickActions extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.map_rounded,
                       color: AppColors.primaryLight,
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
-                      'Open in Google Maps',
-                      style: TextStyle(
+                      l10nOf(sheetContext).openInGoogleMaps,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -141,7 +146,7 @@ class BusinessQuickActions extends ConsumerWidget {
                       child: _travelModeButton(
                         sheetContext,
                         icon: Icons.directions_car_filled_rounded,
-                        label: 'Driving',
+                        label: l10nOf(sheetContext).driving,
                         mode: MapsTravelMode.driving,
                       ),
                     ),
@@ -150,7 +155,7 @@ class BusinessQuickActions extends ConsumerWidget {
                       child: _travelModeButton(
                         sheetContext,
                         icon: Icons.directions_walk_rounded,
-                        label: 'Walking',
+                        label: l10nOf(sheetContext).walking,
                         mode: MapsTravelMode.walking,
                       ),
                     ),
@@ -174,7 +179,7 @@ class BusinessQuickActions extends ConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not open Google Maps: $error'),
+          content: Text(l10nOf(context).googleMapsOpenFailed('$error')),
         ),
       );
     }

@@ -63,7 +63,8 @@ class MobileWalletPassScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.white, fontSize: 14)),
                     SizedBox(height: 20),
                     Center(
-                      child: Icon(Icons.qr_code, size: 100, color: Colors.white),
+                      child:
+                          Icon(Icons.qr_code, size: 100, color: Colors.white),
                     ),
                   ],
                 ),

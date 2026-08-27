@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/l10n.dart';
+import '../../l10n/expense_l10n.dart';
 import '../../models/expense_model.dart';
 import '../../models/profit_and_loss_summary.dart';
 import '../../providers/owner_finance_providers.dart';
@@ -15,17 +17,22 @@ class OwnerFinanceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = l10nOf(context);
     final reportAsync = ref.watch(ownerProfitAndLossProvider);
     final range = ref.watch(ownerFinanceReportRangeProvider);
-    final currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
-    final date = DateFormat('dd MMM yyyy');
+    final currency = NumberFormat.currency(
+      symbol: 'AED ',
+      decimalDigits: 2,
+      customPattern: '\u200E¤#,##0.00;\u200E-¤#,##0.00',
+    );
+    final date = DateFormat.yMMMd(Localizations.localeOf(context).languageCode);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Finance & Profit'),
+        title: Text(l10n.financeAndProfit),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: l10n.refresh,
             onPressed: () => ref.invalidate(ownerProfitAndLossProvider),
             icon: const Icon(Icons.refresh_rounded),
           ),
@@ -48,57 +55,55 @@ class OwnerFinanceScreen extends ConsumerWidget {
                   child: CircularProgressIndicator(color: AppColors.primary),
                 ),
               ),
-              error: (error, _) => _errorCard(error),
-              data: (report) => _reportBody(report, currency),
+              error: (error, _) => _errorCard(context, error),
+              data: (report) => _reportBody(context, report, currency),
             ),
             const SizedBox(height: 18),
             GlassCard(
               onTap: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => const OwnerExpensesScreen(),
+                    builder: (_) => OwnerExpensesScreen(),
                   ),
                 );
                 ref.invalidate(ownerProfitAndLossProvider);
                 ref.invalidate(ownerTodayProfitAndLossProvider);
               },
-              child: const ListTile(
-                leading: Icon(
+              child: ListTile(
+                leading: const Icon(
                   Icons.receipt_long_rounded,
                   color: AppColors.accent,
                 ),
                 title: Text(
-                  'Manage Expenses',
+                  l10n.manageExpenses,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                subtitle: Text(
-                  'Daily, monthly, annual and emergency owner-only costs',
-                ),
-                trailing: Icon(Icons.chevron_right_rounded),
+                subtitle: Text(l10n.expenseCadences),
+                trailing: const Icon(Icons.chevron_right_rounded),
               ),
             ),
             const SizedBox(height: 12),
-            const GlassCard(
-              padding: EdgeInsets.all(14),
+            GlassCard(
+              padding: const EdgeInsets.all(14),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline_rounded,
                     color: AppColors.primaryLight,
                     size: 20,
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Revenue is recognized only from completed bookings. Expenses are actual recorded costs; Daily, Monthly and Annual are reporting classifications and do not automatically repeat amounts.',
+                      l10n.financeRecognitionNote,
                       style: TextStyle(
                         fontSize: 12,
                         height: 1.4,
-                        color: AppColors.textMutedDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -108,7 +113,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+      bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
     );
   }
 
@@ -123,11 +128,11 @@ class OwnerFinanceScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Reporting Period',
+          Text(
+            l10nOf(context).reportingPeriod,
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -136,17 +141,17 @@ class OwnerFinanceScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   '${date.format(range.from)} — ${date.format(range.to)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
               TextButton.icon(
                 onPressed: () => _selectRange(context, ref, range),
                 icon: const Icon(Icons.date_range_rounded, size: 18),
-                label: const Text('Change'),
+                label: Text(l10nOf(context).change),
               ),
             ],
           ),
@@ -155,9 +160,9 @@ class OwnerFinanceScreen extends ConsumerWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _periodButton(ref, 'Today', _todayRange()),
-              _periodButton(ref, 'This Month', _monthRange()),
-              _periodButton(ref, 'This Year', _yearRange()),
+              _periodButton(ref, l10nOf(context).today, _todayRange()),
+              _periodButton(ref, l10nOf(context).thisMonth, _monthRange()),
+              _periodButton(ref, l10nOf(context).thisYear, _yearRange()),
             ],
           ),
         ],
@@ -166,16 +171,20 @@ class OwnerFinanceScreen extends ConsumerWidget {
   }
 
   Widget _reportBody(
+    BuildContext context,
     ProfitAndLossSummary report,
     NumberFormat currency,
   ) {
     return Column(
       children: [
+        _profitHero(context, report, currency),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _metricCard(
-                'Recognized Revenue',
+                context,
+                l10nOf(context).recognizedRevenue,
                 currency.format(report.recognizedRevenue),
                 Icons.trending_up_rounded,
                 AppColors.success,
@@ -184,7 +193,8 @@ class OwnerFinanceScreen extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _metricCard(
-                'Expenses',
+                context,
+                l10nOf(context).expenses,
                 currency.format(report.expenses),
                 Icons.trending_down_rounded,
                 AppColors.error,
@@ -197,31 +207,8 @@ class OwnerFinanceScreen extends ConsumerWidget {
           children: [
             Expanded(
               child: _metricCard(
-                'Net Profit',
-                currency.format(report.netProfit),
-                report.netProfit >= 0
-                    ? Icons.account_balance_wallet_rounded
-                    : Icons.warning_amber_rounded,
-                report.netProfit >= 0 ? AppColors.success : AppColors.error,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _metricCard(
-                'Profit Margin',
-                '${report.profitMarginPercent.toStringAsFixed(1)}%',
-                Icons.percent_rounded,
-                AppColors.gold,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _metricCard(
-                'Completed Bookings',
+                context,
+                l10nOf(context).completedBookings,
                 '${report.completedBookingsCount}',
                 Icons.task_alt_rounded,
                 AppColors.primaryLight,
@@ -230,7 +217,8 @@ class OwnerFinanceScreen extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _metricCard(
-                'Average / Booking',
+                context,
+                l10nOf(context).averagePerBooking,
                 currency.format(report.averageRevenuePerCompletedBooking),
                 Icons.calculate_outlined,
                 AppColors.accent,
@@ -240,33 +228,115 @@ class OwnerFinanceScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 18),
         _sectionCard(
-          title: 'Expense Frequency',
-          subtitle: 'Daily, monthly, annual and emergency actual costs',
-          children: _buildExpenseFrequencyRows(report, currency),
+          context,
+          title: l10nOf(context).expenseFrequency,
+          subtitle: l10nOf(context).expenseFrequencySubtitle,
+          children: _buildExpenseFrequencyRows(context, report, currency),
         ),
         const SizedBox(height: 14),
         _sectionCard(
-          title: 'Cost Structure',
-          subtitle: 'Expenses grouped into business cost areas',
-          children: _buildExpenseGroupRows(report, currency),
+          context,
+          title: l10nOf(context).costStructure,
+          subtitle: l10nOf(context).costStructureSubtitle,
+          children: _buildExpenseGroupRows(context, report, currency),
         ),
         const SizedBox(height: 14),
         _sectionCard(
-          title: 'Revenue by Service',
-          subtitle: 'Completed-booking revenue by service',
-          children: _buildRevenueRows(report, currency),
+          context,
+          title: l10nOf(context).revenueByService,
+          subtitle: l10nOf(context).revenueByServiceSubtitle,
+          children: _buildRevenueRows(context, report, currency),
         ),
         const SizedBox(height: 14),
         _sectionCard(
-          title: 'Detailed Expense Categories',
-          subtitle: 'Exact expense categories recorded by the owner',
-          children: _buildExpenseCategoryRows(report, currency),
+          context,
+          title: l10nOf(context).detailedExpenseCategories,
+          subtitle: l10nOf(context).detailedExpenseCategoriesSubtitle,
+          children: _buildExpenseCategoryRows(context, report, currency),
         ),
       ],
     );
   }
 
-  Widget _sectionCard({
+  Widget _profitHero(
+    BuildContext context,
+    ProfitAndLossSummary report,
+    NumberFormat currency,
+  ) {
+    final positive = report.netProfit >= 0;
+    final color = positive ? AppColors.success : AppColors.error;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              positive
+                  ? Icons.account_balance_wallet_rounded
+                  : Icons.warning_amber_rounded,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10nOf(context).netProfit,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  currency.format(report.netProfit),
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              l10nOf(context).marginPercent(
+                report.profitMarginPercent.toStringAsFixed(1),
+              ),
+              style: const TextStyle(
+                color: AppColors.gold,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionCard(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required List<Widget> children,
@@ -278,18 +348,18 @@ class OwnerFinanceScreen extends ConsumerWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 3),
           Text(
             subtitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 14),
@@ -300,6 +370,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
   }
 
   List<Widget> _buildExpenseFrequencyRows(
+    BuildContext context,
     ProfitAndLossSummary report,
     NumberFormat currency,
   ) {
@@ -307,20 +378,24 @@ class OwnerFinanceScreen extends ConsumerWidget {
       final amount = report.expensesByFrequency[frequency] ?? 0.0;
       final share = report.expenses <= 0 ? 0.0 : amount / report.expenses;
       return _breakdownRow(
-        label: frequency.label,
+        context,
+        label: frequency.label(l10nOf(context)),
         value: currency.format(amount),
-        detail:
-            '${(share * 100).toStringAsFixed(1)}% of expenses • ${frequency.description}',
+        detail: l10nOf(context).expenseShareWithDescription(
+          (share * 100).toStringAsFixed(1),
+          frequency.description(l10nOf(context)),
+        ),
       );
     }).toList(growable: false);
   }
 
   List<Widget> _buildExpenseGroupRows(
+    BuildContext context,
     ProfitAndLossSummary report,
     NumberFormat currency,
   ) {
     if (report.expensesByGroup.isEmpty) {
-      return _emptyRows('No expenses recorded in this period.');
+      return _emptyRows(context, l10nOf(context).noExpensesInPeriod);
     }
 
     final entries = report.expensesByGroup.entries.toList()
@@ -329,19 +404,23 @@ class OwnerFinanceScreen extends ConsumerWidget {
     return entries.map((entry) {
       final share = report.expenses <= 0 ? 0.0 : entry.value / report.expenses;
       return _breakdownRow(
-        label: entry.key.label,
+        context,
+        label: entry.key.label(l10nOf(context)),
         value: currency.format(entry.value),
-        detail: '${(share * 100).toStringAsFixed(1)}% of expenses',
+        detail: l10nOf(context).expenseShare(
+          (share * 100).toStringAsFixed(1),
+        ),
       );
     }).toList(growable: false);
   }
 
   List<Widget> _buildRevenueRows(
+    BuildContext context,
     ProfitAndLossSummary report,
     NumberFormat currency,
   ) {
     if (report.revenueByService.isEmpty) {
-      return _emptyRows('No completed-booking revenue in this period.');
+      return _emptyRows(context, l10nOf(context).noCompletedBookingRevenue);
     }
 
     final entries = report.revenueByService.entries.toList()
@@ -352,19 +431,23 @@ class OwnerFinanceScreen extends ConsumerWidget {
           ? 0.0
           : entry.value / report.recognizedRevenue;
       return _breakdownRow(
+        context,
         label: entry.key,
         value: currency.format(entry.value),
-        detail: '${(share * 100).toStringAsFixed(1)}% of revenue',
+        detail: l10nOf(context).revenueShare(
+          (share * 100).toStringAsFixed(1),
+        ),
       );
     }).toList(growable: false);
   }
 
   List<Widget> _buildExpenseCategoryRows(
+    BuildContext context,
     ProfitAndLossSummary report,
     NumberFormat currency,
   ) {
     if (report.expensesByCategory.isEmpty) {
-      return _emptyRows('No expenses recorded in this period.');
+      return _emptyRows(context, l10nOf(context).noExpensesInPeriod);
     }
 
     final entries = report.expensesByCategory.entries.toList()
@@ -373,14 +456,16 @@ class OwnerFinanceScreen extends ConsumerWidget {
     return entries
         .map(
           (entry) => _breakdownRow(
-            label: entry.key.label,
+            context,
+            label: entry.key.label(l10nOf(context)),
             value: currency.format(entry.value),
           ),
         )
         .toList(growable: false);
   }
 
-  Widget _breakdownRow({
+  Widget _breakdownRow(
+    BuildContext context, {
     required String label,
     required String value,
     String? detail,
@@ -396,8 +481,8 @@ class OwnerFinanceScreen extends ConsumerWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: AppColors.textPrimaryDark,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -405,9 +490,9 @@ class OwnerFinanceScreen extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     detail,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -417,10 +502,10 @@ class OwnerFinanceScreen extends ConsumerWidget {
           const SizedBox(width: 12),
           Text(
             value,
-            textAlign: TextAlign.right,
-            style: const TextStyle(
+            textAlign: TextAlign.end,
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -428,7 +513,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
     );
   }
 
-  List<Widget> _emptyRows(String message) {
+  List<Widget> _emptyRows(BuildContext context, String message) {
     return [
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -436,7 +521,9 @@ class OwnerFinanceScreen extends ConsumerWidget {
           child: Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textMutedDark),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),
@@ -444,24 +531,25 @@ class OwnerFinanceScreen extends ConsumerWidget {
   }
 
   Widget _metricCard(
+    BuildContext context,
     String label,
     String value,
     IconData icon,
     Color color,
   ) {
     return GlassCard(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(height: 12),
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 8),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 17,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -469,9 +557,9 @@ class OwnerFinanceScreen extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -479,7 +567,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
     );
   }
 
-  Widget _errorCard(Object error) {
+  Widget _errorCard(BuildContext context, Object error) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -490,20 +578,20 @@ class OwnerFinanceScreen extends ConsumerWidget {
             size: 32,
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Finance data unavailable',
+          Text(
+            l10nOf(context).financeDataUnavailable,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             error.toString(),
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],

@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../providers/app_providers.dart';
 import '../../services/media_upload_service.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
@@ -71,7 +72,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not select image: $e')),
+          SnackBar(content: Text(l10nOf(context).imageSelectionFailed)),
         );
       }
     }
@@ -85,8 +86,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter name, email, and password.'),
+        SnackBar(
+          content: Text(l10nOf(context).requiredRegistrationFields),
         ),
       );
       return;
@@ -94,8 +95,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (name.length > 60) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Full name must be 60 characters or less.'),
+        SnackBar(
+          content: Text(l10nOf(context).nameTooLong),
         ),
       );
       return;
@@ -103,8 +104,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (email.length > 100) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email address must be 100 characters or less.'),
+        SnackBar(
+          content: Text(l10nOf(context).emailTooLong),
         ),
       );
       return;
@@ -112,8 +113,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (phone.length > 25) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Phone number must be 25 characters or less.'),
+        SnackBar(
+          content: Text(l10nOf(context).phoneTooLong),
         ),
       );
       return;
@@ -121,8 +122,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (password.length > 128) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password must be 128 characters or less.'),
+        SnackBar(
+          content: Text(l10nOf(context).passwordTooLong),
         ),
       );
       return;
@@ -182,8 +183,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           SnackBar(
             content: Text(
               imageUploadFailed
-                  ? 'Account created. The profile photo could not be uploaded; you can add it later.'
-                  : 'Registration successful! Please verify your email.',
+                  ? l10nOf(context).registrationPhotoFailed
+                  : l10nOf(context).registrationSuccessful,
             ),
           ),
         );
@@ -194,8 +195,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              e.message ??
-                  'Authentication failed. Please check your details.',
+              e.message ?? l10nOf(context).registrationAuthFailed,
             ),
           ),
         );
@@ -205,7 +205,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              e.message ?? 'Database error occurred during registration.',
+              e.message ?? l10nOf(context).registrationDatabaseFailed,
             ),
           ),
         );
@@ -213,7 +213,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An unexpected error occurred: $e')),
+          SnackBar(content: Text(l10nOf(context).unexpectedError)),
         );
       }
     } finally {
@@ -228,6 +228,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -251,7 +252,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               }
             },
           ),
-          title: const Text('Customer Registration'),
+          title: Text(l10n.customerRegistration),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -265,14 +266,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   color: AppColors.primary,
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Create Customer Account',
+                Text(
+                  l10n.createCustomerAccount,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Register to book services. Saved in database with role "customer".',
+                Text(
+                  l10n.customerRegistrationSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textMutedDark,
@@ -317,8 +318,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Tap the photo to choose an image from your phone.',
+                Text(
+                  l10n.chooseProfilePhoto,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,
@@ -330,7 +331,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   LinearProgressIndicator(value: _uploadProgress),
                   const SizedBox(height: 4),
                   Text(
-                    'Uploading profile photo ${(100 * _uploadProgress!).round()}%',
+                    l10n.uploadingProfilePhoto,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 11,
@@ -344,14 +345,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     children: [
                       CustomTextField(
                         controller: _nameController,
-                        label: 'Full Name',
+                        label: l10n.fullName,
                         prefixIcon: Icons.person_outline,
                         maxLength: 60,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
-                        label: 'Phone Number',
+                        label: l10n.phoneNumber,
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                         maxLength: 25,
@@ -359,7 +360,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _emailController,
-                        label: 'Email Address',
+                        label: l10n.emailAddress,
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         maxLength: 100,
@@ -367,14 +368,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _passwordController,
-                        label: 'Password',
+                        label: l10n.password,
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
                         maxLength: 128,
                       ),
                       const SizedBox(height: 24),
                       CustomButton(
-                        text: 'Register & Go to Customer Home',
+                        text: l10n.registerAndContinue,
                         isLoading: _isLoading,
                         onPressed: _handleRegister,
                       ),
@@ -385,14 +386,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Already have an account? ',
+                    Text(
+                      '${l10n.alreadyHaveAccount} ',
                       style: TextStyle(color: AppColors.textMutedDark),
                     ),
                     TextButton(
                       onPressed: () => context.push('/login'),
-                      child: const Text(
-                        'Sign In',
+                      child: Text(
+                        l10n.signIn,
                         style: TextStyle(
                           color: AppColors.primaryLight,
                           fontWeight: FontWeight.bold,

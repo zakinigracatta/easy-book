@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/staff_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/l10n.dart';
 
 class SpecialistCard extends StatelessWidget {
   final StaffModel staff;
@@ -87,7 +88,8 @@ class SpecialistCard extends StatelessWidget {
                       if (staff.experienceYears > 0) ...[
                         const SizedBox(width: 10),
                         Text(
-                          '•  ${staff.experienceYears} yrs experience',
+                          l10nOf(context)
+                              .yearsExperience(staff.experienceYears),
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.textMutedDark,

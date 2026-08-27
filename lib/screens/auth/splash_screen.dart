@@ -136,7 +136,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           // Profile failed/timed out: fallback safely to customer home
           if (kDebugMode) {
             debugPrint('[SPLASH] profile resolution completed/failed');
-            debugPrint('[SPLASH] destination resolved: guest/customer fallback');
+            debugPrint(
+                '[SPLASH] destination resolved: guest/customer fallback');
           }
           destination = '/home';
         }

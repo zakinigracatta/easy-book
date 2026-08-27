@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/booking_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
+import '../../l10n/l10n.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   const BookingDetailsScreen({super.key, this.booking});
@@ -16,16 +17,16 @@ class BookingDetailsScreen extends StatelessWidget {
     final b = booking;
     if (b == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Booking Details')),
+        appBar: AppBar(title: Text(l10nOf(context).bookingDetails)),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Booking details are unavailable.'),
+              Text(l10nOf(context).bookingDetailsUnavailable),
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => context.go('/my-bookings'),
-                child: const Text('Back to My Bookings'),
+                child: Text(l10nOf(context).backToMyBookings),
               ),
             ],
           ),
@@ -33,10 +34,19 @@ class BookingDetailsScreen extends StatelessWidget {
       );
     }
 
-    final dateText =
-        DateFormat('EEEE, dd MMMM yyyy • hh:mm a').format(b.startDateTime);
-    final statusText =
-        b.status.name[0].toUpperCase() + b.status.name.substring(1);
+    final dateText = DateFormat(
+      'EEEE, dd MMMM yyyy • hh:mm a',
+      l10nOf(context).localeName,
+    ).format(b.startDateTime);
+    final statusText = switch (b.status) {
+      BookingStatus.pending => l10nOf(context).pending,
+      BookingStatus.confirmed => l10nOf(context).confirmed,
+      BookingStatus.arrived => l10nOf(context).arrived,
+      BookingStatus.inProgress => l10nOf(context).inProgress,
+      BookingStatus.completed => l10nOf(context).completed,
+      BookingStatus.cancelled => l10nOf(context).cancelled,
+      BookingStatus.noShow => l10nOf(context).noShow,
+    };
     final statusColor = b.status == BookingStatus.cancelled
         ? AppColors.error
         : b.status == BookingStatus.completed
@@ -57,7 +67,7 @@ class BookingDetailsScreen extends StatelessWidget {
             onPressed: () =>
                 context.canPop() ? context.pop() : context.go('/my-bookings'),
           ),
-          title: const Text('Booking Details'),
+          title: Text(l10nOf(context).bookingDetails),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -69,11 +79,11 @@ class BookingDetailsScreen extends StatelessWidget {
                     const Icon(Icons.qr_code_2_rounded,
                         size: 120, color: AppColors.primary),
                     const SizedBox(height: 8),
-                    Text('Booking Ref: ${b.id}',
+                    Text(l10nOf(context).bookingReference(b.id),
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    const Text('Show this booking reference at check-in',
+                    Text(l10nOf(context).showReferenceAtCheckIn,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 12, color: AppColors.textMutedDark)),
@@ -89,20 +99,21 @@ class BookingDetailsScreen extends StatelessWidget {
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 17)),
                     const Divider(height: 24),
-                    _row('Service', b.serviceName),
+                    _row(l10nOf(context).service, b.serviceName),
                     const SizedBox(height: 8),
-                    _row('Specialist', b.staffName),
+                    _row(l10nOf(context).specialist, b.staffName),
                     const SizedBox(height: 8),
-                    _row('Time', dateText),
+                    _row(l10nOf(context).time, dateText),
                     const SizedBox(height: 8),
-                    _row('Price', '${b.servicePrice.toStringAsFixed(2)} AED'),
+                    _row(l10nOf(context).price,
+                        '${b.servicePrice.toStringAsFixed(2)} AED'),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           width: 88,
-                          child: Text('Status',
-                              style: TextStyle(
+                          child: Text(l10nOf(context).status,
+                              style: const TextStyle(
                                   color: AppColors.textMutedDark,
                                   fontSize: 12)),
                         ),
@@ -133,8 +144,8 @@ class BookingDetailsScreen extends StatelessWidget {
                   color: AppColors.textMutedDark, fontSize: 12)),
         ),
         Expanded(
-          child: Text(value,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+          child:
+              Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

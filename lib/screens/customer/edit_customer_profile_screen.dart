@@ -1,4 +1,3 @@
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +13,7 @@ import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/glass_card.dart';
+import '../../l10n/l10n.dart';
 
 class EditCustomerProfileScreen extends ConsumerStatefulWidget {
   const EditCustomerProfileScreen({super.key});
@@ -86,7 +86,9 @@ class _EditCustomerProfileScreenState
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not select image: ${_errorMessage(e)}')),
+          SnackBar(
+              content: Text(l10nOf(context)
+                  .imageSelectionFailedWithError(_errorMessage(e)))),
         );
       }
     }
@@ -111,7 +113,8 @@ class _EditCustomerProfileScreenState
     String? uploadedUrl;
     try {
       if (kDebugMode) {
-        debugPrint('[PROFILE_EDIT] Saving uid=${current.id}, role=${current.role}');
+        debugPrint(
+            '[PROFILE_EDIT] Saving uid=${current.id}, role=${current.role}');
       }
 
       final pending = _pendingImage;
@@ -153,8 +156,8 @@ class _EditCustomerProfileScreenState
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully.'),
+        SnackBar(
+          content: Text(l10nOf(context).profileUpdatedSuccessfully),
           backgroundColor: AppColors.success,
         ),
       );
@@ -176,7 +179,8 @@ class _EditCustomerProfileScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not update profile: ${_errorMessage(e)}'),
+            content:
+                Text(l10nOf(context).profileUpdateFailed(_errorMessage(e))),
             backgroundColor: AppColors.error,
             duration: const Duration(seconds: 8),
           ),
@@ -202,21 +206,22 @@ class _EditCustomerProfileScreenState
     final profileAsync = ref.watch(customerProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
+      appBar: AppBar(title: Text(l10nOf(context).editProfile)),
       body: profileAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (error, _) => _ErrorState(
-          message: 'Unable to load your profile: ${_errorMessage(error)}',
+          message:
+              l10nOf(context).profileLoadFailedWithError(_errorMessage(error)),
           onRetry: () => ref.invalidate(customerProfileProvider),
         ),
         data: (user) {
           if (user == null) {
             return _ErrorState(
-              message: 'Please sign in again to edit your profile.',
+              message: l10nOf(context).signInAgainToEditProfile,
               onRetry: () => context.go('/login'),
-              buttonLabel: 'Sign In',
+              buttonLabel: l10nOf(context).signIn,
             );
           }
 
@@ -253,8 +258,8 @@ class _EditCustomerProfileScreenState
                               label: Text(
                                 user.avatarUrl?.isNotEmpty == true ||
                                         _pendingImage != null
-                                    ? 'Change Photo'
-                                    : 'Add Photo',
+                                    ? l10nOf(context).changePhoto
+                                    : l10nOf(context).addPhoto,
                               ),
                             ),
                             if (!_removeAvatar &&
@@ -267,9 +272,10 @@ class _EditCustomerProfileScreenState
                                   Icons.delete_outline_rounded,
                                   color: AppColors.error,
                                 ),
-                                label: const Text(
-                                  'Remove',
-                                  style: TextStyle(color: AppColors.error),
+                                label: Text(
+                                  l10nOf(context).remove,
+                                  style:
+                                      const TextStyle(color: AppColors.error),
                                 ),
                               ),
                           ],
@@ -284,14 +290,15 @@ class _EditCustomerProfileScreenState
                       children: [
                         CustomTextField(
                           controller: _nameController,
-                          label: 'Full Name',
+                          label: l10nOf(context).fullName,
                           prefixIcon: Icons.person_outline_rounded,
                           maxLength: 60,
                           validator: (value) {
                             final clean = value?.trim() ?? '';
-                            if (clean.isEmpty) return 'Full name is required';
+                            if (clean.isEmpty)
+                              return l10nOf(context).fullNameRequired;
                             if (clean.length > 60) {
-                              return 'Full name must be 60 characters or less';
+                              return l10nOf(context).nameTooLong;
                             }
                             return null;
                           },
@@ -299,31 +306,31 @@ class _EditCustomerProfileScreenState
                         const SizedBox(height: 14),
                         CustomTextField(
                           controller: _phoneController,
-                          label: 'Phone Number',
+                          label: l10nOf(context).phoneNumber,
                           prefixIcon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
                           maxLength: 25,
                           validator: (value) {
                             if ((value ?? '').trim().length > 25) {
-                              return 'Phone number must be 25 characters or less';
+                              return l10nOf(context).phoneTooLong;
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 14),
                         InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'Email Address',
-                            prefixIcon: Icon(Icons.email_outlined),
+                          decoration: InputDecoration(
+                            labelText: l10nOf(context).emailAddress,
+                            prefixIcon: const Icon(Icons.email_outlined),
                           ),
                           child: Text(user.email),
                         ),
                         const SizedBox(height: 6),
-                        const Align(
+                        Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'Email changes require a separate verified account flow and are intentionally disabled here.',
-                            style: TextStyle(
+                            l10nOf(context).emailChangeDisabledHelp,
+                            style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.textMutedDark,
                             ),
@@ -334,7 +341,7 @@ class _EditCustomerProfileScreenState
                   ),
                   const SizedBox(height: 20),
                   CustomButton(
-                    text: 'Save Profile',
+                    text: l10nOf(context).saveProfile,
                     isLoading: _isSaving,
                     onPressed: _save,
                   ),
@@ -405,12 +412,12 @@ class _ErrorState extends StatelessWidget {
   const _ErrorState({
     required this.message,
     required this.onRetry,
-    this.buttonLabel = 'Retry',
+    this.buttonLabel,
   });
 
   final String message;
   final VoidCallback onRetry;
-  final String buttonLabel;
+  final String? buttonLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -428,7 +435,10 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: onRetry, child: Text(buttonLabel)),
+            OutlinedButton(
+              onPressed: onRetry,
+              child: Text(buttonLabel ?? l10nOf(context).retry),
+            ),
           ],
         ),
       ),

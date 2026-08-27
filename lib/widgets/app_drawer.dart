@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../l10n/l10n.dart';
 
 class AppDrawer extends StatelessWidget {
   final String portalType; // 'business' or 'admin'
@@ -10,50 +11,54 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isBusiness = portalType == 'business';
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = l10nOf(context);
 
     final businessItems = [
       {
-        'title': 'Dashboard',
+        'title': l10n.dashboard,
         'icon': Icons.dashboard_rounded,
         'route': '/owner-dashboard'
       },
       {
-        'title': 'Salon Profile',
+        'title': l10n.salonProfile,
         'icon': Icons.storefront_rounded,
         'route': '/salon-management'
       },
       {
-        'title': 'Services Menu',
+        'title': l10n.servicesMenu,
         'icon': Icons.design_services_rounded,
         'route': '/services-management'
       },
       {
-        'title': 'Employees',
+        'title': l10n.employees,
         'icon': Icons.badge_rounded,
         'route': '/employee-management'
       },
       {
-        'title': 'Employee Schedule',
+        'title': l10n.employeeSchedule,
         'icon': Icons.calendar_month_rounded,
         'route': '/employee-schedule'
       },
       {
-        'title': 'Booking Calendar',
+        'title': l10n.bookingCalendar,
         'icon': Icons.event_available_rounded,
         'route': '/booking-calendar'
       },
       {
-        'title': 'Customers',
+        'title': l10n.customers,
         'icon': Icons.people_alt_rounded,
         'route': '/customer-management'
       },
       {
-        'title': 'Sales Report',
+        'title': l10n.salesReport,
         'icon': Icons.assessment_rounded,
         'route': '/sales-report'
       },
       {
-        'title': 'Promotions',
+        'title': l10n.promotions,
         'icon': Icons.campaign_rounded,
         'route': '/promotion-management'
       },
@@ -61,32 +66,32 @@ class AppDrawer extends StatelessWidget {
 
     final adminItems = [
       {
-        'title': 'Admin Portal',
+        'title': l10n.adminPortal,
         'icon': Icons.admin_panel_settings_rounded,
         'route': '/admin-dashboard'
       },
       {
-        'title': 'Manage Users',
+        'title': l10n.manageUsers,
         'icon': Icons.group_rounded,
         'route': '/users-management'
       },
       {
-        'title': 'Salon Approvals',
+        'title': l10n.salonApprovals,
         'icon': Icons.verified_user_rounded,
         'route': '/salon-approval'
       },
       {
-        'title': 'Payment Management',
+        'title': l10n.paymentManagement,
         'icon': Icons.payments_rounded,
         'route': '/payment-management'
       },
       {
-        'title': 'Platform Analytics',
+        'title': l10n.platformAnalytics,
         'icon': Icons.bar_chart_rounded,
         'route': '/analytics'
       },
       {
-        'title': 'Reports & Logs',
+        'title': l10n.reportsAndLogs,
         'icon': Icons.summarize_rounded,
         'route': '/reports'
       },
@@ -95,22 +100,33 @@ class AppDrawer extends StatelessWidget {
     final items = isBusiness ? businessItems : adminItems;
 
     return Drawer(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: colors.surface,
       child: SafeArea(
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: AppColors.cardDark),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Theme.of(context).colorScheme.surface
+                    : colors.surfaceContainerLow,
+              ),
               accountName: Text(
-                isBusiness ? 'Salon Management Center' : 'Platform Super Admin',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                isBusiness
+                    ? l10n.salonManagementCenter
+                    : l10n.platformSuperAdmin,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: colors.onSurface,
+                ),
               ),
               accountEmail: Text(
                 isBusiness
                     ? 'easybook.business@portal.com'
                     : 'admin@easybook.com',
-                style: const TextStyle(
-                    color: AppColors.textMutedDark, fontSize: 12),
+                style: TextStyle(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 12,
+                ),
               ),
               currentAccountPicture: CircleAvatar(
                 backgroundColor:
@@ -128,32 +144,34 @@ class AppDrawer extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 children: [
                   ...items.map((item) => ListTile(
-                        leading: Icon(item['icon'] as IconData,
-                            color: isBusiness
-                                ? AppColors.primary
-                                : AppColors.accent),
+                        leading: Icon(
+                          item['icon'] as IconData,
+                          color: isBusiness ? colors.primary : colors.error,
+                        ),
                         title: Text(item['title'] as String,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w600)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: colors.onSurface,
+                            )),
                         onTap: () {
                           Navigator.pop(context);
                           context.push(item['route'] as String);
                         },
                       )),
-                  const Divider(color: AppColors.glassBorderDark),
+                  Divider(color: colors.outline),
                   ListTile(
-                    leading: const Icon(Icons.settings_rounded,
-                        color: AppColors.textSecondaryDark),
-                    title: const Text('Settings'),
+                    leading: Icon(Icons.settings_rounded,
+                        color: colors.onSurfaceVariant),
+                    title: Text(l10n.settings,
+                        style: TextStyle(color: colors.onSurface)),
                     onTap: () {
                       Navigator.pop(context);
                       context.push('/settings');
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.logout_rounded,
-                        color: AppColors.error),
-                    title: const Text('Exit Portal',
+                    leading: Icon(Icons.logout_rounded, color: AppColors.error),
+                    title: Text(l10n.exitPortal,
                         style: TextStyle(
                             color: AppColors.error,
                             fontWeight: FontWeight.bold)),

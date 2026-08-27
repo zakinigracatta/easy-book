@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import '../glass_card.dart';
 
 class QuickActionCard extends StatelessWidget {
@@ -18,6 +17,7 @@ class QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return GlassCard(
       onTap: onTap,
       padding: const EdgeInsets.all(14),
@@ -36,10 +36,10 @@ class QuickActionCard extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+              color: colors.onSurface,
             ),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,12 +20,12 @@ class FavoritesScreen extends ConsumerWidget {
     final favoritesAsync = ref.watch(savedFavoritesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Saved Favorites')),
+      appBar: AppBar(title: Text(l10nOf(context).savedFavorites)),
       body: user == null
           ? _signedOutState(context)
           : favoritesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stackTrace) => _errorState(ref),
+              error: (error, stackTrace) => _errorState(context, ref),
               data: (favoriteIds) {
                 if (favoriteIds.isEmpty) {
                   return _emptyState(context);
@@ -58,7 +59,7 @@ class FavoritesScreen extends ConsumerWidget {
                         error: (error, stackTrace) => GlassCard(
                           child: ListTile(
                             leading: const Icon(Icons.storefront_outlined),
-                            title: const Text('Could not load this business'),
+                            title: Text(l10nOf(context).businessLoadFailed),
                             trailing: IconButton(
                               icon: const Icon(Icons.refresh_rounded),
                               onPressed: () => ref.invalidate(
@@ -72,10 +73,12 @@ class FavoritesScreen extends ConsumerWidget {
                             return GlassCard(
                               child: ListTile(
                                 leading: const Icon(Icons.storefront_outlined),
-                                title: const Text('Business no longer available'),
+                                title:
+                                    Text(l10nOf(context).businessUnavailable),
                                 trailing: IconButton(
-                                  tooltip: 'Remove from favorites',
-                                  icon: const Icon(Icons.delete_outline_rounded),
+                                  tooltip: l10nOf(context).removeFromFavorites,
+                                  icon:
+                                      const Icon(Icons.delete_outline_rounded),
                                   onPressed: () => _removeFavorite(
                                     context,
                                     ref,
@@ -144,7 +147,9 @@ class FavoritesScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  business.address.isEmpty ? business.category : business.address,
+                  business.address.isEmpty
+                      ? business.category
+                      : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -167,7 +172,7 @@ class FavoritesScreen extends ConsumerWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Remove from favorites',
+            tooltip: l10nOf(context).removeFromFavorites,
             icon: const Icon(Icons.favorite_rounded, color: Colors.redAccent),
             onPressed: () => _removeFavorite(
               context,
@@ -196,8 +201,8 @@ class FavoritesScreen extends ConsumerWidget {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not update favorites. Please try again.'),
+        SnackBar(
+          content: Text(l10nOf(context).favoritesUpdateFailed),
         ),
       );
     }
@@ -226,20 +231,20 @@ class FavoritesScreen extends ConsumerWidget {
           children: [
             const Icon(Icons.favorite_border_rounded, size: 56),
             const SizedBox(height: 16),
-            const Text(
-              'Sign in to save favorites',
+            Text(
+              l10nOf(context).signInToSaveFavorites,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Your favorite salons and businesses will stay synced with your account.',
+            Text(
+              l10nOf(context).favoritesSyncDescription,
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textMutedDark),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => context.push('/login'),
-              child: const Text('Sign In'),
+              child: Text(l10nOf(context).signIn),
             ),
           ],
         ),
@@ -255,14 +260,14 @@ class FavoritesScreen extends ConsumerWidget {
         const SizedBox(height: 120),
         const Icon(Icons.favorite_border_rounded, size: 56),
         const SizedBox(height: 16),
-        const Text(
-          'No favorites yet',
+        Text(
+          l10nOf(context).noFavoritesYet,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Tap the heart on a business to save it here.',
+        Text(
+          l10nOf(context).saveFavoriteHint,
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textMutedDark),
         ),
@@ -270,14 +275,14 @@ class FavoritesScreen extends ConsumerWidget {
         Center(
           child: ElevatedButton(
             onPressed: () => context.go('/home'),
-            child: const Text('Explore Businesses'),
+            child: Text(l10nOf(context).exploreBusinesses),
           ),
         ),
       ],
     );
   }
 
-  Widget _errorState(WidgetRef ref) {
+  Widget _errorState(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -286,15 +291,15 @@ class FavoritesScreen extends ConsumerWidget {
           children: [
             const Icon(Icons.cloud_off_rounded, size: 48),
             const SizedBox(height: 12),
-            const Text(
-              'Could not load favorites',
+            Text(
+              l10nOf(context).favoritesLoadFailed,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: () => ref.invalidate(savedFavoritesProvider),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try again'),
+              label: Text(l10nOf(context).tryAgain),
             ),
           ],
         ),

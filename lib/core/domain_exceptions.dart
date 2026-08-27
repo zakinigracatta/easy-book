@@ -43,7 +43,8 @@ class EmployeeUnavailableException extends DomainException {
 
 class ServiceUnavailableException extends DomainException {
   ServiceUnavailableException([
-    super.message = 'The selected service is currently inactive or unavailable.',
+    super.message =
+        'The selected service is currently inactive or unavailable.',
   ]) : super(reason: BookingFailureReason.serviceUnavailable);
 }
 

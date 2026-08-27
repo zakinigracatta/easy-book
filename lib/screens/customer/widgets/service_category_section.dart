@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/service_model.dart';
 import '../../../theme/app_colors.dart';
 import 'service_card.dart';
+import '../../../l10n/l10n.dart';
 
 class ServiceCategorySection extends StatefulWidget {
   final List<ServiceModel> services;
@@ -20,7 +21,8 @@ class ServiceCategorySection extends StatefulWidget {
 }
 
 class _ServiceCategorySectionState extends State<ServiceCategorySection> {
-  String _selectedCategory = 'All';
+  static const _allCategoryKey = '__all__';
+  String _selectedCategory = _allCategoryKey;
 
   @override
   Widget build(BuildContext context) {
@@ -28,14 +30,15 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
       return Container(
         padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.design_services_outlined,
+            const Icon(Icons.design_services_outlined,
                 size: 48, color: AppColors.textMutedDark),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'No services are available at the moment.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 14),
+              l10nOf(context).noServicesAvailableNow,
+              style:
+                  const TextStyle(color: AppColors.textMutedDark, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -45,7 +48,7 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
 
     // Extract categories
     final categoriesMap = <String, String>{};
-    categoriesMap['All'] = 'All';
+    categoriesMap[_allCategoryKey] = l10nOf(context).all;
     for (final s in widget.services) {
       categoriesMap[s.categoryId] = s.categoryName;
     }
@@ -53,7 +56,7 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
 
     // Filter services
     final filteredServices = widget.services.where((s) {
-      if (_selectedCategory == 'All') return true;
+      if (_selectedCategory == _allCategoryKey) return true;
       return s.categoryId == _selectedCategory;
     }).toList();
 

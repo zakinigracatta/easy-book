@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class LocationScreen extends StatelessWidget {
   const LocationScreen({super.key});
@@ -31,21 +32,21 @@ class LocationScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Salon Location & Directions'),
+          title: Text(l10nOf(context).salonLocationDirections),
         ),
         body: Stack(
           children: [
             Container(
               color: Colors.blueGrey.shade900,
-              child: const Center(
+              child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.location_on_rounded,
+                    const Icon(Icons.location_on_rounded,
                         size: 70, color: AppColors.primary),
-                    SizedBox(height: 12),
-                    Text('Executive Barber Lounge Map View',
-                        style: TextStyle(
+                    const SizedBox(height: 12),
+                    Text(l10nOf(context).salonMapLocation,
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                   ],
                 ),
@@ -59,17 +60,17 @@ class LocationScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('142 Luxury Blvd, Downtown NYC',
+                    const Text('142 Luxury Street, Downtown',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
-                    const Text('Open today: 9:00 AM - 9:00 PM • Free Parking',
+                    const Text('Open today: 9:00 AM - 9:00 PM • Free parking',
                         style: TextStyle(
                             color: AppColors.textMutedDark, fontSize: 12)),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.directions_rounded),
-                      label: const Text('Get Directions'),
+                      label: Text(l10nOf(context).startDirections),
                       onPressed: () {},
                     ),
                   ],

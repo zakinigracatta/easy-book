@@ -1,6 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../core/constants/app_colors.dart';
+
+import '../core/constants/app_colors.dart' as legacy;
 
 class GlassCard extends StatelessWidget {
   final Widget child;
@@ -24,35 +24,35 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final colors = theme.colorScheme;
     final bg = backgroundColor ??
-        (isDark ? AppColors.glassBgDark : AppColors.glassBgLight);
+        (isDark ? legacy.AppColors.glassBgDark : colors.surface);
     final border = borderColor ??
-        (isDark ? AppColors.glassBorderDark : AppColors.glassBorderLight);
+        (isDark
+            ? legacy.AppColors.glassBorderDark
+            : colors.outline.withValues(alpha: 0.55));
 
     Widget content = Container(
       margin: margin,
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: border, width: 1),
+        border: Border.all(color: border, width: 0.7),
         boxShadow: [
           BoxShadow(
-            color: isDark ? AppColors.shadowDark : AppColors.shadowLight,
-            blurRadius: 12,
+            color: isDark
+                ? legacy.AppColors.shadowDark
+                : const Color(0xFF0F172A).withValues(alpha: 0.035),
+            blurRadius: isDark ? 10 : 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(16.0),
-            child: child,
-          ),
-        ),
+      child: Padding(
+        padding: padding ?? const EdgeInsets.all(14.0),
+        child: child,
       ),
     );
 

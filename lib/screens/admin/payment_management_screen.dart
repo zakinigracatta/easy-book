@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class PaymentManagementScreen extends StatelessWidget {
   const PaymentManagementScreen({super.key});
@@ -31,17 +32,17 @@ class PaymentManagementScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Payout Queues & Commissions'),
+          title: Text(l10nOf(context).payoutQueuesCommissions),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
-          children: const [
+          children: [
             GlassCard(
               child: ListTile(
-                title: Text('Executive Barber Lounge'),
-                subtitle: Text('Pending Payout: \$3,450.00'),
-                trailing: Text('Approve',
-                    style: TextStyle(
+                title: const Text('Executive Barber Lounge'),
+                subtitle: Text(l10nOf(context).pendingPayout('\$3,450.00')),
+                trailing: Text(l10nOf(context).approve,
+                    style: const TextStyle(
                         color: AppColors.success, fontWeight: FontWeight.bold)),
               ),
             ),

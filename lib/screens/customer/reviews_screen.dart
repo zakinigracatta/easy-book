@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
+import '../../l10n/l10n.dart';
 
 class ReviewsScreen extends StatelessWidget {
   const ReviewsScreen({super.key});
@@ -11,15 +12,15 @@ class ReviewsScreen extends StatelessWidget {
     final reviews = [
       {
         'name': 'Alex Johnson',
-        'comment': 'Top notch haircut and hot towel treatment!',
+        'comment': l10nOf(context).sampleReviewOne,
         'rating': 5.0,
-        'date': '2 days ago'
+        'date': l10nOf(context).twoDaysAgo,
       },
       {
         'name': 'Emily Davis',
-        'comment': 'Very relaxing atmosphere and friendly staff.',
+        'comment': l10nOf(context).sampleReviewTwo,
         'rating': 4.8,
-        'date': '1 week ago'
+        'date': l10nOf(context).oneWeekAgo,
       },
     ];
 
@@ -46,7 +47,7 @@ class ReviewsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Customer Reviews'),
+          title: Text(l10nOf(context).customerReviews),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),

@@ -18,6 +18,7 @@ import '../services/booking_availability_engine.dart';
 import '../services/local_storage_service.dart';
 
 export 'auth_provider.dart';
+export 'locale_provider.dart';
 
 // Services & Repositories Providers
 final authServiceProvider = Provider((ref) => AuthService());

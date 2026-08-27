@@ -26,14 +26,16 @@ import 'package:easy_book/repositories/owner_repository.dart';
 import 'fixtures/auth_fixtures.dart';
 import 'fixtures/mock_firebase_auth.dart';
 
-final MockFirebaseAuthPlatform globalMockAuthPlatform = MockFirebaseAuthPlatform();
+final MockFirebaseAuthPlatform globalMockAuthPlatform =
+    MockFirebaseAuthPlatform();
 
 class FakeAuthRepository implements AuthRepository {
   @override
   Stream<UserModel?> authStateChanges() => const Stream.empty();
 
   @override
-  Future<UserModel> login(String email, String password, {UserRole? requestedRole}) async {
+  Future<UserModel> login(String email, String password,
+      {UserRole? requestedRole}) async {
     throw UnimplementedError();
   }
 
@@ -103,10 +105,12 @@ class FakeOwnerRepository implements OwnerRepository {
   Future<void> updateOwnerBusiness(BusinessModel business) async {}
 
   @override
-  Future<BookingModel> createWalkInBooking(BookingModel booking) async => booking;
+  Future<BookingModel> createWalkInBooking(BookingModel booking) async =>
+      booking;
 
   @override
-  Future<void> updateBookingStatus(String bookingId, BookingStatus newStatus) async {}
+  Future<void> updateBookingStatus(
+      String bookingId, BookingStatus newStatus) async {}
 
   @override
   Future<List<ServiceModel>> fetchOwnerServices(String businessId) async => [];
@@ -127,13 +131,16 @@ class FakeOwnerRepository implements OwnerRepository {
   Future<void> deleteEmployee(String businessId, String staffId) async {}
 
   @override
-  Future<List<EmployeeTimeOffModel>> fetchEmployeeTimeOffs(String businessId) async => [];
+  Future<List<EmployeeTimeOffModel>> fetchEmployeeTimeOffs(
+          String businessId) async =>
+      [];
 
   @override
   Future<void> saveEmployeeTimeOff(EmployeeTimeOffModel timeOff) async {}
 
   @override
-  Future<List<GalleryImageModel>> fetchGalleryImages(String businessId) async => [];
+  Future<List<GalleryImageModel>> fetchGalleryImages(String businessId) async =>
+      [];
 
   @override
   Future<void> saveGalleryImage(GalleryImageModel image) async {}
@@ -145,7 +152,8 @@ class FakeOwnerRepository implements OwnerRepository {
   Future<List<ReviewModel>> fetchOwnerReviews(String businessId) async => [];
 
   @override
-  Future<void> replyToReview(String businessId, String reviewId, String replyText) async {}
+  Future<void> replyToReview(
+      String businessId, String reviewId, String replyText) async {}
 
   @override
   Future<List<OfferModel>> fetchOwnerOffers(String businessId) async => [];
@@ -157,16 +165,22 @@ class FakeOwnerRepository implements OwnerRepository {
   Future<void> deleteOffer(String businessId, String offerId) async {}
 
   @override
-  Future<List<CustomerProfileModel>> fetchOwnerCustomers(String businessId) async => [];
+  Future<List<CustomerProfileModel>> fetchOwnerCustomers(
+          String businessId) async =>
+      [];
 
   @override
-  Future<void> saveCustomerNotes(String businessId, String customerId, String notes) async {}
+  Future<void> saveCustomerNotes(
+      String businessId, String customerId, String notes) async {}
 
   @override
-  Future<List<OwnerNotificationModel>> fetchOwnerNotifications(String businessId) async => [];
+  Future<List<OwnerNotificationModel>> fetchOwnerNotifications(
+          String businessId) async =>
+      [];
 
   @override
-  Future<void> markNotificationRead(String businessId, String notificationId) async {}
+  Future<void> markNotificationRead(
+      String businessId, String notificationId) async {}
 }
 
 void main() {
@@ -214,7 +228,9 @@ void main() {
   );
 
   group('Owner Dashboard Resolution Tests', () {
-    testWidgets('Test A & B: owner business resolves cleanly via valid business ID', (tester) async {
+    testWidgets(
+        'Test A & B: owner business resolves cleanly via valid business ID',
+        (tester) async {
       final container = ProviderContainer(
         overrides: [
           authProvider.overrideWith((ref) {
@@ -246,7 +262,8 @@ void main() {
       expect(find.text('Elegance Salon'), findsOneWidget);
     });
 
-    testWidgets('Test C: no business exists -> renders explicit empty state (NO infinite spinner)',
+    testWidgets(
+        'Test C: no business exists -> renders explicit empty state (NO infinite spinner)',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -278,7 +295,8 @@ void main() {
       expect(find.text('Loading business details...'), findsNothing);
     });
 
-    testWidgets('Test D: Firestore error -> renders error state with retry (NO infinite spinner)',
+    testWidgets(
+        'Test D: Firestore error -> renders error state with retry (NO infinite spinner)',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -314,7 +332,8 @@ void main() {
       expect(find.text('Loading business details...'), findsNothing);
     });
 
-    testWidgets('Test E: valid business ID -> upcoming bookings resolve (loading stops)',
+    testWidgets(
+        'Test E: valid business ID -> upcoming bookings resolve (loading stops)',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -351,7 +370,8 @@ void main() {
       expect(find.text('Haircut'), findsOneWidget);
     });
 
-    testWidgets('Test F: no business ID -> bookings provider resolves empty immediately without infinite spinner',
+    testWidgets(
+        'Test F: no business ID -> bookings provider resolves empty immediately without infinite spinner',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -433,9 +453,71 @@ class MockHttpClientResponse extends Fake implements HttpClientResponse {
 }
 
 final transparentPixel = <int>[
-  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-  0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-  0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-  0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
-  0x42, 0x60, 0x82
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82
 ];

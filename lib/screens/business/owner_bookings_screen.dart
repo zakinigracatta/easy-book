@@ -6,12 +6,15 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
+import '../../l10n/l10n.dart';
 
 class OwnerBookingsScreen extends ConsumerWidget {
   const OwnerBookingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final l10n = l10nOf(context);
     final activeFilter = ref.watch(ownerBookingFilterProvider);
     final searchQuery = ref.watch(ownerBookingSearchQueryProvider);
     final filteredBookings = ref.watch(filteredOwnerBookingsProvider);
@@ -25,6 +28,14 @@ class OwnerBookingsScreen extends ConsumerWidget {
       'Completed',
       'Cancelled'
     ];
+    final filterLabels = {
+      'All': l10n.all,
+      'Today': l10n.today,
+      'Upcoming': l10n.upcoming,
+      'Pending': l10n.pending,
+      'Completed': l10n.completed,
+      'Cancelled': l10n.cancelled,
+    };
 
     return PopScope(
       canPop: context.canPop(),
@@ -49,11 +60,11 @@ class OwnerBookingsScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Bookings Management'),
+          title: Text(l10n.bookingsManagement),
           actions: [
             IconButton(
               icon: const Icon(Icons.person_add_alt_1_rounded),
-              tooltip: 'New Walk-in',
+              tooltip: l10n.newWalkIn,
               onPressed: () => context.push('/quick-walk-in'),
             ),
           ],
@@ -67,11 +78,15 @@ class OwnerBookingsScreen extends ConsumerWidget {
                     .read(ownerBookingSearchQueryProvider.notifier)
                     .state = val,
                 decoration: InputDecoration(
-                  hintText: 'Search by customer, phone, or ID...',
-                  hintStyle: const TextStyle(
-                      fontSize: 13, color: AppColors.textMutedDark),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppColors.textMutedDark),
+                  hintText: l10n.bookingSearchHint,
+                  hintStyle: TextStyle(
+                    fontSize: 13,
+                    color: colors.onSurfaceVariant,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: colors.onSurfaceVariant,
+                  ),
                   suffixIcon: searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear_rounded, size: 18),
@@ -81,18 +96,16 @@ class OwnerBookingsScreen extends ConsumerWidget {
                         )
                       : null,
                   filled: true,
-                  fillColor: AppColors.cardDark,
+                  fillColor: colors.surface,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                    borderSide: BorderSide(color: colors.outline),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                    borderSide: BorderSide(color: colors.outline),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -108,25 +121,24 @@ class OwnerBookingsScreen extends ConsumerWidget {
                 children: filters.map((f) {
                   final isSelected = activeFilter == f;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsetsDirectional.only(end: 8),
                     child: FilterChip(
                       selected: isSelected,
-                      label: Text(f),
+                      label: Text(filterLabels[f] ?? f),
                       labelStyle: TextStyle(
                         fontSize: 12,
                         fontWeight:
                             isSelected ? FontWeight.bold : FontWeight.normal,
-                        color:
-                            isSelected ? Colors.white : AppColors.textMutedDark,
+                        color: isSelected
+                            ? colors.onPrimary
+                            : colors.onSurfaceVariant,
                       ),
-                      selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.cardDark,
+                      selectedColor: colors.primary,
+                      backgroundColor: colors.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: isSelected
-                              ? AppColors.primary
-                              : AppColors.glassBorderDark,
+                          color: isSelected ? colors.primary : colors.outline,
                         ),
                       ),
                       onSelected: (_) {
@@ -144,18 +156,16 @@ class OwnerBookingsScreen extends ConsumerWidget {
                   if (filteredBookings.isEmpty) {
                     return OwnerEmptyStateWidget(
                       icon: Icons.calendar_today_rounded,
-                      title: 'No Bookings Found',
-                      description:
-                          'No bookings match your current filter or search criteria.',
-                      actionLabel: 'New Walk-in Booking',
+                      title: l10n.noBookingsFound,
+                      description: l10n.noBookingsMatch,
+                      actionLabel: l10n.newWalkInBooking,
                       onActionTap: () => context.push('/quick-walk-in'),
                     );
                   }
 
                   return RefreshIndicator(
-                    onRefresh: () => ref
-                        .read(ownerBookingsProvider.notifier)
-                        .loadBookings(),
+                    onRefresh: () =>
+                        ref.read(ownerBookingsProvider.notifier).loadBookings(),
                     child: ListView.builder(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
@@ -173,8 +183,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                      'Booking status updated to ${newStatus.name.toUpperCase()}.'),
+                                  content: Text(l10n.bookingStatusUpdated),
                                   backgroundColor: AppColors.success,
                                 ),
                               );
@@ -182,8 +191,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                               if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                      'Could not update booking status: ${e.toString().replaceFirst('Exception: ', '')}'),
+                                  content: Text(l10n.bookingStatusUpdateFailed),
                                   backgroundColor: AppColors.error,
                                 ),
                               );
@@ -196,18 +204,18 @@ class OwnerBookingsScreen extends ConsumerWidget {
                     ),
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (err, _) => const OwnerEmptyStateWidget(
+                error: (err, _) => OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
-                  title: 'Unable to Load Bookings',
-                  description: 'An error occurred while retrieving bookings.',
+                  title: l10n.unableToLoadBookings,
+                  description: l10n.bookingLoadError,
                 ),
               ),
             ),
           ],
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 1),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 1),
       ),
     );
   }

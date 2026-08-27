@@ -111,8 +111,7 @@ class BookingFunctionsService {
         id: bookingId,
         customerId: _stringValue(resData['customerId']),
         customerName: _stringValue(resData['customerName'], customerName),
-        customerPhone:
-            _stringValue(resData['customerPhone'], customerPhone),
+        customerPhone: _stringValue(resData['customerPhone'], customerPhone),
         businessId: _stringValue(resData['businessId'], businessId),
         businessName: _stringValue(resData['businessName']),
         serviceId: _stringValue(resData['serviceId'], serviceId),
@@ -189,8 +188,7 @@ class BookingFunctionsService {
         id: bookingId,
         customerId: _stringValue(resData['customerId']),
         customerName: _stringValue(resData['customerName'], customerName),
-        customerPhone:
-            _stringValue(resData['customerPhone'], customerPhone),
+        customerPhone: _stringValue(resData['customerPhone'], customerPhone),
         businessId: _stringValue(resData['businessId'], businessId),
         businessName: _stringValue(resData['businessName']),
         serviceId: _stringValue(resData['serviceId'], serviceId),

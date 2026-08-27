@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models/booking_model.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
@@ -14,10 +15,13 @@ class BookingSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
+    final locale = Localizations.localeOf(context).languageCode;
     final b = booking;
     final dateText = b == null
         ? null
-        : DateFormat('EEE, dd MMM yyyy • hh:mm a').format(b.startDateTime);
+        : '${DateFormat.yMMMd(locale).format(b.startDateTime)} • '
+            '${DateFormat.jm(locale).format(b.startDateTime)}';
 
     return PopScope(
       canPop: false,
@@ -41,16 +45,16 @@ class BookingSuccessScreen extends StatelessWidget {
                       color: Colors.white, size: 64),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Booking Created!',
+                Text(
+                  l10n.bookingCreated,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   b == null
-                      ? 'Your appointment was created successfully.'
-                      : 'Your request at ${b.businessName} is now pending confirmation.',
+                      ? l10n.appointmentCreatedSuccessfully
+                      : l10n.bookingAwaitingConfirmation(b.businessName),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: AppColors.textMutedDark),
                 ),
@@ -60,29 +64,29 @@ class BookingSuccessScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _row('Booking ID', b.id),
+                        _row(l10n.bookingNumber, b.id),
                         const Divider(height: 20),
-                        _row('Business', b.businessName),
+                        _row(l10n.business, b.businessName),
                         const SizedBox(height: 8),
-                        _row('Service', b.serviceName),
+                        _row(l10n.service, b.serviceName),
                         const SizedBox(height: 8),
-                        _row('Specialist', b.staffName),
+                        _row(l10n.specialist, b.staffName),
                         const SizedBox(height: 8),
-                        _row('Appointment', dateText ?? ''),
+                        _row(l10n.appointment, dateText ?? ''),
                         const SizedBox(height: 8),
-                        _row('Status', 'Pending'),
+                        _row(l10n.status, l10n.pending),
                       ],
                     ),
                   ),
                 ],
                 const SizedBox(height: 30),
                 CustomButton(
-                  text: 'View My Bookings',
+                  text: l10n.viewMyBookings,
                   onPressed: () => context.go('/my-bookings'),
                 ),
                 const SizedBox(height: 12),
                 CustomButton(
-                  text: 'Back to Home',
+                  text: l10n.backToHome,
                   isOutlined: true,
                   onPressed: () => context.go('/home'),
                 ),
@@ -105,8 +109,8 @@ class BookingSuccessScreen extends StatelessWidget {
                   fontSize: 12, color: AppColors.textMutedDark)),
         ),
         Expanded(
-          child: Text(value,
-              style: const TextStyle(fontWeight: FontWeight.w600)),
+          child:
+              Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

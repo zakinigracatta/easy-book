@@ -7,12 +7,14 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/service_model.dart';
+import '../../l10n/l10n.dart';
 
 class ServicesManagementScreen extends ConsumerWidget {
   const ServicesManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = l10nOf(context);
     final servicesAsync = ref.watch(ownerServicesProvider);
 
     return PopScope(
@@ -29,7 +31,7 @@ class ServicesManagementScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -38,11 +40,11 @@ class ServicesManagementScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Services Menu Management'),
+          title: Text(l10n.servicesMenuManagement),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_circle_outline_rounded),
-              tooltip: 'Add Service',
+              icon: Icon(Icons.add_circle_outline_rounded),
+              tooltip: l10n.addService,
               onPressed: () => context.push('/add-service'),
             ),
           ],
@@ -52,22 +54,22 @@ class ServicesManagementScreen extends ConsumerWidget {
             if (services.isEmpty) {
               return OwnerEmptyStateWidget(
                 icon: Icons.design_services_rounded,
-                title: 'No Services Added',
-                description: 'Create your first service so customers can book.',
-                actionLabel: 'Add Service',
+                title: l10n.noServicesAdded,
+                description: l10n.addFirstServiceHelp,
+                actionLabel: l10n.addService,
                 onActionTap: () => context.push('/add-service'),
               );
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               itemCount: services.length,
               itemBuilder: (context, index) {
                 final s = services[index];
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: EdgeInsets.only(bottom: 12),
                   child: GlassCard(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Row(
@@ -88,11 +90,11 @@ class ServicesManagementScreen extends ConsumerWidget {
                                     : null,
                               ),
                               child: (s.imageUrl == null || s.imageUrl!.isEmpty)
-                                  ? const Icon(Icons.design_services_rounded,
+                                  ? Icon(Icons.design_services_rounded,
                                       color: AppColors.primaryLight)
                                   : null,
                             ),
-                            const SizedBox(width: 14),
+                            SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,15 +104,17 @@ class ServicesManagementScreen extends ConsumerWidget {
                                       Expanded(
                                         child: Text(
                                           s.name,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.bold,
-                                            color: AppColors.textPrimaryDark,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                           ),
                                         ),
                                       ),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
+                                        padding: EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
                                           color: s.isActive
@@ -122,7 +126,9 @@ class ServicesManagementScreen extends ConsumerWidget {
                                               BorderRadius.circular(8),
                                         ),
                                         child: Text(
-                                          s.isActive ? 'Available' : 'Disabled',
+                                          s.isActive
+                                              ? l10n.available
+                                              : l10n.disabled,
                                           style: TextStyle(
                                             color: s.isActive
                                                 ? AppColors.success
@@ -134,24 +140,28 @@ class ServicesManagementScreen extends ConsumerWidget {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
-                                    '${s.categoryName} • ${s.durationMinutes} min',
-                                    style: const TextStyle(
+                                    '${_localizedServiceCategory(context, s.categoryName)} • ${l10n.minutesCount(s.durationMinutes)}',
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textMutedDark,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                     ),
                                   ),
                                   if (s.description != null &&
                                       s.description!.isNotEmpty) ...[
-                                    const SizedBox(height: 6),
+                                    SizedBox(height: 6),
                                     Text(
                                       s.description!,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondaryDark,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
                                       ),
                                     ),
                                   ],
@@ -160,65 +170,84 @@ class ServicesManagementScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        const Divider(
-                            color: AppColors.glassBorderDark, height: 1),
-                        const SizedBox(height: 10),
+                        SizedBox(height: 12),
+                        Divider(
+                            color: Theme.of(context).colorScheme.outline,
+                            height: 1),
+                        SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'AED ${s.price.toStringAsFixed(0)}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    decoration: s.discountPrice != null
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                    color: s.discountPrice != null
-                                        ? AppColors.textMutedDark
-                                        : AppColors.primaryLight,
-                                  ),
-                                ),
-                                if (s.discountPrice != null) ...[
-                                  const SizedBox(width: 8),
+                            Directionality(
+                              textDirection: TextDirection.ltr,
+                              child: Row(
+                                children: [
                                   Text(
-                                    'AED ${s.discountPrice!.toStringAsFixed(0)}',
-                                    style: const TextStyle(
+                                    'AED ${s.price.toStringAsFixed(0)}',
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.success,
+                                      decoration: s.discountPrice != null
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                      color: s.discountPrice != null
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant
+                                          : AppColors.primaryLight,
                                     ),
                                   ),
+                                  if (s.discountPrice != null) ...[
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'AED ${s.discountPrice!.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.success,
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                             Row(
                               children: [
-                                Switch(
-                                  value: s.isActive,
-                                  activeThumbColor: AppColors.primary,
-                                  onChanged: (_) {
-                                    ref
-                                        .read(ownerServicesProvider.notifier)
-                                        .toggleServiceActive(s);
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.edit_rounded,
-                                      size: 18, color: AppColors.accent),
-                                  onPressed: () => context.push(
-                                    '/add-service',
-                                    extra: s,
+                                Transform.scale(
+                                  scale: 0.82,
+                                  child: Switch(
+                                    value: s.isActive,
+                                    onChanged: (_) {
+                                      ref
+                                          .read(ownerServicesProvider.notifier)
+                                          .toggleServiceActive(s);
+                                    },
                                   ),
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline_rounded,
-                                      size: 18, color: AppColors.error),
-                                  onPressed: () =>
-                                      _confirmDelete(context, ref, s),
+                                PopupMenuButton<String>(
+                                  icon: Icon(
+                                    Icons.more_horiz_rounded,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                  onSelected: (value) {
+                                    if (value == 'edit') {
+                                      context.push('/add-service', extra: s);
+                                    } else {
+                                      _confirmDelete(context, ref, s);
+                                    }
+                                  },
+                                  itemBuilder: (_) => [
+                                    PopupMenuItem(
+                                      value: 'edit',
+                                      child: Text(l10n.editService),
+                                    ),
+                                    PopupMenuItem(
+                                      value: 'delete',
+                                      child: Text(l10n.deleteService),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -231,15 +260,15 @@ class ServicesManagementScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
               child: CircularProgressIndicator(color: AppColors.primary)),
-          error: (_, __) => const OwnerEmptyStateWidget(
+          error: (_, __) => OwnerEmptyStateWidget(
             icon: Icons.error_outline_rounded,
-            title: 'Unable to Load Services',
-            description: 'Could not fetch business services menu.',
+            title: l10n.servicesFetchFailed,
+            description: l10n.servicesFetchFailed,
           ),
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 3),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 3),
       ),
     );
   }
@@ -249,18 +278,20 @@ class ServicesManagementScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.cardDark,
-        title: const Text('Delete Service',
-            style: TextStyle(color: AppColors.textPrimaryDark)),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(l10nOf(context).deleteServiceQuestion,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: Text(
-          'Are you sure you want to delete "${service.name}"? If this service has existing bookings, consider disabling it instead.',
-          style: const TextStyle(color: AppColors.textMutedDark),
+          l10nOf(context).deleteServiceConfirmation(service.name),
+          style:
+              TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: AppColors.textMutedDark)),
+            child: Text(l10nOf(context).cancel,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -270,16 +301,30 @@ class ServicesManagementScreen extends ConsumerWidget {
                   .read(ownerServicesProvider.notifier)
                   .deleteService(service.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Service deleted'),
+                SnackBar(
+                  content: Text(l10nOf(context).serviceDeleted),
                   backgroundColor: AppColors.error,
                 ),
               );
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+            child: Text(l10nOf(context).delete,
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
   }
+}
+
+String _localizedServiceCategory(BuildContext context, String value) {
+  final l10n = l10nOf(context);
+  return switch (value) {
+    'Hair Services' => l10n.hairServices,
+    'Hair Salon' => l10n.hairSalon,
+    'Nails' => l10n.nails,
+    'Massage' => l10n.massage,
+    'Spa' => l10n.spa,
+    'Beauty' => l10n.beauty,
+    _ => value,
+  };
 }

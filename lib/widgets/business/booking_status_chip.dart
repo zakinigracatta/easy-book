@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/booking_model.dart';
+import '../../l10n/l10n.dart';
 
 class BookingStatusChip extends StatelessWidget {
   final BookingStatus status;
@@ -13,7 +14,7 @@ class BookingStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = _getStatusStyle(status);
+    final style = _getStatusStyle(context, status);
 
     return Container(
       padding: EdgeInsets.symmetric(
@@ -51,53 +52,54 @@ class BookingStatusChip extends StatelessWidget {
   }
 
   ({String label, Color bgColor, Color textColor, Color borderColor})
-      _getStatusStyle(BookingStatus s) {
+      _getStatusStyle(BuildContext context, BookingStatus s) {
+    final l10n = l10nOf(context);
     switch (s) {
       case BookingStatus.pending:
         return (
-          label: 'Pending',
+          label: l10n.pending,
           bgColor: const Color(0x26F59E0B),
           textColor: const Color(0xFFFBBF24),
           borderColor: const Color(0x66F59E0B),
         );
       case BookingStatus.confirmed:
         return (
-          label: 'Confirmed',
+          label: l10n.confirmed,
           bgColor: const Color(0x263B82F6),
           textColor: const Color(0xFF60A5FA),
           borderColor: const Color(0x663B82F6),
         );
       case BookingStatus.arrived:
         return (
-          label: 'Arrived',
+          label: l10n.arrived,
           bgColor: const Color(0x268B5CF6),
           textColor: const Color(0xFFA78BFA),
           borderColor: const Color(0x668B5CF6),
         );
       case BookingStatus.inProgress:
         return (
-          label: 'In Progress',
+          label: l10n.inProgress,
           bgColor: const Color(0x26A855F7),
           textColor: const Color(0xFFC084FC),
           borderColor: const Color(0x66A855F7),
         );
       case BookingStatus.completed:
         return (
-          label: 'Completed',
+          label: l10n.completed,
           bgColor: const Color(0x2610B981),
           textColor: const Color(0xFF34D399),
           borderColor: const Color(0x6610B981),
         );
       case BookingStatus.cancelled:
         return (
-          label: 'Cancelled',
+          label: l10n.cancelled,
           bgColor: const Color(0x26EF4444),
           textColor: const Color(0xFFF87171),
           borderColor: const Color(0x66EF4444),
         );
       case BookingStatus.noShow:
         return (
-          label: 'No Show',
+          label: l10n.noShow,
           bgColor: const Color(0x2664748B),
           textColor: const Color(0xFF94A3B8),
           borderColor: const Color(0x6664748B),

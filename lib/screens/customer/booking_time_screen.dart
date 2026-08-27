@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../providers/app_providers.dart';
 import '../../models/staff_model.dart';
 import '../../models/available_slot.dart';
+import '../../l10n/l10n.dart';
 import 'widgets/booking_progress_header.dart';
 import 'widgets/booking_date_selector.dart';
 import 'widgets/time_slot_grid.dart';
@@ -33,15 +34,14 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
       List<StaffModel> eligibleStaff, List<AvailableSlot> availableSlots) {
     if (_selectedSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please select an available time slot to continue.')),
+        SnackBar(content: Text(l10nOf(context).timeSelectionRequired)),
       );
       return;
     }
 
     final draft = ref.read(bookingDraftProvider);
     String resolvedId = draft.staffId ?? '';
-    String resolvedName = draft.staffName ?? 'Specialist';
+    String resolvedName = draft.staffName ?? l10nOf(context).specialist;
 
     // If Any Specialist was chosen, resolve staff ID from available staff for this slot
     if (draft.anySpecialist || resolvedId.isEmpty) {
@@ -100,24 +100,24 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
               }
             },
           ),
-          title: const Text('Select Appointment Time'),
+          title: Text(l10nOf(context).selectAppointmentTime),
         ),
         body: businessState.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Center(
-              child: Text('Error: $err',
+              child: Text(l10nOf(context).errorWithDetails('$err'),
                   style: const TextStyle(color: AppColors.error))),
           data: (business) {
             if (business == null) {
-              return const Center(
-                  child: Text('Salon not found.',
-                      style: TextStyle(color: AppColors.textMutedDark)));
+              return Center(
+                  child: Text(l10nOf(context).salonNotFound,
+                      style: const TextStyle(color: AppColors.textMutedDark)));
             }
 
             return eligibleStaffState.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, _) => Center(
-                  child: Text('Error loading staff: $err',
+                  child: Text(l10nOf(context).staffLoadError('$err'),
                       style: const TextStyle(color: AppColors.error))),
               data: (eligibleStaff) {
                 final engineSlotsState =
@@ -162,7 +162,8 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                               isLoading: true,
                             ),
                             error: (err, _) => Center(
-                                child: Text('Error loading slots: $err',
+                                child: Text(
+                                    l10nOf(context).slotsLoadError('$err'),
                                     style: const TextStyle(
                                         color: AppColors.error))),
                             data: (availableSlots) {
@@ -184,7 +185,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
 
                       engineSlotsState.maybeWhen(
                         data: (slots) => CustomButton(
-                          text: 'Review Booking Summary',
+                          text: l10nOf(context).reviewBookingSummary,
                           onPressed: _selectedSlot != null
                               ? () => _onNext(eligibleStaff, slots)
                               : null,

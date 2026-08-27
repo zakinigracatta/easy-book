@@ -55,9 +55,8 @@ class BusinessRepositoryImpl implements BusinessRepository {
         normalizedCategory != 'all') {
       results = results
           .where(
-            (business) => business.category
-                .toLowerCase()
-                .contains(normalizedCategory),
+            (business) =>
+                business.category.toLowerCase().contains(normalizedCategory),
           )
           .toList();
     }

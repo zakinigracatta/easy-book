@@ -30,7 +30,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -39,12 +39,12 @@ class OwnerNotificationsScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Owner Notifications'),
+          title: Text('Owner Notifications'),
         ),
         body: notificationsAsync.when(
           data: (notifications) {
             if (notifications.isEmpty) {
-              return const OwnerEmptyStateWidget(
+              return OwnerEmptyStateWidget(
                 icon: Icons.notifications_none_rounded,
                 title: 'No Notifications',
                 description:
@@ -53,7 +53,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final n = notifications[index];
@@ -62,7 +62,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                 final timeAgo = DateFormat('hh:mm a').format(n.createdAt);
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: EdgeInsets.only(bottom: 10),
                   child: GlassCard(
                     onTap: () async {
                       final bizId =
@@ -94,7 +94,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                                 fontWeight: n.isRead
                                     ? FontWeight.normal
                                     : FontWeight.bold,
-                                color: AppColors.textPrimaryDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -102,7 +102,7 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                             Container(
                               width: 8,
                               height: 8,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 color: AppColors.accent,
                                 shape: BoxShape.circle,
                               ),
@@ -113,20 +113,24 @@ class OwnerNotificationsScreen extends ConsumerWidget {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             n.body,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textMutedDark,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: 4),
                           Text(
                             timeAgo,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: AppColors.textMutedDark,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -137,15 +141,15 @@ class OwnerNotificationsScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
               child: CircularProgressIndicator(color: AppColors.primary)),
-          error: (_, __) => const OwnerEmptyStateWidget(
+          error: (_, __) => OwnerEmptyStateWidget(
             icon: Icons.error_outline_rounded,
             title: 'Unable to Load Notifications',
             description: 'Could not fetch notification inbox.',
           ),
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
       ),
     );
   }

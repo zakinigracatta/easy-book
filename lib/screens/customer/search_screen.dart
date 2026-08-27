@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -49,28 +50,27 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final businessesAsync =
-        ref.watch(customerSearchBusinessesProvider(_query));
+    final businessesAsync = ref.watch(customerSearchBusinessesProvider(_query));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Search & Explore')),
+      appBar: AppBar(title: Text(l10nOf(context).searchAndExplore)),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: CustomTextField(
               controller: _searchController,
-              label: 'Search salons, spas or locations',
+              label: l10nOf(context).searchBusinessesHint,
               prefixIcon: Icons.search,
             ),
           ),
           Expanded(
             child: businessesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stackTrace) => _errorState(),
+              error: (error, stackTrace) => _errorState(context),
               data: (businesses) {
                 if (businesses.isEmpty) {
-                  return _emptyState();
+                  return _emptyState(context);
                 }
 
                 return RefreshIndicator(
@@ -148,7 +148,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  business.address.isEmpty ? business.category : business.address,
+                  business.address.isEmpty
+                      ? business.category
+                      : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -190,7 +192,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Widget _emptyState() {
+  Widget _emptyState(BuildContext context) {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
@@ -200,14 +202,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         const SizedBox(height: 14),
         Text(
           _query.isEmpty
-              ? 'No businesses available yet'
-              : 'No results for “$_query”',
+              ? l10nOf(context).noBusinessesAvailable
+              : l10nOf(context).noSearchResults(_query),
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Try another search or check again later.',
+        Text(
+          l10nOf(context).searchAgainHint,
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.textMutedDark),
         ),
@@ -215,7 +217,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Widget _errorState() {
+  Widget _errorState(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -224,8 +226,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           children: [
             const Icon(Icons.cloud_off_rounded, size: 48),
             const SizedBox(height: 12),
-            const Text(
-              'Could not load search results',
+            Text(
+              l10nOf(context).searchResultsLoadFailed,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
@@ -233,7 +235,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               onPressed: () =>
                   ref.invalidate(customerSearchBusinessesProvider(_query)),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try again'),
+              label: Text(l10nOf(context).tryAgain),
             ),
           ],
         ),

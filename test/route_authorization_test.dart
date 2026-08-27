@@ -15,7 +15,8 @@ import 'package:easy_book/services/auth_guard.dart';
 import 'fixtures/auth_fixtures.dart';
 import 'fixtures/mock_firebase_auth.dart';
 
-final MockFirebaseAuthPlatform globalMockAuthPlatform = MockFirebaseAuthPlatform();
+final MockFirebaseAuthPlatform globalMockAuthPlatform =
+    MockFirebaseAuthPlatform();
 
 void main() {
   setUpAll(() async {
@@ -68,7 +69,8 @@ void main() {
   }
 
   group('Modern Startup Flow & Runtime Failsafe Tests', () {
-    testWidgets('Test A: Guest Startup Resolves immediately to /home without waiting for profile',
+    testWidgets(
+        'Test A: Guest Startup Resolves immediately to /home without waiting for profile',
         (tester) async {
       await tester.pumpWidget(buildTestApp(user: null));
       appRouter.go('/splash');
@@ -82,12 +84,14 @@ void main() {
       expect(find.text('Customer Portal'), findsNothing);
     });
 
-    testWidgets('Test B: Auth Provider Error / Slow Profile does not spin forever, falls back to /home',
+    testWidgets(
+        'Test B: Auth Provider Error / Slow Profile does not spin forever, falls back to /home',
         (tester) async {
       globalMockAuthPlatform.setMockUser('user123', 'slow@test.com');
       final container = ProviderContainer(
         overrides: [
-          authProvider.overrideWith((ref) => AuthNotifier(FakeAuthRepository())),
+          authProvider
+              .overrideWith((ref) => AuthNotifier(FakeAuthRepository())),
         ],
       );
       addTearDown(container.dispose);
@@ -106,7 +110,8 @@ void main() {
       expect(getCurrentLocation(), equals('/home'));
     });
 
-    testWidgets('Test C: Owner Startup resolves to /owner-dashboard', (tester) async {
+    testWidgets('Test C: Owner Startup resolves to /owner-dashboard',
+        (tester) async {
       final container = ProviderContainer(
         overrides: [
           authProvider.overrideWith((ref) {
@@ -118,7 +123,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await tester.pumpWidget(buildTestApp(user: AuthFixtures.ownerUser, container: container));
+      await tester.pumpWidget(
+          buildTestApp(user: AuthFixtures.ownerUser, container: container));
       appRouter.go('/splash');
       await tester.pump();
 
@@ -126,7 +132,8 @@ void main() {
       expect(getCurrentLocation(), equals('/owner-dashboard'));
     });
 
-    testWidgets('Test D: Admin Startup resolves to /admin-dashboard', (tester) async {
+    testWidgets('Test D: Admin Startup resolves to /admin-dashboard',
+        (tester) async {
       final container = ProviderContainer(
         overrides: [
           authProvider.overrideWith((ref) {
@@ -138,7 +145,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await tester.pumpWidget(buildTestApp(user: AuthFixtures.adminUser, container: container));
+      await tester.pumpWidget(
+          buildTestApp(user: AuthFixtures.adminUser, container: container));
       appRouter.go('/splash');
       await tester.pump();
 
@@ -146,7 +154,8 @@ void main() {
       expect(getCurrentLocation(), equals('/admin-dashboard'));
     });
 
-    testWidgets('Test E: Stale Owner State (null FirebaseAuth) denies owner access and opens /home',
+    testWidgets(
+        'Test E: Stale Owner State (null FirebaseAuth) denies owner access and opens /home',
         (tester) async {
       globalMockAuthPlatform.clearUser();
       final container = ProviderContainer(
@@ -171,7 +180,8 @@ void main() {
       expect(getCurrentLocation(), equals('/home'));
     });
 
-    testWidgets('Test F: Stale Admin State (null FirebaseAuth) denies admin access and opens /home',
+    testWidgets(
+        'Test F: Stale Admin State (null FirebaseAuth) denies admin access and opens /home',
         (tester) async {
       globalMockAuthPlatform.clearUser();
       final container = ProviderContainer(
@@ -196,12 +206,14 @@ void main() {
       expect(getCurrentLocation(), equals('/home'));
     });
 
-    testWidgets('Test G: Bounded Timeout Failsafe guarantees resolution past timeout',
+    testWidgets(
+        'Test G: Bounded Timeout Failsafe guarantees resolution past timeout',
         (tester) async {
       globalMockAuthPlatform.setMockUser('user_timeout', 'timeout@test.com');
       final container = ProviderContainer(
         overrides: [
-          authProvider.overrideWith((ref) => AuthNotifier(FakeAuthRepository())),
+          authProvider
+              .overrideWith((ref) => AuthNotifier(FakeAuthRepository())),
         ],
       );
       addTearDown(container.dispose);
@@ -219,7 +231,8 @@ void main() {
   });
 
   group('Route Authorization & Navigation Regression Tests', () {
-    testWidgets('Scenario 1: Guest -> /owner-dashboard redirects to /owner-login',
+    testWidgets(
+        'Scenario 1: Guest -> /owner-dashboard redirects to /owner-login',
         (tester) async {
       await tester.pumpWidget(buildTestApp(user: null));
       await tester.pump(const Duration(seconds: 2));
@@ -230,7 +243,8 @@ void main() {
       expect(getCurrentLocation(), equals('/owner-login'));
     });
 
-    testWidgets('Scenario 2: Guest -> /admin-dashboard redirects to /admin-login',
+    testWidgets(
+        'Scenario 2: Guest -> /admin-dashboard redirects to /admin-login',
         (tester) async {
       await tester.pumpWidget(buildTestApp(user: null));
       await tester.pump(const Duration(seconds: 2));
@@ -255,7 +269,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await tester.pumpWidget(buildTestApp(user: AuthFixtures.customerUser, container: container));
+      await tester.pumpWidget(
+          buildTestApp(user: AuthFixtures.customerUser, container: container));
       await tester.pump(const Duration(seconds: 2));
       await tester.pump(const Duration(milliseconds: 600));
 
@@ -276,7 +291,8 @@ void main() {
       expect(getCurrentLocation(), equals('/home'));
     });
 
-    testWidgets('Scenario 4: Owner -> /owner-dashboard & /salon-management CAN access',
+    testWidgets(
+        'Scenario 4: Owner -> /owner-dashboard & /salon-management CAN access',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -289,7 +305,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await tester.pumpWidget(buildTestApp(user: AuthFixtures.ownerUser, container: container));
+      await tester.pumpWidget(
+          buildTestApp(user: AuthFixtures.ownerUser, container: container));
       await tester.pump(const Duration(seconds: 2));
       await tester.pump(const Duration(milliseconds: 600));
 
@@ -300,7 +317,8 @@ void main() {
       expect(getCurrentLocation(), equals('/salon-management'));
     });
 
-    testWidgets('Scenario 5: Admin -> /admin-dashboard & /users-management CAN access',
+    testWidgets(
+        'Scenario 5: Admin -> /admin-dashboard & /users-management CAN access',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -313,7 +331,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      await tester.pumpWidget(buildTestApp(user: AuthFixtures.adminUser, container: container));
+      await tester.pumpWidget(
+          buildTestApp(user: AuthFixtures.adminUser, container: container));
       await tester.pump(const Duration(seconds: 2));
       await tester.pump(const Duration(milliseconds: 600));
 
@@ -360,7 +379,8 @@ void main() {
         (tester) async {
       final container = ProviderContainer(
         overrides: [
-          authProvider.overrideWith((ref) => AuthNotifier(FakeAuthRepository())),
+          authProvider
+              .overrideWith((ref) => AuthNotifier(FakeAuthRepository())),
         ],
       );
       addTearDown(container.dispose);
@@ -372,7 +392,8 @@ void main() {
             home: Scaffold(
               body: Builder(
                 builder: (context) => ElevatedButton(
-                  onPressed: () => requireLogin(context, targetRoute: '/my-bookings'),
+                  onPressed: () =>
+                      requireLogin(context, targetRoute: '/my-bookings'),
                   child: const Text('Book Action'),
                 ),
               ),
@@ -440,7 +461,8 @@ void main() {
       // 3. Stale owner attempting /owner-dashboard MUST BE DENIED and redirected to /owner-login
       await navigateAndPump(tester, '/owner-dashboard');
       expect(getCurrentLocation(), equals('/owner-login'),
-          reason: 'Stale Riverpod owner user without FirebaseAuth session must be denied');
+          reason:
+              'Stale Riverpod owner user without FirebaseAuth session must be denied');
 
       // 4. Stale admin attempting /admin-dashboard MUST BE DENIED and redirected to /admin-login
       final adminContainer = ProviderContainer(
@@ -467,7 +489,8 @@ void main() {
 
       await navigateAndPump(tester, '/admin-dashboard');
       expect(getCurrentLocation(), equals('/admin-login'),
-          reason: 'Stale Riverpod admin user without FirebaseAuth session must be denied');
+          reason:
+              'Stale Riverpod admin user without FirebaseAuth session must be denied');
     });
   });
 }
@@ -477,7 +500,8 @@ class FakeAuthRepository implements AuthRepository {
   Stream<UserModel?> authStateChanges() => const Stream.empty();
 
   @override
-  Future<UserModel> login(String email, String password, {UserRole? requestedRole}) async {
+  Future<UserModel> login(String email, String password,
+      {UserRole? requestedRole}) async {
     throw UnimplementedError();
   }
 
@@ -567,9 +591,71 @@ class MockHttpClientResponse extends Fake implements HttpClientResponse {
 }
 
 final transparentPixel = <int>[
-  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-  0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-  0x89, 0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-  0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
-  0x42, 0x60, 0x82
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82
 ];

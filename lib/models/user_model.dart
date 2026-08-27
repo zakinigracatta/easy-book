@@ -31,7 +31,9 @@ class UserModel {
 
   String get roleString {
     if (role == UserRole.admin) return 'admin';
-    if (role == UserRole.owner || role == UserRole.businessOwner) return 'owner';
+    if (role == UserRole.owner || role == UserRole.businessOwner) {
+      return 'owner';
+    }
     return 'customer';
   }
 
@@ -104,8 +106,7 @@ class UserModel {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       role: role ?? this.role,
       walletBalance: walletBalance ?? this.walletBalance,
-      favoriteBusinessIds:
-          favoriteBusinessIds ?? this.favoriteBusinessIds,
+      favoriteBusinessIds: favoriteBusinessIds ?? this.favoriteBusinessIds,
       businessName: businessName ?? this.businessName,
       category: category ?? this.category,
       location: location ?? this.location,

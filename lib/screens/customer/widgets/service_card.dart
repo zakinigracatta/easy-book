@@ -4,6 +4,7 @@ import '../../../models/service_model.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/l10n.dart';
 
 class ServiceCard extends StatelessWidget {
   final ServiceModel service;
@@ -147,7 +148,9 @@ class ServiceCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
-                isSelected ? 'Selected ✓' : 'Book',
+                isSelected
+                    ? l10nOf(context).selectedWithCheck
+                    : l10nOf(context).book,
                 style:
                     const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
               ),

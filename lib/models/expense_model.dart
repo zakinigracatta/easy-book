@@ -118,8 +118,10 @@ class ExpenseModel {
       frequency: frequency,
       isActive: json['isActive'] as bool? ?? true,
       createdBy: json['createdBy']?.toString() ?? '',
-      createdAt: json['createdAt'] == null ? null : _parseDate(json['createdAt']),
-      updatedAt: json['updatedAt'] == null ? null : _parseDate(json['updatedAt']),
+      createdAt:
+          json['createdAt'] == null ? null : _parseDate(json['createdAt']),
+      updatedAt:
+          json['updatedAt'] == null ? null : _parseDate(json['updatedAt']),
     );
   }
 
@@ -180,87 +182,7 @@ class ExpenseModel {
   }
 }
 
-extension ExpenseFrequencyLabel on ExpenseFrequency {
-  String get label {
-    switch (this) {
-      case ExpenseFrequency.daily:
-        return 'Daily Expenses';
-      case ExpenseFrequency.monthly:
-        return 'Monthly Expenses';
-      case ExpenseFrequency.yearly:
-        return 'Annual Expenses';
-      case ExpenseFrequency.emergency:
-        return 'Emergency / One-time';
-    }
-  }
-
-  String get shortLabel {
-    switch (this) {
-      case ExpenseFrequency.daily:
-        return 'Daily';
-      case ExpenseFrequency.monthly:
-        return 'Monthly';
-      case ExpenseFrequency.yearly:
-        return 'Annual';
-      case ExpenseFrequency.emergency:
-        return 'Emergency';
-    }
-  }
-
-  String get description {
-    switch (this) {
-      case ExpenseFrequency.daily:
-        return 'Day-to-day operating costs actually paid';
-      case ExpenseFrequency.monthly:
-        return 'Regular monthly costs such as rent or salaries';
-      case ExpenseFrequency.yearly:
-        return 'Annual costs such as licenses or insurance';
-      case ExpenseFrequency.emergency:
-        return 'Unexpected or one-off costs such as urgent repairs';
-    }
-  }
-}
-
-extension ExpenseCategoryLabel on ExpenseCategory {
-  String get label {
-    switch (this) {
-      case ExpenseCategory.rent:
-        return 'Rent';
-      case ExpenseCategory.salaries:
-        return 'Staff Salaries';
-      case ExpenseCategory.commissions:
-        return 'Staff Commissions';
-      case ExpenseCategory.utilities:
-        return 'Utilities';
-      case ExpenseCategory.internetPhone:
-        return 'Internet & Phone';
-      case ExpenseCategory.supplies:
-        return 'Products & Supplies';
-      case ExpenseCategory.equipment:
-        return 'Equipment';
-      case ExpenseCategory.maintenance:
-        return 'Maintenance';
-      case ExpenseCategory.cleaningLaundry:
-        return 'Cleaning & Laundry';
-      case ExpenseCategory.marketing:
-        return 'Marketing & Advertising';
-      case ExpenseCategory.licensing:
-        return 'Licensing & Government Fees';
-      case ExpenseCategory.insurance:
-        return 'Insurance';
-      case ExpenseCategory.paymentFees:
-        return 'Payment & Bank Fees';
-      case ExpenseCategory.easyBookFees:
-        return 'Easy Book Fees';
-      case ExpenseCategory.taxes:
-        return 'Taxes / VAT';
-      case ExpenseCategory.transport:
-        return 'Transport';
-      case ExpenseCategory.other:
-        return 'Other';
-    }
-  }
-
+extension ExpenseCategoryDetails on ExpenseCategory {
   /// Provides a sensible default while still allowing the owner to override it.
   ExpenseFrequency get suggestedFrequency {
     switch (this) {
@@ -313,25 +235,6 @@ extension ExpenseCategoryLabel on ExpenseCategory {
         return ExpenseGroup.feesAndCompliance;
       case ExpenseCategory.other:
         return ExpenseGroup.other;
-    }
-  }
-}
-
-extension ExpenseGroupLabel on ExpenseGroup {
-  String get label {
-    switch (this) {
-      case ExpenseGroup.staff:
-        return 'Staff Costs';
-      case ExpenseGroup.occupancy:
-        return 'Occupancy & Utilities';
-      case ExpenseGroup.operations:
-        return 'Operating Costs';
-      case ExpenseGroup.marketing:
-        return 'Marketing';
-      case ExpenseGroup.feesAndCompliance:
-        return 'Fees, Insurance & Taxes';
-      case ExpenseGroup.other:
-        return 'Other Costs';
     }
   }
 }

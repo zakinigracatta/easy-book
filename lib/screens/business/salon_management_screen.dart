@@ -11,6 +11,7 @@ import '../../providers/owner_providers.dart';
 import '../../models/business_model.dart';
 import '../../services/media_upload_service.dart';
 import 'business_location_picker_screen.dart';
+import '../../l10n/l10n.dart';
 
 class SalonManagementScreen extends ConsumerStatefulWidget {
   const SalonManagementScreen({super.key});
@@ -23,15 +24,15 @@ class SalonManagementScreen extends ConsumerStatefulWidget {
 class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
   static const _amenityOptions = [
     'Wi-Fi',
-    'Parking',
-    'Valet Parking',
-    'Card Payment',
-    'Cash Payment',
-    'Wheelchair Access',
-    'Private Rooms',
-    'Ladies Only',
-    'Coffee & Drinks',
-    'Prayer Area',
+    'parking',
+    'valetParking',
+    'cardPayment',
+    'cashPayment',
+    'wheelchairAccess',
+    'privateRooms',
+    'womenOnly',
+    'coffeeAndDrinks',
+    'prayerSpace',
   ];
 
   final _formKey = GlobalKey<FormState>();
@@ -95,11 +96,12 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Business Management'),
+          title: Text(l10nOf(context).manageBusiness),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () =>
-                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go('/owner-dashboard'),
           ),
         ),
         body: businessAsync.when(
@@ -125,7 +127,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                     _buildManagementShortcuts(context),
                     const SizedBox(height: 18),
                     CustomButton(
-                      text: 'Save Business Profile',
+                      text: l10nOf(context).saveBusinessProfile,
                       isLoading: _isLoading,
                       onPressed: () => _updateProfile(business),
                     ),
@@ -141,11 +143,11 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load business profile: $error'),
+              child: Text(l10nOf(context).businessProfileLoadFailed('$error')),
             ),
           ),
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
       ),
     );
   }
@@ -175,21 +177,21 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Online Booking Status',
+                Text(
+                  l10nOf(context).onlineBookingStatus,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   _acceptingBookings
-                      ? 'Customers can currently book your business.'
-                      : 'New online bookings are temporarily paused.',
-                  style: const TextStyle(
+                      ? l10nOf(context).customersCanBookNow
+                      : l10nOf(context).onlineBookingsPaused,
+                  style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -197,7 +199,8 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
           ),
           Switch(
             value: _acceptingBookings,
-            activeThumbColor: AppColors.primary,
+            activeThumbColor: Colors.white,
+            activeTrackColor: AppColors.success,
             onChanged: (value) => setState(() => _acceptingBookings = value),
           ),
         ],
@@ -211,14 +214,14 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle(
+          _SectionTitle(
             icon: Icons.photo_camera_back_rounded,
-            title: 'Main Business Photo',
-            subtitle: 'Upload a real cover image from the device.',
+            title: l10nOf(context).businessMainPhoto,
+            subtitle: l10nOf(context).uploadCoverPhotoHelp,
           ),
           const SizedBox(height: 14),
           BusinessImagePicker(
-            label: 'Logo / Main Cover Image',
+            label: l10nOf(context).logoOrMainCover,
             currentImageUrl: _logoUrlController.text,
             onPickImage: () => _pickMainPhoto(business),
             onDeleteImage: _logoUrlController.text.isEmpty
@@ -230,10 +233,12 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
             LinearProgressIndicator(value: _uploadProgress),
             const SizedBox(height: 5),
             Text(
-              'Uploading ${(100 * _uploadProgress!).round()}%',
-              style: const TextStyle(
+              l10nOf(context).uploadProgressPercent(
+                (100 * _uploadProgress!).round(),
+              ),
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textMutedDark,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -241,7 +246,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
           OutlinedButton.icon(
             onPressed: () => context.push('/owner-gallery'),
             icon: const Icon(Icons.collections_rounded),
-            label: const Text('Manage Multiple Business Photos'),
+            label: Text(l10nOf(context).manageMultipleBusinessPhotos),
           ),
         ],
       ),
@@ -254,43 +259,43 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle(
+          _SectionTitle(
             icon: Icons.storefront_rounded,
-            title: 'Business Details',
-            subtitle: 'Information customers see on your public profile.',
+            title: l10nOf(context).businessDetails,
+            subtitle: l10nOf(context).publicBusinessInfoHelp,
           ),
           const SizedBox(height: 14),
           CustomTextField(
             controller: _nameController,
-            label: 'Business Name *',
+            label: l10nOf(context).businessNameRequiredLabel,
             prefixIcon: Icons.storefront_rounded,
             validator: (value) => value == null || value.trim().isEmpty
-                ? 'Enter business name'
+                ? l10nOf(context).enterBusinessName
                 : null,
           ),
           const SizedBox(height: 12),
           CustomTextField(
             controller: _categoryController,
-            label: 'Category',
+            label: l10nOf(context).category,
             prefixIcon: Icons.category_rounded,
           ),
           const SizedBox(height: 12),
           CustomTextField(
             controller: _phoneController,
-            label: 'Contact Phone Number',
+            label: l10nOf(context).contactPhone,
             prefixIcon: Icons.phone_rounded,
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 12),
           CustomTextField(
             controller: _websiteController,
-            label: 'Website / Social Link',
+            label: l10nOf(context).websiteContactLink,
             prefixIcon: Icons.language_rounded,
           ),
           const SizedBox(height: 12),
           CustomTextField(
             controller: _descriptionController,
-            label: 'Business Description',
+            label: l10nOf(context).businessDescription,
             prefixIcon: Icons.notes_rounded,
             maxLines: 4,
           ),
@@ -306,15 +311,15 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle(
+          _SectionTitle(
             icon: Icons.location_on_rounded,
-            title: 'Business Location',
-            subtitle: 'Save the address and pin the exact entrance on Google Maps.',
+            title: l10nOf(context).businessLocation,
+            subtitle: l10nOf(context).locationGoogleMapsHelp,
           ),
           const SizedBox(height: 14),
           CustomTextField(
             controller: _addressController,
-            label: 'Full Address',
+            label: l10nOf(context).fullAddress,
             prefixIcon: Icons.location_on_outlined,
           ),
           const SizedBox(height: 12),
@@ -326,14 +331,18 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: hasPin ? AppColors.success : AppColors.glassBorderDark,
+                  color: hasPin
+                      ? AppColors.success
+                      : Theme.of(context).colorScheme.outline,
                 ),
-                color: AppColors.glassBgDark,
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
               ),
               child: Row(
                 children: [
                   Icon(
-                    hasPin ? Icons.pin_drop_rounded : Icons.add_location_alt_rounded,
+                    hasPin
+                        ? Icons.pin_drop_rounded
+                        : Icons.add_location_alt_rounded,
                     color: hasPin ? AppColors.success : AppColors.primaryLight,
                   ),
                   const SizedBox(width: 10),
@@ -342,27 +351,30 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          hasPin ? 'Precise location saved' : 'Set precise location',
-                          style: const TextStyle(
+                          hasPin
+                              ? l10nOf(context).exactLocationSaved
+                              : l10nOf(context).setExactLocation,
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           hasPin
-                              ? 'Tap to adjust the salon pin on Google Maps.'
-                              : 'Open the map and place the pin on the exact entrance.',
-                          style: const TextStyle(
+                              ? l10nOf(context).editSalonLocationHelp
+                              : l10nOf(context).placeEntrancePinHelp,
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded,
-                      color: AppColors.textMutedDark),
+                  Icon(Icons.chevron_right_rounded,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ],
               ),
             ),
@@ -378,10 +390,10 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle(
+          _SectionTitle(
             icon: Icons.auto_awesome_rounded,
-            title: 'Amenities & Features',
-            subtitle: 'Select the facilities available at your business.',
+            title: l10nOf(context).amenitiesAndFeatures,
+            subtitle: l10nOf(context).selectAmenitiesHelp,
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -391,13 +403,29 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
               final selected = _amenities.contains(amenity);
               return FilterChip(
                 selected: selected,
-                label: Text(amenity),
-                avatar: selected
-                    ? const Icon(Icons.check_rounded, size: 16)
-                    : null,
+                selectedColor: AppColors.success.withValues(alpha: 0.14),
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerLow,
+                checkmarkColor: AppColors.success,
+                side: BorderSide(
+                  color: selected
+                      ? AppColors.success.withValues(alpha: 0.55)
+                      : Theme.of(context).colorScheme.outline,
+                ),
+                label: Text(
+                  _amenityLabel(amenity),
+                  style: TextStyle(
+                    color: selected
+                        ? AppColors.success
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
                 onSelected: (value) {
                   setState(() {
-                    value ? _amenities.add(amenity) : _amenities.remove(amenity);
+                    value
+                        ? _amenities.add(amenity)
+                        : _amenities.remove(amenity);
                   });
                 },
               );
@@ -408,36 +436,53 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
     );
   }
 
+  String _amenityLabel(String amenity) {
+    final l10n = l10nOf(context);
+    return switch (amenity) {
+      'Wi-Fi' => 'Wi-Fi',
+      'parking' => l10n.parking,
+      'valetParking' => l10n.valetParking,
+      'cardPayment' => l10n.cardPayment,
+      'cashPayment' => l10n.cashPayment,
+      'wheelchairAccess' => l10n.wheelchairAccess,
+      'privateRooms' => l10n.privateRooms,
+      'womenOnly' => l10n.womenOnly,
+      'coffeeAndDrinks' => l10n.coffeeAndDrinks,
+      'prayerSpace' => l10n.prayerSpace,
+      _ => amenity,
+    };
+  }
+
   Widget _buildManagementShortcuts(BuildContext context) {
     return GlassCard(
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SectionTitle(
+          _SectionTitle(
             icon: Icons.tune_rounded,
-            title: 'More Management',
-            subtitle: 'Manage the parts customers interact with most.',
+            title: l10nOf(context).additionalManagement,
+            subtitle: l10nOf(context).manageCustomerSectionsHelp,
           ),
           const SizedBox(height: 12),
           _ManagementTile(
             icon: Icons.schedule_rounded,
-            title: 'Business Working Hours',
+            title: l10nOf(context).businessWorkingHours,
             onTap: () => context.push('/business-hours'),
           ),
           _ManagementTile(
             icon: Icons.people_alt_rounded,
-            title: 'Employees & Their Hours',
+            title: l10nOf(context).employeesAndHours,
             onTap: () => context.push('/employee-management'),
           ),
           _ManagementTile(
             icon: Icons.collections_rounded,
-            title: 'Business Photo Gallery',
+            title: l10nOf(context).businessPhotoGallery,
             onTap: () => context.push('/owner-gallery'),
           ),
           _ManagementTile(
             icon: Icons.reviews_rounded,
-            title: 'Customer Reviews',
+            title: l10nOf(context).customerReviews,
             onTap: () => context.push('/owner-reviews'),
           ),
         ],
@@ -463,7 +508,8 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Image upload failed: $e')),
+          SnackBar(
+              content: Text(l10nOf(context).imageUploadFailedWithError('$e'))),
         );
       }
     } finally {
@@ -479,7 +525,8 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not remove image from storage: $e')),
+          SnackBar(
+              content: Text(l10nOf(context).storageImageDeleteFailed('$e'))),
         );
       }
     }
@@ -523,8 +570,8 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       await ref.read(ownerBusinessProvider.notifier).updateBusiness(updated);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Business profile updated.'),
+        SnackBar(
+          content: Text(l10nOf(context).businessProfileUpdated),
           backgroundColor: AppColors.success,
         ),
       );
@@ -532,7 +579,7 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update business profile: $e'),
+            content: Text(l10nOf(context).businessProfileUpdateFailed('$e')),
             backgroundColor: AppColors.error,
           ),
         );
@@ -567,18 +614,18 @@ class _SectionTitle extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimaryDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -607,14 +654,14 @@ class _ManagementTile extends StatelessWidget {
       leading: Icon(icon, color: AppColors.primaryLight),
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimaryDark,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded,
-          color: AppColors.textMutedDark),
+      trailing: Icon(Icons.chevron_right_rounded,
+          color: Theme.of(context).colorScheme.onSurfaceVariant),
       onTap: onTap,
     );
   }

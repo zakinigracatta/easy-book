@@ -7,6 +7,7 @@ import '../../widgets/custom_button.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/working_hours_model.dart';
 import '../../models/business_model.dart';
+import '../../l10n/l10n.dart';
 
 class BusinessWorkingHoursScreen extends ConsumerStatefulWidget {
   const BusinessWorkingHoursScreen({super.key});
@@ -47,6 +48,7 @@ class _BusinessWorkingHoursScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final businessAsync = ref.watch(ownerBusinessProvider);
 
     return PopScope(
@@ -58,11 +60,12 @@ class _BusinessWorkingHoursScreenState
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Business Working Hours'),
+          title: Text(l10n.businessWorkingHours),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () =>
-                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go('/owner-dashboard'),
           ),
         ),
         body: businessAsync.when(
@@ -73,31 +76,34 @@ class _BusinessWorkingHoursScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const GlassCard(
-                    padding: EdgeInsets.all(16),
+                  GlassCard(
+                    padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Icon(Icons.schedule_rounded,
+                        const Icon(Icons.schedule_rounded,
                             color: AppColors.primaryLight, size: 28),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Operating Hours',
+                                l10n.operatingHours,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimaryDark,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Text(
-                                'Set exact opening and closing times. Customer availability follows these hours.',
+                                l10n.businessHoursHelp,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textMutedDark,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -110,7 +116,7 @@ class _BusinessWorkingHoursScreenState
                   ..._days.map(_buildDayCard),
                   const SizedBox(height: 8),
                   CustomButton(
-                    text: 'Save Working Hours',
+                    text: l10n.saveWorkingHours,
                     isLoading: _isLoading,
                     onPressed: () => _save(business),
                   ),
@@ -125,7 +131,7 @@ class _BusinessWorkingHoursScreenState
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load working hours: $error'),
+              child: Text(l10n.workingHoursLoadFailed(error.toString())),
             ),
           ),
         ),
@@ -144,16 +150,16 @@ class _BusinessWorkingHoursScreenState
             children: [
               Expanded(
                 child: Text(
-                  day,
-                  style: const TextStyle(
+                  _localizedDay(day),
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
               Text(
-                hours.isClosed ? 'Closed' : 'Open',
+                hours.isClosed ? l10nOf(context).closed : l10nOf(context).open,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -163,7 +169,8 @@ class _BusinessWorkingHoursScreenState
               const SizedBox(width: 6),
               Switch(
                 value: !hours.isClosed,
-                activeThumbColor: AppColors.primary,
+                activeThumbColor: Colors.white,
+                activeTrackColor: AppColors.success,
                 onChanged: (open) {
                   setState(() {
                     _hoursMap[day] = DailyHours(
@@ -183,8 +190,8 @@ class _BusinessWorkingHoursScreenState
               children: [
                 Expanded(
                   child: _TimeButton(
-                    label: 'Opens',
-                    value: hours.openTime,
+                    label: l10nOf(context).opens,
+                    value: _localizedTime(hours.openTime),
                     icon: Icons.wb_sunny_outlined,
                     onTap: () => _pickTime(day, isOpening: true),
                   ),
@@ -192,8 +199,8 @@ class _BusinessWorkingHoursScreenState
                 const SizedBox(width: 10),
                 Expanded(
                   child: _TimeButton(
-                    label: 'Closes',
-                    value: hours.closeTime,
+                    label: l10nOf(context).closes,
+                    value: _localizedTime(hours.closeTime),
                     icon: Icons.nightlight_outlined,
                     onTap: () => _pickTime(day, isOpening: false),
                   ),
@@ -206,13 +213,30 @@ class _BusinessWorkingHoursScreenState
     );
   }
 
+  String _localizedDay(String day) {
+    final l10n = l10nOf(context);
+    final index = _days.indexOf(day);
+    return [
+      l10n.monday,
+      l10n.tuesday,
+      l10n.wednesday,
+      l10n.thursday,
+      l10n.friday,
+      l10n.saturday,
+      l10n.sunday
+    ][index];
+  }
+
   Future<void> _pickTime(String day, {required bool isOpening}) async {
     final current = _hoursMap[day]!;
-    final initial = _parseTime(isOpening ? current.openTime : current.closeTime);
+    final initial =
+        _parseTime(isOpening ? current.openTime : current.closeTime);
     final picked = await showTimePicker(
       context: context,
       initialTime: initial,
-      helpText: isOpening ? 'Select opening time' : 'Select closing time',
+      helpText: isOpening
+          ? l10nOf(context).selectOpeningTime
+          : l10nOf(context).selectClosingTime,
     );
     if (picked == null || !mounted) return;
 
@@ -235,8 +259,8 @@ class _BusinessWorkingHoursScreenState
       await ref.read(ownerBusinessProvider.notifier).updateBusiness(updated);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Business working hours updated.'),
+        SnackBar(
+          content: Text(l10nOf(context).businessHoursUpdated),
           backgroundColor: AppColors.success,
         ),
       );
@@ -244,7 +268,8 @@ class _BusinessWorkingHoursScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update working hours: $e'),
+            content:
+                Text(l10nOf(context).businessHoursUpdateFailed(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -276,6 +301,9 @@ class _BusinessWorkingHoursScreenState
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
     return '${hour.toString().padLeft(2, '0')}:$minute $period';
   }
+
+  String _localizedTime(String value) =>
+      MaterialLocalizations.of(context).formatTimeOfDay(_parseTime(value));
 }
 
 class _TimeButton extends StatelessWidget {
@@ -293,6 +321,7 @@ class _TimeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
@@ -300,8 +329,8 @@ class _TimeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.glassBorderDark),
-          color: AppColors.glassBgDark,
+          border: Border.all(color: colors.outline),
+          color: colors.surfaceContainerLow,
         ),
         child: Row(
           children: [
@@ -312,15 +341,15 @@ class _TimeButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
-                          fontSize: 10, color: AppColors.textMutedDark)),
+                      style: TextStyle(
+                          fontSize: 10, color: colors.onSurfaceVariant)),
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: colors.onSurface,
                     ),
                   ),
                 ],

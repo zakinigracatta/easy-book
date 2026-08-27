@@ -5,6 +5,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/app_providers.dart';
+import '../../l10n/l10n.dart';
 
 class CancelBookingScreen extends ConsumerStatefulWidget {
   final String? bookingId;
@@ -24,7 +25,7 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
 
     if (idToCancel.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to find booking ID to cancel.')),
+        SnackBar(content: Text(l10nOf(context).bookingIdNotFound)),
       );
       context.go('/my-bookings');
       return;
@@ -37,14 +38,16 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
           .cancelAppointment(idToCancel);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Booking cancelled successfully.')),
+          SnackBar(content: Text(l10nOf(context).bookingCancelledSuccessfully)),
         );
         context.go('/my-bookings');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to cancel booking: ${e.toString()}')),
+          SnackBar(
+              content: Text(
+                  l10nOf(context).bookingCancellationFailed(e.toString()))),
         );
       }
     } finally {
@@ -77,33 +80,32 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
               }
             },
           ),
-          title: const Text('Cancel Booking'),
+          title: Text(l10nOf(context).cancelBooking),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              const GlassCard(
+              GlassCard(
                 borderColor: AppColors.error,
                 child: Column(
                   children: [
                     Icon(Icons.warning_amber_rounded,
                         size: 50, color: AppColors.error),
                     SizedBox(height: 12),
-                    Text('Are you sure you want to cancel?',
-                        style: TextStyle(
+                    Text(l10nOf(context).confirmCancellationQuestion,
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
-                    Text(
-                        'The appointment will be cancelled and the time slot will become available again.',
+                    Text(l10nOf(context).cancellationDescription,
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textMutedDark)),
+                        style: const TextStyle(color: AppColors.textMutedDark)),
                   ],
                 ),
               ),
               const Spacer(),
               CustomButton(
-                text: 'Confirm Cancellation',
+                text: l10nOf(context).confirmCancellation,
                 backgroundColor: AppColors.error,
                 isLoading: _isCancelling,
                 onPressed: _handleCancel,

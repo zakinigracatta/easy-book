@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -30,7 +31,7 @@ class ChatScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Salon Live Support'),
+          title: Text(l10nOf(context).salonLiveSupport),
         ),
         body: Column(
           children: [
@@ -38,12 +39,8 @@ class ChatScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  _msgBubble(
-                      'Hello! Can I request Marcus for my 10 AM appointment?',
-                      isMe: true),
-                  _msgBubble(
-                      'Hi Ahmed! Yes, Marcus Vance is assigned to your booking.',
-                      isMe: false),
+                  _msgBubble(l10nOf(context).chatSampleCustomer, isMe: true),
+                  _msgBubble(l10nOf(context).chatSampleSalon, isMe: false),
                 ],
               ),
             ),
@@ -54,7 +51,7 @@ class ChatScreen extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: 'Type your message...',
+                        hintText: l10nOf(context).typeMessageHint,
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24)),
                         filled: true,

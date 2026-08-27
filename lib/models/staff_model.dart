@@ -88,8 +88,7 @@ class StaffModel {
       shiftEnd: json['shift_end'] as String? ?? json['shiftEnd'] as String?,
       workingDays: parseDays(json['working_days'] ?? json['workingDays']),
       bio: json['bio'] as String?,
-      galleryUrls:
-          parseStringList(json['gallery_urls'] ?? json['galleryUrls']),
+      galleryUrls: parseStringList(json['gallery_urls'] ?? json['galleryUrls']),
       weeklySchedule: parseWeeklySchedule(
         json['weekly_schedule'] ?? json['weeklySchedule'],
       ),

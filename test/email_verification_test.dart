@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Scenario 7: Email Verification Regression Tests', () {
-    test('1. Unverified user navigating to protected route requires /verify-email', () {
+    test(
+        '1. Unverified user navigating to protected route requires /verify-email',
+        () {
       const allowedUnverified = [
         '/verify-email',
         '/welcome',
@@ -21,7 +23,9 @@ void main() {
       expect(isAllowed, isFalse);
     });
 
-    test('2. Unverified user accessing allowed auth routes passes verification check', () {
+    test(
+        '2. Unverified user accessing allowed auth routes passes verification check',
+        () {
       const allowedUnverified = [
         '/verify-email',
         '/welcome',

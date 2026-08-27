@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/working_hours_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/l10n.dart';
 
 class WorkingHoursSection extends StatelessWidget {
   final WorkingHoursModel workingHours;
@@ -13,7 +14,8 @@ class WorkingHoursSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final days = [
+    final l10n = l10nOf(context);
+    const dayKeys = [
       'Monday',
       'Tuesday',
       'Wednesday',
@@ -22,21 +24,29 @@ class WorkingHoursSection extends StatelessWidget {
       'Saturday',
       'Sunday'
     ];
+    final dayLabels = [
+      l10n.monday,
+      l10n.tuesday,
+      l10n.wednesday,
+      l10n.thursday,
+      l10n.friday,
+      l10n.saturday,
+      l10n.sunday,
+    ];
     final currentDayIndex = DateTime.now().weekday - 1;
-    final todayName = days[currentDayIndex];
 
     return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.schedule_rounded,
                   color: AppColors.primaryLight, size: 18),
               SizedBox(width: 8),
               Text(
-                'Working Hours',
-                style: TextStyle(
+                l10n.businessHours,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -46,9 +56,10 @@ class WorkingHoursSection extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Column(
-            children: days.map((day) {
-              final isToday = day == todayName;
-              final hours = workingHours.schedule[day];
+            children: List.generate(dayKeys.length, (index) {
+              final dayKey = dayKeys[index];
+              final isToday = index == currentDayIndex;
+              final hours = workingHours.schedule[dayKey];
               final hoursText =
                   hours != null ? hours.toString() : '09:00 AM – 10:00 PM';
               final isClosed = hours?.isClosed ?? false;
@@ -73,7 +84,7 @@ class WorkingHoursSection extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          day,
+                          dayLabels[index],
                           style: TextStyle(
                             fontWeight:
                                 isToday ? FontWeight.bold : FontWeight.w500,
@@ -91,9 +102,9 @@ class WorkingHoursSection extends StatelessWidget {
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              'TODAY',
-                              style: TextStyle(
+                            child: Text(
+                              l10n.today,
+                              style: const TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -118,7 +129,7 @@ class WorkingHoursSection extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ),
         ],
       ),

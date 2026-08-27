@@ -18,8 +18,7 @@ class MediaUploadService {
   // Resolve Firebase Storage only when an upload/delete is actually requested.
   // This keeps screens constructible in tests and in read-only flows even when
   // a Storage bucket is unavailable or intentionally not configured.
-  FirebaseStorage get _resolvedStorage =>
-      _storage ??= FirebaseStorage.instance;
+  FirebaseStorage get _resolvedStorage => _storage ??= FirebaseStorage.instance;
 
   Future<String?> pickAndUploadImage({
     required String storageFolder,

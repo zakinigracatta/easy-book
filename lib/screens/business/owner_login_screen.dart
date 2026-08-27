@@ -8,6 +8,7 @@ import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
+import '../../l10n/l10n.dart';
 
 class OwnerLoginScreen extends ConsumerStatefulWidget {
   const OwnerLoginScreen({super.key});
@@ -24,7 +25,7 @@ class _OwnerLoginScreenState extends ConsumerState<OwnerLoginScreen> {
   Future<void> _handleOwnerLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter salon email and password.')),
+        SnackBar(content: Text(l10nOf(context).ownerCredentialsRequired)),
       );
       return;
     }
@@ -55,7 +56,8 @@ class _OwnerLoginScreenState extends ConsumerState<OwnerLoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(e.message ?? 'Partner authentication failed.')),
+              content: Text(
+                  e.message ?? l10nOf(context).partnerAuthenticationFailed)),
         );
       }
     } catch (e) {
@@ -73,6 +75,7 @@ class _OwnerLoginScreenState extends ConsumerState<OwnerLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -85,7 +88,7 @@ class _OwnerLoginScreenState extends ConsumerState<OwnerLoginScreen> {
             }
           },
         ),
-        title: const Text('Business Portal Login'),
+        title: Text(l10n.businessPortalLogin),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -96,11 +99,11 @@ class _OwnerLoginScreenState extends ConsumerState<OwnerLoginScreen> {
               const Icon(Icons.storefront_rounded,
                   size: 70, color: AppColors.accent),
               const SizedBox(height: 16),
-              const Text('Salon Partner Sign In',
+              Text(l10n.salonPartnerSignIn,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text('Manage appointments, staff schedules & sales',
+              Text(l10n.ownerLoginSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 28),
@@ -109,20 +112,20 @@ class _OwnerLoginScreenState extends ConsumerState<OwnerLoginScreen> {
                   children: [
                     CustomTextField(
                       controller: _emailController,
-                      label: 'Salon Email',
+                      label: l10n.salonEmail,
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       controller: _passwordController,
-                      label: 'Password',
+                      label: l10n.password,
                       obscureText: true,
                       prefixIcon: Icons.lock_outline,
                     ),
                     const SizedBox(height: 24),
                     CustomButton(
-                      text: 'Open Partner Dashboard',
+                      text: l10n.openPartnerDashboard,
                       backgroundColor: AppColors.accent,
                       isLoading: _isLoading,
                       onPressed: _handleOwnerLogin,

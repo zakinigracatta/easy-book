@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/available_slot.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/l10n.dart';
 
 class TimeSlotGrid extends StatelessWidget {
   final List<AvailableSlot> slots;
@@ -23,13 +24,15 @@ class TimeSlotGrid extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 32),
         alignment: Alignment.center,
-        child: const Column(
+        child: Column(
           children: [
-            CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-            SizedBox(height: 12),
+            const CircularProgressIndicator(
+                strokeWidth: 2, color: AppColors.primary),
+            const SizedBox(height: 12),
             Text(
-              'Checking available appointment times...',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+              l10nOf(context).checkingAvailableSlots,
+              style:
+                  const TextStyle(color: AppColors.textMutedDark, fontSize: 13),
             ),
           ],
         ),
@@ -44,22 +47,23 @@ class TimeSlotGrid extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.glassBorderDark),
         ),
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.event_busy_rounded,
+            const Icon(Icons.event_busy_rounded,
                 size: 44, color: AppColors.textMutedDark),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'No available times for this date.',
-              style: TextStyle(
+              l10nOf(context).noSlotsOnDate,
+              style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: Colors.white),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              'Please select another date or choose Any Available Specialist.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 12),
+              l10nOf(context).chooseAnotherDateOrSpecialist,
+              style:
+                  const TextStyle(color: AppColors.textMutedDark, fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ],
@@ -79,17 +83,20 @@ class TimeSlotGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (morningSlots.isNotEmpty) ...[
-          _periodHeader(Icons.wb_sunny_outlined, 'Morning Slots'),
+          _periodHeader(
+              Icons.wb_sunny_outlined, l10nOf(context).morningAppointments),
           _slotGrid(morningSlots),
           const SizedBox(height: 18),
         ],
         if (afternoonSlots.isNotEmpty) ...[
-          _periodHeader(Icons.wb_cloudy_outlined, 'Afternoon Slots'),
+          _periodHeader(
+              Icons.wb_cloudy_outlined, l10nOf(context).afternoonAppointments),
           _slotGrid(afternoonSlots),
           const SizedBox(height: 18),
         ],
         if (eveningSlots.isNotEmpty) ...[
-          _periodHeader(Icons.nights_stay_outlined, 'Evening Slots'),
+          _periodHeader(
+              Icons.nights_stay_outlined, l10nOf(context).eveningAppointments),
           _slotGrid(eveningSlots),
           const SizedBox(height: 18),
         ],

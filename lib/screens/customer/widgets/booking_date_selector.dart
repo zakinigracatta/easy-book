@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../l10n/l10n.dart';
 import '../../../theme/app_colors.dart';
 
 class BookingDateSelector extends StatelessWidget {
@@ -30,9 +31,9 @@ class BookingDateSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Select Date',
-              style: TextStyle(
+            Text(
+              l10nOf(context).selectAppointmentDate,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -64,7 +65,10 @@ class BookingDateSelector extends StatelessWidget {
               icon: const Icon(Icons.calendar_month_rounded,
                   size: 18, color: AppColors.primaryLight),
               label: Text(
-                DateFormat('MMM yyyy').format(selectedDate),
+                DateFormat(
+                  'MMM yyyy',
+                  Localizations.localeOf(context).toLanguageTag(),
+                ).format(selectedDate),
                 style: const TextStyle(
                     color: AppColors.primaryLight,
                     fontSize: 13,
@@ -124,7 +128,10 @@ class BookingDateSelector extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        DateFormat('EEE').format(d).toUpperCase(),
+                        DateFormat(
+                          'EEE',
+                          Localizations.localeOf(context).toLanguageTag(),
+                        ).format(d),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,

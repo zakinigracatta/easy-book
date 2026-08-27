@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class BookingProgressHeader extends StatelessWidget {
   final int currentStep; // 1 = Specialist, 2 = Date & Time, 3 = Summary
@@ -11,7 +12,8 @@ class BookingProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['Specialist', 'Date & Time', 'Summary'];
+    final l10n = l10nOf(context);
+    final steps = [l10n.specialist, l10n.dateAndTime, l10n.bookingSummary];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

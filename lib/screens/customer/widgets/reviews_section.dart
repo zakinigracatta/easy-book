@@ -5,6 +5,7 @@ import '../../../models/review_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
 import '../../../widgets/rating_stars.dart';
+import '../../../l10n/l10n.dart';
 
 class ReviewsSection extends StatelessWidget {
   final double averageRating;
@@ -24,14 +25,15 @@ class ReviewsSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.rate_review_outlined,
+            const Icon(Icons.rate_review_outlined,
                 size: 48, color: AppColors.textMutedDark),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'No reviews yet.\nBe the first to review after your appointment.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 14),
+              l10nOf(context).noReviewsYetPrompt,
+              style:
+                  const TextStyle(color: AppColors.textMutedDark, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -72,7 +74,7 @@ class ReviewsSection extends StatelessWidget {
                   RatingStars(rating: averageRating, size: 16),
                   const SizedBox(height: 6),
                   Text(
-                    '$totalReviews reviews',
+                    l10nOf(context).reviewsCount(totalReviews),
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textMutedDark,
@@ -101,9 +103,9 @@ class ReviewsSection extends StatelessWidget {
         ),
 
         const SizedBox(height: 20),
-        const Text(
-          'Customer Reviews',
-          style: TextStyle(
+        Text(
+          l10nOf(context).customerReviews,
+          style: const TextStyle(
               fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         const SizedBox(height: 12),
@@ -120,7 +122,10 @@ class ReviewsSection extends StatelessWidget {
                 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
             final avatarUrl =
                 r.userAvatar.isNotEmpty ? r.userAvatar : defaultAvatar;
-            final dateStr = DateFormat('MMM dd, yyyy').format(r.createdAt);
+            final dateStr = DateFormat(
+              'dd MMM yyyy',
+              l10nOf(context).localeName,
+            ).format(r.createdAt);
 
             return GlassCard(
               child: Column(

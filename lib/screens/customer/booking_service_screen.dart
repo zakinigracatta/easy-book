@@ -6,6 +6,7 @@ import '../../widgets/custom_button.dart';
 import '../../providers/app_providers.dart';
 import '../../models/service_model.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class BookingServiceScreen extends ConsumerStatefulWidget {
   const BookingServiceScreen({super.key});
@@ -28,7 +29,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
   void _onNext(List<ServiceModel> services) {
     if (_selectedServiceId == null || _selectedServiceId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a service to proceed.')),
+        SnackBar(content: Text(l10nOf(context).selectServiceRequired)),
       );
       return;
     }
@@ -47,7 +48,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
       context.push('/booking-specialist');
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid service selected.')),
+        SnackBar(content: Text(l10nOf(context).invalidSelectedService)),
       );
     }
   }
@@ -81,7 +82,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
               }
             },
           ),
-          title: const Text('Step 1: Select Service'),
+          title: Text(l10nOf(context).selectServiceStep),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -98,17 +99,18 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
                         const Icon(Icons.error_outline_rounded,
                             size: 48, color: AppColors.error),
                         const SizedBox(height: 12),
-                        Text('Error loading services: $err',
+                        Text(l10nOf(context).servicesLoadError('$err'),
                             textAlign: TextAlign.center),
                       ],
                     ),
                   ),
                   data: (services) {
                     if (services.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
-                          'No services available for this salon.',
-                          style: TextStyle(color: AppColors.textMutedDark),
+                          l10nOf(context).noSalonServices,
+                          style:
+                              const TextStyle(color: AppColors.textMutedDark),
                         ),
                       );
                     }
@@ -151,7 +153,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
               ),
               servicesState.maybeWhen(
                 data: (services) => CustomButton(
-                  text: 'Next: Select Date',
+                  text: l10nOf(context).nextSelectDate,
                   onPressed:
                       services.isNotEmpty ? () => _onNext(services) : null,
                 ),

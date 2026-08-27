@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../l10n/l10n.dart';
 
 class CustomerBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -9,6 +10,7 @@ class CustomerBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final routes = [
       '/home',
       '/search',
@@ -35,12 +37,13 @@ class CustomerBottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _navItem(context, 0, Icons.home_rounded, 'Home', routes[0]),
-          _navItem(context, 1, Icons.search_rounded, 'Search', routes[1]),
+          _navItem(context, 0, Icons.home_rounded, l10n.home, routes[0]),
+          _navItem(context, 1, Icons.search_rounded, l10n.search, routes[1]),
+          _navItem(context, 2, Icons.calendar_month_rounded, l10n.bookings,
+              routes[2]),
           _navItem(
-              context, 2, Icons.calendar_month_rounded, 'Bookings', routes[2]),
-          _navItem(context, 3, Icons.favorite_rounded, 'Favorites', routes[3]),
-          _navItem(context, 4, Icons.person_rounded, 'Profile', routes[4]),
+              context, 3, Icons.favorite_rounded, l10n.favorites, routes[3]),
+          _navItem(context, 4, Icons.person_rounded, l10n.profile, routes[4]),
         ],
       ),
     );

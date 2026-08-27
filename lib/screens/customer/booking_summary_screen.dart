@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/utils/currency_formatter.dart';
+import '../../l10n/l10n.dart';
 import '../../models/booking_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/auth_guard.dart';
@@ -43,7 +44,8 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
   Future<void> _confirmBooking() async {
     if (_isSubmitting) return;
 
-    final loggedIn = await requireLogin(context, targetRoute: '/booking-summary');
+    final loggedIn =
+        await requireLogin(context, targetRoute: '/booking-summary');
     if (!loggedIn || !mounted) return;
 
     final draft = ref.read(bookingDraftProvider);
@@ -51,16 +53,15 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
     final businessId = draft.businessId?.trim() ?? '';
     final serviceId = draft.serviceId?.trim() ?? '';
     final staffId = (draft.resolvedStaffId?.trim().isNotEmpty == true
-            ? draft.resolvedStaffId
-            : draft.staffId)
-        ?.trim() ??
+                ? draft.resolvedStaffId
+                : draft.staffId)
+            ?.trim() ??
         '';
 
     if (businessId.isEmpty || serviceId.isEmpty || staffId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Booking information is incomplete. Please reselect the service and specialist.'),
+        SnackBar(
+          content: Text(l10nOf(context).incompleteBookingDetails),
           backgroundColor: AppColors.error,
         ),
       );
@@ -72,15 +73,15 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
     try {
       final startAt = _resolveStartDateTime(draft);
       if (startAt.minute % 15 != 0 || startAt.second != 0) {
-        throw StateError('Selected time is not aligned to a valid 15-minute slot.');
+        throw StateError(
+            'Selected time is not aligned to a valid 15-minute slot.');
       }
 
-      final duration = draft.totalDurationMinutes > 0
-          ? draft.totalDurationMinutes
-          : 30;
+      final duration =
+          draft.totalDurationMinutes > 0 ? draft.totalDurationMinutes : 30;
       final customerName = user?.fullName.trim().isNotEmpty == true
           ? user!.fullName.trim()
-          : 'Easy Book Customer';
+          : l10nOf(context).easyBookCustomer;
       final customerPhone = user?.phone.trim() ?? '';
 
       final requestBooking = BookingModel(
@@ -128,20 +129,21 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
+    final locale = Localizations.localeOf(context).languageCode;
     final draft = ref.watch(bookingDraftProvider);
     final businessId = draft.businessId ?? '';
     final businessState = ref.watch(businessDetailProvider(businessId));
 
     final dateStr = draft.date != null
-        ? DateFormat('EEEE, dd MMMM yyyy').format(draft.date!)
-        : 'Not selected';
-    final timeStr = draft.timeSlot ?? 'Not selected';
-    final staffName =
-        draft.resolvedStaffName?.trim().isNotEmpty == true
-            ? draft.resolvedStaffName!
-            : (draft.staffName?.trim().isNotEmpty == true
-                ? draft.staffName!
-                : 'Any Available Specialist');
+        ? DateFormat.yMMMMEEEEd(locale).format(draft.date!)
+        : l10n.notSpecified;
+    final timeStr = draft.timeSlot ?? l10n.notSpecified;
+    final staffName = draft.resolvedStaffName?.trim().isNotEmpty == true
+        ? draft.resolvedStaffName!
+        : (draft.staffName?.trim().isNotEmpty == true
+            ? draft.staffName!
+            : l10n.anyAvailableSpecialist);
     final services = draft.selectedServices;
     final totalPrice = draft.totalPrice;
     final totalDuration = draft.totalDurationMinutes;
@@ -162,17 +164,18 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                 ? null
                 : () => context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Booking Summary'),
+          title: Text(l10n.reviewBookingSummary),
         ),
         body: businessState.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (err, _) => Center(
-            child: Text('Error: $err',
+            child: Text(l10n.errorWithDetails('$err'),
                 style: const TextStyle(color: AppColors.error)),
           ),
           data: (business) {
-            final salonName = business?.name ?? draft.businessName ?? 'Salon';
-            final salonAddress = business?.address ?? 'Dubai, UAE';
+            final salonName =
+                business?.name ?? draft.businessName ?? l10n.salon;
+            final salonAddress = business?.address ?? l10n.defaultSalonAddress;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -221,7 +224,7 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Service',
+                        Text(l10n.service,
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -245,7 +248,8 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                                     const SizedBox(width: 12),
                                     Text(
                                       CurrencyFormatter.format(
-                                          service.discountPrice ?? service.price,
+                                          service.discountPrice ??
+                                              service.price,
                                           currency: service.currency),
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold,
@@ -258,7 +262,7 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(draft.serviceName ?? 'Service',
+                                child: Text(draft.serviceName ?? l10n.service,
                                     style: const TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Colors.white)),
@@ -271,7 +275,8 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                           ),
                         const Divider(
                             color: AppColors.glassBorderDark, height: 20),
-                        _valueRow('Total duration', '$totalDuration minutes'),
+                        _valueRow(l10n.totalDuration,
+                            l10n.minutesCount(totalDuration)),
                       ],
                     ),
                   ),
@@ -280,17 +285,19 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Appointment Info',
+                        Text(l10n.appointmentDetails,
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
                         const SizedBox(height: 12),
-                        _infoRow(Icons.calendar_today_rounded, 'Date', dateStr),
+                        _infoRow(
+                            Icons.calendar_today_rounded, l10n.date, dateStr),
                         const SizedBox(height: 10),
-                        _infoRow(Icons.access_time_rounded, 'Time', timeStr),
+                        _infoRow(Icons.access_time_rounded, l10n.time, timeStr),
                         const SizedBox(height: 10),
-                        _infoRow(Icons.person_outline_rounded, 'Specialist', staffName),
+                        _infoRow(Icons.person_outline_rounded, l10n.specialist,
+                            staffName),
                       ],
                     ),
                   ),
@@ -299,29 +306,30 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Payment',
+                        Text(l10n.payment,
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
                         const SizedBox(height: 10),
-                        _valueRow('Payment method', 'Pay at venue'),
+                        _valueRow(l10n.paymentMethod, l10n.payAtVenue),
                         const SizedBox(height: 8),
-                        _valueRow('Total', CurrencyFormatter.format(totalPrice),
+                        _valueRow(
+                            l10n.total, CurrencyFormatter.format(totalPrice),
                             isTotal: true),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
                   CustomButton(
-                    text: 'Confirm Booking',
+                    text: l10n.confirmBooking,
                     isLoading: _isSubmitting,
                     onPressed: _isSubmitting ? null : _confirmBooking,
                   ),
                   const SizedBox(height: 10),
-                  const Center(
+                  Center(
                     child: Text(
-                      'The selected slot is revalidated securely when you confirm.',
+                      l10n.bookingTimeRechecked,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 11, color: AppColors.textMutedDark),
@@ -342,8 +350,8 @@ class _BookingSummaryScreenState extends ConsumerState<BookingSummaryScreen> {
         Icon(icon, size: 16, color: AppColors.primaryLight),
         const SizedBox(width: 10),
         Text('$title: ',
-            style: const TextStyle(
-                fontSize: 13, color: AppColors.textMutedDark)),
+            style:
+                const TextStyle(fontSize: 13, color: AppColors.textMutedDark)),
         Expanded(
           child: Text(value,
               maxLines: 1,

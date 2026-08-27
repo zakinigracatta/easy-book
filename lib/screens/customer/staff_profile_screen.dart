@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
 import '../../services/auth_guard.dart';
+import '../../l10n/l10n.dart';
 
 class StaffProfileScreen extends StatelessWidget {
   const StaffProfileScreen({super.key});
@@ -12,25 +13,25 @@ class StaffProfileScreen extends StatelessWidget {
     final staff = [
       {
         'name': 'Marcus Vance',
-        'title': 'Master Barber & Stylist',
+        'title': l10nOf(context).professionalBarberStylist,
         'rating': 4.9,
-        'exp': '8 yrs exp',
+        'exp': l10nOf(context).yearsExperience(8),
         'img':
             'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80'
       },
       {
         'name': 'Elena Rostova',
-        'title': 'Senior Hair Colorist',
+        'title': l10nOf(context).hairColorSpecialist,
         'rating': 5.0,
-        'exp': '6 yrs exp',
+        'exp': l10nOf(context).yearsExperience(6),
         'img':
             'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80'
       },
       {
         'name': 'David Kim',
-        'title': 'Spa Massage Therapist',
+        'title': l10nOf(context).massageSpaTherapist,
         'rating': 4.8,
-        'exp': '10 yrs exp',
+        'exp': l10nOf(context).yearsExperience(10),
         'img':
             'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80'
       },
@@ -59,7 +60,7 @@ class StaffProfileScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Staff & Specialists'),
+          title: Text(l10nOf(context).staffAndSpecialists),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),
@@ -116,8 +117,8 @@ class StaffProfileScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 8)),
-                      child:
-                          const Text('Select', style: TextStyle(fontSize: 12)),
+                      child: Text(l10nOf(context).select,
+                          style: const TextStyle(fontSize: 12)),
                     ),
                   ],
                 ),

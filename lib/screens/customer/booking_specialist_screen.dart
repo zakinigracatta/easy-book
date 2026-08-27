@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../models/staff_model.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/custom_button.dart';
 import 'widgets/selected_services_summary.dart';
 import 'widgets/specialist_option_card.dart';
@@ -37,14 +38,12 @@ class _BookingSpecialistScreenState
       ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
         anySpecialist: true,
         staffId: '',
-        staffName: 'Any Available Specialist',
+        staffName: l10nOf(context).anyAvailableSpecialist,
       );
     } else {
       if (_selectedStaffId == null || _selectedStaffId!.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  'Please choose a specialist or select Any Available Specialist.')),
+          SnackBar(content: Text(l10nOf(context).specialistSelectionRequired)),
         );
         return;
       }
@@ -93,7 +92,7 @@ class _BookingSpecialistScreenState
               }
             },
           ),
-          title: const Text('Select Specialist'),
+          title: Text(l10nOf(context).selectSpecialist),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -119,22 +118,22 @@ class _BookingSpecialistScreenState
               ],
 
               // Section Title
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Choose a Specialist',
-                      style: TextStyle(
+                      l10nOf(context).chooseSpecialist,
+                      style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Select your preferred specialist or choose anyone available.',
-                      style: TextStyle(
+                      l10nOf(context).chooseSpecialistDescription,
+                      style: const TextStyle(
                           fontSize: 12, color: AppColors.textMutedDark),
                     ),
                   ],
@@ -148,7 +147,7 @@ class _BookingSpecialistScreenState
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
                   error: (err, stack) => Center(
-                    child: Text('Error loading specialists: $err',
+                    child: Text(l10nOf(context).specialistsLoadError('$err'),
                         style: const TextStyle(color: AppColors.error)),
                   ),
                   data: (eligibleStaff) {
@@ -194,7 +193,7 @@ class _BookingSpecialistScreenState
               // Continue Button
               eligibleStaffState.maybeWhen(
                 data: (eligibleStaff) => CustomButton(
-                  text: 'Continue: Select Date & Time',
+                  text: l10nOf(context).continueDateTime,
                   onPressed: () => _onNext(eligibleStaff),
                 ),
                 orElse: () => const SizedBox.shrink(),

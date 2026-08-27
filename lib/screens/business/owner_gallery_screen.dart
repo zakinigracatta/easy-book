@@ -8,6 +8,7 @@ import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/gallery_image_model.dart';
 import '../../services/media_upload_service.dart';
+import '../../l10n/l10n.dart';
 
 class OwnerGalleryScreen extends ConsumerStatefulWidget {
   const OwnerGalleryScreen({super.key});
@@ -18,13 +19,13 @@ class OwnerGalleryScreen extends ConsumerStatefulWidget {
 
 class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
   static const _categories = [
-    ('all', 'All Photos'),
-    ('interior', 'Interior'),
-    ('exterior', 'Exterior'),
-    ('service', 'Service'),
-    ('portfolio', 'Portfolio'),
-    ('beforeAfter', 'Before & After'),
-    ('other', 'Other'),
+    'all',
+    'interior',
+    'exterior',
+    'service',
+    'portfolio',
+    'beforeAfter',
+    'other',
   ];
 
   final _media = MediaUploadService();
@@ -45,16 +46,17 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Business Photos & Gallery'),
+          title: Text(l10nOf(context).businessGallery),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () =>
-                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
+            icon: Icon(Icons.arrow_back_rounded),
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go('/owner-dashboard'),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_a_photo_rounded),
-              tooltip: 'Upload Photos',
+              icon: Icon(Icons.add_a_photo_rounded),
+              tooltip: l10nOf(context).uploadPhotos,
               onPressed: _uploadProgress == null ? _showUploadDialog : null,
             ),
           ],
@@ -63,18 +65,18 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
           children: [
             if (_uploadProgress != null)
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-                color: AppColors.cardDark,
+                padding: EdgeInsets.fromLTRB(16, 10, 16, 8),
+                color: Theme.of(context).colorScheme.surface,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     LinearProgressIndicator(value: _uploadProgress),
-                    const SizedBox(height: 5),
+                    SizedBox(height: 5),
                     Text(
                       _uploadStatus,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.textMutedDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -82,18 +84,18 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
               ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: _categories.map((entry) {
-                  final isSelected = _selectedCategory == entry.$1;
+                  final isSelected = _selectedCategory == entry;
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsetsDirectional.only(end: 8),
                     child: ChoiceChip(
                       selected: isSelected,
-                      label: Text(entry.$2),
+                      label: Text(_categoryLabel(entry)),
                       selectedColor: AppColors.primary,
                       onSelected: (_) =>
-                          setState(() => _selectedCategory = entry.$1),
+                          setState(() => _selectedCategory = entry),
                     ),
                   );
                 }).toList(),
@@ -111,18 +113,16 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   if (filtered.isEmpty) {
                     return OwnerEmptyStateWidget(
                       icon: Icons.photo_library_rounded,
-                      title: 'No Photos Yet',
-                      description:
-                          'Upload real photos so customers can see your space and work.',
-                      actionLabel: 'Upload Photos',
+                      title: l10nOf(context).noPhotosYet,
+                      description: l10nOf(context).uploadRealPhotosHint,
+                      actionLabel: l10nOf(context).uploadPhotos,
                       onActionTap: _showUploadDialog,
                     );
                   }
 
                   return GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    padding: EdgeInsets.all(16),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
@@ -133,19 +133,19 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                         _buildPhotoCard(filtered[index]),
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                   child: CircularProgressIndicator(color: AppColors.primary),
                 ),
                 error: (error, _) => OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
-                  title: 'Unable to Load Gallery',
+                  title: l10nOf(context).galleryLoadFailed,
                   description: error.toString(),
                 ),
               ),
             ),
           ],
         ),
-        bottomNavigationBar: const BusinessBottomNav(currentIndex: 4),
+        bottomNavigationBar: BusinessBottomNav(currentIndex: 4),
       ),
     );
   }
@@ -161,13 +161,13 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
               fit: StackFit.expand,
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
+                  borderRadius: BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
                   child: Image.network(
                     image.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Center(
+                    errorBuilder: (_, __, ___) => Center(
                       child: Icon(Icons.broken_image_outlined),
                     ),
                   ),
@@ -176,24 +176,23 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   top: 8,
                   right: 8,
                   child: IconButton.filledTonal(
-                    tooltip: 'Delete photo',
+                    tooltip: l10nOf(context).deletePhoto,
                     onPressed: () => _confirmDelete(image),
-                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                    icon: Icon(Icons.delete_outline_rounded, size: 18),
                   ),
                 ),
                 Positioned(
                   bottom: 8,
                   left: 8,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.65),
                       borderRadius: BorderRadius.circular(7),
                     ),
                     child: Text(
                       _categoryLabel(image.category),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 9,
                         fontWeight: FontWeight.bold,
@@ -206,14 +205,14 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
           ),
           if (image.caption.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.all(9),
+              padding: EdgeInsets.all(9),
               child: Text(
                 image.caption,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textPrimaryDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -230,22 +229,22 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Upload Business Photos'),
+          title: Text(l10nOf(context).uploadBusinessPhotos),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
                 initialValue: category,
-                decoration: const InputDecoration(
-                  labelText: 'Photo category',
+                decoration: InputDecoration(
+                  labelText: l10nOf(context).photoCategory,
                   prefixIcon: Icon(Icons.category_outlined),
                 ),
                 items: _categories
-                    .where((entry) => entry.$1 != 'all')
+                    .where((entry) => entry != 'all')
                     .map(
                       (entry) => DropdownMenuItem(
-                        value: entry.$1,
-                        child: Text(entry.$2),
+                        value: entry,
+                        child: Text(_categoryLabel(entry)),
                       ),
                     )
                     .toList(),
@@ -253,22 +252,22 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                   if (value != null) setDialogState(() => category = value);
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextField(
                 controller: captionController,
                 maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Caption (optional)',
+                decoration: InputDecoration(
+                  labelText: l10nOf(context).photoDescriptionOptional,
                   prefixIcon: Icon(Icons.notes_rounded),
-                  helperText: 'The caption will be applied to this upload batch.',
+                  helperText: l10nOf(context).photoDescriptionBatchHelp,
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'You can select up to 10 photos at once.',
+              SizedBox(height: 12),
+              Text(
+                l10nOf(context).photoSelectionLimit,
                 style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -276,15 +275,15 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: Text(l10nOf(context).cancel),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.pop(
                 dialogContext,
                 (category: category, caption: captionController.text.trim()),
               ),
-              icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Choose Photos'),
+              icon: Icon(Icons.photo_library_outlined),
+              label: Text(l10nOf(context).choosePhotos),
             ),
           ],
         ),
@@ -304,7 +303,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       final batchId = 'gallery_${DateTime.now().millisecondsSinceEpoch}';
       setState(() {
         _uploadProgress = 0;
-        _uploadStatus = 'Choose photos from your device…';
+        _uploadStatus = l10nOf(context).choosePhotosFromDevice;
       });
 
       final urls = await _media.pickAndUploadMultipleImages(
@@ -314,8 +313,11 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
           if (!mounted) return;
           setState(() {
             _uploadProgress = progress;
-            _uploadStatus =
-                'Uploading photo $current of $total • ${(progress * 100).round()}%';
+            _uploadStatus = l10nOf(context).uploadingPhotoProgress(
+              current,
+              total,
+              (progress * 100).round(),
+            );
           });
         },
       );
@@ -335,7 +337,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       if (urls.isNotEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${urls.length} photo(s) uploaded successfully.'),
+            content: Text(l10nOf(context).photosUploaded(urls.length)),
             backgroundColor: AppColors.success,
           ),
         );
@@ -344,7 +346,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Photo upload failed: $e'),
+            content: Text(l10nOf(context).photosUploadFailed('$e')),
             backgroundColor: AppColors.error,
           ),
         );
@@ -363,18 +365,18 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete photo?'),
-            content: const Text(
-              'This will permanently remove the photo from the business gallery.',
+            title: Text(l10nOf(context).deletePhotoQuestion),
+            content: Text(
+              l10nOf(context).deletePhotoConfirmation,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(l10nOf(context).cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete'),
+                child: Text(l10nOf(context).delete),
               ),
             ],
           ),
@@ -390,16 +392,22 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not delete photo: $e')),
+          SnackBar(content: Text(l10nOf(context).photoDeleteFailed('$e'))),
         );
       }
     }
   }
 
   String _categoryLabel(String id) {
-    for (final entry in _categories) {
-      if (entry.$1 == id) return entry.$2;
-    }
-    return 'Other';
+    final l10n = l10nOf(context);
+    return switch (id) {
+      'all' => l10n.allPhotos,
+      'interior' => l10n.interior,
+      'exterior' => l10n.exterior,
+      'service' => l10n.services,
+      'portfolio' => l10n.portfolio,
+      'beforeAfter' => l10n.beforeAndAfter,
+      _ => l10n.other,
+    };
   }
 }

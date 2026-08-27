@@ -14,7 +14,8 @@ class OwnerFinanceCalculator {
     final start = DateTime(from.year, from.month, from.day);
     final end = DateTime(to.year, to.month, to.day);
     if (end.isBefore(start)) {
-      throw ArgumentError('The report end date cannot be before the start date.');
+      throw ArgumentError(
+          'The report end date cannot be before the start date.');
     }
     final endExclusive = end.add(const Duration(days: 1));
 
@@ -69,9 +70,8 @@ class OwnerFinanceCalculator {
     }
 
     final netProfit = recognizedRevenue - expenseTotal;
-    final profitMarginPercent = recognizedRevenue <= 0
-        ? 0.0
-        : (netProfit / recognizedRevenue) * 100;
+    final profitMarginPercent =
+        recognizedRevenue <= 0 ? 0.0 : (netProfit / recognizedRevenue) * 100;
     final averageRevenuePerCompletedBooking = completedBookingsCount == 0
         ? 0.0
         : recognizedRevenue / completedBookingsCount;

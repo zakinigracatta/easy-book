@@ -23,28 +23,29 @@ class BusinessImagePicker extends StatelessWidget {
     final hasImage = currentImageUrl != null && currentImageUrl!.isNotEmpty;
 
     return GlassCard(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           GestureDetector(
             onTap: isLoading ? null : onPickImage,
             child: Container(
               height: 140,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.glassBgDark,
+                color: Theme.of(context).colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.glassBorderDark),
+                border:
+                    Border.all(color: Theme.of(context).colorScheme.outline),
                 image: hasImage
                     ? DecorationImage(
                         image: NetworkImage(currentImageUrl!),
@@ -53,13 +54,13 @@ class BusinessImagePicker extends StatelessWidget {
                     : null,
               ),
               child: isLoading
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
                         color: AppColors.primary,
                       ),
                     )
                   : !hasImage
-                      ? const Column(
+                      ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
@@ -72,14 +73,16 @@ class BusinessImagePicker extends StatelessWidget {
                               'Tap to upload image',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textMutedDark,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
                               ),
                             ),
                           ],
                         )
                       : Container(
-                          alignment: Alignment.topRight,
-                          padding: const EdgeInsets.all(8),
+                          alignment: AlignmentDirectional.topEnd,
+                          padding: EdgeInsets.all(8),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -88,19 +91,19 @@ class BusinessImagePicker extends StatelessWidget {
                                 backgroundColor:
                                     Colors.black.withValues(alpha: 0.6),
                                 child: IconButton(
-                                  icon: const Icon(Icons.edit_rounded,
+                                  icon: Icon(Icons.edit_rounded,
                                       size: 14, color: Colors.white),
                                   onPressed: onPickImage,
                                 ),
                               ),
                               if (onDeleteImage != null) ...[
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 CircleAvatar(
                                   radius: 16,
                                   backgroundColor:
                                       AppColors.error.withValues(alpha: 0.8),
                                   child: IconButton(
-                                    icon: const Icon(Icons.delete_rounded,
+                                    icon: Icon(Icons.delete_rounded,
                                         size: 14, color: Colors.white),
                                     onPressed: onDeleteImage,
                                   ),

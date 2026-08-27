@@ -5,6 +5,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/app_providers.dart';
+import '../../l10n/l10n.dart';
 
 /// PaymentScreen (UI Prototype / Future Payment Phase)
 /// Disconnected from Phase 2 booking transaction. Real booking creation occurs
@@ -17,12 +18,11 @@ class PaymentScreen extends ConsumerStatefulWidget {
 }
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
-  String _paymentMethod = 'Apple Pay';
+  String _paymentMethod = 'applePay';
 
   void _handlePayment() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Payment integration will be enabled in Phase 3.')),
+      SnackBar(content: Text(l10nOf(context).paymentComingSoon)),
     );
     context.go('/my-bookings');
   }
@@ -57,21 +57,24 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               }
             },
           ),
-          title: const Text('Checkout & Payment (Future Phase)'),
+          title: Text(l10nOf(context).checkoutAndPayment),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              _methodTile('Apple Pay', Icons.apple),
+              _methodTile('applePay', 'Apple Pay', Icons.apple),
               const SizedBox(height: 12),
-              _methodTile('Credit / Debit Card', Icons.credit_card_rounded),
+              _methodTile('card', l10nOf(context).creditDebitCard,
+                  Icons.credit_card_rounded),
               const SizedBox(height: 12),
-              _methodTile('Easy Book Wallet (\$120.00)',
+              _methodTile(
+                  'wallet',
+                  l10nOf(context).easyBookWalletBalance('\$120.00'),
                   Icons.account_balance_wallet_rounded),
               const Spacer(),
               CustomButton(
-                text: 'Pay $priceStr Now',
+                text: l10nOf(context).payNowAmount(priceStr),
                 onPressed: _handlePayment,
               ),
             ],
@@ -81,10 +84,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     );
   }
 
-  Widget _methodTile(String title, IconData icon) {
-    final isSel = _paymentMethod == title;
+  Widget _methodTile(String id, String title, IconData icon) {
+    final isSel = _paymentMethod == id;
     return GlassCard(
-      onTap: () => setState(() => _paymentMethod = title),
+      onTap: () => setState(() => _paymentMethod = id),
       borderColor: isSel ? AppColors.primary : null,
       child: ListTile(
         leading: Icon(icon, color: isSel ? AppColors.primary : null),

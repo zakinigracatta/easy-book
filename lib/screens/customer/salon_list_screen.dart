@@ -7,6 +7,7 @@ import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/rating_stars.dart';
+import '../../l10n/l10n.dart';
 
 class SalonListScreen extends ConsumerWidget {
   const SalonListScreen({super.key});
@@ -38,7 +39,7 @@ class SalonListScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Salons & Spas'),
+          title: Text(l10nOf(context).salonsAndSpas),
         ),
         body: businessesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -54,15 +55,15 @@ class SalonListScreen extends ConsumerWidget {
                     color: AppColors.textMutedDark,
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Could not load businesses.',
+                  Text(
+                    l10nOf(context).businessesLoadFailedSentence,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textMutedDark),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => ref.invalidate(businessesProvider),
-                    child: const Text('Try Again'),
+                    child: Text(l10nOf(context).retry),
                   ),
                 ],
               ),
@@ -81,16 +82,16 @@ class SalonListScreen extends ConsumerWidget {
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(24),
-                  children: const [
-                    SizedBox(height: 120),
-                    Icon(
+                  children: [
+                    const SizedBox(height: 120),
+                    const Icon(
                       Icons.storefront_outlined,
                       size: 52,
                       color: AppColors.textMutedDark,
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     Text(
-                      'No businesses are available yet.',
+                      l10nOf(context).noBusinessesAvailableYet,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textMutedDark),
                     ),

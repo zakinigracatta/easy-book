@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class OTPVerificationScreen extends StatelessWidget {
   const OTPVerificationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -21,7 +23,7 @@ class OTPVerificationScreen extends StatelessWidget {
             }
           },
         ),
-        title: const Text('Verify Phone / OTP'),
+        title: Text(l10n.verifyPhoneOtp),
       ),
       body: SafeArea(
         child: Padding(
@@ -31,11 +33,10 @@ class OTPVerificationScreen extends StatelessWidget {
               const Icon(Icons.mark_email_read_rounded,
                   size: 70, color: AppColors.primary),
               const SizedBox(height: 16),
-              const Text('Enter 4-Digit Code',
+              Text(l10n.enterFourDigitCode,
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text(
-                  'We sent a verification code to your registered mobile number.',
+              Text(l10n.otpSentDescription,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 32),
@@ -63,7 +64,7 @@ class OTPVerificationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               CustomButton(
-                text: 'Verify & Continue',
+                text: l10n.verifyAndContinue,
                 onPressed: () => context.go('/home'),
               ),
             ],

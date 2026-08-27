@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/custom_button.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 import 'widgets/booking_progress_header.dart';
 import 'widgets/booking_date_selector.dart';
 
@@ -59,9 +60,9 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
               }
             },
           ),
-          title: const Text('Select Appointment Date'),
+          title: Text(l10nOf(context).selectAppointmentDate),
         ),
-        body: Padding(
+        body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,10 +78,9 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
               ),
 
               const SizedBox(height: 24),
-              const Spacer(),
 
               CustomButton(
-                text: 'Next: Select Time Slot',
+                text: l10nOf(context).nextSelectTime,
                 onPressed: _onNext,
               ),
             ],

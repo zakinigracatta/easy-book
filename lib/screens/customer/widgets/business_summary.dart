@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/business_model.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class BusinessSummary extends StatelessWidget {
   final BusinessModel business;
@@ -44,15 +45,15 @@ class BusinessSummary extends StatelessWidget {
                   border: Border.all(
                       color: AppColors.success.withValues(alpha: 0.3)),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.verified_rounded,
+                    const Icon(Icons.verified_rounded,
                         color: AppColors.success, size: 14),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      'VERIFIED',
-                      style: TextStyle(
+                      l10nOf(context).verified,
+                      style: const TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
@@ -109,7 +110,7 @@ class BusinessSummary extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              '(${business.reviewCount} reviews)',
+              l10nOf(context).reviewsCount(business.reviewCount),
               style: const TextStyle(
                 color: AppColors.textSecondaryDark,
                 fontSize: 13,

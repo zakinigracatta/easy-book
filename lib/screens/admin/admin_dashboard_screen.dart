@@ -4,6 +4,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/app_drawer.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/gradient_text.dart';
+import '../../l10n/l10n.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -23,7 +24,7 @@ class AdminDashboardScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Super Admin Center'),
+          title: Text(l10nOf(context).superAdminCenter),
           leading: Builder(
             builder: (ctx) => IconButton(
               icon: const Icon(Icons.menu_rounded),
@@ -40,39 +41,39 @@ class AdminDashboardScreen extends StatelessWidget {
               GlassCard(
                 padding: const EdgeInsets.all(20),
                 backgroundColor: AppColors.error.withValues(alpha: 0.15),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Platform Revenue MTD',
-                            style: TextStyle(
+                        Text(l10nOf(context).platformRevenueMtd,
+                            style: const TextStyle(
                                 color: AppColors.textMutedDark, fontSize: 13)),
-                        SizedBox(height: 4),
-                        GradientText('\$124,500',
+                        const SizedBox(height: 4),
+                        const GradientText('\$124,500',
                             style: TextStyle(
                                 fontSize: 30, fontWeight: FontWeight.bold)),
                       ],
                     ),
-                    Icon(Icons.shield_rounded,
+                    const Icon(Icons.shield_rounded,
                         size: 40, color: AppColors.error),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              const Text('Admin Management Control',
+              Text(l10nOf(context).adminManagementControl,
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              _adminTile(context, 'User & Account Management',
+              _adminTile(context, l10nOf(context).userAccountManagement,
                   Icons.group_rounded, '/users-management'),
-              _adminTile(context, 'Salon Verification & Approvals (3)',
+              _adminTile(context, l10nOf(context).salonVerificationApprovals(3),
                   Icons.verified_user_rounded, '/salon-approval'),
-              _adminTile(context, 'Payout Queues & Commissions',
+              _adminTile(context, l10nOf(context).payoutQueuesCommissions,
                   Icons.payments_rounded, '/payment-management'),
-              _adminTile(context, 'Platform Traffic & Usage Analytics',
+              _adminTile(context, l10nOf(context).platformTrafficAnalytics,
                   Icons.bar_chart_rounded, '/analytics'),
-              _adminTile(context, 'System Audit Logs & Reports',
+              _adminTile(context, l10nOf(context).systemAuditLogsReports,
                   Icons.summarize_rounded, '/reports'),
             ],
           ),

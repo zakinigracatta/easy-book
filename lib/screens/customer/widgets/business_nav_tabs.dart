@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class BusinessNavTabs extends StatelessWidget {
   final int selectedIndex;
@@ -13,7 +14,8 @@ class BusinessNavTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tabs = ['Services', 'Specialists', 'Reviews', 'About'];
+    final l10n = l10nOf(context);
+    final tabs = [l10n.services, l10n.specialists, l10n.reviews, l10n.about];
 
     return Container(
       height: 48,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,20 +19,20 @@ class CustomerProfileScreen extends ConsumerWidget {
     final profileAsync = ref.watch(customerProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Customer Profile')),
+      appBar: AppBar(title: Text(l10nOf(context).customerProfile)),
       body: profileAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (error, _) => _ProfileErrorState(
-          message: 'Unable to load your profile: $error',
+          message: l10nOf(context).profileLoadFailed('$error'),
           onRetry: () => ref.invalidate(customerProfileProvider),
         ),
         data: (user) {
           if (user == null) {
             return _ProfileErrorState(
-              message: 'Please sign in to view your profile.',
-              buttonLabel: 'Sign In',
+              message: l10nOf(context).signInToViewProfile,
+              buttonLabel: l10nOf(context).signIn,
               onRetry: () => context.go('/login'),
             );
           }
@@ -49,67 +50,68 @@ class CustomerProfileScreen extends ConsumerWidget {
                 children: [
                   _buildUserCard(context, ref, user),
                   const SizedBox(height: 16),
-                  _buildAccountSummary(user),
+                  _buildAccountSummary(context, user),
                   const SizedBox(height: 20),
                   _profileOption(
                     context,
                     Icons.edit_rounded,
-                    'Edit Profile',
+                    l10nOf(context).editProfile,
                     () => _openEditProfile(context, ref),
                   ),
                   _profileOption(
                     context,
                     Icons.calendar_month_rounded,
-                    'My Bookings',
+                    l10nOf(context).myBookings,
                     () => context.push('/my-bookings'),
                   ),
                   _profileOption(
                     context,
                     Icons.favorite_rounded,
-                    'Favorite Salons',
+                    l10nOf(context).favoriteSalons,
                     () => context.push('/favorites'),
                   ),
                   _profileOption(
                     context,
                     Icons.chat_rounded,
-                    'Salon Chat Support',
+                    l10nOf(context).salonChatSupport,
                     () => context.push('/chat'),
                   ),
                   _profileOption(
                     context,
                     Icons.notifications_rounded,
-                    'Notifications',
+                    l10nOf(context).notifications,
                     () => context.push('/notifications'),
                   ),
                   _profileOption(
                     context,
                     Icons.settings_rounded,
-                    'Settings',
+                    l10nOf(context).settings,
                     () => context.push('/settings'),
                   ),
                   _profileOption(
                     context,
                     Icons.help_outline_rounded,
-                    'Help & Support',
+                    l10nOf(context).helpAndSupport,
                     () => context.push('/help'),
                   ),
                   _profileOption(
                     context,
                     Icons.info_outline_rounded,
-                    'About App',
+                    l10nOf(context).aboutApp,
                     () => context.push('/about'),
                   ),
                   const SizedBox(height: 16),
                   GlassCard(
                     onTap: () => _confirmLogout(context, ref),
                     borderColor: AppColors.error,
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.logout_rounded, color: AppColors.error),
-                        SizedBox(width: 14),
+                        const Icon(Icons.logout_rounded,
+                            color: AppColors.error),
+                        const SizedBox(width: 14),
                         Text(
-                          'Logout',
-                          style: TextStyle(
+                          l10nOf(context).logout,
+                          style: const TextStyle(
                             color: AppColors.error,
                             fontWeight: FontWeight.bold,
                           ),
@@ -140,7 +142,9 @@ class CustomerProfileScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.fullName.trim().isEmpty ? 'Easy Book User' : user.fullName,
+                  user.fullName.trim().isEmpty
+                      ? l10nOf(context).easyBookUser
+                      : user.fullName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -173,7 +177,7 @@ class CustomerProfileScreen extends ConsumerWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Edit profile',
+            tooltip: l10nOf(context).editProfile,
             onPressed: () => _openEditProfile(context, ref),
             icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
           ),
@@ -182,7 +186,7 @@ class CustomerProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAccountSummary(UserModel user) {
+  Widget _buildAccountSummary(BuildContext context, UserModel user) {
     return Row(
       children: [
         Expanded(
@@ -199,9 +203,9 @@ class CustomerProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Favorites',
-                  style: TextStyle(
+                Text(
+                  l10nOf(context).favorites,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textMutedDark,
                   ),
@@ -225,9 +229,9 @@ class CustomerProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Wallet Balance',
-                  style: TextStyle(
+                Text(
+                  l10nOf(context).walletBalance,
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textMutedDark,
                   ),
@@ -286,18 +290,18 @@ class CustomerProfileScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Logout?'),
-        content: const Text('You can continue browsing as a guest after logout.'),
+        title: Text(l10nOf(context).logoutQuestion),
+        content: Text(l10nOf(context).guestAfterLogout),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10nOf(context).cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: AppColors.error),
+            child: Text(
+              l10nOf(context).logout,
+              style: const TextStyle(color: AppColors.error),
             ),
           ),
         ],
@@ -314,7 +318,7 @@ class CustomerProfileScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Logout failed: $e'),
+            content: Text(l10nOf(context).logoutFailed('$e')),
             backgroundColor: AppColors.error,
           ),
         );
@@ -371,12 +375,12 @@ class _ProfileErrorState extends StatelessWidget {
   const _ProfileErrorState({
     required this.message,
     required this.onRetry,
-    this.buttonLabel = 'Retry',
+    this.buttonLabel,
   });
 
   final String message;
   final VoidCallback onRetry;
-  final String buttonLabel;
+  final String? buttonLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -394,7 +398,10 @@ class _ProfileErrorState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            OutlinedButton(onPressed: onRetry, child: Text(buttonLabel)),
+            OutlinedButton(
+              onPressed: onRetry,
+              child: Text(buttonLabel ?? l10nOf(context).retry),
+            ),
           ],
         ),
       ),

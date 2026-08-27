@@ -3,13 +3,15 @@ import 'package:firebase_auth_platform_interface/firebase_auth_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 /// Test platform implementation for mocking FirebaseAuth.instance in widget/unit tests.
-class MockFirebaseAuthPlatform extends FirebaseAuthPlatform with MockPlatformInterfaceMixin {
+class MockFirebaseAuthPlatform extends FirebaseAuthPlatform
+    with MockPlatformInterfaceMixin {
   MockFirebaseAuthPlatform();
 
   UserPlatform? mockUser;
 
   void setMockUser(String uid, String email, {bool isEmailVerified = true}) {
-    mockUser = TestUserPlatform(this, uid, email, isEmailVerified: isEmailVerified);
+    mockUser =
+        TestUserPlatform(this, uid, email, isEmailVerified: isEmailVerified);
   }
 
   void clearUser() {
@@ -23,7 +25,8 @@ class MockFirebaseAuthPlatform extends FirebaseAuthPlatform with MockPlatformInt
   FirebaseAuthPlatform setInitialValues({
     PigeonUserDetails? currentUser,
     String? languageCode,
-  }) => this;
+  }) =>
+      this;
 
   @override
   UserPlatform? get currentUser => mockUser;
@@ -39,7 +42,8 @@ class MockFirebaseAuthPlatform extends FirebaseAuthPlatform with MockPlatformInt
 }
 
 class TestUserPlatform extends UserPlatform {
-  TestUserPlatform(FirebaseAuthPlatform auth, String uid, String email, {bool isEmailVerified = true})
+  TestUserPlatform(FirebaseAuthPlatform auth, String uid, String email,
+      {bool isEmailVerified = true})
       : super(
           auth,
           FakeMultiFactorPlatform(),

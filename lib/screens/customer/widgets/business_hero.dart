@@ -8,6 +8,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../services/auth_guard.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class BusinessHero extends ConsumerWidget {
   final BusinessModel business;
@@ -97,7 +98,9 @@ class BusinessHero extends ConsumerWidget {
                         if (user == null || user.id.trim().isEmpty) return;
 
                         try {
-                          await ref.read(favoritesRepositoryProvider).setFavorite(
+                          await ref
+                              .read(favoritesRepositoryProvider)
+                              .setFavorite(
                                 userId: user.id,
                                 businessId: business.id,
                                 isFavorite: !isFavorite,
@@ -105,9 +108,9 @@ class BusinessHero extends ConsumerWidget {
                         } catch (_) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Could not update favorites. Please try again.',
+                                l10nOf(context).favoritesUpdateFailed,
                               ),
                             ),
                           );
@@ -121,7 +124,10 @@ class BusinessHero extends ConsumerWidget {
                           () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Sharing ${business.name}...'),
+                                content: Text(
+                                  l10nOf(context)
+                                      .sharingBusiness(business.name),
+                                ),
                               ),
                             );
                           },

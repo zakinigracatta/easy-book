@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
@@ -69,6 +70,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final isEditing = widget.initialService != null;
 
     return PopScope(
@@ -85,7 +87,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -94,97 +96,98 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
               }
             },
           ),
-          title: Text(isEditing ? 'Edit Service' : 'Add New Service'),
+          title: Text(isEditing ? l10n.editService : l10n.addNewService),
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
                 GlassCard(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomTextField(
                         controller: _nameController,
-                        label: 'Service Name *',
+                        label: l10n.serviceNameRequiredLabel,
                         prefixIcon: Icons.design_services_rounded,
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) {
-                            return 'Please enter service name';
+                            return l10n.enterServiceName;
                           }
                           return null;
                         },
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _categoryController,
-                        label: 'Category (e.g. Hair, Beard, Facial, Massage)',
+                        label: l10n.serviceCategoryHint,
                         prefixIcon: Icons.category_rounded,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       Row(
                         children: [
                           Expanded(
                             child: CustomTextField(
                               controller: _priceController,
-                              label: 'Price (AED) *',
+                              label: l10n.priceAedRequired,
                               prefixIcon: Icons.payments_rounded,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
                               validator: (val) {
                                 if (val == null ||
                                     double.tryParse(val) == null) {
-                                  return 'Enter valid price';
+                                  return l10n.enterValidPrice;
                                 }
                                 return null;
                               },
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: CustomTextField(
                               controller: _discountController,
-                              label: 'Discount Price',
+                              label: l10n.discountPrice,
                               prefixIcon: Icons.discount_rounded,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                  decimal: true),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       DropdownButtonFormField<int>(
                         initialValue:
                             _durationOptions.contains(_selectedDurationMinutes)
                                 ? _selectedDurationMinutes
                                 : 30,
                         decoration: InputDecoration(
-                          labelText: 'Service Duration *',
-                          labelStyle:
-                              const TextStyle(color: AppColors.textMutedDark),
-                          prefixIcon: const Icon(Icons.timer_outlined,
+                          labelText: l10n.serviceDurationRequired,
+                          labelStyle: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant),
+                          prefixIcon: Icon(Icons.timer_outlined,
                               color: AppColors.primaryLight),
                           filled: true,
-                          fillColor: AppColors.bgDark,
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                                color: AppColors.glassBorderDark),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.outline),
                           ),
                         ),
-                        dropdownColor: AppColors.cardDark,
+                        dropdownColor: Theme.of(context).colorScheme.surface,
                         items: _durationOptions.map((mins) {
                           return DropdownMenuItem(
                             value: mins,
                             child: Text(
-                              '$mins minutes',
-                              style: const TextStyle(
-                                  color: AppColors.textPrimaryDark,
+                              l10n.minutesCount(mins),
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 14),
                             ),
                           );
@@ -195,16 +198,16 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                           }
                         },
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _descriptionController,
-                        label: 'Description',
+                        label: l10n.description,
                         prefixIcon: Icons.notes_rounded,
                         maxLines: 3,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       BusinessImagePicker(
-                        label: 'Service Image',
+                        label: l10n.serviceImage,
                         currentImageUrl: _imageUrlController.text,
                         onPickImage: _pickServiceImage,
                         onDeleteImage: _imageUrlController.text.isEmpty
@@ -213,41 +216,48 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                         isLoading: _uploadProgress != null,
                       ),
                       if (_uploadProgress != null) ...[
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         LinearProgressIndicator(value: _uploadProgress),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
-                          'Uploading ${(100 * _uploadProgress!).round()}%',
-                          style: const TextStyle(
+                          l10n.uploadingPercent(
+                            (100 * _uploadProgress!).round(),
+                          ),
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       SwitchListTile(
                         value: _isActive,
-                        activeThumbColor: AppColors.primary,
-                        title: const Text(
-                          'Available for Booking',
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: AppColors.success,
+                        title: Text(
+                          l10n.availableForBooking,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        subtitle: const Text(
-                          'Disable to temporarily stop accepting new bookings for this service.',
+                        subtitle: Text(
+                          l10n.serviceAvailabilityHelp,
                           style: TextStyle(
-                              fontSize: 11, color: AppColors.textMutedDark),
+                              fontSize: 11,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant),
                         ),
                         onChanged: (val) => setState(() => _isActive = val),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       CustomButton(
                         text: isEditing
-                            ? 'Update Service'
-                            : 'Save & Publish Service',
+                            ? l10n.updateService
+                            : l10n.saveAndPublishService,
                         isLoading: _isLoading,
                         onPressed: _saveService,
                       ),
@@ -289,7 +299,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Image upload failed: $e'),
+            content: Text(l10nOf(context).imageUploadFailed(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -308,7 +318,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not delete image: $e'),
+            content: Text(l10nOf(context).imageDeleteFailed(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -351,8 +361,8 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.initialService != null
-                ? 'Service updated successfully!'
-                : 'New service created!'),
+                ? l10nOf(context).serviceUpdatedSuccessfully
+                : l10nOf(context).serviceCreatedSuccessfully),
             backgroundColor: AppColors.success,
           ),
         );
@@ -366,7 +376,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save service: $e'),
+            content: Text(l10nOf(context).serviceSaveFailed(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );

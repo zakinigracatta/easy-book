@@ -7,7 +7,8 @@ final customerProfileServiceProvider = Provider<CustomerProfileService>((ref) {
   return CustomerProfileService();
 });
 
-final customerProfileProvider = FutureProvider.autoDispose<UserModel?>((ref) async {
+final customerProfileProvider =
+    FutureProvider.autoDispose<UserModel?>((ref) async {
   final service = ref.watch(customerProfileServiceProvider);
   return service.fetchCurrentProfile();
 });

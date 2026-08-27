@@ -6,6 +6,7 @@ import '../../../providers/app_providers.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../services/auth_guard.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class BookingBottomBar extends ConsumerWidget {
   final BusinessModel business;
@@ -23,9 +24,10 @@ class BookingBottomBar extends ConsumerWidget {
     final count = draft.selectedServicesCount;
     final totalPrice = draft.totalPrice;
     final totalDuration = draft.totalDurationMinutes;
+    final l10n = l10nOf(context);
 
     final hasSelection = count > 0;
-    final buttonText = hasSelection ? 'Continue' : 'Book Now';
+    final buttonText = hasSelection ? l10n.continueAction : l10n.bookNow;
 
     return Container(
       decoration: BoxDecoration(
@@ -56,7 +58,7 @@ class BookingBottomBar extends ConsumerWidget {
                   children: [
                     if (hasSelection) ...[
                       Text(
-                        '$count ${count == 1 ? 'service' : 'services'} selected',
+                        l10n.selectedServicesCount(count),
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondaryDark,
@@ -96,9 +98,9 @@ class BookingBottomBar extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
-                      const Text(
-                        'Select service or tap Book Now',
-                        style: TextStyle(
+                      Text(
+                        l10n.selectServiceOrBookNow,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textMutedDark,
                         ),
@@ -144,7 +146,7 @@ class BookingBottomBar extends ConsumerWidget {
                   elevation: business.isActive ? 4 : 0,
                 ),
                 child: Text(
-                  business.isActive ? buttonText : 'Unavailable',
+                  business.isActive ? buttonText : l10n.unavailable,
                   style: const TextStyle(
                       fontSize: 15, fontWeight: FontWeight.bold),
                 ),

@@ -23,8 +23,8 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
   final _reasonController = TextEditingController(text: 'Annual Vacation');
 
   StaffModel? _selectedStaff;
-  DateTime _startDate = DateTime.now().add(const Duration(days: 3));
-  DateTime _endDate = DateTime.now().add(const Duration(days: 7));
+  DateTime _startDate = DateTime.now().add(Duration(days: 3));
+  DateTime _endDate = DateTime.now().add(Duration(days: 7));
   bool _isLoading = false;
 
   @override
@@ -51,7 +51,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -60,20 +60,20 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
               }
             },
           ),
-          title: const Text('Employee Time Off & Leave'),
+          title: Text('Employee Time Off & Leave'),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_rounded),
+              icon: Icon(Icons.add_rounded),
               onPressed: _showAddTimeOffModal,
             ),
           ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const GlassCard(
+              GlassCard(
                 padding: EdgeInsets.all(16),
                 child: Row(
                   children: [
@@ -89,7 +89,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimaryDark,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           SizedBox(height: 2),
@@ -97,7 +97,9 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                             'Time-off periods automatically block customer booking slots for selected specialists.',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textMutedDark,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -106,16 +108,16 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Scheduled Leave Periods',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   ElevatedButton.icon(
@@ -126,14 +128,14 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                       ),
                     ),
                     onPressed: _showAddTimeOffModal,
-                    icon: const Icon(Icons.add_rounded, size: 16),
-                    label: const Text('Add Leave',
+                    icon: Icon(Icons.add_rounded, size: 16),
+                    label: Text('Add Leave',
                         style: TextStyle(
                             fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               timeOffsAsync.when(
                 data: (timeOffs) {
                   if (timeOffs.isEmpty) {
@@ -151,46 +153,52 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                     children: timeOffs.map((t) {
                       final startStr =
                           DateFormat('MMM d, yyyy').format(t.startDate);
-                      final endStr = DateFormat('MMM d, yyyy').format(t.endDate);
+                      final endStr =
+                          DateFormat('MMM d, yyyy').format(t.endDate);
 
                       return GlassCard(
-                        padding: const EdgeInsets.all(14),
-                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: EdgeInsets.all(14),
+                        margin: EdgeInsets.only(bottom: 10),
                         child: Row(
                           children: [
-                            const CircleAvatar(
-                              backgroundColor: AppColors.cardDark,
+                            CircleAvatar(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.surface,
                               child: Icon(Icons.person_off_rounded,
                                   color: AppColors.warning),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     t.employeeName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimaryDark,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
+                                  SizedBox(height: 2),
                                   Text(
                                     t.reason,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       color: AppColors.accent,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     '$startStr – $endStr',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textMutedDark,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                     ),
                                   ),
                                 ],
@@ -202,9 +210,9 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                     }).toList(),
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (_, __) => const OwnerEmptyStateWidget(
+                error: (_, __) => OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Leave Records',
                   description: 'Failed to retrieve employee time off entries.',
@@ -223,8 +231,8 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.cardDark,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetContext) => StatefulBuilder(
@@ -240,15 +248,15 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Schedule Employee Time Off',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 employeesAsync.when(
                   data: (staffList) {
                     if (_selectedStaff == null && staffList.isNotEmpty) {
@@ -256,33 +264,34 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                     }
                     return DropdownButtonFormField<StaffModel>(
                       initialValue: _selectedStaff,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Select Employee',
                         prefixIcon: Icon(Icons.person_rounded),
                       ),
-                      dropdownColor: AppColors.cardDark,
+                      dropdownColor: Theme.of(context).colorScheme.surface,
                       items: staffList.map((st) {
                         return DropdownMenuItem(
                           value: st,
                           child: Text(st.name,
-                              style: const TextStyle(
-                                  color: AppColors.textPrimaryDark)),
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                         );
                       }).toList(),
                       onChanged: (val) =>
                           setModalState(() => _selectedStaff = val),
                     );
                   },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
+                  loading: () => SizedBox.shrink(),
+                  error: (_, __) => SizedBox.shrink(),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 CustomTextField(
                   controller: _reasonController,
                   label: 'Reason (Vacation, Sick Leave, Day Off)',
                   prefixIcon: Icons.notes_rounded,
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: 14),
                 Row(
                   children: [
                     Expanded(
@@ -292,30 +301,30 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                             context: sheetContext,
                             initialDate: _startDate,
                             firstDate: DateTime.now(),
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
+                            lastDate: DateTime.now().add(Duration(days: 365)),
                           );
                           if (pickedDate != null && sheetContext.mounted) {
                             setModalState(() => _startDate = pickedDate);
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.bgDark,
+                            color: Theme.of(context).scaffoldBackgroundColor,
                             borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: AppColors.glassBorderDark),
+                            border: Border.all(
+                                color: Theme.of(context).colorScheme.outline),
                           ),
                           child: Text(
                             'Start: ${DateFormat('MMM d').format(_startDate)}',
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.textPrimaryDark),
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurface),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: 10),
                     Expanded(
                       child: GestureDetector(
                         onTap: () async {
@@ -323,32 +332,32 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                             context: sheetContext,
                             initialDate: _endDate,
                             firstDate: _startDate,
-                            lastDate:
-                                DateTime.now().add(const Duration(days: 365)),
+                            lastDate: DateTime.now().add(Duration(days: 365)),
                           );
                           if (pickedDate != null && sheetContext.mounted) {
                             setModalState(() => _endDate = pickedDate);
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.bgDark,
+                            color: Theme.of(context).scaffoldBackgroundColor,
                             borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: AppColors.glassBorderDark),
+                            border: Border.all(
+                                color: Theme.of(context).colorScheme.outline),
                           ),
                           child: Text(
                             'End: ${DateFormat('MMM d').format(_endDate)}',
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.textPrimaryDark),
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurface),
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 CustomButton(
                   text: 'Save Leave Period',
                   isLoading: _isLoading,
@@ -376,7 +385,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                       Navigator.pop(sheetContext);
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text('Employee leave scheduled!'),
                           backgroundColor: AppColors.success,
                         ),

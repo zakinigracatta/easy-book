@@ -102,7 +102,9 @@ void main() {
     expect(summary.expensesByFrequency, isEmpty);
   });
 
-  test('counts active expenses in range and groups by category group and frequency', () {
+  test(
+      'counts active expenses in range and groups by category group and frequency',
+      () {
     final summary = calculator.calculate(
       bookings: [
         booking(
@@ -157,13 +159,15 @@ void main() {
     expect(summary.expenses, 450);
     expect(summary.expensesByCategory[ExpenseCategory.rent], 300);
     expect(summary.expensesByCategory[ExpenseCategory.supplies], 150);
-    expect(summary.expensesByCategory.containsKey(ExpenseCategory.marketing), false);
+    expect(summary.expensesByCategory.containsKey(ExpenseCategory.marketing),
+        false);
     expect(summary.expensesByGroup[ExpenseGroup.occupancy], 300);
     expect(summary.expensesByGroup[ExpenseGroup.operations], 150);
     expect(summary.expensesByGroup.containsKey(ExpenseGroup.marketing), false);
     expect(summary.expensesByFrequency[ExpenseFrequency.monthly], 300);
     expect(summary.expensesByFrequency[ExpenseFrequency.daily], 150);
-    expect(summary.expensesByFrequency.containsKey(ExpenseFrequency.emergency), false);
+    expect(summary.expensesByFrequency.containsKey(ExpenseFrequency.emergency),
+        false);
     expect(summary.netProfit, 550);
     expect(summary.profitMarginPercent, closeTo(55, 1e-9));
   });
@@ -212,7 +216,8 @@ void main() {
     expect(summary.expensesByFrequency[ExpenseFrequency.emergency], 350);
   });
 
-  test('maps legacy oneTime Firestore expenses to emergency classification', () {
+  test('maps legacy oneTime Firestore expenses to emergency classification',
+      () {
     final item = ExpenseModel.fromFirestore('legacy-1', {
       'businessId': 'business-1',
       'category': 'maintenance',
@@ -230,16 +235,23 @@ void main() {
 
   test('suggests sensible default frequency by expense category', () {
     expect(ExpenseCategory.rent.suggestedFrequency, ExpenseFrequency.monthly);
-    expect(ExpenseCategory.salaries.suggestedFrequency, ExpenseFrequency.monthly);
+    expect(
+        ExpenseCategory.salaries.suggestedFrequency, ExpenseFrequency.monthly);
     expect(ExpenseCategory.supplies.suggestedFrequency, ExpenseFrequency.daily);
-    expect(ExpenseCategory.cleaningLaundry.suggestedFrequency, ExpenseFrequency.daily);
-    expect(ExpenseCategory.licensing.suggestedFrequency, ExpenseFrequency.yearly);
-    expect(ExpenseCategory.insurance.suggestedFrequency, ExpenseFrequency.yearly);
-    expect(ExpenseCategory.maintenance.suggestedFrequency, ExpenseFrequency.emergency);
-    expect(ExpenseCategory.other.suggestedFrequency, ExpenseFrequency.emergency);
+    expect(ExpenseCategory.cleaningLaundry.suggestedFrequency,
+        ExpenseFrequency.daily);
+    expect(
+        ExpenseCategory.licensing.suggestedFrequency, ExpenseFrequency.yearly);
+    expect(
+        ExpenseCategory.insurance.suggestedFrequency, ExpenseFrequency.yearly);
+    expect(ExpenseCategory.maintenance.suggestedFrequency,
+        ExpenseFrequency.emergency);
+    expect(
+        ExpenseCategory.other.suggestedFrequency, ExpenseFrequency.emergency);
   });
 
-  test('groups completed revenue by service and calculates average revenue', () {
+  test('groups completed revenue by service and calculates average revenue',
+      () {
     final summary = calculator.calculate(
       bookings: [
         booking(
@@ -328,7 +340,9 @@ void main() {
     expect(summary.expensesByFrequency[ExpenseFrequency.monthly], 20);
   });
 
-  test('returns zero margin and zero average when there is no recognized revenue', () {
+  test(
+      'returns zero margin and zero average when there is no recognized revenue',
+      () {
     final summary = calculator.calculate(
       bookings: const [],
       expenses: [

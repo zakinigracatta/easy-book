@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/expense_l10n.dart';
+import '../../l10n/l10n.dart';
 import '../../models/expense_model.dart';
 import '../../providers/owner_finance_providers.dart';
 import '../../theme/app_colors.dart';
@@ -12,37 +14,42 @@ class OwnerExpensesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = l10nOf(context);
     final expensesAsync = ref.watch(ownerExpensesProvider);
-    final money = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
-    final date = DateFormat('dd MMM yyyy');
+    final money = NumberFormat.currency(
+      symbol: 'AED ',
+      decimalDigits: 2,
+      customPattern: '\u200E¤#,##0.00;\u200E-¤#,##0.00',
+    );
+    final date = DateFormat.yMMMd(Localizations.localeOf(context).languageCode);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Business Expenses'),
+        title: Text(l10n.businessExpenses),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: l10n.refresh,
             onPressed: () => ref.read(ownerExpensesProvider.notifier).load(),
-            icon: const Icon(Icons.refresh_rounded),
+            icon: Icon(Icons.refresh_rounded),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context, ref),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Expense'),
+        icon: Icon(Icons.add_rounded),
+        label: Text(l10n.addExpense),
       ),
       body: expensesAsync.when(
-        loading: () => const Center(
+        loading: () => Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (error, _) => Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Text(
               error.toString(),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.error),
+              style: TextStyle(color: AppColors.error),
             ),
           ),
         ),
@@ -53,10 +60,10 @@ class OwnerExpensesScreen extends ConsumerWidget {
           return RefreshIndicator(
             onRefresh: () => ref.read(ownerExpensesProvider.notifier).load(),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 100),
               children: [
-                _classificationSummary(sorted, money),
-                const SizedBox(height: 16),
+                _classificationSummary(context, sorted, money),
+                SizedBox(height: 16),
                 for (final frequency in ExpenseFrequency.values) ...[
                   _frequencySection(
                     context,
@@ -66,15 +73,17 @@ class OwnerExpensesScreen extends ConsumerWidget {
                     money,
                     date,
                   ),
-                  const SizedBox(height: 18),
+                  SizedBox(height: 18),
                 ],
                 if (expenses.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 4, bottom: 24),
                     child: Text(
-                      'No expenses recorded yet. Use “Add Expense” to record a real business cost.',
+                      l10n.noExpensesYet,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
               ],
@@ -86,39 +95,42 @@ class OwnerExpensesScreen extends ConsumerWidget {
   }
 
   Widget _classificationSummary(
+    BuildContext context,
     List<ExpenseModel> expenses,
     NumberFormat money,
   ) {
     final total = expenses.fold<double>(0, (sum, item) => sum + item.amount);
 
     return GlassCard(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Expense Classification',
+          Text(
+            l10nOf(context).expenseClassification,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Every record is an actual cost. The type describes its business cadence; it does not automatically repeat the amount.',
+          SizedBox(height: 4),
+          Text(
+            l10nOf(context).expenseClassificationHelp,
             style: TextStyle(
               fontSize: 11,
               height: 1.35,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 14),
-          _summaryRow('Total Active Expenses', money.format(total), true),
-          const Divider(height: 20),
+          SizedBox(height: 14),
+          _summaryRow(context, l10nOf(context).totalActiveExpenses,
+              money.format(total), true),
+          Divider(height: 20),
           for (final frequency in ExpenseFrequency.values)
             _summaryRow(
-              frequency.label,
+              context,
+              frequency.label(l10nOf(context)),
               money.format(
                 expenses
                     .where((item) => item.frequency == frequency)
@@ -131,9 +143,14 @@ class OwnerExpensesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _summaryRow(String label, String value, bool emphasize) {
+  Widget _summaryRow(
+    BuildContext context,
+    String label,
+    String value,
+    bool emphasize,
+  ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(
@@ -143,17 +160,19 @@ class OwnerExpensesScreen extends ConsumerWidget {
                 fontSize: emphasize ? 13 : 12,
                 fontWeight: emphasize ? FontWeight.bold : FontWeight.w500,
                 color: emphasize
-                    ? AppColors.textPrimaryDark
-                    : AppColors.textMutedDark,
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Text(
             value,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: emphasize ? AppColors.error : AppColors.textPrimaryDark,
+              color: emphasize
+                  ? AppColors.error
+                  : Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -185,52 +204,54 @@ class OwnerExpensesScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    frequency.label,
-                    style: const TextStyle(
+                    frequency.label(l10nOf(context)),
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
-                    frequency.description,
-                    style: const TextStyle(
+                    frequency.description(l10nOf(context)),
+                    style: TextStyle(
                       fontSize: 10,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Text(
               money.format(total),
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColors.error,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         if (items.isEmpty)
           GlassCard(
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(14),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.receipt_long_outlined,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   size: 20,
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'No ${frequency.shortLabel.toLowerCase()} expenses recorded.',
-                    style: const TextStyle(
+                    l10nOf(context).noExpensesOfType(
+                      frequency.shortLabel(l10nOf(context)),
+                    ),
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -240,7 +261,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
         else
           ...items.map(
             (expense) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: EdgeInsets.only(bottom: 10),
               child: _expenseCard(context, ref, expense, money, date),
             ),
           ),
@@ -256,7 +277,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
     DateFormat date,
   ) {
     return GlassCard(
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -270,78 +291,83 @@ class OwnerExpensesScreen extends ConsumerWidget {
                   color: AppColors.error.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.payments_outlined,
                   color: AppColors.error,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       expense.description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimaryDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    SizedBox(height: 3),
                     Text(
-                      '${expense.category.label} • ${date.format(expense.expenseDate)}',
-                      style: const TextStyle(
+                      '${expense.category.label(l10nOf(context))} • ${date.format(expense.expenseDate)}',
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textMutedDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                money.format(expense.amount),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.error,
-                ),
+              SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    money.format(expense.amount),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.error,
+                    ),
+                  ),
+                  PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.more_horiz_rounded, size: 20),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        _openEditor(context, ref, existing: expense);
+                      } else {
+                        _confirmArchive(context, ref, expense);
+                      }
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                          value: 'edit', child: Text(l10nOf(context).edit)),
+                      PopupMenuItem(
+                          value: 'archive',
+                          child: Text(l10nOf(context).archive)),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           Wrap(
             spacing: 8,
             runSpacing: 6,
             children: [
-              _tag(expense.frequency.shortLabel),
-              _tag(expense.paymentMethod),
+              _tag(context, expense.frequency.shortLabel(l10nOf(context))),
+              _tag(
+                  context,
+                  localizedPaymentMethod(
+                    expense.paymentMethod,
+                    l10nOf(context),
+                  )),
               if (expense.supplier?.trim().isNotEmpty == true)
-                _tag(expense.supplier!.trim()),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton.icon(
-                onPressed: () => _openEditor(
-                  context,
-                  ref,
-                  existing: expense,
-                ),
-                icon: const Icon(Icons.edit_outlined, size: 18),
-                label: const Text('Edit'),
-              ),
-              TextButton.icon(
-                onPressed: () => _confirmArchive(
-                  context,
-                  ref,
-                  expense,
-                ),
-                icon: const Icon(Icons.archive_outlined, size: 18),
-                label: const Text('Archive'),
-              ),
+                _tag(context, expense.supplier!.trim()),
             ],
           ),
         ],
@@ -349,16 +375,19 @@ class OwnerExpensesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _tag(String text) {
+  Widget _tag(BuildContext context, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.glassBorderDark.withValues(alpha: 0.5),
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 10, color: AppColors.textMutedDark),
+        style: TextStyle(
+          fontSize: 10,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }
@@ -371,18 +400,18 @@ class OwnerExpensesScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Archive expense?'),
+        title: Text(l10nOf(context).archiveExpenseQuestion),
         content: Text(
-          'Archive “${expense.description}”? It will be removed from active expense reports but retained as an archived financial record.',
+          l10nOf(context).archiveExpenseConfirmation(expense.description),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(l10nOf(context).cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Archive'),
+            child: Text(l10nOf(context).archive),
           ),
         ],
       ),
@@ -395,7 +424,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
       ref.invalidate(ownerTodayProfitAndLossProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense archived.')),
+          SnackBar(content: Text(l10nOf(context).expenseArchived)),
         );
       }
     } catch (error) {
@@ -448,10 +477,10 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
   late String _paymentMethod;
   bool _saving = false;
 
-  static const _paymentMethods = <String>[
+  static final _paymentMethods = <String>[
     'Cash',
     'Card',
-    'Bank Transfer',
+    'Bank transfer',
     'Cheque',
     'Other',
   ];
@@ -486,7 +515,8 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final date = DateFormat('dd MMM yyyy');
+    final l10n = l10nOf(context);
+    final date = DateFormat.yMMMd(Localizations.localeOf(context).languageCode);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -502,30 +532,30 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                widget.existing == null ? 'Add Expense' : 'Edit Expense',
-                style: const TextStyle(
+                widget.existing == null ? l10n.addExpense : l10n.editExpense,
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'Record the actual amount that occurred, then classify it as Daily, Monthly, Annual or Emergency. The classification itself does not create recurring charges.',
+              SizedBox(height: 6),
+              Text(
+                l10n.expenseEditorHelp,
                 style: TextStyle(
                   fontSize: 11,
                   height: 1.35,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: 18),
               DropdownButtonFormField<ExpenseCategory>(
                 initialValue: _category,
-                decoration: const InputDecoration(labelText: 'Category'),
+                decoration: InputDecoration(labelText: l10n.category),
                 items: ExpenseCategory.values
                     .map(
                       (category) => DropdownMenuItem(
                         value: category,
-                        child: Text(category.label),
+                        child: Text(category.label(l10n)),
                       ),
                     )
                     .toList(),
@@ -539,18 +569,18 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                   });
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               DropdownButtonFormField<ExpenseFrequency>(
                 initialValue: _frequency,
-                decoration: const InputDecoration(
-                  labelText: 'Expense Type',
-                  helperText: 'Daily / Monthly / Annual / Emergency',
+                decoration: InputDecoration(
+                  labelText: l10n.expenseType,
+                  helperText: l10n.expenseTypeHelper,
                 ),
                 items: ExpenseFrequency.values
                     .map(
                       (frequency) => DropdownMenuItem(
                         value: frequency,
-                        child: Text(frequency.label),
+                        child: Text(frequency.label(l10n)),
                       ),
                     )
                     .toList(),
@@ -558,58 +588,57 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                   if (value != null) setState(() => _frequency = value);
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(
-                _frequency.description,
-                style: const TextStyle(
+                _frequency.description(l10n),
+                style: TextStyle(
                   fontSize: 10,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextFormField(
                 controller: _description,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(labelText: l10n.description),
                 textInputAction: TextInputAction.next,
                 maxLength: 300,
                 validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Description is required.'
+                    ? l10n.descriptionRequired
                     : null,
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextFormField(
                 controller: _amount,
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
+                decoration: InputDecoration(
+                  labelText: l10n.amount,
                   prefixText: 'AED ',
                 ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   final parsed = double.tryParse(value?.trim() ?? '');
                   if (parsed == null || !parsed.isFinite || parsed <= 0) {
-                    return 'Enter a valid amount greater than zero.';
+                    return l10n.validPositiveAmountRequired;
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Expense Date'),
+                title: Text(l10n.expenseDate),
                 subtitle: Text(date.format(_date)),
-                trailing: const Icon(Icons.calendar_month_rounded),
+                trailing: Icon(Icons.calendar_month_rounded),
                 onTap: _pickDate,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 initialValue: _paymentMethod,
-                decoration: const InputDecoration(labelText: 'Payment Method'),
+                decoration: InputDecoration(labelText: l10n.paymentMethod),
                 items: _paymentMethods
                     .map(
                       (method) => DropdownMenuItem(
                         value: method,
-                        child: Text(method),
+                        child: Text(localizedPaymentMethod(method, l10n)),
                       ),
                     )
                     .toList(),
@@ -617,32 +646,32 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                   if (value != null) setState(() => _paymentMethod = value);
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextFormField(
                 controller: _supplier,
-                decoration: const InputDecoration(
-                  labelText: 'Supplier / Payee (optional)',
+                decoration: InputDecoration(
+                  labelText: l10n.supplierOptional,
                 ),
                 textInputAction: TextInputAction.next,
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               TextFormField(
                 controller: _notes,
-                decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                decoration: InputDecoration(labelText: l10n.notesOptional),
                 minLines: 2,
                 maxLines: 4,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: _saving ? null : _save,
                 icon: _saving
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.save_rounded),
-                label: Text(_saving ? 'Saving…' : 'Save Expense'),
+                    : Icon(Icons.save_rounded),
+                label: Text(_saving ? l10n.saving : l10n.saveExpense),
               ),
             ],
           ),

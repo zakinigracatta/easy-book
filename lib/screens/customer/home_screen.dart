@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../models/business_model.dart';
+import '../../l10n/l10n.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/customer_bottom_nav.dart';
@@ -14,6 +15,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = l10nOf(context);
     final businessesAsync = ref.watch(businessesProvider);
 
     return Scaffold(
@@ -32,11 +34,11 @@ class HomeScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Dubai, UAE 📍',
+                          l10n.dubaiUaeLocation,
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textMutedDark,
@@ -44,7 +46,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'Welcome Back 👋',
+                          l10n.welcomeBack,
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -72,7 +74,7 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 GestureDetector(
                   onTap: () => context.push('/search'),
-                  child: const GlassCard(
+                  child: GlassCard(
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     child: Row(
                       children: [
@@ -82,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         SizedBox(width: 12),
                         Text(
-                          'Search salons, spas & services...',
+                          l10n.searchSalonsAndServices,
                           style: TextStyle(color: AppColors.textMutedDark),
                         ),
                       ],
@@ -93,8 +95,8 @@ class HomeScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Categories',
+                    Text(
+                      l10n.categories,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -102,10 +104,11 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        ref.read(selectedCategoryProvider.notifier).state = 'all';
+                        ref.read(selectedCategoryProvider.notifier).state =
+                            'all';
                         context.push('/categories');
                       },
-                      child: const Text('View All'),
+                      child: Text(l10n.viewAll),
                     ),
                   ],
                 ),
@@ -117,32 +120,32 @@ class HomeScreen extends ConsumerWidget {
                       _categoryChip(
                         context,
                         ref,
-                        'Barber',
-                        'Barber',
+                        l10n.barbers,
+                        l10n.barber,
                         Icons.content_cut_rounded,
                         AppColors.primary,
                       ),
                       _categoryChip(
                         context,
                         ref,
-                        'Hair Salon',
-                        'Hair',
+                        l10n.hairSalons,
+                        l10n.hair,
                         Icons.face_rounded,
                         AppColors.accent,
                       ),
                       _categoryChip(
                         context,
                         ref,
-                        'Spa & Relax',
-                        'Spa',
+                        l10n.spaAndRelaxation,
+                        l10n.spa,
                         Icons.spa_rounded,
                         AppColors.success,
                       ),
                       _categoryChip(
                         context,
                         ref,
-                        'Nails & Beauty',
-                        'Beauty',
+                        l10n.nailsAndBeauty,
+                        l10n.beauty,
                         Icons.brush_rounded,
                         AppColors.gold,
                       ),
@@ -153,8 +156,8 @@ class HomeScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Featured Businesses',
+                    Text(
+                      l10n.featuredBusinesses,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -162,10 +165,11 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        ref.read(selectedCategoryProvider.notifier).state = 'all';
+                        ref.read(selectedCategoryProvider.notifier).state =
+                            'all';
                         context.push('/salon-list');
                       },
-                      child: const Text('See All'),
+                      child: Text(l10n.viewAll),
                     ),
                   ],
                 ),
@@ -175,7 +179,7 @@ class HomeScreen extends ConsumerWidget {
                     padding: EdgeInsets.symmetric(vertical: 40),
                     child: Center(child: CircularProgressIndicator()),
                   ),
-                  error: (error, stackTrace) => _errorState(ref),
+                  error: (error, stackTrace) => _errorState(context, ref),
                   data: (businesses) {
                     final visibleBusinesses = businesses
                         .where((business) => business.isActive)
@@ -183,7 +187,7 @@ class HomeScreen extends ConsumerWidget {
                         .toList();
 
                     if (visibleBusinesses.isEmpty) {
-                      return const GlassCard(
+                      return GlassCard(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 20),
                           child: Center(
@@ -192,12 +196,12 @@ class HomeScreen extends ConsumerWidget {
                                 Icon(Icons.storefront_outlined, size: 36),
                                 SizedBox(height: 10),
                                 Text(
-                                  'No businesses available yet',
+                                  l10n.noBusinessesYet,
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 4),
                                 Text(
-                                  'New salons and services will appear here.',
+                                  l10n.newBusinessesAppearHere,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 12,
@@ -327,7 +331,9 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  business.address.isEmpty ? business.category : business.address,
+                  business.address.isEmpty
+                      ? business.category
+                      : business.address,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -353,18 +359,23 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: (isOpen ? AppColors.success : AppColors.textMutedDark)
-                        .withValues(alpha: 0.12),
+                    color:
+                        (isOpen ? AppColors.success : AppColors.textMutedDark)
+                            .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    isOpen ? 'Open for booking' : 'Currently unavailable',
+                    isOpen
+                        ? l10nOf(context).availableToBook
+                        : l10nOf(context).currentlyUnavailable,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: isOpen ? AppColors.success : AppColors.textMutedDark,
+                      color:
+                          isOpen ? AppColors.success : AppColors.textMutedDark,
                     ),
                   ),
                 ),
@@ -390,7 +401,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _errorState(WidgetRef ref) {
+  Widget _errorState(BuildContext context, WidgetRef ref) {
     return GlassCard(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 18),
@@ -398,15 +409,15 @@ class HomeScreen extends ConsumerWidget {
           children: [
             const Icon(Icons.cloud_off_rounded, size: 34),
             const SizedBox(height: 10),
-            const Text(
-              'Could not load businesses',
+            Text(
+              l10nOf(context).businessesLoadFailed,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () => ref.invalidate(businessesProvider),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try again'),
+              label: Text(l10nOf(context).retry),
             ),
           ],
         ),

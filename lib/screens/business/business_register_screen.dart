@@ -95,7 +95,7 @@ class _BusinessRegisterScreenState
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields.')),
+        SnackBar(content: Text('Please complete all required fields.')),
       );
       return;
     }
@@ -211,7 +211,7 @@ class _BusinessRegisterScreenState
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: Icon(Icons.arrow_back_rounded),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -220,35 +220,35 @@ class _BusinessRegisterScreenState
               }
             },
           ),
-          title: const Text('Register Business Owner'),
+          title: Text('Register Business Owner'),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
+                Icon(
                   Icons.storefront_rounded,
                   size: 60,
                   color: AppColors.accent,
                 ),
-                const SizedBox(height: 12),
-                const Text(
+                SizedBox(height: 12),
+                Text(
                   'Partner Account Creation',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 6),
-                const Text(
+                SizedBox(height: 6),
+                Text(
                   'Register your salon or spa. Saved in database with role "owner".',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 13,
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Center(
                   child: GestureDetector(
                     onTap: _isLoading ? null : _pickBusinessImage,
@@ -258,7 +258,8 @@ class _BusinessRegisterScreenState
                           width: 110,
                           height: 110,
                           decoration: BoxDecoration(
-                            color: AppColors.glassBgDark,
+                            color:
+                                Theme.of(context).colorScheme.surfaceContainer,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: AppColors.accent,
@@ -272,14 +273,16 @@ class _BusinessRegisterScreenState
                                     _businessImagePreview!,
                                     fit: BoxFit.cover,
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.add_business_rounded,
                                     size: 42,
-                                    color: AppColors.textMutedDark,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
                                   ),
                           ),
                         ),
-                        const Positioned(
+                        Positioned(
                           bottom: 0,
                           right: 0,
                           child: CircleAvatar(
@@ -296,29 +299,29 @@ class _BusinessRegisterScreenState
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
+                SizedBox(height: 8),
+                Text(
                   'Tap the photo to choose an image from your phone.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 if (_uploadProgress != null) ...[
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   LinearProgressIndicator(value: _uploadProgress),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     'Uploading business photo ${(100 * _uploadProgress!).round()}%',
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 GlassCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,21 +331,20 @@ class _BusinessRegisterScreenState
                         label: 'Business Name',
                         prefixIcon: Icons.storefront_rounded,
                       ),
-                      const SizedBox(height: 14),
-                      const Text(
+                      SizedBox(height: 14),
+                      Text(
                         'Business Category',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondaryDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       DropdownButtonFormField<String>(
                         initialValue: _selectedCategory,
-                        dropdownColor: AppColors.cardDark,
+                        dropdownColor: Theme.of(context).colorScheme.surface,
                         decoration: InputDecoration(
-                          prefixIcon:
-                              const Icon(Icons.category_rounded, size: 20),
+                          prefixIcon: Icon(Icons.category_rounded, size: 20),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -361,34 +363,34 @@ class _BusinessRegisterScreenState
                           }
                         },
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
                         label: 'Phone Number',
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _emailController,
                         label: 'Business Email',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _passwordController,
                         label: 'Password',
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: 14),
                       CustomTextField(
                         controller: _locationController,
                         label: 'Physical Address / Location',
                         prefixIcon: Icons.location_on_outlined,
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       CustomButton(
                         text: 'Register Business & Go to Dashboard',
                         backgroundColor: AppColors.accent,
@@ -398,17 +400,19 @@ class _BusinessRegisterScreenState
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       'Already registered? ',
-                      style: TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     TextButton(
                       onPressed: () => context.push('/owner-login'),
-                      child: const Text(
+                      child: Text(
                         'Partner Sign In',
                         style: TextStyle(
                           color: AppColors.accent,

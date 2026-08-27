@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -10,15 +11,14 @@ class NotificationsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final notifs = [
       {
-        'title': 'Booking Confirmed!',
-        'desc':
-            'Your haircut at Executive Barber Lounge is scheduled for tomorrow at 10 AM.',
-        'time': '2 hours ago'
+        'title': l10nOf(context).bookingConfirmedNotification,
+        'desc': l10nOf(context).haircutTomorrowNotification,
+        'time': l10nOf(context).twoHoursAgo,
       },
       {
-        'title': 'Earned 150 Loyalty Points',
-        'desc': 'Thank you for reviewing Royal Spa & Wellness.',
-        'time': '1 day ago'
+        'title': l10nOf(context).loyaltyPointsNotification,
+        'desc': l10nOf(context).reviewThanksNotification,
+        'time': l10nOf(context).oneDayAgo,
       },
     ];
 
@@ -45,7 +45,7 @@ class NotificationsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Notifications'),
+          title: Text(l10nOf(context).notifications),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),

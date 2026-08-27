@@ -19,13 +19,14 @@ class OwnerBookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     final timeStr = DateFormat('hh:mm a').format(booking.startDateTime);
     final dateStr = DateFormat('EEE, MMM d').format(booking.startDateTime);
     final isWalkIn = booking.bookingSource == 'walkIn';
 
     return GlassCard(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 14),
+      padding: EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -35,15 +36,15 @@ class OwnerBookingCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.access_time_filled_rounded,
-                      size: 16, color: AppColors.accent),
-                  const SizedBox(width: 6),
+                  Icon(Icons.access_time_filled_rounded,
+                      size: 16, color: colors.primary),
+                  SizedBox(width: 6),
                   Text(
                     '$timeStr • $dateStr',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: colors.onSurface,
                     ),
                   ),
                 ],
@@ -52,16 +53,15 @@ class OwnerBookingCard extends StatelessWidget {
                 children: [
                   if (isWalkIn) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      margin: const EdgeInsets.only(right: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      margin: const EdgeInsetsDirectional.only(end: 6),
                       decoration: BoxDecoration(
                         color: AppColors.gold.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                             color: AppColors.gold.withValues(alpha: 0.4)),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Walk-in',
                         style: TextStyle(
                           color: AppColors.gold,
@@ -76,9 +76,9 @@ class OwnerBookingCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          const Divider(color: AppColors.glassBorderDark, height: 1),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
+          Divider(color: colors.outline, height: 1),
+          SizedBox(height: 12),
 
           // Main Info: Customer, Service, Employee & Price
           Row(
@@ -91,57 +91,57 @@ class OwnerBookingCard extends StatelessWidget {
                   booking.customerName.isNotEmpty
                       ? booking.customerName[0].toUpperCase()
                       : 'C',
-                  style: const TextStyle(
-                    color: AppColors.primaryLight,
+                  style: TextStyle(
+                    color: colors.primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       booking.customerName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimaryDark,
+                        color: colors.onSurface,
                       ),
                     ),
                     if (booking.customerPhone != null &&
                         booking.customerPhone!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      SizedBox(height: 2),
                       Text(
                         booking.customerPhone!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textMutedDark,
+                          color: colors.onSurfaceVariant,
                         ),
                       ),
                     ],
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Text(
                       booking.serviceName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.accent,
+                        color: colors.primary,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Row(
                       children: [
-                        const Icon(Icons.badge_outlined,
-                            size: 13, color: AppColors.textMutedDark),
-                        const SizedBox(width: 4),
+                        Icon(Icons.badge_outlined,
+                            size: 13, color: colors.onSurfaceVariant),
+                        SizedBox(width: 4),
                         Text(
                           'Staff: ${booking.staffName}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textMutedDark,
+                            color: colors.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -151,7 +151,7 @@ class OwnerBookingCard extends StatelessWidget {
               ),
               Text(
                 'AED ${booking.servicePrice.toStringAsFixed(0)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.success,
@@ -161,24 +161,24 @@ class OwnerBookingCard extends StatelessWidget {
           ),
 
           if (booking.notes != null && booking.notes!.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.glassBgDark,
+                color: colors.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.notes_rounded,
-                      size: 14, color: AppColors.textMutedDark),
-                  const SizedBox(width: 6),
+                  Icon(Icons.notes_rounded,
+                      size: 14, color: colors.onSurfaceVariant),
+                  SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       booking.notes!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.textSecondaryDark,
+                        color: colors.onSurfaceVariant,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -188,7 +188,7 @@ class OwnerBookingCard extends StatelessWidget {
             ),
           ],
 
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
 
           // Contextual Action Buttons depending on status
           _buildActionRow(context),
@@ -206,11 +206,11 @@ class OwnerBookingCard extends StatelessWidget {
               child: _actionButton(
                 label: 'Confirm',
                 icon: Icons.check_circle_outline_rounded,
-                color: AppColors.primary,
+                color: AppColors.success,
                 onPressed: () => onStatusChanged?.call(BookingStatus.confirmed),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: _actionButton(
                 label: 'Cancel',
@@ -239,7 +239,7 @@ class OwnerBookingCard extends StatelessWidget {
                 onPressed: () => onStatusChanged?.call(BookingStatus.arrived),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: _actionButton(
                 label: 'Start Service',
@@ -249,8 +249,9 @@ class OwnerBookingCard extends StatelessWidget {
                     onStatusChanged?.call(BookingStatus.inProgress),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             _iconActionButton(
+              context: context,
               icon: Icons.more_vert_rounded,
               onPressed: () => _showMoreActionsMenu(context),
             ),
@@ -269,7 +270,7 @@ class OwnerBookingCard extends StatelessWidget {
                     onStatusChanged?.call(BookingStatus.inProgress),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Expanded(
               child: _actionButton(
                 label: 'Complete',
@@ -298,7 +299,7 @@ class OwnerBookingCard extends StatelessWidget {
       case BookingStatus.completed:
       case BookingStatus.cancelled:
       case BookingStatus.noShow:
-        return const SizedBox.shrink();
+        return SizedBox.shrink();
     }
   }
 
@@ -313,7 +314,7 @@ class OwnerBookingCard extends StatelessWidget {
         backgroundColor: color.withValues(alpha: 0.15),
         foregroundColor: color,
         elevation: 0,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: BorderSide(color: color.withValues(alpha: 0.4)),
@@ -323,22 +324,25 @@ class OwnerBookingCard extends StatelessWidget {
       icon: Icon(icon, size: 16),
       label: Text(
         label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _iconActionButton(
-      {required IconData icon, required VoidCallback onPressed}) {
+      {required BuildContext context,
+      required IconData icon,
+      required VoidCallback onPressed}) {
     return IconButton(
       style: IconButton.styleFrom(
-        backgroundColor: AppColors.glassBgDark,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: AppColors.glassBorderDark),
+          side: BorderSide(color: Theme.of(context).colorScheme.outline),
         ),
       ),
-      icon: Icon(icon, size: 18, color: AppColors.textPrimaryDark),
+      icon:
+          Icon(icon, size: 18, color: Theme.of(context).colorScheme.onSurface),
       onPressed: onPressed,
     );
   }
@@ -346,30 +350,31 @@ class OwnerBookingCard extends StatelessWidget {
   void _showMoreActionsMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.cardDark,
-      shape: const RoundedRectangleBorder(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => Container(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.event_repeat_rounded,
-                  color: AppColors.primary),
-              title: const Text('Reschedule Booking',
-                  style: TextStyle(color: AppColors.textPrimaryDark)),
+              leading:
+                  Icon(Icons.event_repeat_rounded, color: AppColors.primary),
+              title: Text('Reschedule Booking',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)),
               onTap: () {
                 Navigator.pop(ctx);
                 onRescheduleTap?.call();
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person_off_rounded,
-                  color: AppColors.warning),
-              title: const Text('Mark No Show',
-                  style: TextStyle(color: AppColors.textPrimaryDark)),
+              leading: Icon(Icons.person_off_rounded, color: AppColors.warning),
+              title: Text('Mark No Show',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface)),
               onTap: () {
                 Navigator.pop(ctx);
                 _confirmAction(
@@ -381,9 +386,8 @@ class OwnerBookingCard extends StatelessWidget {
               },
             ),
             ListTile(
-              leading:
-                  const Icon(Icons.cancel_outlined, color: AppColors.error),
-              title: const Text('Cancel Booking',
+              leading: Icon(Icons.cancel_outlined, color: AppColors.error),
+              title: Text('Cancel Booking',
                   style: TextStyle(color: AppColors.error)),
               onTap: () {
                 Navigator.pop(ctx);
@@ -411,16 +415,18 @@ class OwnerBookingCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.cardDark,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(title,
-            style: const TextStyle(color: AppColors.textPrimaryDark)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: Text(message,
-            style: const TextStyle(color: AppColors.textMutedDark)),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Back',
-                style: TextStyle(color: AppColors.textMutedDark)),
+            child: Text('Back',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -428,7 +434,7 @@ class OwnerBookingCard extends StatelessWidget {
               Navigator.pop(ctx);
               onConfirm();
             },
-            child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+            child: Text('Confirm', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

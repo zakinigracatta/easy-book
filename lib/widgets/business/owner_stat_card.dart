@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import '../glass_card.dart';
 
 class OwnerStatCard extends StatelessWidget {
@@ -20,6 +19,7 @@ class OwnerStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -39,10 +39,10 @@ class OwnerStatCard extends StatelessWidget {
               if (subtitle != null)
                 Text(
                   subtitle!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textMutedDark,
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
             ],
@@ -50,20 +50,20 @@ class OwnerStatCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+              color: colors.onSurface,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: AppColors.textMutedDark,
+              color: colors.onSurfaceVariant,
             ),
           ),
         ],

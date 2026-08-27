@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
+import '../../l10n/l10n.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});
@@ -30,16 +31,16 @@ class AnalyticsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Platform Analytics'),
+          title: Text(l10nOf(context).platformAnalytics),
         ),
-        body: const Padding(
-          padding: EdgeInsets.all(20),
+        body: Padding(
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
               GlassCard(
                 child: ListTile(
-                  title: Text('Monthly Active Users (MAU)'),
-                  subtitle: Text('15,243 Users (+12% growth)'),
+                  title: Text(l10nOf(context).monthlyActiveUsers),
+                  subtitle: Text(l10nOf(context).usersGrowth('15,243', '+12%')),
                 ),
               ),
             ],

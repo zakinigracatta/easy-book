@@ -7,6 +7,7 @@ import '../../models/booking_model.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
+import '../../l10n/l10n.dart';
 
 class RescheduleBookingScreen extends ConsumerStatefulWidget {
   final BookingModel? booking;
@@ -68,8 +69,7 @@ class _RescheduleBookingScreenState
     if (booking.startDateTime.millisecondsSinceEpoch ==
         newStartDateTime.millisecondsSinceEpoch) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please select a different date or time.')),
+        SnackBar(content: Text(l10nOf(context).chooseDifferentDateOrTime)),
       );
       return;
     }
@@ -85,8 +85,8 @@ class _RescheduleBookingScreenState
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Your appointment has been rescheduled successfully.'),
+        SnackBar(
+          content: Text(l10nOf(context).rescheduledSuccessfully),
           backgroundColor: Colors.green,
         ),
       );
@@ -109,9 +109,9 @@ class _RescheduleBookingScreenState
 
     if (booking == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Reschedule Booking')),
-        body: const Center(
-          child: Text('No booking details provided.'),
+        appBar: AppBar(title: Text(l10nOf(context).rescheduleBooking)),
+        body: Center(
+          child: Text(l10nOf(context).bookingDetailsNotProvided),
         ),
       );
     }
@@ -129,7 +129,7 @@ class _RescheduleBookingScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reschedule Booking'),
+        title: Text(l10nOf(context).rescheduleBooking),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -151,7 +151,10 @@ class _RescheduleBookingScreenState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${booking.serviceName} • Specialist: ${booking.staffName}',
+                      l10nOf(context).serviceAndSpecialist(
+                        booking.serviceName,
+                        booking.staffName,
+                      ),
                       style: const TextStyle(
                           color: AppColors.textMutedDark, fontSize: 13),
                     ),
@@ -162,7 +165,9 @@ class _RescheduleBookingScreenState
                             size: 14, color: AppColors.primary),
                         const SizedBox(width: 6),
                         Text(
-                          'Current: ${Formatters.formatDateTime(booking.startDateTime)}',
+                          l10nOf(context).currentAppointment(
+                            Formatters.formatDateTime(booking.startDateTime),
+                          ),
                           style: const TextStyle(
                               fontWeight: FontWeight.w600, fontSize: 13),
                         ),
@@ -175,8 +180,9 @@ class _RescheduleBookingScreenState
             const SizedBox(height: 14),
 
             // Date Picker Header
-            const Text('Select New Date',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            Text(l10nOf(context).selectNewDate,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             SizedBox(
               height: 120,
@@ -193,19 +199,20 @@ class _RescheduleBookingScreenState
             const SizedBox(height: 14),
 
             // Available Time Slots Header
-            const Text('Select New Time',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            Text(l10nOf(context).selectNewTime,
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
 
             Expanded(
               child: slotsState.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) =>
-                    Center(child: Text('Error loading slots: $err')),
+                error: (err, _) => Center(
+                    child: Text(l10nOf(context).slotsLoadFailed('$err'))),
                 data: (availableSlots) {
                   if (availableSlots.isEmpty) {
-                    return const Center(
-                      child: Text('No available time slots for this date.'),
+                    return Center(
+                      child: Text(l10nOf(context).noSlotsOnDate),
                     );
                   }
 
@@ -247,7 +254,9 @@ class _RescheduleBookingScreenState
             const SizedBox(height: 10),
 
             CustomButton(
-              text: _isLoading ? 'Processing...' : 'Confirm Reschedule',
+              text: _isLoading
+                  ? l10nOf(context).processing
+                  : l10nOf(context).confirmReschedule,
               onPressed: _isLoading ? null : _handleConfirmReschedule,
             ),
           ],

@@ -3,6 +3,7 @@ import '../../../models/service_model.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/l10n.dart';
 
 class SelectedServicesSummary extends StatelessWidget {
   final List<ServiceModel> services;
@@ -29,9 +30,9 @@ class SelectedServicesSummary extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Selected Services',
-                style: TextStyle(
+              Text(
+                l10nOf(context).selectedServices,
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -40,9 +41,9 @@ class SelectedServicesSummary extends StatelessWidget {
               if (onEditTap != null)
                 GestureDetector(
                   onTap: onEditTap,
-                  child: const Text(
-                    'Change',
-                    style: TextStyle(
+                  child: Text(
+                    l10nOf(context).change,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primaryLight,
@@ -102,7 +103,7 @@ class SelectedServicesSummary extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total Duration: $totalDuration min',
+                l10nOf(context).totalDurationMinutes(totalDuration),
                 style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textMutedDark,
@@ -110,7 +111,9 @@ class SelectedServicesSummary extends StatelessWidget {
                 ),
               ),
               Text(
-                'Subtotal: ${CurrencyFormatter.format(totalPrice)}',
+                l10nOf(context).subtotalAmount(
+                  CurrencyFormatter.format(totalPrice),
+                ),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,

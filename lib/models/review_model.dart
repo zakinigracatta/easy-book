@@ -45,12 +45,12 @@ class ReviewModel {
           json['user_avatar'] as String? ?? json['userAvatar'] as String? ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
       comment: json['comment'] as String? ?? '',
-      createdAt: parseDate(json['created_at'] ?? json['createdAt']) ??
-          DateTime.now(),
+      createdAt:
+          parseDate(json['created_at'] ?? json['createdAt']) ?? DateTime.now(),
       serviceName:
           json['service_name'] as String? ?? json['serviceName'] as String?,
-      businessReply: json['businessReply'] as String? ??
-          json['business_reply'] as String?,
+      businessReply:
+          json['businessReply'] as String? ?? json['business_reply'] as String?,
       businessReplyAt:
           parseDate(json['businessReplyAt'] ?? json['business_reply_at']),
     );

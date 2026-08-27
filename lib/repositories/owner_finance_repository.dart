@@ -51,7 +51,10 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
   }
 
   CollectionReference<Map<String, dynamic>> _expenses(String businessId) =>
-      _firestore.collection('businesses').doc(businessId).collection('expenses');
+      _firestore
+          .collection('businesses')
+          .doc(businessId)
+          .collection('expenses');
 
   @override
   Future<List<ExpenseModel>> fetchExpenses(String businessId) async {
@@ -139,7 +142,8 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
       throw DomainException('Business ID is required.');
     }
     if (to.isBefore(from)) {
-      throw DomainException('The report end date cannot be before the start date.');
+      throw DomainException(
+          'The report end date cannot be before the start date.');
     }
 
     await _assertOwner(businessId);

@@ -2,47 +2,49 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class CategoriesScreen extends StatelessWidget {
   const CategoriesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final categories = [
       {
-        'name': 'Barbershops',
+        'name': l10n.barberSalons,
         'icon': Icons.content_cut_rounded,
-        'count': '142 Salons',
+        'count': l10n.salonsCount(142),
         'color': AppColors.primary
       },
       {
-        'name': 'Hair Salons',
+        'name': l10n.hairSalons,
         'icon': Icons.face_rounded,
-        'count': '98 Salons',
+        'count': l10n.salonsCount(98),
         'color': AppColors.accent
       },
       {
-        'name': 'Spa & Massage',
+        'name': l10n.spaAndMassage,
         'icon': Icons.spa_rounded,
-        'count': '65 Centers',
+        'count': l10n.centersCount(65),
         'color': AppColors.success
       },
       {
-        'name': 'Nail Care & Beauty',
+        'name': l10n.nailAndBeautyCare,
         'icon': Icons.brush_rounded,
-        'count': '45 Studios',
+        'count': l10n.studiosCount(45),
         'color': AppColors.gold
       },
       {
-        'name': 'Skin & Facial Clinics',
+        'name': l10n.skinAndFacialClinics,
         'icon': Icons.clean_hands_rounded,
-        'count': '38 Clinics',
+        'count': l10n.clinicsCount(38),
         'color': AppColors.info
       },
       {
-        'name': 'Tattoo & Piercing',
+        'name': l10n.tattooAndPiercing,
         'icon': Icons.design_services_rounded,
-        'count': '22 Parlors',
+        'count': l10n.shopsCount(22),
         'color': AppColors.error
       },
     ];
@@ -70,7 +72,7 @@ class CategoriesScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('All Service Categories'),
+          title: Text(l10n.allServiceCategories),
         ),
         body: GridView.builder(
           padding: const EdgeInsets.all(20),

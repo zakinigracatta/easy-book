@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   firebase_core: ^3.15.2
   firebase_auth: ^5.6.2
@@ -45,7 +47,7 @@ dependencies:
   latlong2: ^0.10.1
   geolocator: 14.0.2
 
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.4.0
 
 dev_dependencies:
@@ -62,6 +64,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
 
   assets:
     - assets/logo.png

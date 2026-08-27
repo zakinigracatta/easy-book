@@ -5,8 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
-import '../../theme/app_colors.dart';
 import '../../models/user_model.dart';
+import '../../l10n/l10n.dart';
 import '../../providers/app_providers.dart';
 import '../../services/navigation_service.dart';
 
@@ -26,7 +26,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email and password.')),
+        SnackBar(
+          content: Text(l10nOf(context).invalidCredentials),
+        ),
       );
       return;
     }
@@ -91,6 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -103,7 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             }
           },
         ),
-        title: const Text('Sign In'),
+        title: Text(l10n.signIn),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -111,11 +114,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Welcome Back 👋',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+              Text(
+                l10n.welcomeBack,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 6),
-              const Text('Sign in to access your portal',
-                  style: TextStyle(color: AppColors.textMutedDark)),
+              Text(
+                l10n.signInSubtitle,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 24),
 
               // Role Toggle Segment
@@ -129,17 +141,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: _selectedRole == UserRole.customer
-                              ? AppColors.primary
-                              : AppColors.cardDark,
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerLow,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                               color: _selectedRole == UserRole.customer
-                                  ? AppColors.primary
-                                  : AppColors.glassBorderDark),
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.outline),
                         ),
-                        child: const Center(
-                          child: Text('Customer',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Center(
+                          child: Text(
+                            l10n.customer,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _selectedRole == UserRole.customer
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -153,17 +174,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
                           color: _selectedRole == UserRole.owner
-                              ? AppColors.accent
-                              : AppColors.cardDark,
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerLow,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                               color: _selectedRole == UserRole.owner
-                                  ? AppColors.accent
-                                  : AppColors.glassBorderDark),
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.outline),
                         ),
-                        child: const Center(
-                          child: Text('Business Owner',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Center(
+                          child: Text(
+                            l10n.businessOwner,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _selectedRole == UserRole.owner
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -178,14 +208,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     CustomTextField(
                       controller: _emailController,
-                      label: 'Email / Phone',
+                      label: l10n.emailOrPhone,
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       controller: _passwordController,
-                      label: 'Password',
+                      label: l10n.password,
                       obscureText: true,
                       prefixIcon: Icons.lock_outline_rounded,
                     ),
@@ -194,10 +224,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => context.push('/forgot-password'),
-                        child: const Text(
-                          'Forgot Password?',
+                        child: Text(
+                          l10n.forgotPassword,
                           style: TextStyle(
-                              color: AppColors.textMutedDark,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
                               fontSize: 13,
                               fontWeight: FontWeight.w600),
                         ),
@@ -205,11 +237,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     CustomButton(
-                      text: 'Sign In',
+                      text: l10n.signIn,
                       isLoading: _isLoading,
-                      backgroundColor: _selectedRole == UserRole.owner
-                          ? AppColors.accent
-                          : AppColors.primary,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       onPressed: _handleLogin,
                     ),
                   ],
@@ -221,23 +251,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Customer? ',
-                          style: TextStyle(color: AppColors.textMutedDark)),
+                      Text(
+                        '${l10n.registerAsCustomer} ',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                       TextButton(
                         onPressed: () => context.push('/register'),
-                        child: const Text('Customer Register'),
+                        child: Text(l10n.customerRegister),
                       ),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Partner? ',
-                          style: TextStyle(color: AppColors.textMutedDark)),
+                      Text(
+                        '${l10n.registerAsPartner} ',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                       TextButton(
                         onPressed: () => context.push('/business-register'),
-                        child: const Text('Owner Register',
-                            style: TextStyle(color: AppColors.accent)),
+                        child: Text(
+                          l10n.ownerRegister,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
                       ),
                     ],
                   ),

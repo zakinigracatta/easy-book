@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class GallerySection extends StatelessWidget {
   final List<String> galleryUrls;
@@ -17,9 +18,9 @@ class GallerySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Photo Gallery',
-          style: TextStyle(
+        Text(
+          l10nOf(context).photoGallery,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.white,

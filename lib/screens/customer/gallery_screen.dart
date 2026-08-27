@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/l10n.dart';
 
 class GalleryScreen extends StatelessWidget {
   const GalleryScreen({super.key});
@@ -36,7 +37,7 @@ class GalleryScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Salon Photo Gallery'),
+          title: Text(l10nOf(context).photoGallery),
         ),
         body: GridView.builder(
           padding: const EdgeInsets.all(16),

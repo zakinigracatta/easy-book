@@ -9,6 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../providers/app_providers.dart';
 import '../../models/booking_model.dart';
 import '../../services/navigation_service.dart';
+import '../../l10n/l10n.dart';
 
 class BookingConfirmationScreen extends ConsumerStatefulWidget {
   const BookingConfirmationScreen({super.key});
@@ -28,8 +29,7 @@ class _BookingConfirmationScreenState
     if (currentUser == null) {
       NavigationService().setPendingRoute('/booking-confirmation');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please sign in to complete your booking.')),
+        SnackBar(content: Text(l10nOf(context).signInToCompleteBooking)),
       );
       context.push('/login');
       return;
@@ -37,9 +37,7 @@ class _BookingConfirmationScreenState
 
     if (!currentUser.emailVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Please verify your email address to proceed with booking.')),
+        SnackBar(content: Text(l10nOf(context).verifyEmailToBook)),
       );
       context.push('/verify-email');
       return;
@@ -48,9 +46,7 @@ class _BookingConfirmationScreenState
     final draft = ref.read(bookingDraftProvider);
     if (!draft.isComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content:
-                Text('Please select all booking details before confirming.')),
+        SnackBar(content: Text(l10nOf(context).completeBookingDetails)),
       );
       return;
     }
@@ -90,7 +86,7 @@ class _BookingConfirmationScreenState
     final booking = BookingModel(
       id: '',
       customerId: currentUser.uid,
-      customerName: currentUser.displayName ?? 'Valued Customer',
+      customerName: currentUser.displayName ?? l10nOf(context).dearCustomer,
       businessId: draft.businessId!,
       businessName: draft.businessName!,
       serviceId: draft.serviceId!,
@@ -138,7 +134,7 @@ class _BookingConfirmationScreenState
     final draft = ref.watch(bookingDraftProvider);
     final dateStr = draft.date != null
         ? '${draft.date!.year}-${draft.date!.month.toString().padLeft(2, '0')}-${draft.date!.day.toString().padLeft(2, '0')}'
-        : 'Not selected';
+        : l10nOf(context).notSpecified;
 
     return PopScope(
       canPop: context.canPop(),
@@ -163,7 +159,7 @@ class _BookingConfirmationScreenState
               }
             },
           ),
-          title: const Text('Step 4: Confirm Booking'),
+          title: Text(l10nOf(context).confirmBookingStep),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -173,18 +169,23 @@ class _BookingConfirmationScreenState
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    Text(draft.businessName ?? 'Salon',
+                    Text(draft.businessName ?? l10nOf(context).salon,
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     const Divider(height: 24),
-                    _row('Service', draft.serviceName ?? 'Not selected'),
-                    _row('Duration', draft.serviceDuration ?? 'Not selected'),
-                    _row('Specialist', draft.staffName ?? 'Not selected'),
-                    _row('Date & Time',
-                        '$dateStr at ${draft.timeSlot ?? 'Not selected'}'),
+                    _row(l10nOf(context).service,
+                        draft.serviceName ?? l10nOf(context).notSpecified),
+                    _row(l10nOf(context).duration,
+                        draft.serviceDuration ?? l10nOf(context).notSpecified),
+                    _row(l10nOf(context).specialist,
+                        draft.staffName ?? l10nOf(context).notSpecified),
+                    _row(
+                        l10nOf(context).dateAndTime,
+                        l10nOf(context).dateAtTime(dateStr,
+                            draft.timeSlot ?? l10nOf(context).notSpecified)),
                     const Divider(height: 24),
-                    _row('Total Price',
+                    _row(l10nOf(context).totalPrice,
                         '\$${(draft.servicePrice ?? 0.0).toStringAsFixed(2)}',
                         isBold: true),
                   ],
@@ -192,7 +193,7 @@ class _BookingConfirmationScreenState
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: 'Confirm Booking',
+                text: l10nOf(context).confirmBooking,
                 isLoading: _isCreating,
                 onPressed: _confirmBooking,
               ),

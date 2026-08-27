@@ -7,6 +7,7 @@ import '../../widgets/custom_button.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/staff_model.dart';
 import '../../models/staff_schedule_model.dart';
+import '../../l10n/l10n.dart';
 
 class EmployeeScheduleScreen extends ConsumerStatefulWidget {
   const EmployeeScheduleScreen({super.key});
@@ -34,6 +35,7 @@ class _EmployeeScheduleScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = l10nOf(context);
     final employeesAsync = ref.watch(ownerEmployeesProvider);
 
     return PopScope(
@@ -45,16 +47,17 @@ class _EmployeeScheduleScreenState
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Employee Working Hours'),
+          title: Text(l10n.employeeWorkingHours),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () =>
-                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
+            icon: Icon(Icons.arrow_back_rounded),
+            onPressed: () => context.canPop()
+                ? context.pop()
+                : context.go('/owner-dashboard'),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.event_busy_rounded),
-              tooltip: 'Time Off / Leave',
+              icon: Icon(Icons.event_busy_rounded),
+              tooltip: l10n.timeOffAndAbsence,
               onPressed: () => context.push('/employee-time-off'),
             ),
           ],
@@ -62,26 +65,26 @@ class _EmployeeScheduleScreenState
         body: employeesAsync.when(
           data: (staffList) {
             if (staffList.isEmpty) {
-              return const Center(
+              return Center(
                 child: Padding(
                   padding: EdgeInsets.all(24),
-                  child: Text('Add an employee before configuring working hours.'),
+                  child: Text(l10n.addEmployeeBeforeSchedule),
                 ),
               );
             }
 
             final selected = _resolveSelectedStaff(staffList);
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GlassCard(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(14),
                     child: DropdownButtonFormField<String>(
                       initialValue: selected.id,
-                      decoration: const InputDecoration(
-                        labelText: 'Staff member',
+                      decoration: InputDecoration(
+                        labelText: l10n.staffMember,
                         prefixIcon: Icon(Icons.badge_rounded),
                       ),
                       items: staffList
@@ -102,40 +105,41 @@ class _EmployeeScheduleScreenState
                       },
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  const Text(
-                    'Weekly schedule',
+                  SizedBox(height: 14),
+                  Text(
+                    l10n.weeklySchedule,
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'These hours directly control when customers can book this employee.',
+                  SizedBox(height: 4),
+                  Text(
+                    l10n.employeeScheduleHelp,
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   ..._days.map(_buildDayCard),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   CustomButton(
-                    text: 'Save Employee Schedule',
+                    text: l10n.saveEmployeeSchedule,
                     isLoading: _isSaving,
                     onPressed: () => _save(selected),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                 ],
               ),
             );
           },
-          loading: () => const Center(
+          loading: () => Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
-          error: (error, _) => Center(child: Text('Unable to load staff: $error')),
+          error: (error, _) =>
+              Center(child: Text(l10n.staffLoadError(error.toString()))),
         ),
       ),
     );
@@ -153,6 +157,20 @@ class _EmployeeScheduleScreenState
       if (_schedule.isEmpty) _loadSchedule(selected);
     }
     return selected;
+  }
+
+  String _localizedDay(String day) {
+    final l10n = l10nOf(context);
+    final index = _days.indexOf(day);
+    return [
+      l10n.monday,
+      l10n.tuesday,
+      l10n.wednesday,
+      l10n.thursday,
+      l10n.friday,
+      l10n.saturday,
+      l10n.sunday
+    ][index];
   }
 
   void _loadSchedule(StaffModel staff, {bool force = false}) {
@@ -185,24 +203,26 @@ class _EmployeeScheduleScreenState
   Widget _buildDayCard(String day) {
     final hours = _schedule[day]!;
     return GlassCard(
-      padding: const EdgeInsets.all(14),
-      margin: const EdgeInsets.only(bottom: 10),
+      padding: EdgeInsets.all(14),
+      margin: EdgeInsets.only(bottom: 10),
       child: Column(
         children: [
           Row(
             children: [
               Expanded(
                 child: Text(
-                  day,
-                  style: const TextStyle(
+                  _localizedDay(day),
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
               Text(
-                hours.isWorking ? 'Working' : 'Day Off',
+                hours.isWorking
+                    ? l10nOf(context).working
+                    : l10nOf(context).dayOff,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -211,7 +231,8 @@ class _EmployeeScheduleScreenState
               ),
               Switch(
                 value: hours.isWorking,
-                activeThumbColor: AppColors.primary,
+                activeThumbColor: Colors.white,
+                activeTrackColor: AppColors.success,
                 onChanged: (value) {
                   setState(() {
                     _schedule[day] = hours.copyWith(isWorking: value);
@@ -221,44 +242,44 @@ class _EmployeeScheduleScreenState
             ],
           ),
           if (hours.isWorking) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: _ScheduleTimeButton(
-                    label: 'Shift starts',
-                    value: hours.openTime,
+                    label: l10nOf(context).shiftStarts,
+                    value: _localizedTime(hours.openTime),
                     icon: Icons.login_rounded,
                     onTap: () => _pickTime(day, _TimeField.shiftStart),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: _ScheduleTimeButton(
-                    label: 'Shift ends',
-                    value: hours.closeTime,
+                    label: l10nOf(context).shiftEnds,
+                    value: _localizedTime(hours.closeTime),
                     icon: Icons.logout_rounded,
                     onTap: () => _pickTime(day, _TimeField.shiftEnd),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: _ScheduleTimeButton(
-                    label: 'Break starts',
-                    value: hours.breakStart ?? '01:00 PM',
+                    label: l10nOf(context).breakStarts,
+                    value: _localizedTime(hours.breakStart ?? '01:00 PM'),
                     icon: Icons.free_breakfast_rounded,
                     onTap: () => _pickTime(day, _TimeField.breakStart),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: _ScheduleTimeButton(
-                    label: 'Break ends',
-                    value: hours.breakEnd ?? '02:00 PM',
+                    label: l10nOf(context).breakEnds,
+                    value: _localizedTime(hours.breakEnd ?? '02:00 PM'),
                     icon: Icons.play_arrow_rounded,
                     onTap: () => _pickTime(day, _TimeField.breakEnd),
                   ),
@@ -270,6 +291,9 @@ class _EmployeeScheduleScreenState
       ),
     );
   }
+
+  String _localizedTime(String value) =>
+      MaterialLocalizations.of(context).formatTimeOfDay(_parseTime(value));
 
   Future<void> _pickTime(String day, _TimeField field) async {
     final current = _schedule[day]!;
@@ -292,8 +316,7 @@ class _EmployeeScheduleScreenState
         openTime: field == _TimeField.shiftStart ? value : current.openTime,
         closeTime: field == _TimeField.shiftEnd ? value : current.closeTime,
         isWorking: current.isWorking,
-        breakStart:
-            field == _TimeField.breakStart ? value : current.breakStart,
+        breakStart: field == _TimeField.breakStart ? value : current.breakStart,
         breakEnd: field == _TimeField.breakEnd ? value : current.breakEnd,
       );
     });
@@ -324,7 +347,7 @@ class _EmployeeScheduleScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${staff.name} schedule updated.'),
+          content: Text(l10nOf(context).employeeScheduleUpdated(staff.name)),
           backgroundColor: AppColors.success,
         ),
       );
@@ -332,7 +355,8 @@ class _EmployeeScheduleScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save employee schedule: $e'),
+            content:
+                Text(l10nOf(context).employeeScheduleSaveFailed(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -387,30 +411,32 @@ class _ScheduleTimeButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.all(11),
+        padding: EdgeInsets.all(11),
         decoration: BoxDecoration(
-          color: AppColors.glassBgDark,
+          color: Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.glassBorderDark),
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
         ),
         child: Row(
           children: [
             Icon(icon, size: 17, color: AppColors.primaryLight),
-            const SizedBox(width: 7),
+            SizedBox(width: 7),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
-                          fontSize: 9, color: AppColors.textMutedDark)),
-                  const SizedBox(height: 2),
+                      style: TextStyle(
+                          fontSize: 9,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant)),
+                  SizedBox(height: 2),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],

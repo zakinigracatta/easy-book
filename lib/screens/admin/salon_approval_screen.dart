@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/l10n.dart';
 
 class SalonApprovalScreen extends StatelessWidget {
   const SalonApprovalScreen({super.key});
@@ -44,7 +45,7 @@ class SalonApprovalScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Pending Salon Approvals'),
+          title: Text(l10nOf(context).pendingSalonApprovals),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),
@@ -61,19 +62,20 @@ class SalonApprovalScreen extends StatelessWidget {
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
-                    Text('Owner: ${p['owner']} • ${p['location']}'),
+                    Text(l10nOf(context)
+                        .ownerLabel(p['owner']!, p['location']!)),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         OutlinedButton(
                             onPressed: () {},
-                            child: const Text('Reject',
+                            child: Text(l10nOf(context).reject,
                                 style: TextStyle(color: AppColors.error))),
                         const SizedBox(width: 8),
                         ElevatedButton(
                             onPressed: () {},
-                            child: const Text('Approve Partner')),
+                            child: Text(l10nOf(context).approvePartner)),
                       ],
                     ),
                   ],
