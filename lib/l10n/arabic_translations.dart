@@ -1,4 +1,20 @@
 const Map<String, String> arabicTranslations = <String, String>{
+  // Admin Portal
+  'Admin Sign In': 'تسجيل دخول المسؤول',
+  'Admin Portal Login': 'تسجيل دخول بوابة المسؤول',
+  'Super Admin Sign In': 'تسجيل دخول المسؤول الرئيسي',
+  'Platform management, partner verification & payouts': 'إدارة المنصة والتحقق من الشركاء والمدفوعات',
+  'Admin Portal is Available on Web Only': 'بوابة المسؤول متاحة على الويب فقط',
+  'Admin Portal is Available on Web Only. Please open Easy Book in a desktop browser to sign in.': 'بوابة المسؤول متاحة على الويب فقط. يرجى فتح Easy Book في متصفح المكتب لتسجيل الدخول.',
+  'Platform management and administrative controls are restricted to the secure Web Admin Portal. Please open Easy Book in a desktop browser to sign in.': 'تقتصر إدارة المنصة وعناصر التحكم الإدارية على بوابة الويب الآمنة. يرجى فتح Easy Book على متصفح سطح المكتب للمتابعة.',
+  'Sign Out & Return': 'تسجيل الخروج والعودة',
+  'Access Denied': 'تم رفض الوصول',
+  'You do not have administrative privileges to access this portal.': 'ليس لديك صلاحيات إدارية للوصول إلى هذه البوابة.',
+  'Admin email address must be verified.': 'يجب تأكيد البريد الإلكتروني للمسؤول.',
+  'This account does not have administrator access.': 'هذا الحساب لا يملك صلاحيات وصول المسؤول.',
+  'Invalid admin email or password.': 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
+  'Admin authentication failed. Please try again.': 'فشل توثيق حساب المسؤول. يرجى المحاولة مرة أخرى.',
+
   // Common
   'Easy Book': 'Easy Book',
   'Back': 'رجوع',

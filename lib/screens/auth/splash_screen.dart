@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -41,7 +42,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       } else if (profile != null) {
         destination = switch (profile.role) {
           UserRole.owner || UserRole.businessOwner => '/owner-dashboard',
-          UserRole.admin => '/admin-dashboard',
+          UserRole.admin || UserRole.superAdmin =>
+            kIsWeb ? '/admin/dashboard' : '/admin-web-only',
           UserRole.customer => '/home',
         };
       }

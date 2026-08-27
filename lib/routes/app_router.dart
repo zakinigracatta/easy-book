@@ -1,11 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/booking_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
 import '../models/user_model.dart';
+import '../providers/auth_provider.dart';
 
 // Auth Screens
 import '../screens/auth/forgot_password_screen.dart';
@@ -67,7 +69,7 @@ import '../screens/business/sales_report_screen.dart';
 import '../screens/business/salon_management_screen.dart';
 import '../screens/business/services_management_screen.dart';
 
-// Admin Screens
+// Admin Screens (preserved for Web Admin Portal)
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/admin/admin_login_screen.dart';
 import '../screens/admin/analytics_screen.dart';
@@ -75,140 +77,155 @@ import '../screens/admin/payment_management_screen.dart';
 import '../screens/admin/reports_screen.dart';
 import '../screens/admin/salon_approval_screen.dart';
 import '../screens/admin/users_management_screen.dart';
+import '../screens/admin/admin_access_denied_screen.dart';
+import '../screens/admin/web_only_admin_access_screen.dart';
 
 // General & Settings Screens
 import '../screens/settings/about_screen.dart';
 import '../screens/settings/help_screen.dart';
 import '../screens/settings/settings_screen.dart';
 
-final Map<String, UserRole> _roleCache = <String, UserRole>{};
+// ---------------------------------------------------------------------------
+// Admin route constants — centralized for test access
+// ---------------------------------------------------------------------------
 
-const Set<String> _ownerOnlyRoutes = {
-  '/owner-dashboard',
-  '/owner-bookings',
-  '/quick-walk-in',
-  '/salon-management',
-  '/services-management',
-  '/add-service',
-  '/employee-management',
-  '/add-employee',
-  '/employee-schedule',
-  '/employee-time-off',
-  '/business-hours',
-  '/owner-gallery',
-  '/booking-calendar',
-  '/customer-management',
-  '/owner-reviews',
-  '/sales-report',
-  '/promotion-management',
-  '/owner-more',
-  '/owner-notifications',
-};
+/// All routes that require an admin or super_admin role.
+const adminProtectedRoutes = [
+  '/admin',
+  '/admin/dashboard',
+  '/admin/users',
+  '/admin/approvals',
+  '/admin/payments',
+  '/admin/analytics',
+  '/admin/reports',
+];
 
-const Set<String> _adminOnlyRoutes = {
-  '/admin-dashboard',
-  '/users-management',
-  '/salon-approval',
-  '/payment-management',
-  '/analytics',
-  '/reports',
-};
+/// Admin sign-in page (web only).
+const adminLoginRoute = '/admin/login';
 
-const Set<String> _customerPrivateRoutes = {
-  '/payment',
-  '/booking-success',
-  '/my-bookings',
-  '/booking-details',
-  '/cancel-booking',
-  '/reschedule-booking',
-  '/favorites',
-  '/notifications',
-  '/chat',
-  '/customer-profile',
-};
+/// Shown to admin users on mobile (Admin Portal is web-only).
+const adminWebOnlyRoute = '/admin-web-only';
 
-bool _isOwnerRole(UserRole role) =>
-    role == UserRole.owner || role == UserRole.businessOwner;
+/// Shown to non-admin users attempting to access /admin on web.
+const adminAccessDeniedRoute = '/admin/access-denied';
 
-String _landingRoute(UserRole role) {
-  if (_isOwnerRole(role)) return '/owner-dashboard';
-  if (role == UserRole.admin) return '/admin-dashboard';
-  return '/home';
-}
-
-Future<UserRole> _resolveRole(User user) async {
-  final cached = _roleCache[user.uid];
-  if (cached != null) return cached;
-
-  final snapshot = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .get();
-
-  if (!snapshot.exists || snapshot.data() == null) {
-    _roleCache[user.uid] = UserRole.customer;
-    return UserRole.customer;
-  }
-
-  final profile = UserModel.fromJson({
-    ...snapshot.data()!,
-    'id': user.uid,
-    'email': user.email ?? snapshot.data()!['email'] ?? '',
-  });
-  _roleCache[user.uid] = profile.role;
-  return profile.role;
-}
+// ---------------------------------------------------------------------------
+// Router
+// ---------------------------------------------------------------------------
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
-  redirect: (context, state) async {
-    final path = state.matchedLocation;
-    if (path == '/splash') return null;
+  redirect: (context, state) {
+    final loc = state.matchedLocation;
+    if (loc == '/splash') return null;
 
     final user = FirebaseAuth.instance.currentUser;
-    final ownerRoute = _ownerOnlyRoutes.contains(path);
-    final adminRoute = _adminOnlyRoutes.contains(path);
-    final customerPrivateRoute = _customerPrivateRoutes.contains(path);
 
-    if (!ownerRoute && !adminRoute && !customerPrivateRoute) {
-      if (path == '/verify-email' && user == null) return '/login';
-      return null;
+    if (user != null && !user.emailVerified) {
+      const allowedUnverified = [
+        '/verify-email',
+        '/welcome',
+        '/login',
+        '/register',
+        '/business-register',
+        '/owner-login',
+        '/splash',
+        '/forgot-password',
+      ];
+      if (!allowedUnverified.contains(loc)) {
+        return '/verify-email';
+      }
     }
 
-    if (user == null) {
-      if (ownerRoute) return '/owner-login';
-      if (adminRoute) return '/admin-login';
-      return '/login';
-    }
-
-    if (!user.emailVerified) return '/verify-email';
-
-    UserRole role;
+    UserModel? currentUserModel;
     try {
-      role = await _resolveRole(user);
-    } catch (_) {
-      // Do not grant a privileged route if the role cannot be verified.
-      if (ownerRoute) return '/owner-login';
-      if (adminRoute) return '/admin-login';
-      return '/home';
+      final container = ProviderScope.containerOf(context, listen: false);
+      currentUserModel = container.read(authProvider);
+    } catch (_) {}
+
+    // -----------------------------------------------------------------------
+    // Owner / Business Partner route protection
+    // -----------------------------------------------------------------------
+    const ownerProtectedRoutes = [
+      '/owner-dashboard',
+      '/owner-bookings',
+      '/quick-walk-in',
+      '/salon-management',
+      '/services-management',
+      '/add-service',
+      '/employee-management',
+      '/add-employee',
+      '/employee-schedule',
+      '/employee-time-off',
+      '/business-hours',
+      '/owner-gallery',
+      '/booking-calendar',
+      '/customer-management',
+      '/owner-reviews',
+      '/sales-report',
+      '/promotion-management',
+      '/owner-more',
+      '/owner-notifications',
+    ];
+
+    if (ownerProtectedRoutes.contains(loc)) {
+      if (user == null) return '/owner-login';
+      if (currentUserModel != null &&
+          currentUserModel.role != UserRole.owner &&
+          currentUserModel.role != UserRole.businessOwner) {
+        return '/home';
+      }
     }
 
-    if (ownerRoute && !_isOwnerRole(role)) {
-      return role == UserRole.admin ? '/admin-dashboard' : '/owner-login';
+    // -----------------------------------------------------------------------
+    // Admin route protection — centralized guard
+    // -----------------------------------------------------------------------
+    if (adminProtectedRoutes.contains(loc)) {
+      // On mobile, admin portal is not available — show web-only screen.
+      if (!kIsWeb) {
+        return adminWebOnlyRoute;
+      }
+
+      // Unauthenticated → admin login
+      if (user == null) return adminLoginRoute;
+
+      // Authenticated but not admin → access denied
+      if (currentUserModel != null && !currentUserModel.isAdmin) {
+        return adminAccessDeniedRoute;
+      }
     }
 
-    if (adminRoute && role != UserRole.admin) {
-      return _isOwnerRole(role) ? '/owner-dashboard' : '/admin-login';
+    // Admin login page: only on web, and if already admin → go to dashboard
+    if (loc == adminLoginRoute) {
+      if (!kIsWeb) return adminWebOnlyRoute;
+      if (user != null && currentUserModel != null && currentUserModel.isAdmin) {
+        return '/admin/dashboard';
+      }
     }
 
-    if (customerPrivateRoute && role != UserRole.customer) {
-      return _landingRoute(role);
+    // -----------------------------------------------------------------------
+    // Customer route protection
+    // -----------------------------------------------------------------------
+    const customerProtectedRoutes = [
+      '/my-bookings',
+      '/booking-details',
+      '/reschedule-booking',
+      '/cancel-booking',
+      '/favorites',
+      '/customer-profile',
+      '/chat',
+    ];
+
+    if (user == null && customerProtectedRoutes.contains(loc)) {
+      return '/login';
     }
 
     return null;
   },
   routes: [
-    // Auth
+    // =====================================================================
+    // Auth & Onboarding
+    // =====================================================================
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/welcome',
@@ -236,7 +253,9 @@ final appRouter = GoRouter(
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
 
-    // Customer
+    // =====================================================================
+    // Customer Screens (public browsing + protected actions)
+    // =====================================================================
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
     GoRoute(
@@ -304,7 +323,10 @@ final appRouter = GoRouter(
     GoRoute(path: '/payment', builder: (context, state) => const PaymentScreen()),
     GoRoute(
       path: '/booking-success',
-      builder: (context, state) => const BookingSuccessScreen(),
+      builder: (context, state) => BookingSuccessScreen(
+        booking:
+            state.extra is BookingModel ? state.extra as BookingModel : null,
+      ),
     ),
     GoRoute(
       path: '/my-bookings',
@@ -345,7 +367,9 @@ final appRouter = GoRouter(
       builder: (context, state) => const CustomerProfileScreen(),
     ),
 
-    // Business Owner Dashboard & Portal
+    // =====================================================================
+    // Business Owner / Partner Screens
+    // =====================================================================
     GoRoute(
       path: '/owner-login',
       builder: (context, state) => const OwnerLoginScreen(),
@@ -433,34 +457,87 @@ final appRouter = GoRouter(
       builder: (context, state) => const OwnerNotificationsScreen(),
     ),
 
-    // Admin
+    // =====================================================================
+    // Admin Portal (Web-only — centrally guarded by redirect above)
+    // =====================================================================
     GoRoute(
-      path: '/admin-login',
+      path: adminLoginRoute,
       builder: (context, state) => const AdminLoginScreen(),
     ),
     GoRoute(
-      path: '/admin-dashboard',
+      path: '/admin',
       builder: (context, state) => const AdminDashboardScreen(),
     ),
     GoRoute(
-      path: '/users-management',
+      path: '/admin/dashboard',
+      builder: (context, state) => const AdminDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/admin/users',
       builder: (context, state) => const UsersManagementScreen(),
     ),
     GoRoute(
-      path: '/salon-approval',
+      path: '/admin/approvals',
       builder: (context, state) => const SalonApprovalScreen(),
     ),
     GoRoute(
-      path: '/payment-management',
+      path: '/admin/payments',
       builder: (context, state) => const PaymentManagementScreen(),
     ),
     GoRoute(
-      path: '/analytics',
+      path: '/admin/analytics',
       builder: (context, state) => const AnalyticsScreen(),
     ),
-    GoRoute(path: '/reports', builder: (context, state) => const ReportsScreen()),
+    GoRoute(
+      path: '/admin/reports',
+      builder: (context, state) => const ReportsScreen(),
+    ),
+    GoRoute(
+      path: adminAccessDeniedRoute,
+      builder: (context, state) => const AdminAccessDeniedScreen(),
+    ),
 
+    // Admin on mobile — web-only notice screen
+    GoRoute(
+      path: adminWebOnlyRoute,
+      builder: (context, state) => const WebOnlyAdminAccessScreen(),
+    ),
+
+    // =====================================================================
+    // Legacy admin routes — redirect to new paths for backward compatibility
+    // =====================================================================
+    GoRoute(
+      path: '/admin-login',
+      redirect: (context, state) => adminLoginRoute,
+    ),
+    GoRoute(
+      path: '/admin-dashboard',
+      redirect: (context, state) => '/admin/dashboard',
+    ),
+    GoRoute(
+      path: '/users-management',
+      redirect: (context, state) => '/admin/users',
+    ),
+    GoRoute(
+      path: '/salon-approval',
+      redirect: (context, state) => '/admin/approvals',
+    ),
+    GoRoute(
+      path: '/payment-management',
+      redirect: (context, state) => '/admin/payments',
+    ),
+    GoRoute(
+      path: '/analytics',
+      redirect: (context, state) => '/admin/analytics',
+    ),
+    GoRoute(
+      path: '/reports',
+      redirect: (context, state) => '/admin/reports',
+    ),
+
+    // =====================================================================
     // General & Settings
+    // =====================================================================
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
