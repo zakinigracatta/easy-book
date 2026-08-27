@@ -323,10 +323,7 @@ final appRouter = GoRouter(
     GoRoute(path: '/payment', builder: (context, state) => const PaymentScreen()),
     GoRoute(
       path: '/booking-success',
-      builder: (context, state) => BookingSuccessScreen(
-        booking:
-            state.extra is BookingModel ? state.extra as BookingModel : null,
-      ),
+      builder: (context, state) => const BookingSuccessScreen(),
     ),
     GoRoute(
       path: '/my-bookings',

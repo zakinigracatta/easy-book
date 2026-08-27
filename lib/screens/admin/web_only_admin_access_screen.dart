@@ -92,13 +92,13 @@ class WebOnlyAdminAccessScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.language_rounded,
+                              const Icon(Icons.language_rounded,
                                   color: AppColors.primary, size: 20),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'https://admin.easybook.ae',
-                                  style: TextStyle(
+                                  context.tr('https://admin.easybook.ae'),
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.primary,
