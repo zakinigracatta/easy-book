@@ -53,6 +53,66 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
   CollectionReference<Map<String, dynamic>> _expenses(String businessId) =>
       _firestore.collection('businesses').doc(businessId).collection('expenses');
 
+  bool _isIndexUnavailable(FirebaseException error) {
+    return error.code == 'failed-precondition' || error.code == 'unimplemented';
+  }
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _fetchBookingsForReport({
+    required String businessId,
+    required DateTime start,
+    required DateTime endExclusive,
+  }) async {
+    try {
+      return await _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId)
+          .where(
+            'startDateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+          )
+          .where(
+            'startDateTime',
+            isLessThan: Timestamp.fromDate(endExclusive),
+          )
+          .get();
+    } on FirebaseException catch (error) {
+      if (!_isIndexUnavailable(error)) rethrow;
+
+      // Keep the finance report usable when the compound Firestore index has
+      // not been deployed yet or is still building. The date range is filtered
+      // locally below, while the server still limits results to this business.
+      return _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId)
+          .get();
+    }
+  }
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _fetchExpensesForReport({
+    required String businessId,
+    required DateTime start,
+    required DateTime endExclusive,
+  }) async {
+    try {
+      return await _expenses(businessId)
+          .where(
+            'expenseDate',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+          )
+          .where(
+            'expenseDate',
+            isLessThan: Timestamp.fromDate(endExclusive),
+          )
+          .get();
+    } on FirebaseException catch (error) {
+      if (!_isIndexUnavailable(error)) rethrow;
+
+      // A single-field index normally exists automatically, but this fallback
+      // also protects older/emulator projects with indexing disabled.
+      return _expenses(businessId).get();
+    }
+  }
+
   @override
   Future<List<ExpenseModel>> fetchExpenses(String businessId) async {
     if (businessId.isEmpty) return const [];
@@ -149,37 +209,34 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
         .add(const Duration(days: 1));
 
     try {
-      final bookingSnapshot = await _firestore
-          .collection('bookings')
-          .where('businessId', isEqualTo: businessId)
-          .where(
-            'startDateTime',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
-          )
-          .where(
-            'startDateTime',
-            isLessThan: Timestamp.fromDate(endExclusive),
-          )
-          .get();
-
-      final expenseSnapshot = await _expenses(businessId)
-          .where(
-            'expenseDate',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
-          )
-          .where(
-            'expenseDate',
-            isLessThan: Timestamp.fromDate(endExclusive),
-          )
-          .get();
+      final bookingSnapshot = await _fetchBookingsForReport(
+        businessId: businessId,
+        start: start,
+        endExclusive: endExclusive,
+      );
+      final expenseSnapshot = await _fetchExpensesForReport(
+        businessId: businessId,
+        start: start,
+        endExclusive: endExclusive,
+      );
 
       final bookings = bookingSnapshot.docs
           .map(
             (doc) => BookingModel.fromJson({...doc.data(), 'id': doc.id}),
           )
+          .where(
+            (booking) =>
+                !booking.startDateTime.isBefore(start) &&
+                booking.startDateTime.isBefore(endExclusive),
+          )
           .toList(growable: false);
       final expenses = expenseSnapshot.docs
           .map((doc) => ExpenseModel.fromFirestore(doc.id, doc.data()))
+          .where(
+            (expense) =>
+                !expense.expenseDate.isBefore(start) &&
+                expense.expenseDate.isBefore(endExclusive),
+          )
           .toList(growable: false);
 
       return _calculator.calculate(
