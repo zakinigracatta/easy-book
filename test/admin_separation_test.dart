@@ -69,8 +69,152 @@ void main() {
     );
   }
 
-  group('Admin Separation Required Tests', () {
-    testWidgets('1. Customer cannot access Admin routes on mobile (redirected to /admin-web-only)',
+  group('Pure evaluateRouteGuard Unit Tests (Web & Mobile Authorization Rules)', () {
+    test('1. Fail-Closed: Authenticated user with unresolved/null role cannot access /admin on Web', () {
+      final redirectTarget = evaluateRouteGuard(
+        location: '/admin/dashboard',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: null, // Profile/role has not loaded yet
+      );
+      expect(redirectTarget, equals(adminAccessDeniedRoute),
+          reason: 'Unresolved role must fail closed and redirect to access-denied');
+    });
+
+    test('2. Customer cannot access /admin on Web', () {
+      final redirectTarget = evaluateRouteGuard(
+        location: '/admin/dashboard',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.customerUser,
+      );
+      expect(redirectTarget, equals(adminAccessDeniedRoute),
+          reason: 'Customer user must be denied access to Web Admin routes');
+    });
+
+    test('3. Business Owner cannot access /admin on Web', () {
+      final redirectTarget = evaluateRouteGuard(
+        location: '/admin/dashboard',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.ownerUser,
+      );
+      expect(redirectTarget, equals(adminAccessDeniedRoute),
+          reason: 'Business owner user must be denied access to Web Admin routes');
+    });
+
+    test('4. Admin CAN access /admin on Web', () {
+      final redirectTarget = evaluateRouteGuard(
+        location: '/admin/dashboard',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.adminUser,
+      );
+      expect(redirectTarget, isNull,
+          reason: 'Admin user must be granted access to Web Admin routes');
+    });
+
+    test('5. Super Admin CAN access /admin on Web', () {
+      final redirectTarget = evaluateRouteGuard(
+        location: '/admin/dashboard',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.superAdminUser,
+      );
+      expect(redirectTarget, isNull,
+          reason: 'Super admin user must be granted access to Web Admin routes');
+    });
+
+    test('6. Unauthenticated Guest on Web accessing /admin redirects to /admin/login', () {
+      final redirectTarget = evaluateRouteGuard(
+        location: '/admin/dashboard',
+        isWeb: true,
+        hasFirebaseUser: false,
+        isEmailVerified: true,
+        userModel: null,
+      );
+      expect(redirectTarget, equals(adminLoginRoute));
+    });
+
+    test('7. Mobile user (any role) accessing /admin redirects to /admin-web-only', () {
+      for (final roleUser in [
+        null,
+        AuthFixtures.customerUser,
+        AuthFixtures.ownerUser,
+        AuthFixtures.adminUser,
+        AuthFixtures.superAdminUser
+      ]) {
+        final redirectTarget = evaluateRouteGuard(
+          location: '/admin/dashboard',
+          isWeb: false,
+          hasFirebaseUser: roleUser != null,
+          isEmailVerified: true,
+          userModel: roleUser,
+        );
+        expect(redirectTarget, equals(adminWebOnlyRoute),
+            reason: 'All mobile attempts to access /admin must redirect to /admin-web-only');
+      }
+    });
+
+    test('8. Existing Customer protected routes remain protected for Guests', () {
+      for (final route in customerProtectedRoutes) {
+        final redirectTarget = evaluateRouteGuard(
+          location: route,
+          isWeb: false,
+          hasFirebaseUser: false,
+          isEmailVerified: true,
+          userModel: null,
+        );
+        expect(redirectTarget, equals('/login'),
+            reason: 'Guest accessing customer route $route must redirect to /login');
+      }
+    });
+
+    test('9. Existing Business Partner protected routes remain protected', () {
+      for (final route in ownerProtectedRoutes) {
+        // Guest attempt
+        final guestRedirect = evaluateRouteGuard(
+          location: route,
+          isWeb: false,
+          hasFirebaseUser: false,
+          isEmailVerified: true,
+          userModel: null,
+        );
+        expect(guestRedirect, equals('/owner-login'),
+            reason: 'Guest accessing owner route $route must redirect to /owner-login');
+
+        // Customer attempt
+        final customerRedirect = evaluateRouteGuard(
+          location: route,
+          isWeb: false,
+          hasFirebaseUser: true,
+          isEmailVerified: true,
+          userModel: AuthFixtures.customerUser,
+        );
+        expect(customerRedirect, equals('/home'),
+            reason: 'Customer accessing owner route $route must redirect to /home');
+
+        // Owner attempt
+        final ownerRedirect = evaluateRouteGuard(
+          location: route,
+          isWeb: false,
+          hasFirebaseUser: true,
+          isEmailVerified: true,
+          userModel: AuthFixtures.ownerUser,
+        );
+        expect(ownerRedirect, isNull,
+            reason: 'Owner accessing owner route $route must be allowed');
+      }
+    });
+  });
+
+  group('Widget & Router Flow Tests', () {
+    testWidgets('Customer cannot access Admin routes on mobile (redirected to /admin-web-only)',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -94,7 +238,7 @@ void main() {
       expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
-    testWidgets('2. Business Partner cannot access Admin routes on mobile (redirected to /admin-web-only)',
+    testWidgets('Business Partner cannot access Admin routes on mobile (redirected to /admin-web-only)',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -115,7 +259,7 @@ void main() {
       expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
-    testWidgets('3 & 4. Admin and Super Admin role models correctly identify admin privileges',
+    testWidgets('Admin and Super Admin role models correctly identify admin privileges',
         (tester) async {
       expect(AuthFixtures.adminUser.isAdmin, isTrue);
       expect(AuthFixtures.superAdminUser.isAdmin, isTrue);
@@ -128,7 +272,7 @@ void main() {
       expect(AuthFixtures.ownerUser.roleString, equals('owner'));
     });
 
-    testWidgets('5. Direct navigation to /admin is protected on mobile',
+    testWidgets('Direct navigation to /admin is protected on mobile',
         (tester) async {
       await tester.pumpWidget(buildTestApp(user: null));
       await tester.pump(const Duration(seconds: 2));
@@ -137,7 +281,7 @@ void main() {
       expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
-    testWidgets('6. Public UI (WelcomeScreen) does not contain Register as Admin or Admin Portal',
+    testWidgets('Public UI (WelcomeScreen) does not contain Register as Admin or Admin Portal',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -154,7 +298,7 @@ void main() {
       expect(find.text('Business Portal'), findsOneWidget);
     });
 
-    testWidgets('7. Public LoginScreen does not contain Register as Admin',
+    testWidgets('Public LoginScreen does not contain Register as Admin',
         (tester) async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -173,7 +317,7 @@ void main() {
       expect(find.text('Admin Login'), findsNothing);
     });
 
-    test('8. Customer registration cannot assign admin role', () async {
+    test('Customer registration cannot assign admin role', () async {
       final user = UserModel.fromJson({
         'id': 'u1',
         'email': 'c@test.com',
@@ -184,7 +328,6 @@ void main() {
       expect(user.role, equals(UserRole.customer));
       expect(user.isAdmin, isFalse);
 
-      // Attempting to inject 'admin' or 'super_admin' in role via customer model defaults correctly
       final tamperedUser = UserModel.fromJson({
         'id': 'u2',
         'email': 'tampered@test.com',
@@ -193,7 +336,7 @@ void main() {
       expect(tamperedUser.role, equals(UserRole.customer));
     });
 
-    test('9. Business registration cannot assign admin role', () async {
+    test('Business registration cannot assign admin role', () async {
       final user = UserModel.fromJson({
         'id': 'u3',
         'email': 'b@test.com',
@@ -205,7 +348,7 @@ void main() {
       expect(user.isAdmin, isFalse);
     });
 
-    testWidgets('10. Mobile splash screen routes admin user to /admin-web-only',
+    testWidgets('Mobile splash screen routes admin user to /admin-web-only',
         (tester) async {
       final container = ProviderContainer(
         overrides: [

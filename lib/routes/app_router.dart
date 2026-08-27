@@ -86,7 +86,7 @@ import '../screens/settings/help_screen.dart';
 import '../screens/settings/settings_screen.dart';
 
 // ---------------------------------------------------------------------------
-// Admin route constants — centralized for test access
+// Admin & Authorization route constants — centralized for test access
 // ---------------------------------------------------------------------------
 
 /// All routes that require an admin or super_admin role.
@@ -109,6 +109,112 @@ const adminWebOnlyRoute = '/admin-web-only';
 /// Shown to non-admin users attempting to access /admin on web.
 const adminAccessDeniedRoute = '/admin/access-denied';
 
+/// All routes that require a Business Owner role.
+const ownerProtectedRoutes = [
+  '/owner-dashboard',
+  '/owner-bookings',
+  '/quick-walk-in',
+  '/salon-management',
+  '/services-management',
+  '/add-service',
+  '/employee-management',
+  '/add-employee',
+  '/employee-schedule',
+  '/employee-time-off',
+  '/business-hours',
+  '/owner-gallery',
+  '/booking-calendar',
+  '/customer-management',
+  '/owner-reviews',
+  '/sales-report',
+  '/promotion-management',
+  '/owner-more',
+  '/owner-notifications',
+];
+
+/// All routes that require authentication for Customer actions.
+const customerProtectedRoutes = [
+  '/payment',
+  '/booking-success',
+  '/my-bookings',
+  '/booking-details',
+  '/reschedule-booking',
+  '/cancel-booking',
+  '/favorites',
+  '/notifications',
+  '/chat',
+  '/customer-profile',
+];
+
+/// Pure, testable authorization decision function for route guarding.
+///
+/// Accepts [location], [isWeb], [hasFirebaseUser], [isEmailVerified], and [userModel].
+/// Returns the redirect route target string, or null if access is allowed.
+String? evaluateRouteGuard({
+  required String location,
+  required bool isWeb,
+  required bool hasFirebaseUser,
+  required bool isEmailVerified,
+  required UserModel? userModel,
+}) {
+  if (location == '/splash') return null;
+
+  if (hasFirebaseUser && !isEmailVerified) {
+    const allowedUnverified = [
+      '/verify-email',
+      '/welcome',
+      '/login',
+      '/register',
+      '/business-register',
+      '/owner-login',
+      '/splash',
+      '/forgot-password',
+    ];
+    if (!allowedUnverified.contains(location)) {
+      return '/verify-email';
+    }
+  }
+
+  // Owner / Business Partner route protection
+  if (ownerProtectedRoutes.contains(location)) {
+    if (!hasFirebaseUser) return '/owner-login';
+    if (userModel != null && !userModel.isOwnerRole) {
+      return '/home';
+    }
+  }
+
+  // Admin route protection — centralized FAIL CLOSED guard
+  if (adminProtectedRoutes.contains(location)) {
+    // On mobile, admin portal is not available — show web-only screen.
+    if (!isWeb) {
+      return adminWebOnlyRoute;
+    }
+
+    // Unauthenticated -> admin login
+    if (!hasFirebaseUser) return adminLoginRoute;
+
+    // Fail Closed: Authenticated user but profile/role is unresolved (null) OR not admin -> access denied
+    if (userModel == null || !userModel.isAdmin) {
+      return adminAccessDeniedRoute;
+    }
+  }
+
+  // Admin login page: only on web, and if already admin -> go to dashboard
+  if (location == adminLoginRoute) {
+    if (!isWeb) return adminWebOnlyRoute;
+    if (hasFirebaseUser && userModel != null && userModel.isAdmin) {
+      return '/admin/dashboard';
+    }
+  }
+
+  // Customer route protection
+  if (!hasFirebaseUser && customerProtectedRoutes.contains(location)) {
+    return '/login';
+  }
+
+  return null;
+}
+
 // ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
@@ -116,26 +222,7 @@ const adminAccessDeniedRoute = '/admin/access-denied';
 final appRouter = GoRouter(
   initialLocation: '/splash',
   redirect: (context, state) {
-    final loc = state.matchedLocation;
-    if (loc == '/splash') return null;
-
     final user = FirebaseAuth.instance.currentUser;
-
-    if (user != null && !user.emailVerified) {
-      const allowedUnverified = [
-        '/verify-email',
-        '/welcome',
-        '/login',
-        '/register',
-        '/business-register',
-        '/owner-login',
-        '/splash',
-        '/forgot-password',
-      ];
-      if (!allowedUnverified.contains(loc)) {
-        return '/verify-email';
-      }
-    }
 
     UserModel? currentUserModel;
     try {
@@ -143,84 +230,13 @@ final appRouter = GoRouter(
       currentUserModel = container.read(authProvider);
     } catch (_) {}
 
-    // -----------------------------------------------------------------------
-    // Owner / Business Partner route protection
-    // -----------------------------------------------------------------------
-    const ownerProtectedRoutes = [
-      '/owner-dashboard',
-      '/owner-bookings',
-      '/quick-walk-in',
-      '/salon-management',
-      '/services-management',
-      '/add-service',
-      '/employee-management',
-      '/add-employee',
-      '/employee-schedule',
-      '/employee-time-off',
-      '/business-hours',
-      '/owner-gallery',
-      '/booking-calendar',
-      '/customer-management',
-      '/owner-reviews',
-      '/sales-report',
-      '/promotion-management',
-      '/owner-more',
-      '/owner-notifications',
-    ];
-
-    if (ownerProtectedRoutes.contains(loc)) {
-      if (user == null) return '/owner-login';
-      if (currentUserModel != null &&
-          currentUserModel.role != UserRole.owner &&
-          currentUserModel.role != UserRole.businessOwner) {
-        return '/home';
-      }
-    }
-
-    // -----------------------------------------------------------------------
-    // Admin route protection — centralized guard
-    // -----------------------------------------------------------------------
-    if (adminProtectedRoutes.contains(loc)) {
-      // On mobile, admin portal is not available — show web-only screen.
-      if (!kIsWeb) {
-        return adminWebOnlyRoute;
-      }
-
-      // Unauthenticated → admin login
-      if (user == null) return adminLoginRoute;
-
-      // Authenticated but not admin → access denied
-      if (currentUserModel != null && !currentUserModel.isAdmin) {
-        return adminAccessDeniedRoute;
-      }
-    }
-
-    // Admin login page: only on web, and if already admin → go to dashboard
-    if (loc == adminLoginRoute) {
-      if (!kIsWeb) return adminWebOnlyRoute;
-      if (user != null && currentUserModel != null && currentUserModel.isAdmin) {
-        return '/admin/dashboard';
-      }
-    }
-
-    // -----------------------------------------------------------------------
-    // Customer route protection
-    // -----------------------------------------------------------------------
-    const customerProtectedRoutes = [
-      '/my-bookings',
-      '/booking-details',
-      '/reschedule-booking',
-      '/cancel-booking',
-      '/favorites',
-      '/customer-profile',
-      '/chat',
-    ];
-
-    if (user == null && customerProtectedRoutes.contains(loc)) {
-      return '/login';
-    }
-
-    return null;
+    return evaluateRouteGuard(
+      location: state.matchedLocation,
+      isWeb: kIsWeb,
+      hasFirebaseUser: user != null,
+      isEmailVerified: user?.emailVerified ?? true,
+      userModel: currentUserModel,
+    );
   },
   routes: [
     // =====================================================================
