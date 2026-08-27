@@ -4545,6 +4545,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Private customer notes saved!'**
   String get privateNotesSaved;
+
+  /// No description provided for @adminSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Sign In'**
+  String get adminSignIn;
+
+  /// No description provided for @adminSignInSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform management, partner verification & payouts'**
+  String get adminSignInSubtitle;
+
+  /// No description provided for @adminPortalWebOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Portal is Available on Web Only'**
+  String get adminPortalWebOnly;
+
+  /// No description provided for @adminPortalWebOnlyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform management and administrative controls are restricted to the secure Web Admin Portal. Please open Easy Book in a desktop browser to sign in.'**
+  String get adminPortalWebOnlyMessage;
+
+  /// No description provided for @adminPortalUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'https://admin.easybook.ae'**
+  String get adminPortalUrl;
+
+  /// No description provided for @signOutAndReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out & Return'**
+  String get signOutAndReturn;
+
+  /// No description provided for @accessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Denied'**
+  String get accessDenied;
+
+  /// No description provided for @accessDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have administrative privileges to access this portal.'**
+  String get accessDeniedMessage;
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Back'**
+  String get goBack;
+
+  /// No description provided for @adminEmailNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin email address must be verified.'**
+  String get adminEmailNotVerified;
 }
 
 class _AppLocalizationsDelegate

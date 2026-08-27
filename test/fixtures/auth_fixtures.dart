@@ -22,8 +22,16 @@ class AuthFixtures {
   static final UserModel adminUser = UserModel(
     id: 'admin_test_303',
     email: 'admin@easybook.com',
-    fullName: 'Super Admin',
+    fullName: 'Admin User',
     phone: '+1 555-0303',
     role: UserRole.admin,
+  );
+
+  static final UserModel superAdminUser = UserModel(
+    id: 'super_admin_test_404',
+    email: 'superadmin@easybook.com',
+    fullName: 'Super Admin',
+    phone: '+1 555-0404',
+    role: UserRole.superAdmin,
   );
 }

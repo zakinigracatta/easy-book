@@ -132,7 +132,7 @@ void main() {
       expect(getCurrentLocation(), equals('/owner-dashboard'));
     });
 
-    testWidgets('Test D: Admin Startup resolves to /admin-dashboard',
+    testWidgets('Test D: Admin Startup on mobile resolves to /admin-web-only',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -151,7 +151,7 @@ void main() {
       await tester.pump();
 
       await tester.pump(const Duration(seconds: 2, milliseconds: 300));
-      expect(getCurrentLocation(), equals('/admin-dashboard'));
+      expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
     testWidgets(
@@ -244,7 +244,7 @@ void main() {
     });
 
     testWidgets(
-        'Scenario 2: Guest -> /admin-dashboard redirects to /admin-login',
+        'Scenario 2: Guest -> /admin-dashboard on mobile redirects to /admin-web-only',
         (tester) async {
       await tester.pumpWidget(buildTestApp(user: null));
       await tester.pump(const Duration(seconds: 2));
@@ -252,11 +252,11 @@ void main() {
 
       await navigateAndPump(tester, '/admin-dashboard');
 
-      expect(getCurrentLocation(), equals('/admin-login'));
+      expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
     testWidgets(
-        'Scenario 3: Customer -> /owner-dashboard & /admin-dashboard redirect to /home',
+        'Scenario 3: Customer -> /owner-dashboard redirects to /home & admin routes redirect to /admin-web-only',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -284,11 +284,11 @@ void main() {
 
       // Attempt admin route
       await navigateAndPump(tester, '/admin-dashboard');
-      expect(getCurrentLocation(), equals('/home'));
+      expect(getCurrentLocation(), equals('/admin-web-only'));
 
       // Attempt users management route
       await navigateAndPump(tester, '/users-management');
-      expect(getCurrentLocation(), equals('/home'));
+      expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
     testWidgets(
@@ -318,7 +318,7 @@ void main() {
     });
 
     testWidgets(
-        'Scenario 5: Admin -> /admin-dashboard & /users-management CAN access',
+        'Scenario 5: Admin -> /admin-dashboard on mobile redirects to /admin-web-only',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -337,10 +337,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
 
       await navigateAndPump(tester, '/admin-dashboard');
-      expect(getCurrentLocation(), equals('/admin-dashboard'));
+      expect(getCurrentLocation(), equals('/admin-web-only'));
 
       await navigateAndPump(tester, '/users-management');
-      expect(getCurrentLocation(), equals('/users-management'));
+      expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
     testWidgets('Scenario 8: Guest Customer Browsing remains functional',
@@ -488,9 +488,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
 
       await navigateAndPump(tester, '/admin-dashboard');
-      expect(getCurrentLocation(), equals('/admin-login'),
+      expect(getCurrentLocation(), equals('/admin-web-only'),
           reason:
-              'Stale Riverpod admin user without FirebaseAuth session must be denied');
+              'Stale Riverpod admin user on mobile must be redirected to web-only access notice');
     });
   });
 }

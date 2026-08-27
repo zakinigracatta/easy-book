@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -67,7 +68,7 @@ import '../screens/business/owner_more_screen.dart';
 import '../screens/business/owner_notifications_screen.dart';
 import '../screens/business/business_register_screen.dart';
 
-// Admin Screens
+// Admin Screens (preserved for Web Admin Portal)
 import '../screens/admin/admin_login_screen.dart';
 import '../screens/admin/admin_dashboard_screen.dart';
 import '../screens/admin/users_management_screen.dart';
@@ -75,11 +76,41 @@ import '../screens/admin/salon_approval_screen.dart';
 import '../screens/admin/payment_management_screen.dart';
 import '../screens/admin/analytics_screen.dart';
 import '../screens/admin/reports_screen.dart';
+import '../screens/admin/admin_access_denied_screen.dart';
+import '../screens/admin/web_only_admin_access_screen.dart';
 
 // General & Settings Screens
 import '../screens/settings/settings_screen.dart';
 import '../screens/settings/help_screen.dart';
 import '../screens/settings/about_screen.dart';
+
+// ---------------------------------------------------------------------------
+// Admin route constants — centralized for test access
+// ---------------------------------------------------------------------------
+
+/// All routes that require an admin or super_admin role.
+const adminProtectedRoutes = [
+  '/admin',
+  '/admin/dashboard',
+  '/admin/users',
+  '/admin/approvals',
+  '/admin/payments',
+  '/admin/analytics',
+  '/admin/reports',
+];
+
+/// Admin sign-in page (web only).
+const adminLoginRoute = '/admin/login';
+
+/// Shown to admin users on mobile (Admin Portal is web-only).
+const adminWebOnlyRoute = '/admin-web-only';
+
+/// Shown to non-admin users attempting to access /admin on web.
+const adminAccessDeniedRoute = '/admin/access-denied';
+
+// ---------------------------------------------------------------------------
+// Router
+// ---------------------------------------------------------------------------
 
 final appRouter = GoRouter(
   initialLocation: '/splash',
@@ -95,9 +126,9 @@ final appRouter = GoRouter(
         '/register',
         '/business-register',
         '/owner-login',
-        '/admin-login',
         '/splash',
         '/forgot-password',
+        // Admin login is NOT in this list — admins must have verified emails.
       ];
       if (!allowedUnverified.contains(loc)) {
         return '/verify-email';
@@ -110,6 +141,9 @@ final appRouter = GoRouter(
       currentUserModel = container.read(authProvider);
     } catch (_) {}
 
+    // -----------------------------------------------------------------------
+    // Owner / Business Partner route protection
+    // -----------------------------------------------------------------------
     const ownerProtectedRoutes = [
       '/owner-dashboard',
       '/owner-bookings',
@@ -141,22 +175,35 @@ final appRouter = GoRouter(
       }
     }
 
-    const adminProtectedRoutes = [
-      '/admin-dashboard',
-      '/users-management',
-      '/salon-approval',
-      '/payment-management',
-      '/analytics',
-      '/reports',
-    ];
-
+    // -----------------------------------------------------------------------
+    // Admin route protection — centralized guard
+    // -----------------------------------------------------------------------
     if (adminProtectedRoutes.contains(loc)) {
-      if (user == null) return '/admin-login';
-      if (currentUserModel != null && currentUserModel.role != UserRole.admin) {
-        return '/home';
+      // On mobile, admin portal is not available — show web-only screen.
+      if (!kIsWeb) {
+        return adminWebOnlyRoute;
+      }
+
+      // Unauthenticated → admin login
+      if (user == null) return adminLoginRoute;
+
+      // Authenticated but not admin → access denied
+      if (currentUserModel != null && !currentUserModel.isAdmin) {
+        return adminAccessDeniedRoute;
       }
     }
 
+    // Admin login page: only on web, and if already admin → go to dashboard
+    if (loc == adminLoginRoute) {
+      if (!kIsWeb) return adminWebOnlyRoute;
+      if (user != null && currentUserModel != null && currentUserModel.isAdmin) {
+        return '/admin/dashboard';
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // Customer route protection
+    // -----------------------------------------------------------------------
     const customerProtectedRoutes = [
       '/my-bookings',
       '/booking-details',
@@ -174,6 +221,9 @@ final appRouter = GoRouter(
     return null;
   },
   routes: [
+    // =====================================================================
+    // Auth & Onboarding
+    // =====================================================================
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
         path: '/welcome', builder: (context, state) => const WelcomeScreen()),
@@ -192,6 +242,10 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen()),
+
+    // =====================================================================
+    // Customer Screens (public browsing + protected actions)
+    // =====================================================================
     GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/search', builder: (context, state) => const SearchScreen()),
     GoRoute(
@@ -290,6 +344,10 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/customer-profile',
         builder: (context, state) => const CustomerProfileScreen()),
+
+    // =====================================================================
+    // Business Owner / Partner Screens
+    // =====================================================================
     GoRoute(
         path: '/owner-login',
         builder: (context, state) => const OwnerLoginScreen()),
@@ -358,26 +416,78 @@ final appRouter = GoRouter(
     GoRoute(
         path: '/owner-notifications',
         builder: (context, state) => const OwnerNotificationsScreen()),
+
+    // =====================================================================
+    // Admin Portal (Web-only — centrally guarded by redirect above)
+    // =====================================================================
     GoRoute(
-        path: '/admin-login',
+        path: adminLoginRoute,
         builder: (context, state) => const AdminLoginScreen()),
     GoRoute(
-        path: '/admin-dashboard',
+        path: '/admin',
         builder: (context, state) => const AdminDashboardScreen()),
     GoRoute(
-        path: '/users-management',
+        path: '/admin/dashboard',
+        builder: (context, state) => const AdminDashboardScreen()),
+    GoRoute(
+        path: '/admin/users',
         builder: (context, state) => const UsersManagementScreen()),
     GoRoute(
-        path: '/salon-approval',
+        path: '/admin/approvals',
         builder: (context, state) => const SalonApprovalScreen()),
     GoRoute(
-        path: '/payment-management',
+        path: '/admin/payments',
         builder: (context, state) => const PaymentManagementScreen()),
     GoRoute(
-        path: '/analytics',
+        path: '/admin/analytics',
         builder: (context, state) => const AnalyticsScreen()),
     GoRoute(
-        path: '/reports', builder: (context, state) => const ReportsScreen()),
+        path: '/admin/reports',
+        builder: (context, state) => const ReportsScreen()),
+    GoRoute(
+        path: adminAccessDeniedRoute,
+        builder: (context, state) => const AdminAccessDeniedScreen()),
+
+    // Admin on mobile — web-only notice screen
+    GoRoute(
+        path: adminWebOnlyRoute,
+        builder: (context, state) => const WebOnlyAdminAccessScreen()),
+
+    // =====================================================================
+    // Legacy admin routes — redirect to new paths for backward compatibility
+    // =====================================================================
+    GoRoute(
+      path: '/admin-login',
+      redirect: (context, state) => adminLoginRoute,
+    ),
+    GoRoute(
+      path: '/admin-dashboard',
+      redirect: (context, state) => '/admin/dashboard',
+    ),
+    GoRoute(
+      path: '/users-management',
+      redirect: (context, state) => '/admin/users',
+    ),
+    GoRoute(
+      path: '/salon-approval',
+      redirect: (context, state) => '/admin/approvals',
+    ),
+    GoRoute(
+      path: '/payment-management',
+      redirect: (context, state) => '/admin/payments',
+    ),
+    GoRoute(
+      path: '/analytics',
+      redirect: (context, state) => '/admin/analytics',
+    ),
+    GoRoute(
+      path: '/reports',
+      redirect: (context, state) => '/admin/reports',
+    ),
+
+    // =====================================================================
+    // General & Settings
+    // =====================================================================
     GoRoute(
         path: '/settings', builder: (context, state) => const SettingsScreen()),
     GoRoute(path: '/help', builder: (context, state) => const HelpScreen()),

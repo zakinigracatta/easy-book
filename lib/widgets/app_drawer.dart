@@ -4,13 +4,12 @@ import '../theme/app_colors.dart';
 import '../l10n/l10n.dart';
 
 class AppDrawer extends StatelessWidget {
-  final String portalType; // 'business' or 'admin'
+  final String portalType; // 'business' only (admin drawer is separate for web)
 
   const AppDrawer({super.key, required this.portalType});
 
   @override
   Widget build(BuildContext context) {
-    final isBusiness = portalType == 'business';
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -64,41 +63,6 @@ class AppDrawer extends StatelessWidget {
       },
     ];
 
-    final adminItems = [
-      {
-        'title': l10n.adminPortal,
-        'icon': Icons.admin_panel_settings_rounded,
-        'route': '/admin-dashboard'
-      },
-      {
-        'title': l10n.manageUsers,
-        'icon': Icons.group_rounded,
-        'route': '/users-management'
-      },
-      {
-        'title': l10n.salonApprovals,
-        'icon': Icons.verified_user_rounded,
-        'route': '/salon-approval'
-      },
-      {
-        'title': l10n.paymentManagement,
-        'icon': Icons.payments_rounded,
-        'route': '/payment-management'
-      },
-      {
-        'title': l10n.platformAnalytics,
-        'icon': Icons.bar_chart_rounded,
-        'route': '/analytics'
-      },
-      {
-        'title': l10n.reportsAndLogs,
-        'icon': Icons.summarize_rounded,
-        'route': '/reports'
-      },
-    ];
-
-    final items = isBusiness ? businessItems : adminItems;
-
     return Drawer(
       backgroundColor: colors.surface,
       child: SafeArea(
@@ -111,30 +75,23 @@ class AppDrawer extends StatelessWidget {
                     : colors.surfaceContainerLow,
               ),
               accountName: Text(
-                isBusiness
-                    ? l10n.salonManagementCenter
-                    : l10n.platformSuperAdmin,
+                l10n.salonManagementCenter,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: colors.onSurface,
                 ),
               ),
               accountEmail: Text(
-                isBusiness
-                    ? 'easybook.business@portal.com'
-                    : 'admin@easybook.com',
+                'easybook.business@portal.com',
                 style: TextStyle(
                   color: colors.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
               currentAccountPicture: CircleAvatar(
-                backgroundColor:
-                    isBusiness ? AppColors.primary : AppColors.error,
+                backgroundColor: AppColors.primary,
                 child: Icon(
-                  isBusiness
-                      ? Icons.storefront_rounded
-                      : Icons.security_rounded,
+                  Icons.storefront_rounded,
                   color: Colors.white,
                 ),
               ),
@@ -143,10 +100,10 @@ class AppDrawer extends StatelessWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  ...items.map((item) => ListTile(
+                  ...businessItems.map((item) => ListTile(
                         leading: Icon(
                           item['icon'] as IconData,
-                          color: isBusiness ? colors.primary : colors.error,
+                          color: colors.primary,
                         ),
                         title: Text(item['title'] as String,
                             style: TextStyle(

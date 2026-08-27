@@ -2454,4 +2454,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get privateNotesSaved => 'تم حفظ ملاحظات العميل الخاصة!';
+
+  @override
+  String get adminSignIn => 'تسجيل دخول المدير';
+
+  @override
+  String get adminSignInSubtitle =>
+      'إدارة المنصة، التحقق من الشركاء والمدفوعات';
+
+  @override
+  String get adminPortalWebOnly => 'بوابة الإدارة متاحة عبر الويب فقط';
+
+  @override
+  String get adminPortalWebOnlyMessage =>
+      'إدارة المنصة وعناصر التحكم الإدارية تقتصر على بوابة الإدارة الآمنة عبر الويب. يرجى فتح Easy Book في متصفح المكتب لتسجيل الدخول.';
+
+  @override
+  String get adminPortalUrl => 'https://admin.easybook.ae';
+
+  @override
+  String get signOutAndReturn => 'تسجيل الخروج والعودة';
+
+  @override
+  String get accessDenied => 'تم رفض الوصول';
+
+  @override
+  String get accessDeniedMessage =>
+      'ليس لديك صلاحيات إدارية للوصول إلى هذه البوابة.';
+
+  @override
+  String get goBack => 'العودة';
+
+  @override
+  String get adminEmailNotVerified => 'يجب تأكيد البريد الإلكتروني للمدير.';
 }

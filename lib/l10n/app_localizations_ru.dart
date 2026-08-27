@@ -2484,4 +2484,39 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get privateNotesSaved => 'Личные заметки о клиенте сохранены!';
+
+  @override
+  String get adminSignIn => 'Вход администратора';
+
+  @override
+  String get adminSignInSubtitle =>
+      'Управление платформой, верификация партнёров и выплаты';
+
+  @override
+  String get adminPortalWebOnly =>
+      'Панель администратора доступна только на веб-сайте';
+
+  @override
+  String get adminPortalWebOnlyMessage =>
+      'Управление платформой и административные функции доступны только в защищённой веб-панели. Пожалуйста, откройте Easy Book в браузере на ПК.';
+
+  @override
+  String get adminPortalUrl => 'https://admin.easybook.ae';
+
+  @override
+  String get signOutAndReturn => 'Выйти и вернуться';
+
+  @override
+  String get accessDenied => 'Доступ запрещён';
+
+  @override
+  String get accessDeniedMessage =>
+      'У вас нет прав администратора для доступа к этой панели.';
+
+  @override
+  String get goBack => 'Назад';
+
+  @override
+  String get adminEmailNotVerified =>
+      'Адрес электронной почты администратора должен быть подтверждён.';
 }

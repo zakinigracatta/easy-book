@@ -2485,4 +2485,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privateNotesSaved => 'Private customer notes saved!';
+
+  @override
+  String get adminSignIn => 'Admin Sign In';
+
+  @override
+  String get adminSignInSubtitle =>
+      'Platform management, partner verification & payouts';
+
+  @override
+  String get adminPortalWebOnly => 'Admin Portal is Available on Web Only';
+
+  @override
+  String get adminPortalWebOnlyMessage =>
+      'Platform management and administrative controls are restricted to the secure Web Admin Portal. Please open Easy Book in a desktop browser to sign in.';
+
+  @override
+  String get adminPortalUrl => 'https://admin.easybook.ae';
+
+  @override
+  String get signOutAndReturn => 'Sign Out & Return';
+
+  @override
+  String get accessDenied => 'Access Denied';
+
+  @override
+  String get accessDeniedMessage =>
+      'You do not have administrative privileges to access this portal.';
+
+  @override
+  String get goBack => 'Go Back';
+
+  @override
+  String get adminEmailNotVerified => 'Admin email address must be verified.';
 }

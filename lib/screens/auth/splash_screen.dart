@@ -121,11 +121,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               debugPrint('[SPLASH] destination resolved: owner');
             }
             destination = '/owner-dashboard';
-          } else if (userModel.role == UserRole.admin) {
+          } else if (userModel.isAdmin) {
             if (kDebugMode) {
-              debugPrint('[SPLASH] destination resolved: admin');
+              debugPrint(
+                  '[SPLASH] destination resolved: admin (web-only notice)');
             }
-            destination = '/admin-dashboard';
+            destination = '/admin-web-only';
           } else {
             if (kDebugMode) {
               debugPrint('[SPLASH] destination resolved: customer');
