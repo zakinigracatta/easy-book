@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_button.dart';
-import '../../providers/app_providers.dart';
+
+import '../../core/utils/currency_formatter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/service_model.dart';
+import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/glass_card.dart';
 
 class BookingServiceScreen extends ConsumerStatefulWidget {
   const BookingServiceScreen({super.key});
@@ -21,33 +24,32 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
   @override
   void initState() {
     super.initState();
-    final draft = ref.read(bookingDraftProvider);
-    _selectedServiceId = draft.serviceId;
+    _selectedServiceId = ref.read(bookingDraftProvider).serviceId;
   }
 
   void _onNext(List<ServiceModel> services) {
     if (_selectedServiceId == null || _selectedServiceId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a service to proceed.')),
+        SnackBar(content: Text(context.tr('Please select a service to proceed.'))),
       );
       return;
     }
 
     try {
-      final sel = services.firstWhere((s) => s.id == _selectedServiceId);
+      final selected = services.firstWhere((s) => s.id == _selectedServiceId);
       ref.read(bookingDraftProvider.notifier).state =
           ref.read(bookingDraftProvider).copyWith(
-        serviceId: sel.id,
-        serviceName: sel.name,
-        servicePrice: sel.discountPrice ?? sel.price,
-        serviceDuration: sel.duration,
-        serviceDurationMinutes: sel.durationMinutes,
-        selectedServices: [sel],
+        serviceId: selected.id,
+        serviceName: selected.name,
+        servicePrice: selected.discountPrice ?? selected.price,
+        serviceDuration: selected.duration,
+        serviceDurationMinutes: selected.durationMinutes,
+        selectedServices: [selected],
       );
       context.push('/booking-specialist');
     } catch (_) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid service selected.')),
+        SnackBar(content: Text(context.tr('Invalid service selected.'))),
       );
     }
   }
@@ -62,26 +64,17 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Step 1: Select Service'),
+          title: Text(context.tr('Select Service')),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -89,56 +82,67 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
             children: [
               Expanded(
                 child: servicesState.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (err, stack) => Center(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline_rounded,
-                            size: 48, color: AppColors.error),
+                        const Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: AppColors.error,
+                        ),
                         const SizedBox(height: 12),
-                        Text('Error loading services: $err',
-                            textAlign: TextAlign.center),
+                        Text(
+                          context.tr('Unable to load services. Please try again.'),
+                          textAlign: TextAlign.center,
+                        ),
                       ],
                     ),
                   ),
                   data: (services) {
                     if (services.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
-                          'No services available for this salon.',
-                          style: TextStyle(color: AppColors.textMutedDark),
+                          context.tr('No services available for this salon.'),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       );
                     }
 
-                    // Auto-select first service if none selected
                     _selectedServiceId ??= services.first.id;
 
                     return ListView.builder(
                       itemCount: services.length,
                       itemBuilder: (context, index) {
-                        final s = services[index];
-                        final isSel = _selectedServiceId == s.id;
+                        final service = services[index];
+                        final isSelected = _selectedServiceId == service.id;
+                        final price = service.discountPrice ?? service.price;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: GlassCard(
                             onTap: () =>
-                                setState(() => _selectedServiceId = s.id),
+                                setState(() => _selectedServiceId = service.id),
                             borderColor:
-                                isSel ? Theme.of(context).primaryColor : null,
+                                isSelected ? Theme.of(context).primaryColor : null,
                             child: ListTile(
-                              title: Text(s.name,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              subtitle: Text(s.duration),
-                              trailing: Text(
-                                '\$${s.price.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Theme.of(context).primaryColor,
+                              title: Text(
+                                service.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(service.duration),
+                              trailing: Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: Text(
+                                  CurrencyFormatter.format(
+                                    price,
+                                    currency: service.currency,
+                                  ),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
                                 ),
                               ),
                             ),
@@ -151,7 +155,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
               ),
               servicesState.maybeWhen(
                 data: (services) => CustomButton(
-                  text: 'Next: Select Date',
+                  text: 'Continue: Select Specialist',
                   onPressed:
                       services.isNotEmpty ? () => _onNext(services) : null,
                 ),

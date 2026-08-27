@@ -9,3 +9,4 @@ export { createWalkInBooking } from './booking/createWalkInBooking';
 export { cancelBooking } from './booking/cancelBooking';
 export { rescheduleBooking } from './booking/rescheduleBooking';
 export { updateBookingStatus } from './booking/updateBookingStatus';
+export { getAvailabilityBlocks } from './booking/getAvailabilityBlocks';

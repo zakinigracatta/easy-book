@@ -16,6 +16,12 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
+    function isAdminAccount() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     function isBusinessOwner(businessId) {
       return isAuthenticated() &&
         exists(/databases/$(database)/documents/businesses/$(businessId)) &&
@@ -23,6 +29,14 @@ service cloud.firestore {
           ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
           ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
         );
+    }
+
+    function isPublishedBusiness(businessId) {
+      return exists(/databases/$(database)/documents/businesses/$(businessId)) &&
+        ('is_verified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
+        get(/databases/$(database)/documents/businesses/$(businessId)).data.is_verified == true &&
+        (!('is_active' in get(/databases/$(database)/documents/businesses/$(businessId)).data) ||
+          get(/databases/$(database)/documents/businesses/$(businessId)).data.is_active == true);
     }
 
     function validExpenseCategory(category) {
@@ -135,7 +149,6 @@ service cloud.firestore {
                     && request.path == /databases/$(database)/documents/users/$(userId)
                     && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
 
-      // Per-user saved businesses. The document ID is the canonical business ID.
       match /favorites/{businessId} {
         allow read, delete: if isUser(userId);
         allow create: if isUser(userId)
@@ -147,25 +160,81 @@ service cloud.firestore {
 
     // Businesses Collection & Subcollections
     match /businesses/{businessId} {
-      allow read: if true;
+      allow read: if isBusinessOwner(businessId)
+                  || isAdminAccount()
+                  || (
+                    ('is_verified' in resource.data)
+                    && resource.data.is_verified == true
+                    && (!('is_active' in resource.data) || resource.data.is_active == true)
+                  );
 
-      allow create: if isOwnerAccount() &&
-        (request.resource.data.ownerId == request.auth.uid ||
-         request.resource.data.owner_id == request.auth.uid);
+      allow create: if isOwnerAccount()
+                    && (
+                      (('ownerId' in request.resource.data) && request.resource.data.ownerId == request.auth.uid)
+                      || (('owner_id' in request.resource.data) && request.resource.data.owner_id == request.auth.uid)
+                    )
+                    && (!('is_verified' in request.resource.data) || request.resource.data.is_verified == false)
+                    && (!('isVerified' in request.resource.data) || request.resource.data.isVerified == false)
+                    && (!('rating' in request.resource.data) || request.resource.data.rating == 0)
+                    && (!('review_count' in request.resource.data) || request.resource.data.review_count == 0)
+                    && (!('reviewCount' in request.resource.data) || request.resource.data.reviewCount == 0);
 
-      allow update: if isBusinessOwner(businessId);
+      // Owners may edit operational/profile fields, but cannot self-approve,
+      // change platform activation, ownership, rating, or review counters.
+      allow update: if (
+        isBusinessOwner(businessId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name',
+          'category',
+          'address',
+          'description',
+          'image_url',
+          'imageUrl',
+          'latitude',
+          'longitude',
+          'working_hours',
+          'workingHours',
+          'amenities',
+          'phone',
+          'website',
+          'gallery_urls',
+          'galleryUrls',
+          'business_status',
+          'businessStatus',
+          'accepting_bookings',
+          'acceptingBookings',
+          'timeZone',
+          'timezone',
+          'updated_at',
+          'updatedAt'
+        ])
+      ) || (
+        isAdminAccount()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'is_verified',
+          'isVerified',
+          'is_active',
+          'isActive',
+          'updated_at',
+          'updatedAt'
+        ])
+      );
 
-      allow delete: if isBusinessOwner(businessId);
+      // Hard-delete is a platform action. Owners should deactivate content
+      // instead so historical bookings keep valid references.
+      allow delete: if isAdminAccount();
 
-      // Services Subcollection
       match /services/{serviceId} {
-        allow read: if true;
+        allow read: if isPublishedBusiness(businessId)
+                    || isBusinessOwner(businessId)
+                    || isAdminAccount();
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // Staff Subcollection
       match /staff/{staffId} {
-        allow read: if true;
+        allow read: if isPublishedBusiness(businessId)
+                    || isBusinessOwner(businessId)
+                    || isAdminAccount();
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
@@ -187,25 +256,27 @@ service cloud.firestore {
                       && request.resource.data.createdAt == resource.data.createdAt
                       && request.resource.data.updatedAt == request.time;
 
-        // Financial history is archived, never hard-deleted from untrusted clients.
         allow delete: if false;
       }
 
-      // Offers Subcollection
       match /offers/{offerId} {
-        allow read: if true;
+        allow read: if isPublishedBusiness(businessId)
+                    || isBusinessOwner(businessId)
+                    || isAdminAccount();
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // Gallery Subcollection
       match /gallery/{imageId} {
-        allow read: if true;
+        allow read: if isPublishedBusiness(businessId)
+                    || isBusinessOwner(businessId)
+                    || isAdminAccount();
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // Customer Reviews: public read; owner can only add/edit the business reply fields.
       match /reviews/{reviewId} {
-        allow read: if true;
+        allow read: if isPublishedBusiness(businessId)
+                    || isBusinessOwner(businessId)
+                    || isAdminAccount();
         allow create, delete: if false;
         allow update: if isBusinessOwner(businessId)
                       && resource != null
@@ -213,18 +284,17 @@ service cloud.firestore {
                           .hasOnly(['businessReply', 'businessReplyAt']);
       }
 
-      // Owner Notifications Subcollection
       match /notifications/{notificationId} {
         allow read, update: if isBusinessOwner(businessId);
         allow create, delete: if isBusinessOwner(businessId);
       }
 
-      // Staff Time-offs Subcollection
+      // Employee leave is private. Customer availability receives only
+      // sanitized start/end intervals through a callable Cloud Function.
       match /timeOffs/{timeOffId} {
         allow read, create, update, delete: if isBusinessOwner(businessId);
       }
 
-      // PRIVATE OWNER CUSTOMER NOTES SUBCOLLECTION (CUSTOMERS STRICTLY DENIED)
       match /customerNotes/{customerId} {
         allow read, write: if isBusinessOwner(businessId);
       }
@@ -234,9 +304,11 @@ service cloud.firestore {
       }
     }
 
-    // Slot Locks Collection (Public Non-Sensitive Availability Queries; Untrusted Client Writes Denied)
+    // Slot locks contain only non-sensitive availability state. Guests may read
+    // them so they can browse open appointment times before signing in. All
+    // writes remain server-only through trusted backend code.
     match /booking_slots/{slotId} {
-      allow read, get, list: if isAuthenticated();
+      allow read, get, list: if true;
       allow create, update, delete: if false;
     }
 
@@ -244,7 +316,8 @@ service cloud.firestore {
     match /bookings/{bookingId} {
       allow read: if isAuthenticated() && (
         resource.data.customerId == request.auth.uid ||
-        isBusinessOwner(resource.data.businessId)
+        isBusinessOwner(resource.data.businessId) ||
+        isAdminAccount()
       );
 
       allow create, update, delete: if false;

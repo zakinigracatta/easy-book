@@ -41,7 +41,7 @@ class GiftCardsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GlassCard(
-                backgroundColor: AppColors.accent.withOpacity(0.15),
+                backgroundColor: AppColors.accent.withValues(alpha: 0.15),
                 child: const Column(
                   children: [
                     Icon(Icons.card_giftcard_rounded,

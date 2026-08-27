@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../models/business_model.dart';
 import '../../../theme/app_colors.dart';
 
@@ -15,11 +17,17 @@ class BusinessSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusInfo = business.workingHours.getStatus();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secondaryColor = isDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : AppColors.textSecondaryLight;
+    final mutedColor =
+        isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
+    final chipColor = isDark ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.35) : AppColors.glassBgLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Name & Verified Badge
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -29,7 +37,6 @@ class BusinessSummary extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
                   letterSpacing: -0.5,
                 ),
               ),
@@ -42,17 +49,21 @@ class BusinessSummary extends StatelessWidget {
                   color: AppColors.success.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                      color: AppColors.success.withValues(alpha: 0.3)),
+                    color: AppColors.success.withValues(alpha: 0.3),
+                  ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.verified_rounded,
-                        color: AppColors.success, size: 14),
-                    SizedBox(width: 4),
+                    const Icon(
+                      Icons.verified_rounded,
+                      color: AppColors.success,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      'VERIFIED',
-                      style: TextStyle(
+                      context.tr('VERIFIED'),
+                      style: const TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
@@ -65,22 +76,16 @@ class BusinessSummary extends StatelessWidget {
             ],
           ],
         ),
-
         const SizedBox(height: 6),
-
-        // Category Tag
         Text(
           business.category,
           style: const TextStyle(
-            color: AppColors.primaryLight,
+            color: AppColors.primary,
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
         ),
-
         const SizedBox(height: 12),
-
-        // Rating & Review Count
         Row(
           children: [
             Container(
@@ -88,13 +93,17 @@ class BusinessSummary extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.gold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border:
-                    Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.gold.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.star_rounded,
-                      color: AppColors.gold, size: 16),
+                  const Icon(
+                    Icons.star_rounded,
+                    color: AppColors.gold,
+                    size: 16,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     business.rating.toStringAsFixed(1),
@@ -109,31 +118,27 @@ class BusinessSummary extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Text(
-              '(${business.reviewCount} reviews)',
-              style: const TextStyle(
-                color: AppColors.textSecondaryDark,
+              context.tr(
+                '{count} reviews',
+                params: {'count': business.reviewCount},
+              ),
+              style: TextStyle(
+                color: secondaryColor,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ),
-
         const SizedBox(height: 12),
-
-        // Address & Location & Distance
         Row(
           children: [
-            const Icon(Icons.location_on_outlined,
-                color: AppColors.textMutedDark, size: 16),
+            Icon(Icons.location_on_outlined, color: mutedColor, size: 16),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
                 business.address,
-                style: const TextStyle(
-                  color: AppColors.textSecondaryDark,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: secondaryColor, fontSize: 13),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -143,13 +148,13 @@ class BusinessSummary extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.glassBgDark,
+                  color: chipColor,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   distanceText!,
-                  style: const TextStyle(
-                    color: AppColors.textMutedDark,
+                  style: TextStyle(
+                    color: mutedColor,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -158,10 +163,7 @@ class BusinessSummary extends StatelessWidget {
             ],
           ],
         ),
-
         const SizedBox(height: 12),
-
-        // Open/Closed Dynamic Status
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
@@ -186,13 +188,16 @@ class BusinessSummary extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                statusInfo.statusText,
-                style: TextStyle(
-                  color:
-                      statusInfo.isOpen ? AppColors.success : AppColors.error,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+              Flexible(
+                child: Text(
+                  context.tr(statusInfo.statusText),
+                  style: TextStyle(
+                    color: statusInfo.isOpen
+                        ? AppColors.success
+                        : AppColors.error,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],

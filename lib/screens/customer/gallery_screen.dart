@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
+
 class GalleryScreen extends StatelessWidget {
   const GalleryScreen({super.key});
 
@@ -17,26 +19,16 @@ class GalleryScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Salon Photo Gallery'),
+          title: Text(context.tr('Salon Photo Gallery')),
         ),
         body: GridView.builder(
           padding: const EdgeInsets.all(16),

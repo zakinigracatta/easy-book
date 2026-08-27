@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../../theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 class GallerySection extends StatelessWidget {
   final List<String> galleryUrls;
@@ -23,9 +23,8 @@ class GallerySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Photo Gallery',
-          style: TextStyle(
+        Text(context.tr('Photo Gallery'),
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -53,14 +52,14 @@ class GallerySection extends StatelessWidget {
                     fadeInDuration: const Duration(milliseconds: 100),
                     fadeOutDuration: Duration.zero,
                     placeholder: (context, url) =>
-                        Container(color: AppColors.cardDark),
+                        Container(color: Theme.of(context).colorScheme.surface),
                     errorWidget: (context, url, err) => Container(
                       width: 160,
                       height: 120,
-                      color: AppColors.cardDark,
-                      child: const Icon(
+                      color: Theme.of(context).colorScheme.surface,
+                      child: Icon(
                         Icons.photo_library_outlined,
-                        color: AppColors.textMutedDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),

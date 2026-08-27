@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../models/available_slot.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
@@ -19,17 +21,27 @@ class TimeSlotGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor =
+        isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
+    final secondaryColor = isDark
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : AppColors.textSecondaryLight;
+
     if (isLoading) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 32),
         alignment: Alignment.center,
-        child: const Column(
+        child: Column(
           children: [
-            CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-            SizedBox(height: 12),
+            const CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: 12),
             Text(
-              'Checking available appointment times...',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+              context.tr('Checking available appointment times...'),
+              style: TextStyle(color: mutedColor, fontSize: 13),
             ),
           ],
         ),
@@ -37,29 +49,25 @@ class TimeSlotGrid extends StatelessWidget {
     }
 
     if (slots.isEmpty) {
-      return Container(
+      return GlassCard(
         padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: AppColors.cardDark,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.glassBorderDark),
-        ),
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.event_busy_rounded,
-                size: 44, color: AppColors.textMutedDark),
-            SizedBox(height: 12),
+            Icon(Icons.event_busy_rounded, size: 44, color: mutedColor),
+            const SizedBox(height: 12),
             Text(
-              'No available times for this date.',
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+              context.tr('No available times for this date.'),
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              'Please select another date or choose Any Available Specialist.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 12),
+              context.tr(
+                'Please select another date or choose Any Available Specialist.',
+              ),
+              style: TextStyle(color: mutedColor, fontSize: 12),
               textAlign: TextAlign.center,
             ),
           ],
@@ -67,49 +75,69 @@ class TimeSlotGrid extends StatelessWidget {
       );
     }
 
-    // Group slots by period
     final morningSlots =
-        slots.where((s) => s.period == SlotPeriod.morning).toList();
+        slots.where((slot) => slot.period == SlotPeriod.morning).toList();
     final afternoonSlots =
-        slots.where((s) => s.period == SlotPeriod.afternoon).toList();
+        slots.where((slot) => slot.period == SlotPeriod.afternoon).toList();
     final eveningSlots =
-        slots.where((s) => s.period == SlotPeriod.evening).toList();
+        slots.where((slot) => slot.period == SlotPeriod.evening).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (morningSlots.isNotEmpty) ...[
-          _periodHeader(Icons.wb_sunny_outlined, 'Morning Slots'),
-          _slotGrid(morningSlots),
+          _periodHeader(
+            context,
+            Icons.wb_sunny_outlined,
+            'Morning Slots',
+            secondaryColor,
+          ),
+          _slotGrid(context, morningSlots),
           const SizedBox(height: 18),
         ],
         if (afternoonSlots.isNotEmpty) ...[
-          _periodHeader(Icons.wb_cloudy_outlined, 'Afternoon Slots'),
-          _slotGrid(afternoonSlots),
+          _periodHeader(
+            context,
+            Icons.wb_cloudy_outlined,
+            'Afternoon Slots',
+            secondaryColor,
+          ),
+          _slotGrid(context, afternoonSlots),
           const SizedBox(height: 18),
         ],
         if (eveningSlots.isNotEmpty) ...[
-          _periodHeader(Icons.nights_stay_outlined, 'Evening Slots'),
-          _slotGrid(eveningSlots),
+          _periodHeader(
+            context,
+            Icons.nights_stay_outlined,
+            'Evening Slots',
+            secondaryColor,
+          ),
+          _slotGrid(context, eveningSlots),
           const SizedBox(height: 18),
         ],
       ],
     );
   }
 
-  Widget _periodHeader(IconData icon, String title) {
+  Widget _periodHeader(
+    BuildContext context,
+    IconData icon,
+    String title,
+    Color secondaryColor,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: AppColors.primaryLight),
+          const SizedBox.shrink(),
+          Icon(icon, size: 16, color: AppColors.primary),
           const SizedBox(width: 6),
           Text(
-            title,
-            style: const TextStyle(
+            context.tr(title),
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.textSecondaryDark,
+              color: secondaryColor,
             ),
           ),
         ],
@@ -117,7 +145,7 @@ class TimeSlotGrid extends StatelessWidget {
     );
   }
 
-  Widget _slotGrid(List<AvailableSlot> periodSlots) {
+  Widget _slotGrid(BuildContext context, List<AvailableSlot> periodSlots) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -130,20 +158,22 @@ class TimeSlotGrid extends StatelessWidget {
       itemCount: periodSlots.length,
       itemBuilder: (context, index) {
         final slot = periodSlots[index];
-        final isSel = selectedSlotTime == slot.timeString;
+        final isSelected = selectedSlotTime == slot.timeString;
 
         return GlassCard(
           onTap: () => onSlotSelected(slot),
-          borderColor: isSel ? AppColors.primary : null,
+          borderColor: isSelected ? AppColors.primary : null,
           backgroundColor:
-              isSel ? AppColors.primary.withValues(alpha: 0.25) : null,
+              isSelected ? AppColors.primary.withValues(alpha: 0.18) : null,
           child: Center(
             child: Text(
               slot.timeString,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: isSel ? AppColors.primaryLight : Colors.white,
+                color: isSelected
+                    ? AppColors.primary
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),

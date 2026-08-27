@@ -8,6 +8,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/business/business_image_picker.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/service_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class AddServiceScreen extends ConsumerStatefulWidget {
   final ServiceModel? initialService;
@@ -153,32 +154,32 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
                       // Duration Dropdown in minutes
                       DropdownButtonFormField<int>(
-                        value:
+                        initialValue:
                             _durationOptions.contains(_selectedDurationMinutes)
                                 ? _selectedDurationMinutes
                                 : 30,
                         decoration: InputDecoration(
                           labelText: 'Service Duration *',
                           labelStyle:
-                              const TextStyle(color: AppColors.textMutedDark),
+                              TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           prefixIcon: const Icon(Icons.timer_outlined,
                               color: AppColors.primaryLight),
                           filled: true,
-                          fillColor: AppColors.bgDark,
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                                color: AppColors.glassBorderDark),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).dividerColor),
                           ),
                         ),
-                        dropdownColor: AppColors.cardDark,
+                        dropdownColor: Theme.of(context).colorScheme.surface,
                         items: _durationOptions.map((mins) {
                           return DropdownMenuItem(
                             value: mins,
                             child: Text(
-                              '$mins minutes',
-                              style: const TextStyle(
-                                  color: AppColors.textPrimaryDark,
+                              "$mins ${context.tr('minutes')}",
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 14),
                             ),
                           );
@@ -222,19 +223,17 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
                       // Availability Switch
                       SwitchListTile(
                         value: _isActive,
-                        activeColor: AppColors.primary,
-                        title: const Text(
-                          'Available for Booking',
+                        activeThumbColor: AppColors.primary,
+                        title: Text(context.tr('Available for Booking'),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        subtitle: const Text(
-                          'Disable to temporarily stop accepting new bookings for this service.',
+                        subtitle: Text(context.tr('Disable to temporarily stop accepting new bookings for this service.'),
                           style: TextStyle(
-                              fontSize: 11, color: AppColors.textMutedDark),
+                              fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         onChanged: (val) => setState(() => _isActive = val),
                       ),
@@ -296,9 +295,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.initialService != null
-                ? 'Service updated successfully!'
-                : 'New service created!'),
+            content: Text(context.tr(
+              widget.initialService != null
+                  ? 'Service updated successfully!'
+                  : 'New service created!',
+            )),
             backgroundColor: AppColors.success,
           ),
         );
@@ -312,7 +313,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save service: $e'),
+            content: Text(context.tr('Unable to save service. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );

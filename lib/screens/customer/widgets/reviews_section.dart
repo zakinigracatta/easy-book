@@ -5,6 +5,7 @@ import '../../../models/review_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
 import '../../../widgets/rating_stars.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ReviewsSection extends StatelessWidget {
   final double averageRating;
@@ -24,14 +25,13 @@ class ReviewsSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
-        child: const Column(
+        child: Column(
           children: [
             Icon(Icons.rate_review_outlined,
-                size: 48, color: AppColors.textMutedDark),
-            SizedBox(height: 12),
-            Text(
-              'No reviews yet.\nBe the first to review after your appointment.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 14),
+                size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text(context.tr('No reviews yet.\nBe the first to review after your appointment.'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -72,27 +72,27 @@ class ReviewsSection extends StatelessWidget {
                   RatingStars(rating: averageRating, size: 16),
                   const SizedBox(height: 6),
                   Text(
-                    '$totalReviews reviews',
-                    style: const TextStyle(
+                    context.tr('{count} reviews', params: {'count': totalReviews}),
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
               const SizedBox(width: 20),
-              Container(width: 1, height: 70, color: AppColors.glassBorderDark),
+              Container(width: 1, height: 70, color: Theme.of(context).dividerColor),
               const SizedBox(width: 20),
 
               // Rating Distribution Progress Bars
               Expanded(
                 child: Column(
                   children: [
-                    _barRow('5 ★', count5 / totalCount),
-                    _barRow('4 ★', count4 / totalCount),
-                    _barRow('3 ★', count3 / totalCount),
-                    _barRow('2 ★', count2 / totalCount),
-                    _barRow('1 ★', count1 / totalCount),
+                    _barRow(context, '5 ★', count5 / totalCount),
+                    _barRow(context, '4 ★', count4 / totalCount),
+                    _barRow(context, '3 ★', count3 / totalCount),
+                    _barRow(context, '2 ★', count2 / totalCount),
+                    _barRow(context, '1 ★', count1 / totalCount),
                   ],
                 ),
               ),
@@ -101,9 +101,8 @@ class ReviewsSection extends StatelessWidget {
         ),
 
         const SizedBox(height: 20),
-        const Text(
-          'Customer Reviews',
-          style: TextStyle(
+        Text(context.tr('Customer Reviews'),
+          style: const TextStyle(
               fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         const SizedBox(height: 12),
@@ -166,8 +165,8 @@ class ReviewsSection extends StatelessWidget {
                       ),
                       Text(
                         dateStr,
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.textMutedDark),
+                        style: TextStyle(
+                            fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -176,9 +175,9 @@ class ReviewsSection extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     r.comment,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondaryDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       height: 1.4,
                     ),
                   ),
@@ -191,7 +190,7 @@ class ReviewsSection extends StatelessWidget {
     );
   }
 
-  Widget _barRow(String label, double pct) {
+  Widget _barRow(BuildContext context, String label, double pct) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -200,9 +199,9 @@ class ReviewsSection extends StatelessWidget {
             width: 24,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 10,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold),
             ),
           ),
@@ -213,7 +212,7 @@ class ReviewsSection extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: pct,
                 minHeight: 6,
-                backgroundColor: AppColors.bgDark,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 valueColor: const AlwaysStoppedAnimation<Color>(AppColors.gold),
               ),
             ),

@@ -1,16 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+
+import '../core/domain_exceptions.dart';
+import '../models/available_slot.dart';
 import '../models/business_model.dart';
+import '../models/employee_time_off_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
 import '../models/staff_schedule_model.dart';
-import '../models/available_slot.dart';
-import '../models/employee_time_off_model.dart';
-import '../core/domain_exceptions.dart';
 
-// app_providers.dart already imports this engine; re-export the two availability
-// dependencies it consumes so legacy provider code remains source-compatible.
 export 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 export '../models/employee_time_off_model.dart' show EmployeeTimeOffModel;
 
@@ -67,11 +66,10 @@ class BookingAvailabilityEngine {
     }
 
     final now = nowOverride ?? DateTime.now();
-    final maxDate = DateTime(now.year, now.month, now.day)
-        .add(const Duration(days: maxAdvanceBookingDays));
+    final today = DateTime(now.year, now.month, now.day);
+    final maxDate = today.add(const Duration(days: maxAdvanceBookingDays));
     final targetDateOnly = DateTime(date.year, date.month, date.day);
-    if (targetDateOnly.isBefore(DateTime(now.year, now.month, now.day)) ||
-        targetDateOnly.isAfter(maxDate)) {
+    if (targetDateOnly.isBefore(today) || targetDateOnly.isAfter(maxDate)) {
       return [];
     }
 
@@ -82,11 +80,10 @@ class BookingAvailabilityEngine {
       'Thursday',
       'Friday',
       'Saturday',
-      'Sunday'
+      'Sunday',
     ];
     final dayName = dayNames[date.weekday - 1];
     final dailyHours = business.workingHours.schedule[dayName];
-
     if (dailyHours == null || dailyHours.isClosed) return [];
 
     final bOpenMinutes = _parseTimeStringToMinutes(dailyHours.openTime);
@@ -102,51 +99,65 @@ class BookingAvailabilityEngine {
             : eligibleStaff;
     if (targetStaffList.isEmpty) return [];
 
-    final totalDurationMinutes = selectedServices.fold(
-        0, (runningTotal, s) => runningTotal + s.durationMinutes);
+    final totalDurationMinutes = selectedServices.fold<int>(
+      0,
+      (runningTotal, service) =>
+          runningTotal + service.durationMinutes,
+    );
     if (totalDurationMinutes <= 0) return [];
 
     final occupiedBucketsMap = <String, Set<int>>{};
-    for (final staff in targetStaffList) {
-      occupiedBucketsMap[staff.id] = {};
-      final db = _db;
-      if (db != null) {
-        try {
-          final lockSnap = await db
-              .collection('booking_slots')
-              .where('businessId', isEqualTo: business.id)
-              .where('staffId', isEqualTo: staff.id)
-              .get();
+    final dayStartMs = targetDateOnly.millisecondsSinceEpoch;
+    final nextDayMs = targetDateOnly
+        .add(const Duration(days: 1))
+        .millisecondsSinceEpoch;
 
-          for (final doc in lockSnap.docs) {
-            final data = doc.data();
-            final ts = (data['startTimestamp'] as num?)?.toInt();
-            if (ts != null) occupiedBucketsMap[staff.id]!.add(ts);
-          }
-        } on FirebaseException catch (e) {
-          debugPrint(
-              'AVAILABILITY_SLOTS_FETCH_ERROR: ${e.code} - ${e.message}');
-          throw DomainException(
-              'Unable to confirm real-time slot availability. Please try again.');
-        } catch (e) {
-          debugPrint('AVAILABILITY_ENGINE_ERROR: $e');
-          throw DomainException('Unable to verify slot availability.');
+    for (final staff in targetStaffList) {
+      occupiedBucketsMap[staff.id] = <int>{};
+      final db = _db;
+      if (db == null) continue;
+
+      try {
+        // Only fetch lock buckets that can affect the requested day. The old
+        // query downloaded the employee's entire booking history every time a
+        // customer changed the calendar date.
+        final lockSnap = await db
+            .collection('booking_slots')
+            .where('businessId', isEqualTo: business.id)
+            .where('staffId', isEqualTo: staff.id)
+            .where('startTimestamp', isGreaterThanOrEqualTo: dayStartMs)
+            .where('startTimestamp', isLessThan: nextDayMs)
+            .get();
+
+        for (final doc in lockSnap.docs) {
+          final data = doc.data();
+          final ts = (data['startTimestamp'] as num?)?.toInt();
+          if (ts != null) occupiedBucketsMap[staff.id]!.add(ts);
         }
+      } on FirebaseException catch (e) {
+        debugPrint('AVAILABILITY_SLOTS_FETCH_ERROR: ${e.code} - ${e.message}');
+        throw DomainException(
+          'Unable to confirm real-time slot availability. Please try again.',
+        );
+      } catch (e) {
+        if (e is DomainException) rethrow;
+        debugPrint('AVAILABILITY_ENGINE_ERROR: $e');
+        throw DomainException('Unable to verify slot availability.');
       }
     }
 
     final resultSlots = <AvailableSlot>[];
-    final isToday =
-        date.year == now.year && date.month == now.month && date.day == now.day;
-    final leadTimeCutoff =
-        now.add(const Duration(minutes: minimumLeadTimeMinutes));
+    final isToday = targetDateOnly == today;
+    final leadTimeCutoff = now.add(
+      const Duration(minutes: minimumLeadTimeMinutes),
+    );
 
     for (int minutes = bOpenMinutes;
         minutes + totalDurationMinutes <= bCloseMinutes;
         minutes += defaultStepMinutes) {
       final hour = minutes ~/ 60;
-      final min = minutes % 60;
-      final candStart = DateTime(date.year, date.month, date.day, hour, min);
+      final minute = minutes % 60;
+      final candStart = DateTime(date.year, date.month, date.day, hour, minute);
       final candEnd = candStart.add(Duration(minutes: totalDurationMinutes));
 
       if (isToday && candStart.isBefore(leadTimeCutoff)) continue;
@@ -158,7 +169,7 @@ class BookingAvailabilityEngine {
           candStart: candStart,
           candEnd: candEnd,
           totalDurationMinutes: totalDurationMinutes,
-          occupiedBuckets: occupiedBucketsMap[staff.id] ?? {},
+          occupiedBuckets: occupiedBucketsMap[staff.id] ?? const <int>{},
           blockedPeriods: blockedPeriods,
           staffBreaks: staffBreaks,
           employeeTimeOffs: employeeTimeOffs,
@@ -172,13 +183,15 @@ class BookingAvailabilityEngine {
       }
 
       if (availableStaffForThisSlot.isNotEmpty) {
-        resultSlots.add(AvailableSlot(
-          startAt: candStart,
-          endAt: candEnd,
-          timeString: DateFormat('hh:mm a').format(candStart),
-          availableStaffIds: availableStaffForThisSlot,
-          period: AvailableSlot.derivePeriod(candStart),
-        ));
+        resultSlots.add(
+          AvailableSlot(
+            startAt: candStart,
+            endAt: candEnd,
+            timeString: DateFormat('hh:mm a').format(candStart),
+            availableStaffIds: availableStaffForThisSlot,
+            period: AvailableSlot.derivePeriod(candStart),
+          ),
+        );
       }
     }
 
@@ -242,26 +255,39 @@ class BookingAvailabilityEngine {
       if (occupiedBuckets.contains(t)) return false;
     }
 
-    for (final toff in employeeTimeOffs) {
-      if (toff.employeeId == staff.id) {
-        final toffStartMs = toff.startDate.millisecondsSinceEpoch;
-        final toffEndMs = toff.endDate.millisecondsSinceEpoch;
-        if (candStartMs < toffEndMs && candEndMs > toffStartMs) return false;
-      }
-    }
+    for (final timeOff in employeeTimeOffs) {
+      if (timeOff.employeeId != staff.id) continue;
 
-    for (final bp in blockedPeriods) {
-      if ((bp.staffId == null || bp.staffId == staff.id) &&
-          bp.overlaps(candStart, candEnd)) {
+      final timeOffStartMs = timeOff.startDate.millisecondsSinceEpoch;
+      var normalizedEnd = timeOff.endDate;
+      // The owner UI selects leave by calendar date. A stored midnight end date
+      // therefore represents an inclusive end day, not an empty interval.
+      if (normalizedEnd.hour == 0 &&
+          normalizedEnd.minute == 0 &&
+          normalizedEnd.second == 0 &&
+          normalizedEnd.millisecond == 0) {
+        normalizedEnd = normalizedEnd.add(const Duration(days: 1));
+      }
+      final timeOffEndMs = normalizedEnd.millisecondsSinceEpoch;
+
+      if (candStartMs < timeOffEndMs && candEndMs > timeOffStartMs) {
         return false;
       }
     }
 
-    for (final brk in staffBreaks) {
-      if (brk.staffId == staff.id) {
-        final bStartMin = _parseTimeStringToMinutes(brk.startTime);
-        final bEndMin = _parseTimeStringToMinutes(brk.endTime);
-        if (candStartMin < bEndMin && candEndMin > bStartMin) return false;
+    for (final blockedPeriod in blockedPeriods) {
+      if ((blockedPeriod.staffId == null || blockedPeriod.staffId == staff.id) &&
+          blockedPeriod.overlaps(candStart, candEnd)) {
+        return false;
+      }
+    }
+
+    for (final staffBreak in staffBreaks) {
+      if (staffBreak.staffId != staff.id) continue;
+      final breakStartMin = _parseTimeStringToMinutes(staffBreak.startTime);
+      final breakEndMin = _parseTimeStringToMinutes(staffBreak.endTime);
+      if (candStartMin < breakEndMin && candEndMin > breakStartMin) {
+        return false;
       }
     }
 

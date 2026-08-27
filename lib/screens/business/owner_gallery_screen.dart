@@ -8,6 +8,7 @@ import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/gallery_image_model.dart';
 import '../../services/media_upload_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class OwnerGalleryScreen extends ConsumerStatefulWidget {
   const OwnerGalleryScreen({super.key});
@@ -45,7 +46,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Business Photos & Gallery'),
+          title: Text(context.tr('Business Photos & Gallery')),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
@@ -64,7 +65,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
             if (_uploadProgress != null)
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-                color: AppColors.cardDark,
+                color: Theme.of(context).colorScheme.surface,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -72,9 +73,9 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                     const SizedBox(height: 5),
                     Text(
                       _uploadStatus,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: AppColors.textMutedDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -211,9 +212,9 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                 image.caption,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textPrimaryDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -230,12 +231,12 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Upload Business Photos'),
+          title: Text(context.tr('Upload Business Photos')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: category,
+                initialValue: category,
                 decoration: const InputDecoration(
                   labelText: 'Photo category',
                   prefixIcon: Icon(Icons.category_outlined),
@@ -264,11 +265,10 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'You can select up to 10 photos at once.',
+              Text(context.tr('You can select up to 10 photos at once.'),
                 style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -276,7 +276,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: Text(context.tr('Cancel')),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.pop(
@@ -284,7 +284,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
                 (category: category, caption: captionController.text.trim()),
               ),
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Choose Photos'),
+              label: Text(context.tr('Choose Photos')),
             ),
           ],
         ),
@@ -335,7 +335,10 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       if (urls.isNotEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${urls.length} photo(s) uploaded successfully.'),
+            content: Text(context.tr(
+                  '{count} photos uploaded successfully.',
+                  params: {'count': urls.length},
+                )),
             backgroundColor: AppColors.success,
           ),
         );
@@ -344,7 +347,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Photo upload failed: $e'),
+            content: Text(context.tr('Photo upload failed. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );
@@ -363,18 +366,17 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Delete photo?'),
-            content: const Text(
-              'This will permanently remove the photo from the business gallery.',
+            title: Text(context.tr('Delete photo?')),
+            content: Text(context.tr('This will permanently remove the photo from the business gallery.'),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
+                child: Text(context.tr('Cancel')),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete'),
+                child: Text(context.tr('Delete')),
               ),
             ],
           ),
@@ -390,7 +392,7 @@ class _OwnerGalleryScreenState extends ConsumerState<OwnerGalleryScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not delete photo: $e')),
+          SnackBar(content: Text(context.tr('Could not delete photo. Please try again.'))),
         );
       }
     }

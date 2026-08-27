@@ -8,6 +8,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class BookingCalendarScreen extends ConsumerStatefulWidget {
   const BookingCalendarScreen({super.key});
@@ -47,7 +48,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               }
             },
           ),
-          title: const Text('Owner Booking Calendar'),
+          title: Text(context.tr('Owner Booking Calendar')),
           actions: [
             IconButton(
               icon: const Icon(Icons.add_rounded),
@@ -79,18 +80,18 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Bookings for ${DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}',
-                    style: const TextStyle(
+                    context.tr('Bookings for {date}', params: {'date': DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}),
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   TextButton.icon(
                     onPressed: () => context.push('/quick-walk-in'),
                     icon: const Icon(Icons.add_rounded, size: 16),
-                    label: const Text('New Booking',
-                        style: TextStyle(
+                    label: Text(context.tr('New Booking'),
+                        style: const TextStyle(
                             fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],

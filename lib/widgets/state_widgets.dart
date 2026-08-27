@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../l10n/app_localizations.dart';
 
 class LoadingState extends StatelessWidget {
   final String? message;
@@ -15,8 +16,8 @@ class LoadingState extends StatelessWidget {
           if (message != null) ...[
             const SizedBox(height: 16),
             Text(message!,
-                style: const TextStyle(
-                    color: AppColors.textSecondaryDark, fontSize: 13)),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
           ],
         ],
       ),
@@ -63,8 +64,8 @@ class EmptyStateWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondaryDark)),
+                style: TextStyle(
+                    fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 24),
               ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
@@ -97,18 +98,18 @@ class ErrorStateWidget extends StatelessWidget {
             const Icon(Icons.error_outline_rounded,
                 size: 54, color: AppColors.error),
             const SizedBox(height: 16),
-            const Text('Something went wrong',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(context.tr('Something went wrong'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondaryDark)),
+                style: TextStyle(
+                    fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             if (onRetry != null) ...[
               const SizedBox(height: 20),
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Try Again'),
+                label: Text(context.tr('Try Again')),
                 onPressed: onRetry,
               ),
             ],

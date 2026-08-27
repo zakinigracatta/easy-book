@@ -28,7 +28,14 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String? category,
     String? query,
   }) async {
-    final snapshot = await _firestore.collection('businesses').get();
+    // Public discovery must only query records that Firestore can prove are
+    // published. Security rules are not filters, so querying the whole
+    // collection would fail as soon as one pending business exists.
+    final snapshot = await _firestore
+        .collection('businesses')
+        .where('is_verified', isEqualTo: true)
+        .where('is_active', isEqualTo: true)
+        .get();
 
     final businesses = snapshot.docs
         .map((doc) {
@@ -36,7 +43,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
           data['id'] = doc.id;
           return BusinessModel.fromJson(data);
         })
-        .where((business) => business.isActive)
+        .where((business) => business.isActive && business.isVerified)
         .toList();
 
     return _filterBusinesses(businesses, category, query);
@@ -91,7 +98,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     data['id'] = doc.id;
     final business = BusinessModel.fromJson(data);
 
-    return business.isActive ? business : null;
+    return business.isActive && business.isVerified ? business : null;
   }
 
   @override
@@ -105,11 +112,14 @@ class BusinessRepositoryImpl implements BusinessRepository {
         .collection('services')
         .get();
 
-    return snapshot.docs.map((doc) {
-      final data = Map<String, dynamic>.from(doc.data());
-      data['id'] = doc.id;
-      return ServiceModel.fromJson(data);
-    }).toList();
+    return snapshot.docs
+        .map((doc) {
+          final data = Map<String, dynamic>.from(doc.data());
+          data['id'] = doc.id;
+          return ServiceModel.fromJson(data);
+        })
+        .where((service) => service.isActive && service.isBookable)
+        .toList();
   }
 
   @override
@@ -123,11 +133,14 @@ class BusinessRepositoryImpl implements BusinessRepository {
         .collection('staff')
         .get();
 
-    return snapshot.docs.map((doc) {
-      final data = Map<String, dynamic>.from(doc.data());
-      data['id'] = doc.id;
-      return StaffModel.fromJson(data);
-    }).toList();
+    return snapshot.docs
+        .map((doc) {
+          final data = Map<String, dynamic>.from(doc.data());
+          data['id'] = doc.id;
+          return StaffModel.fromJson(data);
+        })
+        .where((staff) => staff.isActive)
+        .toList();
   }
 
   @override

@@ -1,12 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../widgets/custom_button.dart';
-import '../../theme/app_colors.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../providers/app_providers.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/glass_card.dart';
 
 class BusinessRegisterScreen extends ConsumerStatefulWidget {
   const BusinessRegisterScreen({super.key});
@@ -25,11 +27,11 @@ class _BusinessRegisterScreenState
   final _locationController = TextEditingController();
 
   String _selectedCategory = 'Barber';
-  String? _businessImageUrl =
+  final String _businessImageUrl =
       'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
   bool _isLoading = false;
 
-  final List<String> _categories = [
+  static const List<String> _categories = [
     'Barber',
     'Hair Salon',
     'Spa & Relax',
@@ -37,12 +39,24 @@ class _BusinessRegisterScreenState
     'Skin & Facial',
   ];
 
+  @override
+  void dispose() {
+    _businessNameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _locationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleRegister() async {
-    if (_businessNameController.text.isEmpty ||
-        _emailController.text.isEmpty ||
+    if (_businessNameController.text.trim().isEmpty ||
+        _emailController.text.trim().isEmpty ||
         _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields.')),
+        SnackBar(
+          content: Text(context.tr('Please complete all required fields.')),
+        ),
       );
       return;
     }
@@ -59,38 +73,48 @@ class _BusinessRegisterScreenState
             businessImageUrl: _businessImageUrl,
           );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('Registration successful! Please verify your email.')),
-        );
-        // Owner goes to Verify Email Screen
-        context.go('/verify-email');
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('Registration successful! Please verify your email.'),
+          ),
+        ),
+      );
+      context.go('/verify-email');
     } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  e.message ?? 'Authentication failed. Please check details.')),
-        );
-      }
-    } on FirebaseException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  e.message ?? 'Database error occurred during registration.')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('An unexpected error occurred: ${e.toString()}')),
-        );
-      }
+      if (!mounted) return;
+      final message = switch (e.code) {
+        'email-already-in-use' =>
+          context.tr('An account already exists for this email address.'),
+        'weak-password' => context.tr('Please choose a stronger password.'),
+        'invalid-email' => context.tr('Please enter a valid email address.'),
+        'network-request-failed' => context.tr(
+            'Network connection failed. Check your connection and try again.',
+          ),
+        _ => context.tr('Business registration failed. Please try again.'),
+      };
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } on FirebaseException catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('Business registration failed. Please try again.'),
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('Business registration failed. Please try again.'),
+          ),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -102,26 +126,17 @@ class _BusinessRegisterScreenState
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/welcome');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/welcome');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Register Business Owner'),
+          title: Text(context.tr('Register Business Owner')),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -129,24 +144,30 @@ class _BusinessRegisterScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.storefront_rounded,
-                    size: 60, color: AppColors.accent),
+                const Icon(
+                  Icons.storefront_rounded,
+                  size: 60,
+                  color: AppColors.accent,
+                ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Partner Account Creation',
+                Text(
+                  context.tr('Partner Account Creation'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Register your salon or spa. Saved in database with role "owner".',
+                Text(
+                  context.tr('Register your salon or spa with Easy Book.'),
                   textAlign: TextAlign.center,
-                  style:
-                      TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 24),
-
-                // Image Picker / Preview Widget
                 Center(
                   child: Stack(
                     children: [
@@ -155,115 +176,131 @@ class _BusinessRegisterScreenState
                         height: 110,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.accent, width: 2),
+                          border: Border.all(
+                            color: AppColors.accent,
+                            width: 2,
+                          ),
                           image: DecorationImage(
-                            image: NetworkImage(_businessImageUrl!),
+                            image: NetworkImage(_businessImageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                      Positioned(
+                      const Positioned(
                         bottom: 0,
                         right: 0,
                         child: CircleAvatar(
                           backgroundColor: AppColors.accent,
                           radius: 16,
-                          child: const Icon(Icons.camera_alt_rounded,
-                              size: 16, color: Colors.white),
+                          child: Icon(
+                            Icons.camera_alt_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
                 GlassCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomTextField(
                         controller: _businessNameController,
-                        label: 'Business Name',
+                        label: context.tr('Business Name'),
                         prefixIcon: Icons.storefront_rounded,
                       ),
                       const SizedBox(height: 14),
-
-                      // Category Selection Dropdown
-                      const Text('Business Category',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondaryDark)),
+                      Text(
+                        context.tr('Business Category'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
-                        value: _selectedCategory,
-                        dropdownColor: AppColors.cardDark,
+                        initialValue: _selectedCategory,
+                        dropdownColor: Theme.of(context).colorScheme.surface,
                         decoration: InputDecoration(
-                          prefixIcon:
-                              const Icon(Icons.category_rounded, size: 20),
+                          prefixIcon: const Icon(
+                            Icons.category_rounded,
+                            size: 20,
+                          ),
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16)),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
                         items: _categories
-                            .map((cat) =>
-                                DropdownMenuItem(value: cat, child: Text(cat)))
-                            .toList(),
-                        onChanged: (val) {
-                          if (val != null)
-                            setState(() => _selectedCategory = val);
+                            .map(
+                              (category) => DropdownMenuItem(
+                                value: category,
+                                child: Text(context.tr(category)),
+                              ),
+                            )
+                            .toList(growable: false),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _selectedCategory = value);
+                          }
                         },
                       ),
-
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
-                        label: 'Phone Number',
+                        label: context.tr('Phone Number'),
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _emailController,
-                        label: 'Business Email',
+                        label: context.tr('Business Email'),
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _passwordController,
-                        label: 'Password',
+                        label: context.tr('Password'),
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _locationController,
-                        label: 'Physical Address / Location',
+                        label: context.tr('Physical Address / Location'),
                         prefixIcon: Icons.location_on_outlined,
                       ),
                       const SizedBox(height: 24),
                       CustomButton(
-                        text: 'Register Business & Go to Dashboard',
+                        text: context.tr('Create Business Account'),
                         backgroundColor: AppColors.accent,
                         isLoading: _isLoading,
-                        onPressed: _handleRegister,
+                        onPressed: _isLoading ? null : _handleRegister,
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already registered? ',
-                        style: TextStyle(color: AppColors.textMutedDark)),
+                    Text(
+                      context.tr('Already registered? '),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
                     TextButton(
                       onPressed: () => context.push('/owner-login'),
-                      child: const Text('Partner Sign In',
-                          style: TextStyle(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold)),
+                      child: Text(
+                        context.tr('Partner Sign In'),
+                        style: const TextStyle(
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),

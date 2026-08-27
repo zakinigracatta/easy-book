@@ -10,6 +10,7 @@ import '../../providers/owner_providers.dart';
 import '../../models/booking_model.dart';
 import '../../models/service_model.dart';
 import '../../models/staff_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class QuickWalkInBookingScreen extends ConsumerStatefulWidget {
   const QuickWalkInBookingScreen({super.key});
@@ -67,7 +68,7 @@ class _QuickWalkInBookingScreenState
               }
             },
           ),
-          title: const Text('Quick Walk-in Booking'),
+          title: Text(context.tr('Quick Walk-in Booking')),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -81,28 +82,26 @@ class _QuickWalkInBookingScreenState
                   padding: const EdgeInsets.all(16),
                   backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                   child: Row(
-                    children: const [
-                      Icon(Icons.directions_walk_rounded,
+                    children: [
+                      const Icon(Icons.directions_walk_rounded,
                           color: AppColors.gold, size: 28),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Reception Walk-in Entry',
+                            Text(context.tr('Reception Walk-in Entry'),
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimaryDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Create a booking for on-site clients arriving without the customer app.',
+                            const SizedBox(height: 2),
+                            Text(context.tr('Create a booking for on-site clients arriving without the customer app.'),
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textMutedDark,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -125,22 +124,21 @@ class _QuickWalkInBookingScreenState
                           decoration: BoxDecoration(
                             color: _isNewCustomer
                                 ? AppColors.primary
-                                : AppColors.cardDark,
+                                : Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: _isNewCustomer
                                     ? AppColors.primary
-                                    : AppColors.glassBorderDark),
+                                    : Theme.of(context).dividerColor),
                           ),
-                          child: Text(
-                            'New Customer',
+                          child: Text(context.tr('New Customer'),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: _isNewCustomer
                                   ? Colors.white
-                                  : AppColors.textMutedDark,
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -155,22 +153,21 @@ class _QuickWalkInBookingScreenState
                           decoration: BoxDecoration(
                             color: !_isNewCustomer
                                 ? AppColors.primary
-                                : AppColors.cardDark,
+                                : Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: !_isNewCustomer
                                     ? AppColors.primary
-                                    : AppColors.glassBorderDark),
+                                    : Theme.of(context).dividerColor),
                           ),
-                          child: Text(
-                            'Existing Customer',
+                          child: Text(context.tr('Existing Customer'),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: !_isNewCustomer
                                   ? Colors.white
-                                  : AppColors.textMutedDark,
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -217,30 +214,30 @@ class _QuickWalkInBookingScreenState
                             _selectedService = services.first;
                           }
                           return DropdownButtonFormField<ServiceModel>(
-                            value: _selectedService,
+                            initialValue: _selectedService,
                             decoration: InputDecoration(
                               labelText: 'Select Service *',
-                              labelStyle: const TextStyle(
-                                  color: AppColors.textMutedDark),
+                              labelStyle: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant),
                               prefixIcon: const Icon(
                                   Icons.design_services_rounded,
                                   color: AppColors.primaryLight),
                               filled: true,
-                              fillColor: AppColors.bgDark,
+                              fillColor: Theme.of(context).scaffoldBackgroundColor,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(
-                                    color: AppColors.glassBorderDark),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).dividerColor),
                               ),
                             ),
-                            dropdownColor: AppColors.cardDark,
+                            dropdownColor: Theme.of(context).colorScheme.surface,
                             items: services.map((s) {
                               return DropdownMenuItem(
                                 value: s,
                                 child: Text(
                                   '${s.name} (AED ${s.price.toStringAsFixed(0)} • ${s.duration})',
-                                  style: const TextStyle(
-                                      color: AppColors.textPrimaryDark,
+                                  style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 13),
                                 ),
                               );
@@ -263,29 +260,29 @@ class _QuickWalkInBookingScreenState
                             _selectedStaff = staffList.first;
                           }
                           return DropdownButtonFormField<StaffModel>(
-                            value: _selectedStaff,
+                            initialValue: _selectedStaff,
                             decoration: InputDecoration(
                               labelText: 'Assign Specialist *',
-                              labelStyle: const TextStyle(
-                                  color: AppColors.textMutedDark),
+                              labelStyle: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant),
                               prefixIcon: const Icon(Icons.badge_outlined,
                                   color: AppColors.primaryLight),
                               filled: true,
-                              fillColor: AppColors.bgDark,
+                              fillColor: Theme.of(context).scaffoldBackgroundColor,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
-                                borderSide: const BorderSide(
-                                    color: AppColors.glassBorderDark),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).dividerColor),
                               ),
                             ),
-                            dropdownColor: AppColors.cardDark,
+                            dropdownColor: Theme.of(context).colorScheme.surface,
                             items: staffList.map((st) {
                               return DropdownMenuItem(
                                 value: st,
                                 child: Text(
                                   '${st.name} • ${st.roleTitle}',
-                                  style: const TextStyle(
-                                      color: AppColors.textPrimaryDark,
+                                  style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 13),
                                 ),
                               );
@@ -311,10 +308,10 @@ class _QuickWalkInBookingScreenState
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 14),
                                 decoration: BoxDecoration(
-                                  color: AppColors.bgDark,
+                                  color: Theme.of(context).scaffoldBackgroundColor,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                      color: AppColors.glassBorderDark),
+                                      color: Theme.of(context).dividerColor),
                                 ),
                                 child: Row(
                                   children: [
@@ -325,9 +322,9 @@ class _QuickWalkInBookingScreenState
                                     Text(
                                       DateFormat('MMM d, yyyy')
                                           .format(_selectedDate),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.textPrimaryDark,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                           fontWeight: FontWeight.w600),
                                     ),
                                   ],
@@ -343,10 +340,10 @@ class _QuickWalkInBookingScreenState
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 14),
                                 decoration: BoxDecoration(
-                                  color: AppColors.bgDark,
+                                  color: Theme.of(context).scaffoldBackgroundColor,
                                   borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
-                                      color: AppColors.glassBorderDark),
+                                      color: Theme.of(context).dividerColor),
                                 ),
                                 child: Row(
                                   children: [
@@ -355,9 +352,9 @@ class _QuickWalkInBookingScreenState
                                     const SizedBox(width: 8),
                                     Text(
                                       _selectedTime.format(context),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontSize: 13,
-                                          color: AppColors.textPrimaryDark,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                           fontWeight: FontWeight.w600),
                                     ),
                                   ],
@@ -405,10 +402,10 @@ class _QuickWalkInBookingScreenState
       lastDate: DateTime.now().add(const Duration(days: 90)),
       builder: (ctx, child) => Theme(
         data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(
+          colorScheme: ColorScheme.dark(
             primary: AppColors.primary,
             onPrimary: Colors.white,
-            surface: AppColors.cardDark,
+            surface: Theme.of(context).colorScheme.surface,
           ),
         ),
         child: child!,
@@ -425,10 +422,10 @@ class _QuickWalkInBookingScreenState
       initialTime: _selectedTime,
       builder: (ctx, child) => Theme(
         data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(
+          colorScheme: ColorScheme.dark(
             primary: AppColors.primary,
             onPrimary: Colors.white,
-            surface: AppColors.cardDark,
+            surface: Theme.of(context).colorScheme.surface,
           ),
         ),
         child: child!,
@@ -443,8 +440,8 @@ class _QuickWalkInBookingScreenState
     if (!_formKey.currentState!.validate()) return;
     if (_selectedService == null || _selectedStaff == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select both a service and a specialist.'),
+        SnackBar(
+          content: Text(context.tr('Please select both a service and a specialist.')),
           backgroundColor: AppColors.error,
         ),
       );
@@ -491,8 +488,8 @@ class _QuickWalkInBookingScreenState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Walk-in booking created successfully!'),
+          SnackBar(
+            content: Text(context.tr('Walk-in booking created successfully!')),
             backgroundColor: AppColors.success,
           ),
         );
@@ -502,7 +499,7 @@ class _QuickWalkInBookingScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create walk-in: $e'),
+            content: Text(context.tr('Failed to create walk-in. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );

@@ -110,7 +110,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             border: Border.all(
                               color: Theme.of(context)
                                   .primaryColor
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Center(
@@ -145,7 +145,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             border: Border.all(
                               color: Theme.of(context)
                                   .primaryColor
-                                  .withOpacity(0.3),
+                                  .withValues(alpha: 0.3),
                             ),
                           ),
                           child: Center(

@@ -144,12 +144,34 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
 
     await _assertOwner(businessId);
 
+    final start = DateTime(from.year, from.month, from.day);
+    final endExclusive = DateTime(to.year, to.month, to.day)
+        .add(const Duration(days: 1));
+
     try {
       final bookingSnapshot = await _firestore
           .collection('bookings')
           .where('businessId', isEqualTo: businessId)
+          .where(
+            'startDateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+          )
+          .where(
+            'startDateTime',
+            isLessThan: Timestamp.fromDate(endExclusive),
+          )
           .get();
-      final expenseSnapshot = await _expenses(businessId).get();
+
+      final expenseSnapshot = await _expenses(businessId)
+          .where(
+            'expenseDate',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+          )
+          .where(
+            'expenseDate',
+            isLessThan: Timestamp.fromDate(endExclusive),
+          )
+          .get();
 
       final bookings = bookingSnapshot.docs
           .map(
@@ -163,7 +185,7 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
       return _calculator.calculate(
         bookings: bookings,
         expenses: expenses,
-        from: from,
+        from: start,
         to: to,
       );
     } on FirebaseException catch (e) {

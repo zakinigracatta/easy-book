@@ -121,10 +121,10 @@ class _POSScreenState extends State<POSScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withOpacity(0.08),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-              color: Theme.of(context).primaryColor.withOpacity(0.3)),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.3)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

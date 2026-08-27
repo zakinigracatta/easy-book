@@ -7,7 +7,7 @@ import '../../../models/business_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../services/auth_guard.dart';
-import '../../../theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BusinessHero extends ConsumerWidget {
   final BusinessModel business;
@@ -39,7 +39,7 @@ class BusinessHero extends ConsumerWidget {
           child: AspectRatio(
             aspectRatio: 16 / 10,
             child: imageUrl.isEmpty
-                ? _coverPlaceholder()
+                ? _coverPlaceholder(context)
                 : CachedNetworkImage(
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
@@ -48,9 +48,9 @@ class BusinessHero extends ConsumerWidget {
                     fadeInDuration: const Duration(milliseconds: 120),
                     fadeOutDuration: Duration.zero,
                     placeholder: (context, url) => Container(
-                      color: AppColors.cardDark,
+                      color: Theme.of(context).colorScheme.surface,
                     ),
-                    errorWidget: (context, url, error) => _coverPlaceholder(),
+                    errorWidget: (context, url, error) => _coverPlaceholder(context),
                   ),
           ),
         ),
@@ -112,9 +112,8 @@ class BusinessHero extends ConsumerWidget {
                         } catch (_) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Could not update favorites. Please try again.',
+                            SnackBar(
+                              content: Text(context.tr('Could not update favorites. Please try again.'),
                               ),
                             ),
                           );
@@ -128,7 +127,7 @@ class BusinessHero extends ConsumerWidget {
                           () {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Sharing ${business.name}...'),
+                                content: Text(context.tr('Sharing {business}...', params: {'business': business.name})),
                               ),
                             );
                           },
@@ -143,14 +142,14 @@ class BusinessHero extends ConsumerWidget {
     );
   }
 
-  Widget _coverPlaceholder() {
+  Widget _coverPlaceholder(BuildContext context) {
     return Container(
-      color: AppColors.cardDark,
+      color: Theme.of(context).colorScheme.surface,
       alignment: Alignment.center,
-      child: const Icon(
+      child: Icon(
         Icons.storefront_rounded,
         size: 64,
-        color: AppColors.textMutedDark,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );
   }

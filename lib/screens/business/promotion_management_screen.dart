@@ -10,6 +10,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/offer_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class PromotionManagementScreen extends ConsumerWidget {
   const PromotionManagementScreen({super.key});
@@ -41,7 +42,7 @@ class PromotionManagementScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Offers & Promotional Discounts'),
+          title: Text(context.tr('Offers & Promotional Discounts')),
           actions: [
             IconButton(
               icon: const Icon(Icons.add_rounded),
@@ -59,28 +60,26 @@ class PromotionManagementScreen extends ConsumerWidget {
               GlassCard(
                 padding: const EdgeInsets.all(16),
                 child: Row(
-                  children: const [
-                    Icon(Icons.campaign_rounded,
+                  children: [
+                    const Icon(Icons.campaign_rounded,
                         color: AppColors.accent, size: 28),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Marketing Promotions',
+                          Text(context.tr('Marketing Promotions'),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimaryDark,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Create promotional offers to boost bookings during off-peak hours.',
+                          const SizedBox(height: 2),
+                          Text(context.tr('Create promotional offers to boost bookings during off-peak hours.'),
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textMutedDark,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -95,12 +94,11 @@ class PromotionManagementScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Active Promotions',
+                  Text(context.tr('Active Promotions'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   ElevatedButton.icon(
@@ -112,8 +110,8 @@ class PromotionManagementScreen extends ConsumerWidget {
                     ),
                     onPressed: () => _showAddOfferModal(context, ref),
                     icon: const Icon(Icons.add_rounded, size: 16),
-                    label: const Text('New Offer',
-                        style: TextStyle(
+                    label: Text(context.tr('New Offer'),
+                        style: const TextStyle(
                             fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
@@ -154,10 +152,10 @@ class PromotionManagementScreen extends ConsumerWidget {
                                 Expanded(
                                   child: Text(
                                     o.title,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimaryDark,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                                   ),
                                 ),
@@ -189,23 +187,23 @@ class PromotionManagementScreen extends ConsumerWidget {
                               const SizedBox(height: 6),
                               Text(
                                 o.description,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textSecondaryDark,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
                             const SizedBox(height: 10),
                             Row(
                               children: [
-                                const Icon(Icons.date_range_rounded,
-                                    size: 14, color: AppColors.textMutedDark),
+                                Icon(Icons.date_range_rounded,
+                                    size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Valid: $startStr – $endStr',
-                                  style: const TextStyle(
+                                  context.tr('Valid: {start} – {end}', params: {'start': startStr, 'end': endStr}),
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.textMutedDark,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
@@ -240,7 +238,7 @@ class PromotionManagementScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.cardDark,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -254,12 +252,11 @@ class PromotionManagementScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Create Special Offer',
+            Text(context.tr('Create Special Offer'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimaryDark,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),
@@ -305,8 +302,8 @@ class PromotionManagementScreen extends ConsumerWidget {
 
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Offer published successfully!'),
+                  SnackBar(
+                    content: Text(context.tr('Offer published successfully!')),
                     backgroundColor: AppColors.success,
                   ),
                 );

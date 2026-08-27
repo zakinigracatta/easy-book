@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/working_hours_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class WorkingHoursSection extends StatelessWidget {
   final WorkingHoursModel workingHours;
@@ -29,14 +30,13 @@ class WorkingHoursSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.schedule_rounded,
+              const Icon(Icons.schedule_rounded,
                   color: AppColors.primaryLight, size: 18),
-              SizedBox(width: 8),
-              Text(
-                'Working Hours',
-                style: TextStyle(
+              const SizedBox(width: 8),
+              Text(context.tr('Working Hours'),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -91,9 +91,8 @@ class WorkingHoursSection extends StatelessWidget {
                               color: AppColors.primary,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text(
-                              'TODAY',
-                              style: TextStyle(
+                            child: Text(context.tr('TODAY'),
+                              style: const TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -111,7 +110,7 @@ class WorkingHoursSection extends StatelessWidget {
                             ? AppColors.error
                             : (isToday
                                 ? AppColors.primaryLight
-                                : AppColors.textSecondaryDark),
+                                : Theme.of(context).colorScheme.onSurfaceVariant),
                         fontSize: 13,
                       ),
                     ),

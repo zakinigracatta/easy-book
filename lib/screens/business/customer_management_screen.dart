@@ -7,6 +7,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import 'customer_profile_modal.dart';
+import '../../l10n/app_localizations.dart';
 
 class CustomerManagementScreen extends ConsumerStatefulWidget {
   const CustomerManagementScreen({super.key});
@@ -47,7 +48,7 @@ class _CustomerManagementScreenState
               }
             },
           ),
-          title: const Text('Customer Database & CRM'),
+          title: Text(context.tr('Customer Database & CRM')),
         ),
         body: Column(
           children: [
@@ -59,18 +60,18 @@ class _CustomerManagementScreenState
                     setState(() => _searchQuery = val.toLowerCase()),
                 decoration: InputDecoration(
                   hintText: 'Search clients by name or phone...',
-                  hintStyle: const TextStyle(
-                      fontSize: 13, color: AppColors.textMutedDark),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppColors.textMutedDark),
+                  hintStyle: TextStyle(
+                      fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   filled: true,
-                  fillColor: AppColors.cardDark,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                        BorderSide(color: Theme.of(context).dividerColor),
                   ),
                 ),
               ),
@@ -86,7 +87,7 @@ class _CustomerManagementScreenState
                   }).toList();
 
                   if (filtered.isEmpty) {
-                    return OwnerEmptyStateWidget(
+                    return const OwnerEmptyStateWidget(
                       icon: Icons.people_outline_rounded,
                       title: 'No Customers Found',
                       description:
@@ -125,15 +126,15 @@ class _CustomerManagementScreenState
                             ),
                             title: Text(
                               c.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                  color: AppColors.textPrimaryDark),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             ),
                             subtitle: Text(
-                              '${c.phone} • ${c.completedVisits} visits',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textMutedDark),
+                              context.tr('{phone} • {count} visits', params: {'phone': c.phone, 'count': c.completedVisits}),
+                              style: TextStyle(
+                                  fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                             trailing: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -150,7 +151,7 @@ class _CustomerManagementScreenState
                                 if (c.noShowCount > 0) ...[
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${c.noShowCount} No-Shows',
+                                    context.tr('{count} No-Shows', params: {'count': c.noShowCount}),
                                     style: const TextStyle(
                                       fontSize: 10,
                                       color: AppColors.warning,

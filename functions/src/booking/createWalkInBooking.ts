@@ -6,6 +6,25 @@ import {
 } from './bookingLocks';
 import { validateBookingRequirements } from './bookingValidation';
 
+function requiredId(value: unknown, name: string): string {
+  if (
+    typeof value !== 'string' ||
+    value.trim().length === 0 ||
+    value.length > 200
+  ) {
+    throw new HttpsError(
+      'invalid-argument',
+      `INVALID_${name.toUpperCase()}: ${name} must be a valid identifier.`
+    );
+  }
+  return value.trim();
+}
+
+function cleanText(value: unknown, maxLength: number): string {
+  if (typeof value !== 'string') return '';
+  return value.trim().slice(0, maxLength);
+}
+
 export const createWalkInBooking = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError(
@@ -14,26 +33,32 @@ export const createWalkInBooking = onCall(async (request) => {
     );
   }
 
+  if (request.auth.token.email && request.auth.token.email_verified !== true) {
+    throw new HttpsError(
+      'failed-precondition',
+      'EMAIL_NOT_VERIFIED: Verify your email address before creating a walk-in booking.'
+    );
+  }
+
   const ownerUid = request.auth.uid;
   const data = request.data || {};
-
-  const businessId = data.businessId;
-  const serviceId = data.serviceId;
-  const staffId = data.staffId;
+  const businessId = requiredId(data.businessId, 'businessId');
+  const serviceId = requiredId(data.serviceId, 'serviceId');
+  const staffId = requiredId(data.staffId, 'staffId');
   const requestedStartRaw = data.requestedStartAt;
-  const customerName = data.customerName || 'Walk-in Customer';
-  const customerPhone = data.customerPhone || '';
-  const notes = data.notes || '';
+  const customerName = cleanText(data.customerName, 120) || 'Walk-in Customer';
+  const customerPhone = cleanText(data.customerPhone, 40);
+  const notes = cleanText(data.notes, 1000);
 
-  if (!businessId || !serviceId || !staffId || !requestedStartRaw) {
+  if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
     throw new HttpsError(
       'invalid-argument',
-      'MISSING_ARGUMENTS: businessId, serviceId, staffId, and requestedStartAt are required.'
+      'INVALID_START_TIME: requestedStartAt must be an ISO-8601 date string.'
     );
   }
 
   const requestedStartAt = new Date(requestedStartRaw);
-  if (isNaN(requestedStartAt.getTime())) {
+  if (Number.isNaN(requestedStartAt.getTime())) {
     throw new HttpsError(
       'invalid-argument',
       'INVALID_START_TIME: requestedStartAt must be a valid date.'
@@ -42,10 +67,18 @@ export const createWalkInBooking = onCall(async (request) => {
 
   validateCanonical15MinAlignment(requestedStartAt);
 
+  // Walk-ins may be entered at the current quarter-hour, but never as old
+  // historical appointments through this live booking endpoint.
+  if (requestedStartAt.getTime() < Date.now() - 15 * 60 * 1000) {
+    throw new HttpsError(
+      'failed-precondition',
+      'START_TIME_IN_PAST: Walk-in booking time is too far in the past.'
+    );
+  }
+
   const db = admin.firestore();
 
-  return await db.runTransaction(async (transaction) => {
-    // 1. Verify Business Ownership
+  return db.runTransaction(async (transaction) => {
     const bizRef = db.collection('businesses').doc(businessId);
     const bizSnap = await transaction.get(bizRef);
     if (!bizSnap.exists) {
@@ -63,7 +96,6 @@ export const createWalkInBooking = onCall(async (request) => {
       );
     }
 
-    // 2. Authoritative Validation & Price/Duration calculation
     const context = await validateBookingRequirements(
       db,
       transaction,
@@ -73,7 +105,6 @@ export const createWalkInBooking = onCall(async (request) => {
       requestedStartAt
     );
 
-    // 3. Lock IDs generation
     const lockObjects = generateIntervalSlotLockIds(
       businessId,
       staffId,
@@ -81,7 +112,6 @@ export const createWalkInBooking = onCall(async (request) => {
       context.calculatedEndAt
     );
 
-    // 4. Check Lock Availability (Competes for exact same slot lock documents)
     for (const lock of lockObjects) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
       const lockSnap = await transaction.get(lockRef);
@@ -93,7 +123,6 @@ export const createWalkInBooking = onCall(async (request) => {
       }
     }
 
-    // 5. Create Non-Sensitive Booking Slots Locks
     const bookingDocRef = db.collection('bookings').doc();
     const primarySlotLockId = lockObjects[0].lockId;
 
@@ -110,8 +139,7 @@ export const createWalkInBooking = onCall(async (request) => {
       });
     }
 
-    // 6. Create Authoritative Walk-in Booking Snapshot Document
-    const bookingPayload = {
+    transaction.set(bookingDocRef, {
       id: bookingDocRef.id,
       customerId: '',
       customerName,
@@ -134,9 +162,7 @@ export const createWalkInBooking = onCall(async (request) => {
       slotLockId: primarySlotLockId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    transaction.set(bookingDocRef, bookingPayload);
+    });
 
     return {
       success: true,

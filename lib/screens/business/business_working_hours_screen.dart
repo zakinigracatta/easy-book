@@ -7,6 +7,7 @@ import '../../widgets/custom_button.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/working_hours_model.dart';
 import '../../models/business_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class BusinessWorkingHoursScreen extends ConsumerStatefulWidget {
   const BusinessWorkingHoursScreen({super.key});
@@ -58,7 +59,7 @@ class _BusinessWorkingHoursScreenState
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Business Working Hours'),
+          title: Text(context.tr('Business Working Hours')),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
@@ -73,31 +74,29 @@ class _BusinessWorkingHoursScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const GlassCard(
-                    padding: EdgeInsets.all(16),
+                  GlassCard(
+                    padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Icon(Icons.schedule_rounded,
+                        const Icon(Icons.schedule_rounded,
                             color: AppColors.primaryLight, size: 28),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Operating Hours',
+                              Text(context.tr('Operating Hours'),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimaryDark,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
-                              SizedBox(height: 3),
-                              Text(
-                                'Set exact opening and closing times. Customer availability follows these hours.',
+                              const SizedBox(height: 3),
+                              Text(context.tr('Set exact opening and closing times. Customer availability follows these hours.'),
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textMutedDark,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -125,7 +124,7 @@ class _BusinessWorkingHoursScreenState
           error: (error, _) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Unable to load working hours: $error'),
+              child: Text(context.tr('Unable to load working hours. Please try again.')),
             ),
           ),
         ),
@@ -145,10 +144,10 @@ class _BusinessWorkingHoursScreenState
               Expanded(
                 child: Text(
                   day,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimaryDark,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -163,7 +162,7 @@ class _BusinessWorkingHoursScreenState
               const SizedBox(width: 6),
               Switch(
                 value: !hours.isClosed,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (open) {
                   setState(() {
                     _hoursMap[day] = DailyHours(
@@ -235,8 +234,8 @@ class _BusinessWorkingHoursScreenState
       await ref.read(ownerBusinessProvider.notifier).updateBusiness(updated);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Business working hours updated.'),
+        SnackBar(
+          content: Text(context.tr('Business working hours updated.')),
           backgroundColor: AppColors.success,
         ),
       );
@@ -244,7 +243,7 @@ class _BusinessWorkingHoursScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update working hours: $e'),
+            content: Text(context.tr('Unable to update working hours. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );
@@ -300,8 +299,8 @@ class _TimeButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.glassBorderDark),
-          color: AppColors.glassBgDark,
+          border: Border.all(color: Theme.of(context).dividerColor),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
         ),
         child: Row(
           children: [
@@ -312,15 +311,15 @@ class _TimeButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: const TextStyle(
-                          fontSize: 10, color: AppColors.textMutedDark)),
+                      style: TextStyle(
+                          fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],

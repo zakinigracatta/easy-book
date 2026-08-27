@@ -6,7 +6,8 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
-import '../../models/booking_model.dart';
+import '../../providers/owner_finance_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class OwnerBookingsScreen extends ConsumerWidget {
   const OwnerBookingsScreen({super.key});
@@ -50,7 +51,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Bookings Management'),
+          title: Text(context.tr('Bookings Management')),
           actions: [
             IconButton(
               icon: const Icon(Icons.person_add_alt_1_rounded),
@@ -70,10 +71,10 @@ class OwnerBookingsScreen extends ConsumerWidget {
                     .state = val,
                 decoration: InputDecoration(
                   hintText: 'Search by customer, phone, or ID...',
-                  hintStyle: const TextStyle(
-                      fontSize: 13, color: AppColors.textMutedDark),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppColors.textMutedDark),
+                  hintStyle: TextStyle(
+                      fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant),
                   suffixIcon: searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.clear_rounded, size: 18),
@@ -83,18 +84,18 @@ class OwnerBookingsScreen extends ConsumerWidget {
                         )
                       : null,
                   filled: true,
-                  fillColor: AppColors.cardDark,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                        BorderSide(color: Theme.of(context).dividerColor),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: AppColors.glassBorderDark),
+                        BorderSide(color: Theme.of(context).dividerColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -121,16 +122,16 @@ class OwnerBookingsScreen extends ConsumerWidget {
                         fontWeight:
                             isSelected ? FontWeight.bold : FontWeight.normal,
                         color:
-                            isSelected ? Colors.white : AppColors.textMutedDark,
+                            isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.cardDark,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
                           color: isSelected
                               ? AppColors.primary
-                              : AppColors.glassBorderDark,
+                              : Theme.of(context).dividerColor,
                         ),
                       ),
                       onSelected: (_) {
@@ -167,17 +168,36 @@ class OwnerBookingsScreen extends ConsumerWidget {
                       final booking = filteredBookings[index];
                       return OwnerBookingCard(
                         booking: booking,
-                        onStatusChanged: (newStatus) {
-                          ref
-                              .read(ownerBookingsProvider.notifier)
-                              .updateStatus(booking.id, newStatus);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'Updated booking status to ${newStatus.name.toUpperCase()}'),
-                              backgroundColor: AppColors.primary,
-                            ),
-                          );
+                        onStatusChanged: (newStatus) async {
+                          try {
+                            await ref
+                                .read(ownerBookingsProvider.notifier)
+                                .updateStatus(booking.id, newStatus);
+                            ref.invalidate(ownerTodayProfitAndLossProvider);
+                            ref.invalidate(ownerProfitAndLossProvider);
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  context.tr(
+                                    'Updated booking status to {status}',
+                                    params: {
+                                      'status': newStatus.name.toUpperCase(),
+                                    },
+                                  ),
+                                ),
+                                backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          } catch (_) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(context.tr('Something went wrong')),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
                         },
                         onRescheduleTap: () =>
                             context.push('/booking-calendar'),
@@ -187,7 +207,7 @@ class OwnerBookingsScreen extends ConsumerWidget {
                 },
                 loading: () => const Center(
                     child: CircularProgressIndicator(color: AppColors.primary)),
-                error: (err, _) => OwnerEmptyStateWidget(
+                error: (err, _) => const OwnerEmptyStateWidget(
                   icon: Icons.error_outline_rounded,
                   title: 'Unable to Load Bookings',
                   description: 'An error occurred while retrieving bookings.',

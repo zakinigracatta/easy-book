@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
+import '../../l10n/app_localizations.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -30,16 +31,16 @@ class HelpScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Help & Support Center'),
+          title: Text(context.tr('Help & Support Center')),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
-          children: const [
+          children: [
             GlassCard(
               child: ListTile(
-                leading: Icon(Icons.help_center_rounded),
-                title: Text('Frequently Asked Questions'),
-                subtitle: Text('How to cancel, reschedule or pay for bookings'),
+                leading: const Icon(Icons.help_center_rounded),
+                title: Text(context.tr('Frequently Asked Questions')),
+                subtitle: Text(context.tr('How to cancel, reschedule or pay for bookings')),
               ),
             ),
           ],

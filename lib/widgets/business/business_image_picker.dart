@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../glass_card.dart';
+import '../../l10n/app_localizations.dart';
 
 class BusinessImagePicker extends StatelessWidget {
   final String? currentImageUrl;
@@ -29,10 +30,10 @@ class BusinessImagePicker extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: AppColors.textMutedDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -42,9 +43,9 @@ class BusinessImagePicker extends StatelessWidget {
               height: 140,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.glassBgDark,
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.glassBorderDark),
+                border: Border.all(color: Theme.of(context).dividerColor),
                 image: hasImage
                     ? DecorationImage(
                         image: NetworkImage(currentImageUrl!),
@@ -59,20 +60,19 @@ class BusinessImagePicker extends StatelessWidget {
                       ),
                     )
                   : !hasImage
-                      ? const Column(
+                      ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.add_a_photo_rounded,
                               size: 32,
                               color: AppColors.primaryLight,
                             ),
-                            SizedBox(height: 6),
-                            Text(
-                              'Tap to upload image',
+                            const SizedBox(height: 6),
+                            Text(context.tr('Tap to upload image'),
                               style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textMutedDark,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],

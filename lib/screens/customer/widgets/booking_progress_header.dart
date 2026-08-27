@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
 
 class BookingProgressHeader extends StatelessWidget {
@@ -11,14 +12,18 @@ class BookingProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['Specialist', 'Date & Time', 'Summary'];
+    final steps = [
+      context.tr('Specialist'),
+      context.tr('Date & Time'),
+      context.tr('Summary'),
+    ];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.cardDark,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.glassBorderDark),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         children: List.generate(steps.length, (index) {
@@ -35,12 +40,12 @@ class BookingProgressHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isCurrent || isDone
                         ? AppColors.primary
-                        : AppColors.bgDark,
+                        : Theme.of(context).scaffoldBackgroundColor,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: isCurrent || isDone
                           ? AppColors.primary
-                          : AppColors.glassBorderDark,
+                          : Theme.of(context).dividerColor,
                     ),
                   ),
                   alignment: Alignment.center,
@@ -54,7 +59,7 @@ class BookingProgressHeader extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             color: isCurrent
                                 ? Colors.white
-                                : AppColors.textMutedDark,
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                 ),
@@ -66,20 +71,20 @@ class BookingProgressHeader extends StatelessWidget {
                       fontSize: 11,
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.w500,
                       color: isCurrent
-                          ? Colors.white
+                          ? AppColors.primary
                           : (isDone
-                              ? AppColors.textSecondaryDark
-                              : AppColors.textMutedDark),
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 if (index < steps.length - 1)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(Icons.chevron_right_rounded,
-                        size: 16, color: AppColors.textMutedDark),
+                        size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
               ],
             ),

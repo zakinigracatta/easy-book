@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_colors.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/business_bottom_nav.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../providers/owner_providers.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/business_bottom_nav.dart';
+import '../../widgets/glass_card.dart';
 
 class OwnerMoreScreen extends ConsumerWidget {
   const OwnerMoreScreen({super.key});
@@ -17,26 +19,17 @@ class OwnerMoreScreen extends ConsumerWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/owner-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/owner-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/owner-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/owner-dashboard'),
           ),
-          title: const Text('Business Management Menu'),
+          title: Text(context.tr('Business Management Menu')),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -44,19 +37,18 @@ class OwnerMoreScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               businessAsync.when(
-                data: (biz) => GlassCard(
+                data: (business) => GlassCard(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 26,
                         backgroundColor: AppColors.primary,
-                        backgroundImage: (biz.imageUrl.isNotEmpty)
-                            ? NetworkImage(biz.imageUrl)
+                        backgroundImage: business.imageUrl.isNotEmpty
+                            ? NetworkImage(business.imageUrl)
                             : null,
-                        child: biz.imageUrl.isEmpty
-                            ? const Icon(Icons.storefront_rounded,
-                                color: Colors.white, size: 24)
+                        child: business.imageUrl.isEmpty
+                            ? const Icon(Icons.storefront_rounded, color: Colors.white, size: 24)
                             : null,
                       ),
                       const SizedBox(width: 14),
@@ -65,27 +57,23 @@ class OwnerMoreScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              biz.name,
-                              style: const TextStyle(
+                              business.name,
+                              style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimaryDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              biz.category,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textMutedDark,
-                              ),
+                              business.category,
+                              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.edit_rounded,
-                            color: AppColors.accent),
+                        icon: const Icon(Icons.edit_rounded, color: AppColors.accent),
                         onPressed: () => context.push('/salon-management'),
                       ),
                     ],
@@ -94,58 +82,35 @@ class OwnerMoreScreen extends ConsumerWidget {
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
               ),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('BUSINESS'),
-              _menuTile(context, 'Business Profile', Icons.storefront_rounded,
-                  '/salon-management'),
-              _menuTile(context, 'Photos & Gallery',
-                  Icons.photo_library_rounded, '/owner-gallery'),
-              _menuTile(context, 'Business Hours',
-                  Icons.access_time_filled_rounded, '/business-hours'),
-              _menuTile(context, 'Services Menu', Icons.design_services_rounded,
-                  '/services-management'),
-
+              _sectionHeader(context, 'BUSINESS'),
+              _menuTile(context, 'Business Profile', Icons.storefront_rounded, '/salon-management'),
+              _menuTile(context, 'Photos & Gallery', Icons.photo_library_rounded, '/owner-gallery'),
+              _menuTile(context, 'Business Hours', Icons.access_time_filled_rounded, '/business-hours'),
+              _menuTile(context, 'Services Menu', Icons.design_services_rounded, '/services-management'),
               const SizedBox(height: 20),
-
-              _sectionHeader('TEAM'),
-              _menuTile(context, 'Employees & Specialists', Icons.badge_rounded,
-                  '/employee-management'),
-              _menuTile(context, 'Employee Rosters & Time Off',
-                  Icons.calendar_month_rounded, '/employee-schedule'),
-
+              _sectionHeader(context, 'TEAM'),
+              _menuTile(context, 'Employees & Specialists', Icons.badge_rounded, '/employee-management'),
+              _menuTile(context, 'Employee Rosters & Time Off', Icons.calendar_month_rounded, '/employee-schedule'),
               const SizedBox(height: 20),
-
-              _sectionHeader('CUSTOMERS'),
-              _menuTile(context, 'Customer Database & CRM',
-                  Icons.people_alt_rounded, '/customer-management'),
-              _menuTile(context, 'Customer Reviews & Ratings',
-                  Icons.star_rounded, '/owner-reviews'),
-
+              _sectionHeader(context, 'CUSTOMERS'),
+              _menuTile(context, 'Customer Database & CRM', Icons.people_alt_rounded, '/customer-management'),
+              _menuTile(context, 'Customer Reviews & Ratings', Icons.star_rounded, '/owner-reviews'),
               const SizedBox(height: 20),
-
-              _sectionHeader('MARKETING'),
-              _menuTile(context, 'Offers & Promotions', Icons.campaign_rounded,
-                  '/promotion-management'),
-
+              _sectionHeader(context, 'MARKETING'),
+              _menuTile(context, 'Offers & Promotions', Icons.campaign_rounded, '/promotion-management'),
               const SizedBox(height: 20),
-
-              _sectionHeader('FINANCE'),
+              _sectionHeader(context, 'FINANCE'),
               _menuTile(
                 context,
                 'Finance, Expenses & Profit',
                 Icons.account_balance_wallet_rounded,
                 '/sales-report',
               ),
-
               const SizedBox(height: 20),
-
-              _sectionHeader('ACCOUNT'),
-              _menuTile(context, 'Notifications', Icons.notifications_rounded,
-                  '/owner-notifications'),
-              _menuTile(context, 'System Settings', Icons.settings_rounded,
-                  '/settings'),
+              _sectionHeader(context, 'ACCOUNT'),
+              _menuTile(context, 'Notifications', Icons.notifications_rounded, '/owner-notifications'),
+              _menuTile(context, 'System Settings', Icons.settings_rounded, '/settings'),
             ],
           ),
         ),
@@ -154,15 +119,15 @@ class OwnerMoreScreen extends ConsumerWidget {
     );
   }
 
-  Widget _sectionHeader(String title) {
+  Widget _sectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
       child: Text(
-        title,
-        style: const TextStyle(
+        context.tr(title),
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
-          color: AppColors.textMutedDark,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           letterSpacing: 1.2,
         ),
       ),
@@ -170,7 +135,11 @@ class OwnerMoreScreen extends ConsumerWidget {
   }
 
   Widget _menuTile(
-      BuildContext context, String title, IconData icon, String route) {
+    BuildContext context,
+    String title,
+    IconData icon,
+    String route,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: GlassCard(
@@ -179,15 +148,14 @@ class OwnerMoreScreen extends ConsumerWidget {
           dense: true,
           leading: Icon(icon, color: AppColors.primaryLight, size: 22),
           title: Text(
-            title,
-            style: const TextStyle(
+            context.tr(title),
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 14,
-              color: AppColors.textPrimaryDark,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          trailing: const Icon(Icons.chevron_right_rounded,
-              color: AppColors.textMutedDark),
+          trailing: Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ),
     );

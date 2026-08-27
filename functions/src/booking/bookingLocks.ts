@@ -1,3 +1,5 @@
+import { HttpsError } from 'firebase-functions/v2/https';
+
 export interface IntervalSlotLock {
   lockId: string;
   startTimestamp: number;
@@ -15,6 +17,13 @@ export function generateIntervalSlotLockIds(
   const startMs = start.getTime();
   const endMs = end.getTime();
 
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_BOOKING_INTERVAL: Appointment end time must be after its start time.'
+    );
+  }
+
   for (let t = startMs; t < endMs; t += bucketMs) {
     const lockId = `${businessId}_${staffId}_${t}`;
     locks.push({
@@ -24,25 +33,18 @@ export function generateIntervalSlotLockIds(
     });
   }
 
-  if (locks.length === 0) {
-    const lockId = `${businessId}_${staffId}_${startMs}`;
-    locks.push({
-      lockId,
-      startTimestamp: startMs,
-      startDateTime: new Date(startMs),
-    });
-  }
-
   return locks;
 }
 
 export function validateCanonical15MinAlignment(date: Date): void {
   if (
-    date.getMinutes() % 15 !== 0 ||
-    date.getSeconds() !== 0 ||
-    date.getMilliseconds() !== 0
+    !Number.isFinite(date.getTime()) ||
+    date.getUTCMinutes() % 15 !== 0 ||
+    date.getUTCSeconds() !== 0 ||
+    date.getUTCMilliseconds() !== 0
   ) {
-    throw new Error(
+    throw new HttpsError(
+      'invalid-argument',
       'INVALID_CANONICAL_ALIGNMENT: Appointment start time must be aligned to 15-minute intervals.'
     );
   }

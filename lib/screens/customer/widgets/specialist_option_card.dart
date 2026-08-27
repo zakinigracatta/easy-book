@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/staff_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SpecialistOptionCard extends StatelessWidget {
   final StaffModel? staff;
@@ -47,9 +48,8 @@ class SpecialistOptionCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        'Any Available Specialist',
-                        style: TextStyle(
+                      Text(context.tr('Any Available Specialist'),
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -63,9 +63,8 @@ class SpecialistOptionCard extends StatelessWidget {
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'RECOMMENDED',
-                          style: TextStyle(
+                        child: Text(context.tr('RECOMMENDED'),
+                          style: const TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -75,17 +74,16 @@ class SpecialistOptionCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Maximum slot options across all eligible staff',
+                  Text(context.tr('Maximum slot options across all eligible staff'),
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
-            _radioIndicator(isSelected),
+            _radioIndicator(context, isSelected),
           ],
         ),
       );
@@ -153,10 +151,10 @@ class SpecialistOptionCard extends StatelessWidget {
                     if (s.experienceYears > 0) ...[
                       const SizedBox(width: 8),
                       Text(
-                        '•  ${s.experienceYears} yrs exp',
-                        style: const TextStyle(
+                        context.tr('• {count} yrs exp', params: {'count': s.experienceYears}),
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -165,20 +163,20 @@ class SpecialistOptionCard extends StatelessWidget {
               ],
             ),
           ),
-          _radioIndicator(isSelected),
+          _radioIndicator(context, isSelected),
         ],
       ),
     );
   }
 
-  Widget _radioIndicator(bool selected) {
+  Widget _radioIndicator(BuildContext context, bool selected) {
     return Container(
       width: 22,
       height: 22,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: selected ? AppColors.primary : AppColors.textMutedDark,
+          color: selected ? AppColors.primary : Theme.of(context).colorScheme.onSurfaceVariant,
           width: 2,
         ),
         color: selected ? AppColors.primary : Colors.transparent,

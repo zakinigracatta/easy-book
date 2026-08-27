@@ -1,13 +1,17 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_button.dart';
-import '../../theme/app_colors.dart';
-import '../../providers/app_providers.dart';
+
+import '../../core/domain_exceptions.dart';
+import '../../core/utils/currency_formatter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
+import '../../providers/app_providers.dart';
 import '../../services/navigation_service.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/glass_card.dart';
 
 class BookingConfirmationScreen extends ConsumerStatefulWidget {
   const BookingConfirmationScreen({super.key});
@@ -21,87 +25,90 @@ class _BookingConfirmationScreenState
     extends ConsumerState<BookingConfirmationScreen> {
   bool _isCreating = false;
 
+  Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
+      ? Theme.of(context).colorScheme.onSurfaceVariant
+      : AppColors.textMutedLight;
+
   Future<void> _confirmBooking() async {
-    debugPrint('BOOKING_CONFIRM_PRESSED');
+    if (_isCreating) return;
+
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
       NavigationService().setPendingRoute('/booking-confirmation');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please sign in to complete your booking.')),
-      );
+      _showMessage('Please sign in to complete your booking.');
       context.push('/login');
       return;
     }
 
-    if (!currentUser.emailVerified) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Please verify your email address to proceed with booking.')),
-      );
+    await currentUser.reload();
+    if (!mounted) return;
+    final refreshedUser = FirebaseAuth.instance.currentUser;
+    if (refreshedUser == null) {
+      _showMessage('Your session expired. Please sign in again.');
+      context.push('/login');
+      return;
+    }
+
+    if (!refreshedUser.emailVerified) {
+      _showMessage('Please verify your email address to complete the booking.');
       context.push('/verify-email');
       return;
     }
 
     final draft = ref.read(bookingDraftProvider);
-    if (!draft.isComplete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content:
-                Text('Please select all booking details before confirming.')),
+    if (!draft.isComplete || draft.date == null || draft.timeSlot == null) {
+      _showMessage('Please complete all booking details before confirming.');
+      return;
+    }
+
+    final staffId = _resolvedStaffId(draft);
+    final staffName = _resolvedStaffName(draft);
+    if (staffId.isEmpty) {
+      _showMessage('No available specialist was resolved for this time slot.');
+      return;
+    }
+
+    final serviceId = draft.serviceId?.trim() ?? '';
+    final serviceName = draft.serviceName?.trim() ?? '';
+    final businessId = draft.businessId?.trim() ?? '';
+    final businessName = draft.businessName?.trim() ?? '';
+    if (serviceId.isEmpty || businessId.isEmpty) {
+      _showMessage('The selected service or business is no longer valid.');
+      return;
+    }
+
+    final startDateTime = _parseStartDateTime(draft.date!, draft.timeSlot!);
+    if (startDateTime == null) {
+      _showMessage(
+        'The selected appointment time is invalid. Please choose it again.',
       );
       return;
     }
 
-    // Parse timeSlot into startDateTime
-    int hour = 10;
-    int minute = 0;
-    try {
-      final parts = draft.timeSlot!.split(' ');
-      final timeParts = parts[0].split(':');
-      hour = int.parse(timeParts[0]);
-      minute = int.parse(timeParts[1]);
-      if (parts.length > 1 && parts[1].toUpperCase() == 'PM' && hour < 12) {
-        hour += 12;
-      } else if (parts.length > 1 &&
-          parts[1].toUpperCase() == 'AM' &&
-          hour == 12) {
-        hour = 0;
-      }
-    } catch (e) {
-      debugPrint('Error parsing time slot: $e');
+    if (!startDateTime.isAfter(DateTime.now())) {
+      _showMessage('Please select a future appointment time.');
+      return;
     }
 
-    final int durationMinutes = draft.serviceDurationMinutes ?? 30;
-
-    final date = draft.date!;
-    final startDateTime =
-        DateTime(date.year, date.month, date.day, hour, minute);
-    final startTimestamp = startDateTime.millisecondsSinceEpoch;
+    final durationMinutes = draft.totalDurationMinutes;
     final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
-    final slotLockId = '${draft.businessId}_${draft.staffId}_$startTimestamp';
-
-    debugPrint('BOOKING_CREATE_START');
-    debugPrint('customerId: ${currentUser.uid}');
-    debugPrint('businessId: ${draft.businessId}');
-    debugPrint('serviceId: ${draft.serviceId}');
-    debugPrint('staffId: ${draft.staffId}');
-    debugPrint('startDateTime: ${startDateTime.toIso8601String()}');
-    debugPrint('startTimestamp: $startTimestamp');
-    debugPrint('slotLockId: $slotLockId');
+    final slotLockId =
+        '${businessId}_${staffId}_${startDateTime.millisecondsSinceEpoch}';
 
     final booking = BookingModel(
       id: '',
-      customerId: currentUser.uid,
-      customerName: currentUser.displayName ?? 'Valued Customer',
-      businessId: draft.businessId!,
-      businessName: draft.businessName!,
-      serviceId: draft.serviceId!,
-      serviceName: draft.serviceName!,
-      servicePrice: draft.servicePrice!,
-      staffId: draft.staffId!,
-      staffName: draft.staffName!,
+      customerId: refreshedUser.uid,
+      customerName: refreshedUser.displayName?.trim().isNotEmpty == true
+          ? refreshedUser.displayName!.trim()
+          : refreshedUser.email ?? 'Valued Customer',
+      customerPhone: refreshedUser.phoneNumber,
+      businessId: businessId,
+      businessName: businessName.isEmpty ? 'Business' : businessName,
+      serviceId: serviceId,
+      serviceName: serviceName.isEmpty ? 'Service' : serviceName,
+      servicePrice: draft.totalPrice,
+      staffId: staffId,
+      staffName: staffName,
       startDateTime: startDateTime,
       endDateTime: endDateTime,
       status: BookingStatus.pending,
@@ -109,27 +116,25 @@ class _BookingConfirmationScreenState
     );
 
     setState(() => _isCreating = true);
-
     try {
-      final result =
-          await ref.read(appointmentsProvider.notifier).createBooking(booking);
-
-      debugPrint('BOOKING_CREATE_SUCCESS: ${result.id}');
-
+      await ref.read(appointmentsProvider.notifier).createBooking(booking);
+      if (!mounted) return;
+      ref.read(bookingDraftProvider.notifier).state = BookingDraft();
+      context.go('/booking-success');
+    } on DomainException catch (e) {
+      if (mounted) _showMessage(e.message, isError: true);
+    } on FirebaseException {
       if (mounted) {
-        context.push('/booking-success');
+        _showMessage(
+          'We could not complete the booking. Check your connection and try again.',
+          isError: true,
+        );
       }
-    } catch (e, st) {
-      debugPrint('BOOKING_CREATE_ERROR: $e\n$st');
+    } catch (_) {
       if (mounted) {
-        final errText = e is FirebaseException
-            ? '[${e.code}] ${e.message}'
-            : e.toString().replaceAll('Exception: ', '');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errText),
-            backgroundColor: AppColors.error,
-          ),
+        _showMessage(
+          'We could not complete the booking. Please try again.',
+          isError: true,
         );
       }
     } finally {
@@ -137,37 +142,74 @@ class _BookingConfirmationScreenState
     }
   }
 
+  DateTime? _parseStartDateTime(DateTime date, String rawTime) {
+    try {
+      final normalized = rawTime.trim().toUpperCase();
+      final parts = normalized.split(RegExp(r'\s+'));
+      final timeParts = parts.first.split(':');
+      if (timeParts.length < 2) return null;
+
+      var hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      if (minute < 0 || minute > 59) return null;
+
+      final period = parts.length > 1 ? parts[1] : '';
+      if (period == 'PM' && hour < 12) hour += 12;
+      if (period == 'AM' && hour == 12) hour = 0;
+      if (hour < 0 || hour > 23) return null;
+
+      return DateTime(date.year, date.month, date.day, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _resolvedStaffId(BookingDraft draft) {
+    final resolved = draft.resolvedStaffId?.trim() ?? '';
+    if (resolved.isNotEmpty) return resolved;
+    return draft.staffId?.trim() ?? '';
+  }
+
+  String _resolvedStaffName(BookingDraft draft) {
+    final resolved = draft.resolvedStaffName?.trim() ?? '';
+    if (resolved.isNotEmpty) return resolved;
+    final selected = draft.staffName?.trim() ?? '';
+    if (selected == 'Any Available Specialist') return context.tr(selected);
+    return selected.isNotEmpty ? selected : context.tr('Specialist');
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.tr(message)),
+        backgroundColor: isError ? AppColors.error : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(bookingDraftProvider);
-    final dateStr = draft.date != null
-        ? '${draft.date!.year}-${draft.date!.month.toString().padLeft(2, '0')}-${draft.date!.day.toString().padLeft(2, '0')}'
-        : 'Not selected';
+    final dateStr = draft.date == null
+        ? context.tr('Not selected')
+        : MaterialLocalizations.of(context).formatFullDate(draft.date!);
+    final staffName = _resolvedStaffName(draft);
 
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/home');
-          }
+          context.canPop() ? context.pop() : context.go('/home');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: const Text('Step 4: Confirm Booking'),
+          title: Text(context.tr('Confirm Booking')),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -177,28 +219,50 @@ class _BookingConfirmationScreenState
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    Text(draft.businessName ?? 'Salon',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
+                    Text(
+                      draft.businessName ?? context.tr('Business'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const Divider(height: 24),
-                    _row('Service', draft.serviceName ?? 'Not selected'),
-                    _row('Duration', draft.serviceDuration ?? 'Not selected'),
-                    _row('Specialist', draft.staffName ?? 'Not selected'),
-                    _row('Date & Time',
-                        '$dateStr at ${draft.timeSlot ?? 'Not selected'}'),
+                    _row(
+                      'Service',
+                      draft.serviceName ?? context.tr('Not selected'),
+                    ),
+                    _row(
+                      'Duration',
+                      '${draft.totalDurationMinutes} ${context.tr('minutes')}',
+                    ),
+                    _row('Specialist', staffName),
+                    _row(
+                      'Date & Time',
+                      '$dateStr • ${draft.timeSlot ?? context.tr('Not selected')}',
+                    ),
                     const Divider(height: 24),
-                    _row('Total Price',
-                        '\$${(draft.servicePrice ?? 0.0).toStringAsFixed(2)}',
-                        isBold: true),
+                    _row(
+                      'Total Price',
+                      CurrencyFormatter.format(draft.totalPrice),
+                      isBold: true,
+                      forceLtr: true,
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              Text(
+                context.tr(
+                  'Your appointment is created only after this confirmation succeeds.',
+                ),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: _mutedColor),
+              ),
+              const SizedBox(height: 20),
               CustomButton(
                 text: 'Confirm Booking',
                 isLoading: _isCreating,
-                onPressed: _confirmBooking,
+                onPressed: _isCreating ? null : _confirmBooking,
               ),
             ],
           ),
@@ -207,19 +271,41 @@ class _BookingConfirmationScreenState
     );
   }
 
-  Widget _row(String title, String val, {bool isBold = false}) {
+  Widget _row(
+    String title,
+    String value, {
+    bool isBold = false,
+    bool forceLtr = false,
+  }) {
+    final valueWidget = Text(
+      value,
+      textAlign: TextAlign.end,
+      style: TextStyle(
+        fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+        fontSize: isBold ? 17 : 14,
+        color: isBold ? AppColors.primary : null,
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: AppColors.textMutedDark)),
           Text(
-            val,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-              fontSize: isBold ? 17 : 14,
-              color: isBold ? AppColors.primary : null,
+            context.tr(title),
+            style: TextStyle(color: _mutedColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: forceLtr
+                  ? Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: valueWidget,
+                    )
+                  : valueWidget,
             ),
           ),
         ],

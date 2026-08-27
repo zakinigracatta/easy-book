@@ -6,6 +6,7 @@ import '../../widgets/glass_card.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class EmployeeManagementScreen extends ConsumerWidget {
   const EmployeeManagementScreen({super.key});
@@ -37,7 +38,7 @@ class EmployeeManagementScreen extends ConsumerWidget {
               }
             },
           ),
-          title: const Text('Team & Employees'),
+          title: Text(context.tr('Team & Employees')),
           actions: [
             IconButton(
               icon: const Icon(Icons.person_add_alt_1_rounded),
@@ -92,10 +93,10 @@ class EmployeeManagementScreen extends ConsumerWidget {
                                   Expanded(
                                     child: Text(
                                       st.name,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.textPrimaryDark,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                       ),
                                     ),
                                   ),
@@ -139,18 +140,18 @@ class EmployeeManagementScreen extends ConsumerWidget {
                                       size: 14, color: AppColors.gold),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${st.rating} (${st.reviewCount} reviews)',
-                                    style: const TextStyle(
+                                    context.tr('{rating} ({count} reviews)', params: {'rating': st.rating, 'count': st.reviewCount}),
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.textMutedDark,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    '${st.experienceYears} yrs exp',
-                                    style: const TextStyle(
+                                    context.tr('{count} yrs exp', params: {'count': st.experienceYears}),
+                                    style: TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.textMutedDark,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                 ],

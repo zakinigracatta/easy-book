@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_button.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/glass_card.dart';
 
 class OTPVerificationScreen extends StatelessWidget {
   const OTPVerificationScreen({super.key});
@@ -13,57 +15,67 @@ class OTPVerificationScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/welcome');
-            }
-          },
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: const Text('Verify Phone / OTP'),
+        title: Text(context.tr('OTP Verification')),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const Icon(Icons.mark_email_read_rounded,
-                  size: 70, color: AppColors.primary),
+              const Icon(
+                Icons.mark_email_read_rounded,
+                size: 70,
+                color: AppColors.primary,
+              ),
               const SizedBox(height: 16),
-              const Text('Enter 4-Digit Code',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              Text(
+                context.tr('Enter 4-Digit Code'),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
+                context.tr(
                   'We sent a verification code to your registered mobile number.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey)),
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.grey),
+              ),
               const SizedBox(height: 32),
               GlassCard(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(
-                      4,
-                      (index) => Container(
-                            width: 50,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: AppColors.bgDark,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.primary),
-                            ),
-                            child: const Center(
-                              child: Text('•',
-                                  style: TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                          )),
+                    4,
+                    (index) => Container(
+                      width: 50,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.primary),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '•',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
               CustomButton(
-                text: 'Verify & Continue',
+                text: context.tr('Verify Code'),
                 onPressed: () => context.go('/home'),
               ),
             ],

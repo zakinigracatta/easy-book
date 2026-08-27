@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -33,8 +35,8 @@ class CustomTextField extends StatelessWidget {
       keyboardType: keyboardType,
       maxLines: maxLines,
       decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
+        labelText: context.tr(label),
+        hintText: hint == null ? null : context.tr(hint!),
         prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
         suffixIcon: suffixIcon,
       ),

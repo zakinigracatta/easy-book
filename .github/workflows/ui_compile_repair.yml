@@ -1,0 +1,45 @@
+name: UI Compile Repair
+
+on:
+  push:
+    branches: [fix/audit-issues-2026-08-26]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: contains(github.event.head_commit.message, '[repair-ui-compile]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: fix/audit-issues-2026-08-26
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.8
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Repair migrated UI compile issues
+        run: |
+          python3 tool/repair_ui_compile.py
+          dart fix --apply
+
+      - name: Commit repairs
+        run: |
+          if git diff --quiet; then
+            echo "No compile repairs required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib
+          git commit -m "Repair theme-aware UI compile issues"
+          git push origin HEAD:fix/audit-issues-2026-08-26

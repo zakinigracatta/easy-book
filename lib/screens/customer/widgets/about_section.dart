@@ -3,6 +3,7 @@ import '../../../models/business_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
 import 'working_hours_section.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AboutSection extends StatelessWidget {
   final BusinessModel business;
@@ -22,9 +23,8 @@ class AboutSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'About Business',
-                style: TextStyle(
+              Text(context.tr('About Business'),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -35,9 +35,9 @@ class AboutSection extends StatelessWidget {
                 business.description.isNotEmpty
                     ? business.description
                     : 'Welcome to ${business.name}. We provide premium quality grooming and wellness services.',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textSecondaryDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
               ),
@@ -53,9 +53,8 @@ class AboutSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Amenities & Features',
-                  style: TextStyle(
+                Text(context.tr('Amenities & Features'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -86,9 +85,9 @@ class AboutSection extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: AppColors.bgDark,
+                        color: Theme.of(context).scaffoldBackgroundColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.glassBorderDark),
+                        border: Border.all(color: Theme.of(context).dividerColor),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -98,10 +97,10 @@ class AboutSection extends StatelessWidget {
                           const SizedBox(width: 6),
                           Text(
                             amenity,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondaryDark,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -120,24 +119,23 @@ class AboutSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Contact & Location',
-                style: TextStyle(
+              Text(context.tr('Contact & Location'),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
               const SizedBox(height: 14),
-              _contactRow(
+              _contactRow(context, 
                   Icons.location_on_outlined, 'Address', business.address),
               if (business.phone != null && business.phone!.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _contactRow(Icons.phone_outlined, 'Phone', business.phone!),
+                _contactRow(context, Icons.phone_outlined, 'Phone', business.phone!),
               ],
               if (business.website != null && business.website!.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                _contactRow(
+                _contactRow(context, 
                     Icons.language_outlined, 'Website', business.website!),
               ],
             ],
@@ -152,7 +150,7 @@ class AboutSection extends StatelessWidget {
     );
   }
 
-  Widget _contactRow(IconData icon, String label, String value) {
+  Widget _contactRow(BuildContext context, IconData icon, String label, String value) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -171,9 +169,9 @@ class AboutSection extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
                 ),
               ),

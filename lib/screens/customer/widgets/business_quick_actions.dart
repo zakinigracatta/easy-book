@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../models/business_model.dart';
 import '../../../providers/app_providers.dart';
+import '../../../providers/favorites_provider.dart';
 import '../../../theme/app_colors.dart';
 
 class BusinessQuickActions extends ConsumerWidget {
@@ -18,8 +22,10 @@ class BusinessQuickActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favorites = ref.watch(favoritesProvider);
-    final isFavorite = favorites.contains(business.id);
+    final user = ref.watch(authProvider);
+    final savedFavorites = ref.watch(savedFavoritesProvider);
+    final isFavorite =
+        savedFavorites.asData?.value.contains(business.id) ?? false;
 
     final hasPhone =
         business.phone != null && business.phone!.trim().isNotEmpty;
@@ -33,12 +39,14 @@ class BusinessQuickActions extends ConsumerWidget {
           _actionBtn(
             context,
             icon: Icons.phone_outlined,
-            label: 'Call',
+            label: context.tr('Call'),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                    content:
-                        Text('Calling ${business.name}: ${business.phone}')),
+                  content: Text(
+                    '${context.tr('Call')}: ${business.phone}',
+                  ),
+                ),
               );
             },
           ),
@@ -46,12 +54,15 @@ class BusinessQuickActions extends ConsumerWidget {
           _actionBtn(
             context,
             icon: Icons.directions_outlined,
-            label: 'Directions',
+            label: context.tr('Directions'),
             onTap: onDirectionsTap ??
                 () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('Opening map for ${business.name}...')),
+                      content: Text(
+                        '${context.tr('Directions')}: ${business.name}',
+                      ),
+                    ),
                   );
                 },
           ),
@@ -61,25 +72,41 @@ class BusinessQuickActions extends ConsumerWidget {
               ? Icons.favorite_rounded
               : Icons.favorite_border_rounded,
           iconColor: isFavorite ? Colors.redAccent : null,
-          label: isFavorite ? 'Saved' : 'Favorite',
-          onTap: () {
-            final set = Set<String>.from(ref.read(favoritesProvider));
-            if (isFavorite) {
-              set.remove(business.id);
-            } else {
-              set.add(business.id);
+          label: context.tr(isFavorite ? 'Saved' : 'Favorite'),
+          onTap: () async {
+            if (user == null || user.id.trim().isEmpty) {
+              context.push('/login');
+              return;
             }
-            ref.read(favoritesProvider.notifier).state = set;
+
+            try {
+              await ref.read(favoritesRepositoryProvider).setFavorite(
+                    userId: user.id,
+                    businessId: business.id,
+                    isFavorite: !isFavorite,
+                  );
+            } catch (_) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    context.tr('Could not update favorites. Please try again.'),
+                  ),
+                ),
+              );
+            }
           },
         ),
         _actionBtn(
           context,
           icon: Icons.share_outlined,
-          label: 'Share',
+          label: context.tr('Share'),
           onTap: onShareTap ??
               () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Sharing ${business.name}...')),
+                  SnackBar(
+                    content: Text('${context.tr('Share')}: ${business.name}'),
+                  ),
                 );
               },
         ),
@@ -112,10 +139,10 @@ class BusinessQuickActions extends ConsumerWidget {
           const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: AppColors.textSecondaryDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../widgets/glass_card.dart';
 
 class AnalyticsScreen extends StatelessWidget {
@@ -11,35 +13,26 @@ class AnalyticsScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/admin-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/admin-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/admin-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/admin-dashboard'),
           ),
-          title: const Text('Platform Analytics'),
+          title: Text(context.tr('Platform Analytics')),
         ),
-        body: const Padding(
-          padding: EdgeInsets.all(20),
+        body: Padding(
+          padding: const EdgeInsets.all(20),
           child: Column(
             children: [
               GlassCard(
                 child: ListTile(
-                  title: Text('Monthly Active Users (MAU)'),
-                  subtitle: Text('15,243 Users (+12% growth)'),
+                  title: Text(context.tr('Monthly Active Users (MAU)')),
+                  subtitle: Text(context.tr('15,243 Users (+12% growth)')),
                 ),
               ),
             ],

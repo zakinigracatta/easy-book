@@ -4,16 +4,17 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import '../../theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
 class BusinessLocationArgs {
-  const BusinessLocationArgs({this.latitude = 0, this.longitude = 0});
+  BusinessLocationArgs({this.latitude = 0, this.longitude = 0});
 
   final double latitude;
   final double longitude;
 }
 
 class BusinessLocationSelection {
-  const BusinessLocationSelection({
+  BusinessLocationSelection({
     required this.latitude,
     required this.longitude,
   });
@@ -65,7 +66,7 @@ class _BusinessLocationPickerScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Set Precise Business Location'),
+        title: Text(context.tr('Set Precise Business Location')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
@@ -90,8 +91,8 @@ class _BusinessLocationPickerScreenState
                 userAgentPackageName: 'ae.easybook.app',
                 maxNativeZoom: 19,
               ),
-              const SimpleAttributionWidget(
-                source: Text('OpenStreetMap contributors'),
+              SimpleAttributionWidget(
+                source: Text(context.tr('OpenStreetMap contributors')),
               ),
             ],
           ),
@@ -115,20 +116,19 @@ class _BusinessLocationPickerScreenState
             child: Material(
               elevation: 4,
               borderRadius: BorderRadius.circular(16),
-              color: AppColors.cardDark,
-              child: const Padding(
-                padding: EdgeInsets.all(14),
+              color: Theme.of(context).colorScheme.surface,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    Icon(Icons.touch_app_rounded,
+                    const Icon(Icons.touch_app_rounded,
                         color: AppColors.primaryLight),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        'Move the map until the pin is exactly on the salon entrance.',
+                      child: Text(context.tr('Move the map until the pin is exactly on the salon entrance.'),
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -143,7 +143,7 @@ class _BusinessLocationPickerScreenState
             bottom: 142,
             child: FloatingActionButton.small(
               heroTag: 'current-location',
-              backgroundColor: AppColors.cardDark,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               onPressed: _locating ? null : _useCurrentLocation,
               child: _locating
                   ? const SizedBox(
@@ -178,9 +178,8 @@ class _BusinessLocationPickerScreenState
                   );
                 },
                 icon: const Icon(Icons.check_circle_outline_rounded),
-                label: const Text(
-                  'Confirm This Location',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(context.tr('Confirm This Location'),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),

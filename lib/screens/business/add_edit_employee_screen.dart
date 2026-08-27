@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../theme/app_colors.dart';
-import '../../widgets/glass_card.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../widgets/custom_button.dart';
-import '../../widgets/business/business_image_picker.dart';
-import '../../providers/owner_providers.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../models/staff_model.dart';
+import '../../providers/owner_providers.dart';
 import '../../services/media_upload_service.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/business/business_image_picker.dart';
+import '../../widgets/custom_button.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/glass_card.dart';
 
 class AddEditEmployeeScreen extends ConsumerStatefulWidget {
   final StaffModel? initialStaff;
@@ -78,7 +80,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(isEditing ? 'Edit Employee' : 'Add New Employee'),
+          title: Text(
+            context.tr(isEditing ? 'Edit Employee' : 'Add New Employee'),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop()
@@ -97,12 +101,12 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Employee Profile',
+                      Text(
+                        context.tr('Employee Profile'),
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -112,7 +116,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                         prefixIcon: Icons.person_rounded,
                         validator: (value) =>
                             value == null || value.trim().isEmpty
-                                ? 'Please enter employee name'
+                                ? context.tr('Please enter employee name')
                                 : null,
                       ),
                       const SizedBox(height: 12),
@@ -122,7 +126,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                         prefixIcon: Icons.badge_rounded,
                         validator: (value) =>
                             value == null || value.trim().isEmpty
-                                ? 'Please enter job title'
+                                ? context.tr('Please enter job title')
                                 : null,
                       ),
                       const SizedBox(height: 12),
@@ -144,19 +148,21 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                         contentPadding: EdgeInsets.zero,
                         value: _isActive,
                         activeThumbColor: AppColors.primary,
-                        title: const Text(
-                          'Active & Bookable',
+                        title: Text(
+                          context.tr('Active & Bookable'),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimaryDark,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        subtitle: const Text(
-                          'Inactive employees will not be offered for new bookings.',
+                        subtitle: Text(
+                          context.tr(
+                            'Inactive employees will not be offered for new bookings.',
+                          ),
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         onChanged: (value) => setState(() => _isActive = value),
@@ -170,25 +176,27 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Photos',
+                      Text(
+                        context.tr('Photos'),
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Use one clear profile photo and up to 8 portfolio photos.',
+                      Text(
+                        context.tr(
+                          'Use one clear profile photo and up to 8 portfolio photos.',
+                        ),
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 14),
                       BusinessImagePicker(
-                        label: 'Main Profile Photo',
+                        label: context.tr('Main Profile Photo'),
                         currentImageUrl: _avatarUrlController.text,
                         onPickImage: _pickAvatar,
                         onDeleteImage: _avatarUrlController.text.isEmpty
@@ -202,23 +210,23 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                         LinearProgressIndicator(value: _uploadProgress),
                         const SizedBox(height: 4),
                         Text(
-                          '$_uploadLabel ${(100 * _uploadProgress!).round()}%',
-                          style: const TextStyle(
+                          '${context.tr(_uploadLabel)} ${(100 * _uploadProgress!).round()}%',
+                          style: TextStyle(
                             fontSize: 10,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Portfolio Photos',
+                              context.tr('Portfolio Photos'),
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimaryDark,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -235,17 +243,18 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: AppColors.glassBgDark,
+                            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(14),
-                            border:
-                                Border.all(color: AppColors.glassBorderDark),
+                            border: Border.all(
+                              color: Theme.of(context).dividerColor,
+                            ),
                           ),
-                          child: const Text(
-                            'No portfolio photos yet.',
+                          child: Text(
+                            context.tr('No portfolio photos yet.'),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textMutedDark,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         )
@@ -270,9 +279,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                                       fit: BoxFit.cover,
                                     ),
                                   ),
-                                  Positioned(
+                                  PositionedDirectional(
                                     top: 5,
-                                    right: 5,
+                                    end: 5,
                                     child: InkWell(
                                       onTap: () => _removeGalleryPhoto(url),
                                       child: Container(
@@ -304,20 +313,24 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                     padding: const EdgeInsets.all(14),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.schedule_rounded,
-                          color: AppColors.primaryLight),
-                      title: const Text(
-                        'Working Hours & Breaks',
+                      leading: const Icon(
+                        Icons.schedule_rounded,
+                        color: AppColors.primaryLight,
+                      ),
+                      title: Text(
+                        context.tr('Working Hours & Breaks'),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                      subtitle: const Text(
-                        'Configure a different schedule for every day.',
+                      subtitle: Text(
+                        context.tr(
+                          'Configure a different schedule for every day.',
+                        ),
                         style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       trailing: const Icon(Icons.chevron_right_rounded),
@@ -366,10 +379,11 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       if (oldUrl.isNotEmpty && oldUrl != url) {
         await _media.deleteByUrl(oldUrl);
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Photo upload failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('Photo upload failed.'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _uploadProgress = null);
@@ -392,7 +406,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
         onProgress: (current, total, progress) {
           if (mounted) {
             setState(() {
-              _uploadLabel = 'Photo $current of $total';
+              _uploadLabel = 'Portfolio';
               _uploadProgress = progress;
             });
           }
@@ -401,10 +415,11 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       if (urls.isNotEmpty && mounted) {
         setState(() => _galleryUrls.addAll(urls));
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Gallery upload failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('Gallery upload failed.'))),
+        );
       }
     } finally {
       if (mounted) setState(() => _uploadProgress = null);
@@ -414,17 +429,26 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   Future<void> _deleteAvatar() async {
     final url = _avatarUrlController.text;
     setState(() => _avatarUrlController.clear());
-    await _media.deleteByUrl(url);
+    try {
+      await _media.deleteByUrl(url);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('Could not delete photo.'))),
+        );
+      }
+    }
   }
 
   Future<void> _removeGalleryPhoto(String url) async {
     setState(() => _galleryUrls.remove(url));
     try {
       await _media.deleteByUrl(url);
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Could not delete photo: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('Could not delete photo.'))),
+        );
       }
     }
   }
@@ -467,9 +491,11 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            existing != null
-                ? 'Employee updated successfully.'
-                : 'Employee added successfully.',
+            context.tr(
+              existing != null
+                  ? 'Employee updated successfully.'
+                  : 'Employee added successfully.',
+            ),
           ),
           backgroundColor: AppColors.success,
         ),
@@ -477,11 +503,13 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       context.canPop()
           ? context.pop()
           : context.go('/employee-management');
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save employee: $e'),
+            content: Text(
+              context.tr('Failed to save employee. Please try again.'),
+            ),
             backgroundColor: AppColors.error,
           ),
         );

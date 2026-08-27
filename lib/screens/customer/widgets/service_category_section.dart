@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/service_model.dart';
 import '../../../theme/app_colors.dart';
 import 'service_card.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ServiceCategorySection extends StatefulWidget {
   final List<ServiceModel> services;
@@ -28,14 +29,13 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
       return Container(
         padding: const EdgeInsets.all(32),
         alignment: Alignment.center,
-        child: const Column(
+        child: Column(
           children: [
             Icon(Icons.design_services_outlined,
-                size: 48, color: AppColors.textMutedDark),
-            SizedBox(height: 12),
-            Text(
-              'No services are available at the moment.',
-              style: TextStyle(color: AppColors.textMutedDark, fontSize: 14),
+                size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text(context.tr('No services are available at the moment.'),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -79,11 +79,11 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
                       });
                     },
                     selectedColor: AppColors.primary,
-                    backgroundColor: AppColors.cardDark,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
                     labelStyle: TextStyle(
                       color: isSelected
                           ? Colors.white
-                          : AppColors.textSecondaryDark,
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight:
                           isSelected ? FontWeight.bold : FontWeight.w500,
                       fontSize: 12,
@@ -93,7 +93,7 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
                       side: BorderSide(
                         color: isSelected
                             ? AppColors.primary
-                            : AppColors.glassBorderDark,
+                            : Theme.of(context).dividerColor,
                       ),
                     ),
                   ),

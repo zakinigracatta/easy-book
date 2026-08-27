@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../../theme/app_colors.dart';
 
 class SalonDetailsShimmer extends StatelessWidget {
   const SalonDetailsShimmer({super.key});
@@ -8,10 +7,10 @@ class SalonDetailsShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Shimmer.fromColors(
-        baseColor: AppColors.cardDark,
-        highlightColor: AppColors.glassBgDark,
+        baseColor: Theme.of(context).colorScheme.surface,
+        highlightColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
         child: SingleChildScrollView(
           physics: const NeverScrollableScrollPhysics(),
           child: Column(

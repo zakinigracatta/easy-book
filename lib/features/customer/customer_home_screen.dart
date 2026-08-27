@@ -385,9 +385,9 @@ class CustomerHomeScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.4)),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -414,7 +414,7 @@ class CustomerHomeScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4)),
           ],
@@ -434,7 +434,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(salon,
                     style: TextStyle(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withValues(alpha: 0.7),
                         fontSize: 13,
                         fontWeight: FontWeight.w600)),
               ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../widgets/glass_card.dart';
 
 class ReportsScreen extends StatelessWidget {
@@ -11,34 +13,25 @@ class ReportsScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          if (context.canPop()) {
-            context.pop();
-          } else {
-            context.go('/admin-dashboard');
-          }
+          context.canPop() ? context.pop() : context.go('/admin-dashboard');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/admin-dashboard');
-              }
-            },
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/admin-dashboard'),
           ),
-          title: const Text('System Audit Reports'),
+          title: Text(context.tr('System Audit Reports')),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
-          children: const [
+          children: [
             GlassCard(
               child: ListTile(
-                title: Text('Security & Database Audit Log'),
-                subtitle: Text('System operating normally. 0 breaches.'),
+                title: Text(context.tr('Security & Database Audit Log')),
+                subtitle: Text(context.tr('System operating normally. 0 breaches.')),
               ),
             ),
           ],

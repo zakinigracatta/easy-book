@@ -26,7 +26,7 @@ class CustomBottomNavBar extends StatelessWidget {
           backgroundColor: Colors.transparent,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textMutedDark,
+          unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
           selectedFontSize: 11,
           unselectedFontSize: 11,
           onTap: (index) {

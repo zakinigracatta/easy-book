@@ -8,6 +8,7 @@ import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/review_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class OwnerReviewsScreen extends ConsumerWidget {
   const OwnerReviewsScreen({super.key});
@@ -25,7 +26,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Customer Reviews & Ratings'),
+          title: Text(context.tr('Customer Reviews & Ratings')),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () =>
@@ -81,18 +82,18 @@ class OwnerReviewsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           _buildOverviewCard(
+            context: context,
             average: average,
             total: reviews.length,
             replied: repliedCount,
             distribution: distribution,
           ),
           const SizedBox(height: 18),
-          const Text(
-            'Client Feedback',
+          Text(context.tr('Client Feedback'),
             style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimaryDark,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 10),
@@ -106,6 +107,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
   }
 
   Widget _buildOverviewCard({
+    required BuildContext context,
     required double average,
     required int total,
     required int replied,
@@ -122,11 +124,11 @@ class OwnerReviewsScreen extends ConsumerWidget {
                 children: [
                   Text(
                     average.toStringAsFixed(1),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 42,
                       height: 1,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimaryDark,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -142,10 +144,10 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$total reviews',
-                    style: const TextStyle(
+                    context.tr('{count} reviews', params: {'count': total}),
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textMutedDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -156,6 +158,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   children: [
                     for (var star = 5; star >= 1; star--)
                       _ratingBar(
+                        context,
                         star,
                         total == 0 ? 0 : (distribution[star] ?? 0) / total,
                       ),
@@ -171,11 +174,11 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   size: 18, color: AppColors.primaryLight),
               const SizedBox(width: 8),
               Text(
-                '$replied of $total reviews replied to',
-                style: const TextStyle(
+                context.tr('{replied} of {total} reviews replied to', params: {'replied': replied, 'total': total}),
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimaryDark,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -185,7 +188,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _ratingBar(int star, double value) {
+  Widget _ratingBar(BuildContext context, int star, double value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 5),
       child: Row(
@@ -194,9 +197,9 @@ class OwnerReviewsScreen extends ConsumerWidget {
             width: 18,
             child: Text(
               '$star',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: AppColors.textMutedDark,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -208,7 +211,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
               child: LinearProgressIndicator(
                 value: value,
                 minHeight: 7,
-                backgroundColor: AppColors.glassBgDark,
+                backgroundColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.35),
                 valueColor:
                     const AlwaysStoppedAnimation<Color>(AppColors.gold),
               ),
@@ -258,10 +261,10 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   children: [
                     Text(
                       review.userName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimaryDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     Text(
@@ -270,9 +273,9 @@ class OwnerReviewsScreen extends ConsumerWidget {
                           review.serviceName!,
                         DateFormat('MMM d, yyyy').format(review.createdAt),
                       ].join(' • '),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
-                        color: AppColors.textMutedDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -293,10 +296,10 @@ class OwnerReviewsScreen extends ConsumerWidget {
                     const SizedBox(width: 3),
                     Text(
                       review.rating.toStringAsFixed(1),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimaryDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -307,10 +310,10 @@ class OwnerReviewsScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(
             review.comment,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               height: 1.4,
-              color: AppColors.textSecondaryDark,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           if (reply != null && reply.isNotEmpty) ...[
@@ -333,9 +336,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
                       const Icon(Icons.storefront_rounded,
                           size: 15, color: AppColors.primaryLight),
                       const SizedBox(width: 6),
-                      const Text(
-                        'Business reply',
-                        style: TextStyle(
+                      Text(context.tr('Business reply'),
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryLight,
@@ -345,9 +347,9 @@ class OwnerReviewsScreen extends ConsumerWidget {
                       if (review.businessReplyAt != null)
                         Text(
                           DateFormat('MMM d').format(review.businessReplyAt!),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 9,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -355,9 +357,9 @@ class OwnerReviewsScreen extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Text(
                     reply,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondaryDark,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -394,7 +396,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
     final reply = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('Reply to ${review.userName}'),
+        title: Text(context.tr('Reply to {name}', params: {'name': review.userName})),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -408,14 +410,14 @@ class OwnerReviewsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(context.tr('Cancel')),
           ),
           FilledButton(
             onPressed: () {
               final text = controller.text.trim();
               if (text.isNotEmpty) Navigator.pop(dialogContext, text);
             },
-            child: const Text('Save Reply'),
+            child: Text(context.tr('Save Reply')),
           ),
         ],
       ),
@@ -437,8 +439,8 @@ class OwnerReviewsScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Reply saved successfully.'),
+          SnackBar(
+            content: Text(context.tr('Reply saved successfully.')),
             backgroundColor: AppColors.success,
           ),
         );
@@ -447,7 +449,7 @@ class OwnerReviewsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save reply: $e'),
+            content: Text(context.tr('Failed to save reply. Please try again.')),
             backgroundColor: AppColors.error,
           ),
         );

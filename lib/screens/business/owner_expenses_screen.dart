@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
+import '../../core/utils/currency_formatter.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/expense_model.dart';
 import '../../providers/owner_finance_providers.dart';
 import '../../theme/app_colors.dart';
@@ -13,15 +14,14 @@ class OwnerExpensesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expensesAsync = ref.watch(ownerExpensesProvider);
-    final money = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
-    final date = DateFormat('dd MMM yyyy');
+    final material = MaterialLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Business Expenses'),
+        title: Text(context.tr('Business Expenses')),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.tr('Refresh'),
             onPressed: () => ref.read(ownerExpensesProvider.notifier).load(),
             icon: const Icon(Icons.refresh_rounded),
           ),
@@ -30,46 +30,64 @@ class OwnerExpensesScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(context, ref),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Expense'),
+        label: Text(context.tr('Add Expense')),
       ),
       body: expensesAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
-        error: (error, _) => Center(
+        error: (_, __) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(
-              error.toString(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.error),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.error_outline_rounded,
+                  size: 42,
+                  color: AppColors.error,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  context.tr(
+                    'Unable to load expenses right now. Please try again.',
+                  ),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ],
             ),
           ),
         ),
         data: (expenses) {
           if (expenses.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(28),
+                padding: const EdgeInsets.all(28),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.receipt_long_outlined,
-                        size: 58, color: AppColors.textMutedDark),
-                    SizedBox(height: 14),
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 58,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 14),
                     Text(
-                      'No expenses recorded yet',
+                      context.tr('No expenses recorded yet'),
                       style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimaryDark,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     Text(
-                      'Record each real business cost so profit reports remain accurate.',
+                      context.tr(
+                        'Record each real business cost so profit reports remain accurate.',
+                      ),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textMutedDark),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -100,8 +118,10 @@ class OwnerExpensesScreen extends ConsumerWidget {
                               color: AppColors.error.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.payments_outlined,
-                                color: AppColors.error),
+                            child: const Icon(
+                              Icons.payments_outlined,
+                              color: AppColors.error,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -110,29 +130,32 @@ class OwnerExpensesScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   expense.description,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimaryDark,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
-                                  '${expense.category.label} • ${date.format(expense.expenseDate)}',
-                                  style: const TextStyle(
+                                  '${context.tr(expense.category.label)} • ${material.formatMediumDate(expense.expenseDate)}',
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: AppColors.textMutedDark,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            money.format(expense.amount),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.error,
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              CurrencyFormatter.format(expense.amount),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.error,
+                              ),
                             ),
                           ),
                         ],
@@ -142,9 +165,10 @@ class OwnerExpensesScreen extends ConsumerWidget {
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          _tag(expense.paymentMethod),
+                          _tag(context, expense.paymentMethod),
+                          _tag(context, expense.frequency.label),
                           if (expense.supplier?.trim().isNotEmpty == true)
-                            _tag(expense.supplier!.trim()),
+                            _tag(context, expense.supplier!.trim(), translate: false),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -158,7 +182,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
                               existing: expense,
                             ),
                             icon: const Icon(Icons.edit_outlined, size: 18),
-                            label: const Text('Edit'),
+                            label: Text(context.tr('Edit')),
                           ),
                           TextButton.icon(
                             onPressed: () => _confirmArchive(
@@ -167,7 +191,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
                               expense,
                             ),
                             icon: const Icon(Icons.archive_outlined, size: 18),
-                            label: const Text('Archive'),
+                            label: Text(context.tr('Archive')),
                           ),
                         ],
                       ),
@@ -182,16 +206,16 @@ class OwnerExpensesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _tag(String text) {
+  Widget _tag(BuildContext context, String text, {bool translate = true}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.glassBorderDark.withValues(alpha: 0.5),
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
-        text,
-        style: const TextStyle(fontSize: 10, color: AppColors.textMutedDark),
+        translate ? context.tr(text) : text,
+        style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
     );
   }
@@ -203,19 +227,21 @@ class OwnerExpensesScreen extends ConsumerWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Archive expense?'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.tr('Archive expense?')),
         content: Text(
-          'Archive “${expense.description}”? It will be removed from active expense reports but retained as an archived financial record.',
+          context.tr(
+            'Archive this expense? It will be removed from active expense reports but retained as an archived financial record.',
+          ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.tr('Cancel')),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Archive'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.tr('Archive')),
           ),
         ],
       ),
@@ -227,13 +253,19 @@ class OwnerExpensesScreen extends ConsumerWidget {
       ref.invalidate(ownerProfitAndLossProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense archived.')),
+          SnackBar(content: Text(context.tr('Expense archived.'))),
         );
       }
-    } catch (error) {
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
+          SnackBar(
+            content: Text(
+              context.tr(
+                'Unable to archive this expense. Please try again.',
+              ),
+            ),
+          ),
         );
       }
     }
@@ -274,6 +306,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
   late final TextEditingController _supplier;
   late final TextEditingController _notes;
   late ExpenseCategory _category;
+  late ExpenseFrequency _frequency;
   late DateTime _date;
   late String _paymentMethod;
   bool _saving = false;
@@ -297,11 +330,10 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
     _supplier = TextEditingController(text: item?.supplier ?? '');
     _notes = TextEditingController(text: item?.notes ?? '');
     _category = item?.category ?? ExpenseCategory.other;
+    _frequency = item?.frequency ?? ExpenseFrequency.oneTime;
     _date = item?.expenseDate ?? DateTime.now();
     _paymentMethod = item?.paymentMethod ?? _paymentMethods.first;
-    if (!_paymentMethods.contains(_paymentMethod)) {
-      _paymentMethod = 'Other';
-    }
+    if (!_paymentMethods.contains(_paymentMethod)) _paymentMethod = 'Other';
   }
 
   @override
@@ -315,7 +347,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final date = DateFormat('dd MMM yyyy');
+    final material = MaterialLocalizations.of(context);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -331,30 +363,34 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                widget.existing == null ? 'Add Expense' : 'Edit Expense',
+                context.tr(
+                  widget.existing == null ? 'Add Expense' : 'Edit Expense',
+                ),
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Enter an expense only when the cost actually occurred. Recurring automation will be added separately so reports never double-count estimated costs.',
+              Text(
+                context.tr(
+                  'Record the cost when it actually occurs. Frequency classifies the expense for reporting and does not create automatic future charges.',
+                ),
                 style: TextStyle(
                   fontSize: 11,
                   height: 1.35,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 18),
               DropdownButtonFormField<ExpenseCategory>(
                 initialValue: _category,
-                decoration: const InputDecoration(labelText: 'Category'),
+                decoration: InputDecoration(labelText: context.tr('Category')),
                 items: ExpenseCategory.values
                     .map(
                       (category) => DropdownMenuItem(
                         value: category,
-                        child: Text(category.label),
+                        child: Text(context.tr(category.label)),
                       ),
                     )
                     .toList(),
@@ -363,27 +399,44 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                 },
               ),
               const SizedBox(height: 12),
+              DropdownButtonFormField<ExpenseFrequency>(
+                initialValue: _frequency,
+                decoration: InputDecoration(labelText: context.tr('Frequency')),
+                items: ExpenseFrequency.values
+                    .map(
+                      (frequency) => DropdownMenuItem(
+                        value: frequency,
+                        child: Text(context.tr(frequency.label)),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) setState(() => _frequency = value);
+                },
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _description,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(labelText: context.tr('Description')),
                 textInputAction: TextInputAction.next,
                 maxLength: 300,
                 validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Description is required.'
+                    ? context.tr('Description is required.')
                     : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _amount,
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
+                decoration: InputDecoration(
+                  labelText: context.tr('Amount'),
                   prefixText: 'AED ',
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   final parsed = double.tryParse(value?.trim() ?? '');
                   if (parsed == null || !parsed.isFinite || parsed <= 0) {
-                    return 'Enter a valid amount greater than zero.';
+                    return context.tr('Enter a valid amount greater than zero.');
                   }
                   return null;
                 },
@@ -391,20 +444,22 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
               const SizedBox(height: 12),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Expense Date'),
-                subtitle: Text(date.format(_date)),
+                title: Text(context.tr('Expense Date')),
+                subtitle: Text(material.formatMediumDate(_date)),
                 trailing: const Icon(Icons.calendar_month_rounded),
                 onTap: _pickDate,
               ),
               const SizedBox(height: 4),
               DropdownButtonFormField<String>(
                 initialValue: _paymentMethod,
-                decoration: const InputDecoration(labelText: 'Payment Method'),
+                decoration: InputDecoration(
+                  labelText: context.tr('Payment Method'),
+                ),
                 items: _paymentMethods
                     .map(
                       (method) => DropdownMenuItem(
                         value: method,
-                        child: Text(method),
+                        child: Text(context.tr(method)),
                       ),
                     )
                     .toList(),
@@ -415,15 +470,17 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _supplier,
-                decoration: const InputDecoration(
-                  labelText: 'Supplier / Payee (optional)',
+                decoration: InputDecoration(
+                  labelText: context.tr('Supplier / Payee (optional)'),
                 ),
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _notes,
-                decoration: const InputDecoration(labelText: 'Notes (optional)'),
+                decoration: InputDecoration(
+                  labelText: context.tr('Notes (optional)'),
+                ),
                 minLines: 2,
                 maxLines: 4,
               ),
@@ -437,7 +494,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.save_rounded),
-                label: Text(_saving ? 'Saving…' : 'Save Expense'),
+                label: Text(context.tr(_saving ? 'Saving…' : 'Save Expense')),
               ),
             ],
           ),
@@ -470,18 +527,35 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             paymentMethod: _paymentMethod,
             supplier: _supplier.text.trim(),
             notes: _notes.text.trim(),
-            frequency: ExpenseFrequency.oneTime,
+            frequency: _frequency,
           );
       ref.invalidate(ownerProfitAndLossProvider);
       if (mounted) Navigator.pop(context, true);
-    } catch (error) {
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
+          SnackBar(
+            content: Text(
+              context.tr('Unable to save this expense. Please try again.'),
+            ),
+          ),
         );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+}
+
+extension ExpenseFrequencyLabel on ExpenseFrequency {
+  String get label {
+    switch (this) {
+      case ExpenseFrequency.oneTime:
+        return 'One-time';
+      case ExpenseFrequency.monthly:
+        return 'Monthly';
+      case ExpenseFrequency.yearly:
+        return 'Annual';
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
 
 class BookingDateSelector extends StatelessWidget {
@@ -19,10 +20,15 @@ class BookingDateSelector extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final maxDate = today.add(Duration(days: maxDays));
-
-    // Generate near 14 days horizontal scroll
     final daysList =
         List.generate(14, (index) => today.add(Duration(days: index)));
+    final material = MaterialLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? Theme.of(context).colorScheme.surface : AppColors.cardLight;
+    final borderColor =
+        isDark ? Theme.of(context).dividerColor : AppColors.glassBorderLight;
+    final mutedColor =
+        isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,12 +36,11 @@ class BookingDateSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Select Date',
-              style: TextStyle(
+            Text(
+              context.tr('Select Date'),
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
               ),
             ),
             TextButton.icon(
@@ -45,30 +50,21 @@ class BookingDateSelector extends StatelessWidget {
                   initialDate: selectedDate,
                   firstDate: today,
                   lastDate: maxDate,
-                  builder: (context, child) {
-                    return Theme(
-                      data: Theme.of(context).copyWith(
-                        colorScheme: const ColorScheme.dark(
-                          primary: AppColors.primary,
-                          surface: AppColors.cardDark,
-                        ),
-                      ),
-                      child: child!,
-                    );
-                  },
                 );
-                if (picked != null) {
-                  onDateSelected(picked);
-                }
+                if (picked != null) onDateSelected(picked);
               },
-              icon: const Icon(Icons.calendar_month_rounded,
-                  size: 18, color: AppColors.primaryLight),
+              icon: const Icon(
+                Icons.calendar_month_rounded,
+                size: 18,
+                color: AppColors.primary,
+              ),
               label: Text(
-                DateFormat('MMM yyyy').format(selectedDate),
+                material.formatMonthYear(selectedDate),
                 style: const TextStyle(
-                    color: AppColors.primaryLight,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold),
+                  color: AppColors.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -81,16 +77,13 @@ class BookingDateSelector extends StatelessWidget {
             itemCount: daysList.length,
             separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              final d = daysList[index];
-              final isSelected = d.year == selectedDate.year &&
-                  d.month == selectedDate.month &&
-                  d.day == selectedDate.day;
-              final isToday = d.year == today.year &&
-                  d.month == today.month &&
-                  d.day == today.day;
+              final date = daysList[index];
+              final isSelected = DateUtils.isSameDay(date, selectedDate);
+              final isToday = DateUtils.isSameDay(date, today);
+              final weekday = material.narrowWeekdays[date.weekday % 7];
 
               return GestureDetector(
-                onTap: () => onDateSelected(d),
+                onTap: () => onDateSelected(date),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 62,
@@ -99,51 +92,49 @@ class BookingDateSelector extends StatelessWidget {
                     color: isSelected
                         ? AppColors.primary
                         : (isToday
-                            ? AppColors.primary.withValues(alpha: 0.15)
-                            : AppColors.cardDark),
+                            ? AppColors.primary.withValues(alpha: 0.12)
+                            : cardColor),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
                           ? AppColors.primary
                           : (isToday
                               ? AppColors.primary.withValues(alpha: 0.5)
-                              : AppColors.glassBorderDark),
+                              : borderColor),
                       width: isSelected || isToday ? 2 : 1,
                     ),
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.4),
+                              color: AppColors.primary.withValues(alpha: 0.25),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
-                            )
+                            ),
                           ]
-                        : [],
+                        : const [],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        DateFormat('EEE').format(d).toUpperCase(),
+                        weekday.toUpperCase(),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           color: isSelected
                               ? Colors.white
-                              : (isToday
-                                  ? AppColors.primaryLight
-                                  : AppColors.textMutedDark),
+                              : (isToday ? AppColors.primary : mutedColor),
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        d.day.toString(),
+                        material.formatDecimal(date.day),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isSelected
                               ? Colors.white
-                              : AppColors.textPrimaryDark,
+                              : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'working_hours_model.dart';
 
 enum BusinessOperationalStatus { open, closed, temporarilyClosed }
@@ -34,7 +36,7 @@ class BusinessModel {
     required this.rating,
     required this.reviewCount,
     required this.imageUrl,
-    this.isVerified = true,
+    this.isVerified = false,
     required this.description,
     required this.ownerId,
     this.latitude = 0.0,
@@ -69,6 +71,15 @@ class BusinessModel {
       return [];
     }
 
+    DateTime? parseOptionalDate(dynamic value) {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is DateTime) return value;
+      if (value is String) return DateTime.tryParse(value);
+      if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+      return null;
+    }
+
     final rawStatus = json['business_status'] as String? ??
         json['businessStatus'] as String? ??
         'open';
@@ -87,7 +98,7 @@ class BusinessModel {
       imageUrl:
           json['image_url'] as String? ?? json['imageUrl'] as String? ?? '',
       isVerified:
-          json['is_verified'] as bool? ?? json['isVerified'] as bool? ?? true,
+          json['is_verified'] as bool? ?? json['isVerified'] as bool? ?? false,
       description: json['description'] as String? ?? '',
       ownerId: json['owner_id'] as String? ?? json['ownerId'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
@@ -108,12 +119,8 @@ class BusinessModel {
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
       businessStatus: rawStatus,
       acceptingBookings: rawAccepting,
-      createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'].toString())
-          : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.tryParse(json['updated_at'].toString())
-          : null,
+      createdAt: parseOptionalDate(json['created_at'] ?? json['createdAt']),
+      updatedAt: parseOptionalDate(json['updated_at'] ?? json['updatedAt']),
     );
   }
 
@@ -139,8 +146,8 @@ class BusinessModel {
       'is_active': isActive,
       'business_status': businessStatus,
       'accepting_bookings': acceptingBookings,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      if (createdAt != null) 'created_at': Timestamp.fromDate(createdAt!),
+      if (updatedAt != null) 'updated_at': Timestamp.fromDate(updatedAt!),
     };
   }
 

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/staff_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
@@ -43,15 +44,15 @@ class SpecialistCard extends StatelessWidget {
                 fadeInDuration: const Duration(milliseconds: 100),
                 fadeOutDuration: Duration.zero,
                 placeholder: (context, url) =>
-                    Container(color: AppColors.cardDark),
+                    Container(color: Theme.of(context).colorScheme.surface),
                 errorWidget: (context, url, err) => Container(
                   width: 64,
                   height: 64,
-                  color: AppColors.cardDark,
+                  color: Theme.of(context).colorScheme.surface,
                   alignment: Alignment.center,
-                  child: const Icon(
+                  child: Icon(
                     Icons.person_rounded,
-                    color: AppColors.textMutedDark,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -95,10 +96,14 @@ class SpecialistCard extends StatelessWidget {
                       if (staff.experienceYears > 0) ...[
                         const SizedBox(width: 10),
                         Text(
-                          '•  ${staff.experienceYears} yrs experience',
-                          style: const TextStyle(
+                          context.tr(
+                            '• {count} yrs experience',
+                            params: {'count': staff.experienceYears},
+                          ),
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],

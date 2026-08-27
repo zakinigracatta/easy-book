@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -137,9 +138,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     position: _contentSlide,
                     child: Column(
                       children: [
-                        const Text(
-                          "Easy Book",
-                          style: TextStyle(
+                        Text(context.tr("Easy Book"),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 34,
                             fontWeight: FontWeight.w900,

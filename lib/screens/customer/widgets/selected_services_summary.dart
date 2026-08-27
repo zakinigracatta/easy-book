@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../models/service_model.dart';
+
 import '../../../core/utils/currency_formatter.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../models/service_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../widgets/glass_card.dart';
 
@@ -18,9 +20,14 @@ class SelectedServicesSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     if (services.isEmpty) return const SizedBox.shrink();
 
-    final totalPrice =
-        services.fold(0.0, (sum, s) => sum + (s.discountPrice ?? s.price));
-    final totalDuration = services.fold(0, (sum, s) => sum + s.durationMinutes);
+    final totalPrice = services.fold<double>(
+      0,
+      (sum, service) => sum + (service.discountPrice ?? service.price),
+    );
+    final totalDuration = services.fold<int>(
+      0,
+      (sum, service) => sum + service.durationMinutes,
+    );
 
     return GlassCard(
       child: Column(
@@ -29,9 +36,9 @@ class SelectedServicesSummary extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Selected Services',
-                style: TextStyle(
+              Text(
+                context.tr('Selected Services'),
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -40,9 +47,9 @@ class SelectedServicesSummary extends StatelessWidget {
               if (onEditTap != null)
                 GestureDetector(
                   onTap: onEditTap,
-                  child: const Text(
-                    'Change',
-                    style: TextStyle(
+                  child: Text(
+                    context.tr('Change'),
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primaryLight,
@@ -53,8 +60,8 @@ class SelectedServicesSummary extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Column(
-            children: services.map((s) {
-              final price = s.discountPrice ?? s.price;
+            children: services.map((service) {
+              final price = service.discountPrice ?? service.price;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Row(
@@ -62,11 +69,11 @@ class SelectedServicesSummary extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        s.name,
-                        style: const TextStyle(
+                        service.name,
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimaryDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -75,19 +82,25 @@ class SelectedServicesSummary extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          s.duration,
-                          style: const TextStyle(
+                          service.duration,
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textMutedDark,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Text(
-                          CurrencyFormatter.format(price, currency: s.currency),
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryLight,
+                        Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(
+                            CurrencyFormatter.format(
+                              price,
+                              currency: service.currency,
+                            ),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryLight,
+                            ),
                           ),
                         ),
                       ],
@@ -97,24 +110,27 @@ class SelectedServicesSummary extends StatelessWidget {
               );
             }).toList(),
           ),
-          const Divider(color: AppColors.glassBorderDark, height: 16),
+          Divider(color: Theme.of(context).dividerColor, height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Total Duration: $totalDuration min',
-                style: const TextStyle(
+                '${context.tr('Total Duration')}: $totalDuration ${context.tr('min')}',
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textMutedDark,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Text(
-                'Subtotal: ${CurrencyFormatter.format(totalPrice)}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(
+                  '${context.tr('Subtotal')}: ${CurrencyFormatter.format(totalPrice)}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],

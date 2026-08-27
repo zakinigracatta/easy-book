@@ -12,10 +12,14 @@ export const cancelBooking = onCall(async (request) => {
 
   const callerUid = request.auth.uid;
   const data = request.data || {};
-  const bookingId = data.bookingId;
-  const cancelReason = data.cancelReason || '';
+  const bookingId =
+    typeof data.bookingId === 'string' ? data.bookingId.trim() : '';
+  const cancelReason =
+    typeof data.cancelReason === 'string'
+      ? data.cancelReason.trim().slice(0, 500)
+      : '';
 
-  if (!bookingId) {
+  if (!bookingId || bookingId.length > 200) {
     throw new HttpsError(
       'invalid-argument',
       'MISSING_ARGUMENT: bookingId is required.'
@@ -24,7 +28,7 @@ export const cancelBooking = onCall(async (request) => {
 
   const db = admin.firestore();
 
-  return await db.runTransaction(async (transaction) => {
+  return db.runTransaction(async (transaction) => {
     const bookingRef = db.collection('bookings').doc(bookingId);
     const bookingSnap = await transaction.get(bookingRef);
     if (!bookingSnap.exists) {
@@ -42,8 +46,13 @@ export const cancelBooking = onCall(async (request) => {
     if (currentStatus === 'cancelled') {
       return { success: true, message: 'Booking is already cancelled.' };
     }
+    if (currentStatus === 'completed' || currentStatus === 'noShow') {
+      throw new HttpsError(
+        'failed-precondition',
+        `CANNOT_CANCEL: A ${currentStatus} booking cannot be cancelled.`
+      );
+    }
 
-    // Authorization check
     let cancelledBy = '';
     if (customerId && customerId === callerUid) {
       cancelledBy = 'customer';
@@ -53,9 +62,7 @@ export const cancelBooking = onCall(async (request) => {
       if (bizSnap.exists) {
         const bizData = bizSnap.data() || {};
         const ownerId = bizData.ownerId || bizData.owner_id;
-        if (ownerId === callerUid) {
-          cancelledBy = 'owner';
-        }
+        if (ownerId === callerUid) cancelledBy = 'owner';
       }
     }
 
@@ -66,21 +73,43 @@ export const cancelBooking = onCall(async (request) => {
       );
     }
 
-    // Determine lock IDs from authoritative startDateTime & endDateTime
+    if (
+      cancelledBy === 'customer' &&
+      currentStatus !== 'pending' &&
+      currentStatus !== 'confirmed'
+    ) {
+      throw new HttpsError(
+        'failed-precondition',
+        'CANNOT_CANCEL: This appointment has already started and can no longer be cancelled by the customer.'
+      );
+    }
+
     let startAt: Date;
     let endAt: Date;
-
-    if (bookingData.startDateTime && typeof bookingData.startDateTime.toDate === 'function') {
+    if (
+      bookingData.startDateTime &&
+      typeof bookingData.startDateTime.toDate === 'function'
+    ) {
       startAt = bookingData.startDateTime.toDate();
     } else {
       startAt = new Date(bookingData.startTimestamp || Date.now());
     }
 
-    if (bookingData.endDateTime && typeof bookingData.endDateTime.toDate === 'function') {
+    if (
+      bookingData.endDateTime &&
+      typeof bookingData.endDateTime.toDate === 'function'
+    ) {
       endAt = bookingData.endDateTime.toDate();
     } else {
-      const dur = bookingData.durationMinutes || 30;
-      endAt = new Date(startAt.getTime() + dur * 60 * 1000);
+      const duration = bookingData.durationMinutes || 30;
+      endAt = new Date(startAt.getTime() + duration * 60 * 1000);
+    }
+
+    if (cancelledBy === 'customer' && startAt.getTime() <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'CANNOT_CANCEL: The appointment start time has already passed.'
+      );
     }
 
     const lockObjects = generateIntervalSlotLockIds(
@@ -89,25 +118,17 @@ export const cancelBooking = onCall(async (request) => {
       startAt,
       endAt
     );
-
-    // Delete all booking locks
     for (const lock of lockObjects) {
-      const lockRef = db.collection('booking_slots').doc(lock.lockId);
-      transaction.delete(lockRef);
+      transaction.delete(db.collection('booking_slots').doc(lock.lockId));
     }
 
-    // Update booking document
-    const updatePayload: Record<string, any> = {
+    transaction.update(bookingRef, {
       status: 'cancelled',
       cancelledBy,
+      ...(cancelReason ? { cancelReason } : {}),
       cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-    if (cancelReason) {
-      updatePayload.cancelReason = cancelReason;
-    }
-
-    transaction.update(bookingRef, updatePayload);
+    });
 
     return {
       success: true,

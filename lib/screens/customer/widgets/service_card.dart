@@ -43,13 +43,13 @@ class ServiceCard extends StatelessWidget {
                   height: 70,
                   fit: BoxFit.cover,
                   placeholder: (context, url) =>
-                      Container(color: AppColors.cardDark),
+                      Container(color: Theme.of(context).colorScheme.surface),
                   errorWidget: (context, url, err) => Container(
                     width: 70,
                     height: 70,
-                    color: AppColors.cardDark,
-                    child: const Icon(Icons.content_cut_rounded,
-                        color: AppColors.textMutedDark),
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Icon(Icons.content_cut_rounded,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               ),
@@ -72,14 +72,14 @@ class ServiceCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.access_time_rounded,
-                          size: 13, color: AppColors.textMutedDark),
+                      Icon(Icons.access_time_rounded,
+                          size: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Text(
                         service.duration,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textMutedDark,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -90,9 +90,9 @@ class ServiceCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       service.description!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondaryDark,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         height: 1.3,
                       ),
                       maxLines: 2,
@@ -118,8 +118,8 @@ class ServiceCard extends StatelessWidget {
                         Text(
                           CurrencyFormatter.format(service.price,
                               currency: service.currency),
-                          style: const TextStyle(
-                            color: AppColors.textMutedDark,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 12,
                             decoration: TextDecoration.lineThrough,
                           ),

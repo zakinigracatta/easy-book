@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../glass_card.dart';
 
@@ -20,6 +22,10 @@ class OwnerEmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mutedColor =
+        isDark ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.textMutedLight;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -34,49 +40,33 @@ class OwnerEmptyStateWidget extends StatelessWidget {
                   color: AppColors.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 40, color: AppColors.primaryLight),
+                child: Icon(icon, size: 40, color: AppColors.primary),
               ),
               const SizedBox(height: 16),
               Text(
-                title,
+                context.tr(title),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimaryDark,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                description,
+                context.tr(description),
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textMutedDark,
+                  color: mutedColor,
                   height: 1.4,
                 ),
               ),
               if (actionLabel != null && onActionTap != null) ...[
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                   onPressed: onActionTap,
                   icon: const Icon(Icons.add_rounded, size: 18),
-                  label: Text(
-                    actionLabel!,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
+                  label: Text(context.tr(actionLabel!)),
                 ),
               ],
             ],
