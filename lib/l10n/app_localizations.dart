@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'arabic_runtime_translations.dart';
 import 'arabic_translations.dart';
+import 'russian_dynamic_ui_translations.dart';
 import 'russian_runtime_translations.dart';
 import 'russian_secondary_translations.dart';
 import 'russian_translations.dart';
@@ -37,7 +38,8 @@ class AppLocalizations {
           arabicTranslations[source] ??
           source;
     } else if (languageCode == 'ru') {
-      value = russianRuntimeTranslations[source] ??
+      value = russianDynamicUiTranslations[source] ??
+          russianRuntimeTranslations[source] ??
           russianSecondaryTranslations[source] ??
           russianTranslations[source] ??
           source;
