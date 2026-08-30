@@ -141,6 +141,46 @@ void main() {
       expect(redirectTarget, equals(adminLoginRoute));
     });
 
+    test('6b. Customer cannot access /admin/businesses or /admin/businesses/:id on Web', () {
+      final redirectTargetBusinesses = evaluateRouteGuard(
+        location: '/admin/businesses',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.customerUser,
+      );
+      expect(redirectTargetBusinesses, equals(adminAccessDeniedRoute));
+
+      final redirectTargetDetails = evaluateRouteGuard(
+        location: '/admin/businesses/b1',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.customerUser,
+      );
+      expect(redirectTargetDetails, equals(adminAccessDeniedRoute));
+    });
+
+    test('6c. Admin CAN access /admin/businesses and /admin/businesses/:id on Web', () {
+      final redirectTargetBusinesses = evaluateRouteGuard(
+        location: '/admin/businesses',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.adminUser,
+      );
+      expect(redirectTargetBusinesses, isNull);
+
+      final redirectTargetDetails = evaluateRouteGuard(
+        location: '/admin/businesses/b1',
+        isWeb: true,
+        hasFirebaseUser: true,
+        isEmailVerified: true,
+        userModel: AuthFixtures.adminUser,
+      );
+      expect(redirectTargetDetails, isNull);
+    });
+
     test('7. Mobile user (any role) accessing /admin redirects to /admin-web-only', () {
       for (final roleUser in [
         null,

@@ -80,6 +80,10 @@ import '../screens/admin/users_management_screen.dart';
 import '../screens/admin/admin_access_denied_screen.dart';
 import '../screens/admin/web_only_admin_access_screen.dart';
 
+// Admin Feature Screens (new architecture under lib/features/admin/)
+import '../features/admin/business_details_screen.dart';
+import '../features/admin/business_management_screen.dart';
+
 // General & Settings Screens
 import '../screens/settings/about_screen.dart';
 import '../screens/settings/help_screen.dart';
@@ -93,6 +97,7 @@ import '../screens/settings/settings_screen.dart';
 const adminProtectedRoutes = [
   '/admin',
   '/admin/dashboard',
+  '/admin/businesses',
   '/admin/users',
   '/admin/approvals',
   '/admin/payments',
@@ -184,7 +189,9 @@ String? evaluateRouteGuard({
   }
 
   // Admin route protection — centralized FAIL CLOSED guard
-  if (adminProtectedRoutes.contains(location)) {
+  final isAdminRoute = adminProtectedRoutes.contains(location) ||
+      location.startsWith('/admin/');
+  if (isAdminRoute) {
     // On mobile, admin portal is not available — show web-only screen.
     if (!isWeb) {
       return adminWebOnlyRoute;
@@ -484,6 +491,18 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin/dashboard',
       builder: (context, state) => const AdminDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/admin/businesses',
+      builder: (context, state) => const BusinessManagementScreen(),
+    ),
+    GoRoute(
+      path: '/admin/businesses/:businessId',
+      builder: (context, state) {
+        final businessId =
+            state.pathParameters['businessId'] ?? (state.extra as String?);
+        return AdminBusinessDetailsScreen(businessId: businessId ?? '');
+      },
     ),
     GoRoute(
       path: '/admin/users',

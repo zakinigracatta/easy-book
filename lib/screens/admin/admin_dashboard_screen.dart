@@ -81,6 +81,12 @@ class AdminDashboardScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _adminTile(
                 context,
+                'Business Activities & Salons',
+                Icons.storefront_rounded,
+                '/admin/businesses',
+              ),
+              _adminTile(
+                context,
                 'User & Account Management',
                 Icons.group_rounded,
                 '/users-management',
