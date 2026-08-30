@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/customer_bottom_nav.dart';
 import '../../theme/app_colors.dart';
 
-class CustomerProfileScreen extends StatelessWidget {
+class CustomerProfileScreen extends ConsumerWidget {
   const CustomerProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('الملف الشخصي للعميل'),
@@ -68,7 +70,11 @@ class CustomerProfileScreen extends StatelessWidget {
                 () => context.push('/about')),
             const SizedBox(height: 16),
             GlassCard(
-              onTap: () => context.go('/welcome'),
+              onTap: () async {
+                await ref.read(authProvider.notifier).logout();
+                if (!context.mounted) return;
+                context.go('/welcome');
+              },
               borderColor: AppColors.error,
               child: const Row(
                 children: [

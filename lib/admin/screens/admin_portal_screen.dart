@@ -73,64 +73,66 @@ class _AdminPortalScreenState extends ConsumerState<AdminPortalScreen> {
     );
   }
 
-  Widget _navigation(bool isCollapsed) => Container(
+  Widget _navigation(bool isCollapsed) => SizedBox(
         width: isCollapsed ? 80 : 250,
-        color: const Color(0xFF172554),
-        child: SafeArea(
-          child: Column(children: [
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(children: [
-                const CircleAvatar(
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.auto_stories, color: Color(0xFF2563EB)),
-                ),
-                if (!isCollapsed) ...[
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text('Easy Book',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 19,
-                            fontWeight: FontWeight.bold)),
+        child: Material(
+          color: const Color(0xFF172554),
+          child: SafeArea(
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.all(18),
+                child: Row(children: [
+                  const CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.auto_stories, color: Color(0xFF2563EB)),
                   ),
-                ],
-              ]),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                children: [
-                  for (final item in AdminSection.values)
-                    _NavItem(
-                      item: item,
-                      selected: item == widget.section,
-                      collapsed: isCollapsed,
+                  if (!isCollapsed) ...[
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text('Easy Book',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold)),
                     ),
-                ],
+                  ],
+                ]),
               ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.white70),
-              title: isCollapsed
-                  ? null
-                  : const Text('تسجيل الخروج',
-                      style: TextStyle(color: Colors.white70)),
-              onTap: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (mounted) context.go('/admin-login');
-              },
-            ),
-            if (MediaQuery.sizeOf(context).width >= 980)
-              IconButton(
-                color: Colors.white70,
-                tooltip: isCollapsed ? 'توسيع القائمة' : 'طي القائمة',
-                onPressed: () => setState(() => collapsed = !collapsed),
-                icon: Icon(isCollapsed
-                    ? Icons.keyboard_double_arrow_left
-                    : Icons.keyboard_double_arrow_right),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  children: [
+                    for (final item in AdminSection.values)
+                      _NavItem(
+                        item: item,
+                        selected: item == widget.section,
+                        collapsed: isCollapsed,
+                      ),
+                  ],
+                ),
               ),
-          ]),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white70),
+                title: isCollapsed
+                    ? null
+                    : const Text('تسجيل الخروج',
+                        style: TextStyle(color: Colors.white70)),
+                onTap: () async {
+                  await ref.read(authProvider.notifier).logout();
+                  if (mounted) context.go('/admin-login');
+                },
+              ),
+              if (MediaQuery.sizeOf(context).width >= 980)
+                IconButton(
+                  color: Colors.white70,
+                  tooltip: isCollapsed ? 'توسيع القائمة' : 'طي القائمة',
+                  onPressed: () => setState(() => collapsed = !collapsed),
+                  icon: Icon(isCollapsed
+                      ? Icons.keyboard_double_arrow_left
+                      : Icons.keyboard_double_arrow_right),
+                ),
+            ]),
+          ),
         ),
       );
 }
