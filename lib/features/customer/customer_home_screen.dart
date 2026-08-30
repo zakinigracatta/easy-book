@@ -194,6 +194,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                         AppColors.goldGradient,
                         () async {
                           final allowed = await requireLogin(context);
+                          if (!context.mounted) return;
                           if (allowed) {
                             context.push('/booking-service');
                           }
@@ -207,6 +208,7 @@ class CustomerHomeScreen extends ConsumerWidget {
                         AppColors.primaryGradient,
                         () async {
                           final allowed = await requireLogin(context);
+                          if (!context.mounted) return;
                           if (allowed) {
                             context.push('/booking-service');
                           }

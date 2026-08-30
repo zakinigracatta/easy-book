@@ -300,10 +300,13 @@ class PromotionManagementScreen extends ConsumerWidget {
                 await ref.read(ownerRepositoryProvider).saveOffer(newOffer);
                 ref.invalidate(ownerOffersProvider);
 
+                if (!context.mounted || !ctx.mounted) return;
+                final messenger = ScaffoldMessenger.of(context);
+                final msg = context.tr('Offer published successfully!');
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   SnackBar(
-                    content: Text(context.tr('Offer published successfully!')),
+                    content: Text(msg),
                     backgroundColor: AppColors.success,
                   ),
                 );

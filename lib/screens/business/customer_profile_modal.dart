@@ -221,15 +221,16 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                       _notesController.text.trim(),
                     );
                 ref.invalidate(ownerCustomersProvider);
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(context.tr('Private customer notes saved!')),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+                final messenger = ScaffoldMessenger.of(context);
+                final msg = context.tr('Private customer notes saved!');
+                Navigator.pop(context);
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(msg),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
               },
             ),
           ],
