@@ -47,6 +47,14 @@ void main() {
       );
       expect(
         RoleRouting.redirect(
+          path: '/admin/businesses/business-123',
+          user: admin,
+          sessionResolved: true,
+        ),
+        isNull,
+      );
+      expect(
+        RoleRouting.redirect(
           path: '/home',
           user: admin,
           sessionResolved: true,
@@ -67,6 +75,14 @@ void main() {
       expect(
         RoleRouting.redirect(
           path: '/admin',
+          user: _user(UserRole.customer),
+          sessionResolved: true,
+        ),
+        '/home',
+      );
+      expect(
+        RoleRouting.redirect(
+          path: '/admin/businesses/business-123',
           user: _user(UserRole.customer),
           sessionResolved: true,
         ),

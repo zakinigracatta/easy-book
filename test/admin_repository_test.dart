@@ -80,5 +80,31 @@ void main() {
       expect(details.services.single.text(['name']), 'Haircut');
       expect(details.bookings.single.id, 'booking');
     });
+
+    test('loads core business details when related records are absent',
+        () async {
+      final firestore = FakeFirebaseFirestore();
+      await firestore.collection('businesses').doc('business').set({
+        'name': 'Business Without Relations',
+        'is_verified': false,
+      });
+
+      final details = await AdminRepository(firestore: firestore)
+          .businessDetails('business');
+
+      expect(details.business.text(['name']), 'Business Without Relations');
+      expect(details.owner, isNull);
+      expect(details.services, isEmpty);
+      expect(details.staff, isEmpty);
+    });
+
+    test('reports a missing business ID', () async {
+      final repository = AdminRepository(firestore: FakeFirebaseFirestore());
+
+      await expectLater(
+        repository.businessDetails('missing'),
+        throwsStateError,
+      );
+    });
   });
 }

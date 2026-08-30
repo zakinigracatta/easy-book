@@ -61,7 +61,6 @@ import '../screens/admin/payment_management_screen.dart';
 import '../screens/admin/analytics_screen.dart';
 import '../screens/admin/reports_screen.dart';
 import '../admin/screens/admin_portal_screen.dart';
-import '../admin/screens/business_management_screen.dart';
 import '../admin/screens/admin_access_screens.dart';
 import '../admin/widgets/admin_gate.dart';
 
@@ -244,8 +243,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/businesses/:id',
         builder: (context, state) => AdminGate(
-          child: AdminBusinessDetailsScreen(
-            businessId: state.pathParameters['id']!,
+          child: AdminPortalScreen(
+            section: AdminSection.businesses,
+            businessId: state.pathParameters['id'],
           ),
         ),
       ),

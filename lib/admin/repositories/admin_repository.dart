@@ -57,23 +57,38 @@ class AdminRepository {
     final business =
         AdminRecord(id: businessSnapshot.id, data: businessSnapshot.data()!);
     final ownerId = business.text(['owner_id', 'ownerId'], fallback: '');
+
+    // Related records enrich the page, but a missing index or a denied optional
+    // collection must not hide the business document that was loaded correctly.
+    Future<T?> optional<T>(Future<T> request) async {
+      try {
+        return await request;
+      } catch (_) {
+        return null;
+      }
+    }
+
     final results = await Future.wait<Object?>([
       ownerId.isEmpty
           ? Future.value(null)
-          : _firestore.collection('users').doc(ownerId).get(),
-      reference.collection('services').limit(50).get(),
-      reference.collection('staff').limit(50).get(),
-      reference.collection('reviews').limit(50).get(),
-      _firestore
-          .collection('bookings')
-          .where('businessId', isEqualTo: businessId)
-          .limit(50)
-          .get(),
-      _firestore
-          .collection('bookings')
-          .where('salon_id', isEqualTo: businessId)
-          .limit(50)
-          .get(),
+          : optional(_firestore.collection('users').doc(ownerId).get()),
+      optional(reference.collection('services').limit(50).get()),
+      optional(reference.collection('staff').limit(50).get()),
+      optional(reference.collection('reviews').limit(50).get()),
+      optional(
+        _firestore
+            .collection('bookings')
+            .where('businessId', isEqualTo: businessId)
+            .limit(50)
+            .get(),
+      ),
+      optional(
+        _firestore
+            .collection('bookings')
+            .where('salon_id', isEqualTo: businessId)
+            .limit(50)
+            .get(),
+      ),
     ]);
 
     AdminRecord? owner;
@@ -84,7 +99,8 @@ class AdminRepository {
       owner = AdminRecord(id: ownerSnapshot.id, data: ownerSnapshot.data()!);
     }
     List<AdminRecord> records(Object? value) {
-      final snapshot = value as QuerySnapshot<Map<String, dynamic>>;
+      if (value is! QuerySnapshot<Map<String, dynamic>>) return const [];
+      final snapshot = value;
       return snapshot.docs
           .map((doc) => AdminRecord(id: doc.id, data: doc.data()))
           .toList(growable: false);

@@ -106,9 +106,10 @@ class _BusinessManagementScreenState
                 rows: filtered.map((business) {
                   final isVerified = business.data['is_verified'] == true;
                   final loading = mutatingId == business.id;
+                  final detailsPath =
+                      '/admin/businesses/${Uri.encodeComponent(business.id)}';
                   return DataRow(
-                    onSelectChanged: (_) =>
-                        context.go('/admin/businesses/${business.id}'),
+                    onSelectChanged: (_) => context.go(detailsPath),
                     cells: [
                       DataCell(Text(business.text(['name']))),
                       DataCell(Text(business.text(['category']))),
@@ -124,8 +125,7 @@ class _BusinessManagementScreenState
                       )),
                       DataCell(Row(children: [
                         TextButton(
-                          onPressed: () =>
-                              context.go('/admin/businesses/${business.id}'),
+                          onPressed: () => context.go(detailsPath),
                           child: const Text('التفاصيل'),
                         ),
                         if (!isVerified)
@@ -206,24 +206,45 @@ class AdminBusinessDetailsScreen extends ConsumerWidget {
   final String businessId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            onPressed: () => context.go('/admin/businesses'),
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (businessId.trim().isEmpty) {
+      return const _Message(
+        icon: Icons.error_outline,
+        text: 'معرّف النشاط غير صالح.',
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          IconButton(
+            tooltip: 'العودة إلى الأنشطة',
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/admin/businesses');
+              }
+            },
             icon: const Icon(Icons.arrow_back),
           ),
-          title: const Text('تفاصيل النشاط'),
-        ),
-        body: ref.watch(adminBusinessDetailsProvider(businessId)).when(
+          const SizedBox(width: 8),
+          Text('تفاصيل النشاط',
+              style: Theme.of(context).textTheme.headlineSmall),
+        ]),
+        const SizedBox(height: 16),
+        ref.watch(adminBusinessDetailsProvider(businessId)).when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => _Message(
+              error: (error, __) => _Message(
                 icon: Icons.error_outline,
-                text: 'تعذر تحميل تفاصيل النشاط.',
+                text: error is StateError
+                    ? 'لم يتم العثور على هذا النشاط.'
+                    : 'تعذر تحميل تفاصيل النشاط.',
                 action: () =>
                     ref.invalidate(adminBusinessDetailsProvider(businessId)),
               ),
-              data: (details) => ListView(
-                padding: const EdgeInsets.all(24),
+              data: (details) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _BusinessHeader(record: details.business),
                   const SizedBox(height: 16),
@@ -241,7 +262,9 @@ class AdminBusinessDetailsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-      );
+      ],
+    );
+  }
 }
 
 class _BusinessHeader extends StatelessWidget {
@@ -256,8 +279,29 @@ class _BusinessHeader extends StatelessWidget {
             _Field('التصنيف', record.text(['category'])),
             _Field('العنوان', record.text(['address'])),
             _Field('التقييم', record.number(['rating']).toStringAsFixed(1)),
-            _Field('الحالة',
-                record.data['is_verified'] == true ? 'معتمد' : 'غير معتمد'),
+            _Field(
+              'حالة الاعتماد',
+              record.data['is_verified'] is bool
+                  ? record.data['is_verified'] == true
+                      ? 'معتمد'
+                      : 'غير معتمد'
+                  : record.text(['approval_status', 'status']),
+            ),
+            _Field(
+              'الحالة النشطة',
+              record.data['is_active'] is bool
+                  ? record.data['is_active'] == true
+                      ? 'نشط'
+                      : 'غير نشط'
+                  : record.data['isActive'] is bool
+                      ? record.data['isActive'] == true
+                          ? 'نشط'
+                          : 'غير نشط'
+                      : '—',
+            ),
+            _Field('الهاتف', record.text(['phone', 'phone_number'])),
+            _Field(
+                'البريد الإلكتروني', record.text(['email', 'contact_email'])),
             _Field(
               'تاريخ الإنشاء',
               record.date(['created_at', 'createdAt']) == null

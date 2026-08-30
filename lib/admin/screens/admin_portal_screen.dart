@@ -32,8 +32,13 @@ enum AdminSection {
 }
 
 class AdminPortalScreen extends ConsumerStatefulWidget {
-  const AdminPortalScreen({required this.section, super.key});
+  const AdminPortalScreen({
+    required this.section,
+    this.businessId,
+    super.key,
+  });
   final AdminSection section;
+  final String? businessId;
 
   @override
   ConsumerState<AdminPortalScreen> createState() => _AdminPortalScreenState();
@@ -63,7 +68,10 @@ class _AdminPortalScreenState extends ConsumerState<AdminPortalScreen> {
                   padding: EdgeInsets.all(narrow ? 16 : 28),
                   child: widget.section == AdminSection.dashboard
                       ? const _Dashboard()
-                      : _CollectionPage(section: widget.section),
+                      : _CollectionPage(
+                          section: widget.section,
+                          businessId: widget.businessId,
+                        ),
                 ),
               ),
             ),
@@ -262,8 +270,9 @@ class _Dashboard extends ConsumerWidget {
 }
 
 class _CollectionPage extends ConsumerWidget {
-  const _CollectionPage({required this.section});
+  const _CollectionPage({required this.section, this.businessId});
   final AdminSection section;
+  final String? businessId;
 
   String? get collection => switch (section) {
         AdminSection.businesses => 'businesses',
@@ -278,7 +287,9 @@ class _CollectionPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (section == AdminSection.businesses) {
-      return const BusinessManagementScreen();
+      return businessId == null
+          ? const BusinessManagementScreen()
+          : AdminBusinessDetailsScreen(businessId: businessId!);
     }
     if (section == AdminSection.finance ||
         section == AdminSection.notifications ||
