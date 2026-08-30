@@ -10,9 +10,12 @@ class BusinessProfileScreen extends StatefulWidget {
 }
 
 class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
-  final _nameController = TextEditingController(text: 'Executive Barber Lounge');
-  final _addressController = TextEditingController(text: '142 Luxury Blvd, Downtown');
-  final _descController = TextEditingController(text: 'Premium grooming experience for modern gentlemen.');
+  final _nameController =
+      TextEditingController(text: 'صالون إكزكيوتيف للحلاقة');
+  final _addressController =
+      TextEditingController(text: '142 Luxury Blvd, Downtown');
+  final _descController = TextEditingController(
+      text: 'Premium grooming experience for modern gentlemen.');
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +35,8 @@ class _BusinessProfileScreenState extends State<BusinessProfileScreen> {
               text: 'Save Business Profile',
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated successfully!')),
+                  const SnackBar(
+                      content: Text('Profile updated successfully!')),
                 );
               },
             ),

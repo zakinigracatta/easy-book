@@ -26,7 +26,7 @@ class _StaffOnboardingScreenState extends State<StaffOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Staff Member')),
+      appBar: AppBar(title: const Text('إضافة موظف')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: GlassCard(
@@ -34,24 +34,24 @@ class _StaffOnboardingScreenState extends State<StaffOnboardingScreen> {
             children: [
               CustomTextField(
                 controller: _nameController,
-                label: 'Staff Member Name',
+                label: 'اسم الموظف',
                 prefixIcon: Icons.person,
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _roleController,
-                label: 'Role Title (e.g. Master Barber)',
+                label: 'المسمى الوظيفي (مثال: حلاق محترف)',
                 prefixIcon: Icons.badge,
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _commissionController,
-                label: 'Commission Rate (%)',
+                label: 'نسبة العمولة (%)',
                 prefixIcon: Icons.percent,
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: 'Save Specialist Profile',
+                text: 'حفظ ملف المختص',
                 onPressed: () {
                   Navigator.pop(context);
                 },

@@ -9,8 +9,18 @@ class ReviewsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reviews = [
-      {'name': 'Alex Johnson', 'comment': 'Top notch haircut and hot towel treatment!', 'rating': 5.0, 'date': '2 days ago'},
-      {'name': 'Emily Davis', 'comment': 'Very relaxing atmosphere and friendly staff.', 'rating': 4.8, 'date': '1 week ago'},
+      {
+        'name': 'أليكس جونسون',
+        'comment': 'قصة شعر وعلاج بالمنشفة الساخنة بمستوى ممتاز!',
+        'rating': 5.0,
+        'date': 'قبل يومين'
+      },
+      {
+        'name': 'إيميلي ديفيس',
+        'comment': 'أجواء مريحة جدًا وطاقم ودود.',
+        'rating': 4.8,
+        'date': 'قبل أسبوع'
+      },
     ];
 
     return PopScope(
@@ -36,7 +46,7 @@ class ReviewsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Customer Reviews'),
+          title: const Text('تقييمات العملاء'),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),
@@ -52,14 +62,18 @@ class ReviewsScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(r['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(r['name'] as String,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                         RatingStars(rating: r['rating'] as double),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(r['comment'] as String),
                     const SizedBox(height: 4),
-                    Text(r['date'] as String, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text(r['date'] as String,
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),

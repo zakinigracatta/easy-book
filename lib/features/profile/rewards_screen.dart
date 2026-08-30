@@ -42,14 +42,17 @@ class RewardsScreen extends StatelessWidget {
                 backgroundColor: AppColors.primary.withOpacity(0.15),
                 child: Column(
                   children: [
-                    const Icon(Icons.stars_rounded, size: 48, color: AppColors.accent),
+                    const Icon(Icons.stars_rounded,
+                        size: 48, color: AppColors.accent),
                     const SizedBox(height: 12),
                     const GradientText(
                       '1,450 Points',
-                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+                      style:
+                          TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 8),
-                    const Text('VIP Gold Tier Member', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('VIP Gold Tier Member',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     LinearProgressIndicator(
                       value: 0.72,
@@ -58,19 +61,26 @@ class RewardsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     const SizedBox(height: 8),
-                    const Text('550 pts until Platinum Tier', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                    const Text('550 pts until Platinum Tier',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textMutedDark)),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Redeemable Rewards', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text('Redeemable Rewards',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 12),
-              _rewardTile(context, 'Free Hot Towel Treatment', '300 pts', Icons.dry_cleaning_rounded),
-              _rewardTile(context, '\$15 Off Any Hair Salon Booking', '500 pts', Icons.content_cut_rounded),
-              _rewardTile(context, 'Full Body Spa Voucher (30 min)', '1,000 pts', Icons.spa_rounded),
+              _rewardTile(context, 'Free Hot Towel Treatment', '300 pts',
+                  Icons.dry_cleaning_rounded),
+              _rewardTile(context, '\$15 Off Any Hair Salon Booking', '500 pts',
+                  Icons.content_cut_rounded),
+              _rewardTile(context, 'Full Body Spa Voucher (30 min)',
+                  '1,000 pts', Icons.spa_rounded),
             ],
           ),
         ),
@@ -78,7 +88,8 @@ class RewardsScreen extends StatelessWidget {
     );
   }
 
-  Widget _rewardTile(BuildContext context, String title, String points, IconData icon) {
+  Widget _rewardTile(
+      BuildContext context, String title, String points, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassCard(
@@ -93,14 +104,22 @@ class RewardsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  Text(points, style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600, fontSize: 12)),
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(points,
+                      style: const TextStyle(
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12)),
                 ],
               ),
             ),
             ElevatedButton(
               onPressed: () {},
-              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+              style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
               child: const Text('Redeem', style: TextStyle(fontSize: 12)),
             ),
           ],

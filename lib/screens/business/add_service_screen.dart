@@ -41,23 +41,33 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
               }
             },
           ),
-          title: const Text('Add New Service'),
+          title: const Text('إضافة خدمة جديدة'),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: GlassCard(
             child: Column(
               children: [
-                CustomTextField(controller: _nameController, label: 'Service Name', prefixIcon: Icons.design_services_rounded),
+                CustomTextField(
+                    controller: _nameController,
+                    label: 'اسم الخدمة',
+                    prefixIcon: Icons.design_services_rounded),
                 const SizedBox(height: 14),
-                CustomTextField(controller: _priceController, label: 'Price (\$)', prefixIcon: Icons.attach_money_rounded),
+                CustomTextField(
+                    controller: _priceController,
+                    label: 'السعر (\$)',
+                    prefixIcon: Icons.attach_money_rounded),
                 const SizedBox(height: 14),
-                CustomTextField(controller: _durationController, label: 'Duration (e.g. 45 mins)', prefixIcon: Icons.timer_outlined),
+                CustomTextField(
+                    controller: _durationController,
+                    label: 'المدة (مثال: 45 دقيقة)',
+                    prefixIcon: Icons.timer_outlined),
                 const SizedBox(height: 24),
                 CustomButton(
-                  text: 'Publish Service',
+                  text: 'نشر الخدمة',
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('New service added!')));
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('تمت إضافة الخدمة الجديدة!')));
                     if (context.canPop()) {
                       context.pop();
                     } else {

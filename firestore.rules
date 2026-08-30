@@ -1,0 +1,201 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isOwnerAccount() {
+      return isAuthenticated()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    function isAdmin() {
+      return isAuthenticated()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+              in ['admin', 'super_admin'];
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated()
+          && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+              == 'super_admin';
+    }
+
+    function isBusinessOwner(businessId) {
+      return isOwnerAccount()
+          && (
+            businessId == request.auth.uid
+            || (
+              exists(/databases/$(database)/documents/businesses/$(businessId))
+              && (
+                ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data
+                  && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid)
+                || ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data
+                  && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+              )
+            )
+          );
+    }
+
+    // User Devices
+    match /users/{userId}/devices/{deviceId} {
+      allow read, write: if isUser(userId);
+    }
+
+    // User Notifications
+    match /users/{userId}/notifications/{notificationId} {
+      allow read: if isUser(userId) || isAdmin();
+      allow create: if false;
+      allow update: if isUser(userId)
+          && resource != null
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['readAt', 'isRead']);
+      allow delete: if false;
+    }
+
+    // User profiles and per-user saved businesses.
+    match /users/{userId} {
+      allow read: if isUser(userId);
+
+      allow create: if isUser(userId)
+          && request.resource.data.id == userId
+          && ('email' in request.auth.token)
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.role in ['customer', 'owner']
+          && request.resource.data.keys().hasOnly([
+            'id', 'email', 'full_name', 'phone', 'avatar_url', 'role',
+            'wallet_balance', 'favorite_business_ids', 'business_name',
+            'category', 'location', 'business_image_url', 'created_at',
+            'updated_at'
+          ]);
+
+      allow update: if isAdmin()
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['disabled', 'updated_at']);
+
+      allow update: if isUser(userId)
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.email == resource.data.email
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'full_name', 'phone', 'avatar_url', 'favorite_business_ids',
+            'business_name', 'category', 'location', 'business_image_url',
+            'updated_at'
+          ]);
+
+      match /favorites/{businessId} {
+        allow read, delete: if isUser(userId);
+        allow create: if isUser(userId)
+            && request.resource.data.businessId == businessId
+            && request.resource.data.keys()
+                .hasOnly(['businessId', 'createdAt']);
+        allow update: if false;
+      }
+    }
+
+    // Businesses and public catalogue subcollections.
+    match /businesses/{businessId} {
+      allow read: if true;
+
+      allow create: if isOwnerAccount()
+          && (businessId == request.auth.uid
+            || request.resource.data.ownerId == request.auth.uid
+            || request.resource.data.owner_id == request.auth.uid);
+      allow update: if isBusinessOwner(businessId)
+          || (isAdmin()
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['is_verified', 'updated_at']));
+      allow delete: if isBusinessOwner(businessId);
+
+      match /services/{serviceId} {
+        allow read: if true;
+        allow create, update, delete: if isBusinessOwner(businessId);
+      }
+
+      match /staff/{staffId} {
+        allow read: if true;
+        allow create, update, delete: if isBusinessOwner(businessId);
+      }
+
+      match /offers/{offerId} {
+        allow read: if true;
+        allow create, update, delete: if isBusinessOwner(businessId);
+      }
+
+      match /gallery/{imageId} {
+        allow read: if true;
+        allow create, update, delete: if isBusinessOwner(businessId);
+      }
+
+      // Customers can read reviews; owners can only edit reply fields.
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create, delete: if false;
+        allow update: if isBusinessOwner(businessId)
+            && resource != null
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['businessReply', 'businessReplyAt']);
+      }
+
+      match /notifications/{notificationId} {
+        allow read, create, update, delete: if isBusinessOwner(businessId);
+      }
+
+      match /timeOffs/{timeOffId} {
+        allow read, create, update, delete: if isBusinessOwner(businessId);
+      }
+
+      // Private owner-only customer and booking notes.
+      match /customerNotes/{customerId} {
+        allow read, write: if isBusinessOwner(businessId);
+      }
+
+      match /bookingNotes/{bookingId} {
+        allow read, write: if isBusinessOwner(businessId);
+      }
+    }
+
+    // Availability is readable by authenticated users; only trusted backend
+    // code can mutate slot locks.
+    match /booking_slots/{slotId} {
+      allow read, get, list: if isAuthenticated();
+      allow create, update, delete: if false;
+    }
+
+    // Booking writes are handled by Cloud Functions with the Admin SDK.
+    match /bookings/{bookingId} {
+      allow read: if isAdmin() || (isAuthenticated()
+          && (resource.data.customerId == request.auth.uid
+            || isBusinessOwner(resource.data.businessId)));
+      allow create, update, delete: if false;
+    }
+
+    // Optional top-level review architecture. Admin moderation is reversible.
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow update: if isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['status', 'hidden', 'updated_at']);
+      allow create, delete: if false;
+    }
+
+    // Platform settings are restricted to super admins. Client creation of
+    // admin accounts remains disallowed; roles must be provisioned securely.
+    match /platform_settings/{document=**} {
+      allow read: if isAdmin();
+      allow write: if isSuperAdmin();
+    }
+  }
+}

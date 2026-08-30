@@ -6,37 +6,43 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/app_providers.dart';
+import '../../services/auth_failure.dart';
 
 class BusinessRegisterScreen extends ConsumerStatefulWidget {
   const BusinessRegisterScreen({super.key});
 
   @override
-  ConsumerState<BusinessRegisterScreen> createState() => _BusinessRegisterScreenState();
+  ConsumerState<BusinessRegisterScreen> createState() =>
+      _BusinessRegisterScreenState();
 }
 
-class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen> {
+class _BusinessRegisterScreenState
+    extends ConsumerState<BusinessRegisterScreen> {
   final _businessNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _locationController = TextEditingController();
-  
-  String _selectedCategory = 'Barber';
-  String? _businessImageUrl = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+
+  String _selectedCategory = 'حلاقة';
+  final String _businessImageUrl =
+      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
   bool _isLoading = false;
 
   final List<String> _categories = [
-    'Barber',
-    'Hair Salon',
-    'Spa & Relax',
-    'Nails & Beauty',
-    'Skin & Facial',
+    'حلاقة',
+    'صالون شعر',
+    'سبا واسترخاء',
+    'أظافر وتجميل',
+    'عناية بالبشرة والوجه',
   ];
 
   Future<void> _handleRegister() async {
-    if (_businessNameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_businessNameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete all required fields.')),
+        const SnackBar(content: Text('يرجى إكمال جميع الحقول المطلوبة.')),
       );
       return;
     }
@@ -44,25 +50,58 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).registerBusinessOwner(
-        businessName: _businessNameController.text.trim(),
-        category: _selectedCategory,
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        location: _locationController.text.trim(),
-        businessImageUrl: _businessImageUrl,
-      );
+            businessName: _businessNameController.text.trim(),
+            category: _selectedCategory,
+            phone: _phoneController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            location: _locationController.text.trim(),
+            businessImageUrl: _businessImageUrl,
+          );
 
+      var verificationSent = true;
+      try {
+        await ref.read(authProvider.notifier).sendEmailVerification();
+      } catch (error) {
+        verificationSent = false;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'تم إنشاء الحساب، لكن تعذر إرسال رسالة التحقق: '
+                '${authErrorMessage(error)}',
+              ),
+            ),
+          );
+        }
+      }
+      if (!mounted) return;
+      if (verificationSent) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('تم إنشاء الحساب. يرجى التحقق من بريدك للمتابعة.')),
+        );
+      }
+      context.go('/email-verification?sent=$verificationSent');
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Business Partner Registered! Role saved as "owner".')),
+          SnackBar(content: Text(authErrorMessage(error))),
         );
-        // Owner goes to Business Dashboard
-        context.go('/owner-dashboard');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _businessNameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _locationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -90,7 +129,7 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
               }
             },
           ),
-          title: const Text('Register Business Owner'),
+          title: const Text('تسجيل مالك النشاط'),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -98,18 +137,20 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.storefront_rounded, size: 60, color: AppColors.accent),
+                const Icon(Icons.storefront_rounded,
+                    size: 60, color: AppColors.accent),
                 const SizedBox(height: 12),
                 const Text(
-                  'Partner Account Creation',
+                  'إنشاء حساب الشريك',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Register your salon or spa. Saved in database with role "owner".',
+                  'سجّل صالونك أو السبا. سيُحفظ الحساب في قاعدة البيانات بصفة مالك.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                  style:
+                      TextStyle(color: AppColors.textMutedDark, fontSize: 13),
                 ),
                 const SizedBox(height: 24),
 
@@ -124,7 +165,7 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: AppColors.accent, width: 2),
                           image: DecorationImage(
-                            image: NetworkImage(_businessImageUrl!),
+                            image: NetworkImage(_businessImageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -135,7 +176,8 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                         child: CircleAvatar(
                           backgroundColor: AppColors.accent,
                           radius: 16,
-                          child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+                          child: const Icon(Icons.camera_alt_rounded,
+                              size: 16, color: Colors.white),
                         ),
                       ),
                     ],
@@ -150,57 +192,67 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                     children: [
                       CustomTextField(
                         controller: _businessNameController,
-                        label: 'Business Name',
+                        label: 'اسم النشاط',
                         prefixIcon: Icons.storefront_rounded,
                       ),
                       const SizedBox(height: 14),
 
                       // Category Selection Dropdown
-                      const Text('Business Category', style: TextStyle(fontSize: 12, color: AppColors.textSecondaryDark)),
+                      const Text('فئة النشاط',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondaryDark)),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
-                        value: _selectedCategory,
+                        initialValue: _selectedCategory,
                         dropdownColor: AppColors.cardDark,
                         decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.category_rounded, size: 20),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                          prefixIcon:
+                              const Icon(Icons.category_rounded, size: 20),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16)),
                         ),
-                        items: _categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                        items: _categories
+                            .map((cat) =>
+                                DropdownMenuItem(value: cat, child: Text(cat)))
+                            .toList(),
                         onChanged: (val) {
-                          if (val != null) setState(() => _selectedCategory = val);
+                          if (val != null) {
+                            setState(() => _selectedCategory = val);
+                          }
                         },
                       ),
 
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
-                        label: 'Phone Number',
+                        label: 'رقم الهاتف',
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _emailController,
-                        label: 'Business Email',
+                        label: 'بريد النشاط',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _passwordController,
-                        label: 'Password',
+                        label: 'كلمة المرور',
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _locationController,
-                        label: 'Physical Address / Location',
+                        label: 'العنوان الفعلي / الموقع',
                         prefixIcon: Icons.location_on_outlined,
                       ),
                       const SizedBox(height: 24),
                       CustomButton(
-                        text: 'Register Business & Go to Dashboard',
+                        text: 'تسجيل النشاط والانتقال إلى لوحة التحكم',
                         backgroundColor: AppColors.accent,
                         isLoading: _isLoading,
                         onPressed: _handleRegister,
@@ -213,10 +265,14 @@ class _BusinessRegisterScreenState extends ConsumerState<BusinessRegisterScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already registered? ', style: TextStyle(color: AppColors.textMutedDark)),
+                    const Text('مسجل بالفعل؟ ',
+                        style: TextStyle(color: AppColors.textMutedDark)),
                     TextButton(
                       onPressed: () => context.push('/owner-login'),
-                      child: const Text('Partner Sign In', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold)),
+                      child: const Text('تسجيل دخول الشريك',
+                          style: TextStyle(
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

@@ -30,15 +30,15 @@ class PromotionManagementScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Promotions & Discounts'),
+          title: const Text('العروض والخصومات'),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: const [
             GlassCard(
               child: ListTile(
-                title: Text('SUMMER30 - 30% OFF'),
-                subtitle: Text('Valid on Skincare & Spa • 42 Uses'),
+                title: Text('SUMMER30 - خصم 30%'),
+                subtitle: Text('صالح للعناية بالبشرة والسبا • 42 استخدامًا'),
               ),
             ),
           ],

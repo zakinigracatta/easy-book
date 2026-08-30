@@ -32,7 +32,7 @@ class BookingConfirmationScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Step 4: Confirm Booking'),
+          title: const Text('الخطوة 4: تأكيد الحجز'),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -42,22 +42,26 @@ class BookingConfirmationScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    const Text('Executive Barber Lounge', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('صالون إكزكيوتيف للحلاقة',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    const Text('142 Luxury Blvd, NYC', style: TextStyle(color: AppColors.textMutedDark, fontSize: 12)),
+                    const Text('142 شارع لاكجري، نيويورك',
+                        style: TextStyle(
+                            color: AppColors.textMutedDark, fontSize: 12)),
                     const Divider(height: 24),
-                    _row('Service', 'Royal Haircut & Beard Trim'),
-                    _row('Specialist', 'Marcus Vance'),
-                    _row('Date & Time', 'Tomorrow at 10:00 AM'),
-                    _row('Duration', '45 mins'),
+                    _row('الخدمة', 'قصة شعر ملكية وتشذيب اللحية'),
+                    _row('المختص', 'ماركوس فانس'),
+                    _row('التاريخ والوقت', 'غدًا الساعة 10:00 صباحًا'),
+                    _row('المدة', '45 دقيقة'),
                     const Divider(height: 24),
-                    _row('Total Price', '\$65.00', isBold: true),
+                    _row('السعر الإجمالي', '\$65.00', isBold: true),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
               CustomButton(
-                text: 'Proceed to Payment',
+                text: 'المتابعة إلى الدفع',
                 onPressed: () => context.push('/payment'),
               ),
             ],
@@ -74,7 +78,11 @@ class BookingConfirmationScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(color: AppColors.textMutedDark)),
-          Text(val, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.w600, fontSize: isBold ? 17 : 14, color: isBold ? AppColors.primary : null)),
+          Text(val,
+              style: TextStyle(
+                  fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+                  fontSize: isBold ? 17 : 14,
+                  color: isBold ? AppColors.primary : null)),
         ],
       ),
     );

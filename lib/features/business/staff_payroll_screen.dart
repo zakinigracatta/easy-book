@@ -8,7 +8,7 @@ class StaffPayrollScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Staff Payroll & Commissions')),
+      appBar: AppBar(title: const Text('رواتب الموظفين والعمولات')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -16,18 +16,25 @@ class StaffPayrollScreen extends StatelessWidget {
             const GlassCard(
               child: Column(
                 children: [
-                  GradientText('\$14,250.00', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                  GradientText('\$14,250.00',
+                      style:
+                          TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
                   SizedBox(height: 4),
-                  Text('Total Monthly Staff Payouts', style: TextStyle(color: Colors.grey)),
+                  Text('إجمالي مستحقات الموظفين الشهرية',
+                      style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
             const SizedBox(height: 20),
             GlassCard(
               child: ListTile(
-                title: const Text('Marcus Vance', style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Base Salary: \$3,000 • Commission: \$1,420 • Tips: \$340'),
-                trailing: const Text('\$4,760', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                title: const Text('ماركوس فانس',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text(
+                    'الراتب الأساسي: \$3,000 • العمولة: \$1,420 • الإكراميات: \$340'),
+                trailing: const Text('\$4,760',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ),
           ],

@@ -22,7 +22,8 @@ class RatingStars extends StatelessWidget {
         } else if (rating >= index + 0.5) {
           return Icon(Icons.star_half_rounded, size: size, color: color);
         } else {
-          return Icon(Icons.star_outline_rounded, size: size, color: color.withOpacity(0.4));
+          return Icon(Icons.star_outline_rounded,
+              size: size, color: color.withOpacity(0.4));
         }
       }),
     );

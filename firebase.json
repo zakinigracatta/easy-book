@@ -1,1 +1,35 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"easy-book-zaki","appId":"1:669700001010:android:27b759ec2a883f7347946b","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"easy-book-zaki","configurations":{"android":"1:669700001010:android:27b759ec2a883f7347946b"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "easy-book-zaki",
+          "appId": "1:669700001010:android:a47c10c1fe440d6a47946b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "easy-book-zaki",
+          "configurations": {
+            "android": "1:669700001010:android:a47c10c1fe440d6a47946b",
+            "web": "1:669700001010:web:38788bd9a29a489947946b"
+          }
+        }
+      }
+    }
+  }
+}

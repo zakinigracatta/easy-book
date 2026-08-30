@@ -28,12 +28,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       setState(() => _isLoading = true);
       try {
         await ref.read(authProvider.notifier).signup(
-          fullName: _nameController.text,
-          email: _emailController.text,
-          password: _passwordController.text,
-          phone: _phoneController.text,
-          role: _selectedRole,
-        );
+              fullName: _nameController.text,
+              email: _emailController.text,
+              password: _passwordController.text,
+              phone: _phoneController.text,
+              role: _selectedRole,
+            );
         if (mounted) {
           if (_selectedRole == UserRole.businessOwner) {
             context.go('/business-dashboard');
@@ -61,7 +61,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               children: [
                 Text(
                   'Join Easy Book',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28),
+                  style: Theme.of(context)
+                      .textTheme
+                      .displayLarge
+                      ?.copyWith(fontSize: 28),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -74,7 +77,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   children: [
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => setState(() => _selectedRole = UserRole.customer),
+                        onTap: () =>
+                            setState(() => _selectedRole = UserRole.customer),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
@@ -83,17 +87,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 : Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: Theme.of(context).primaryColor.withOpacity(0.3),
+                              color: Theme.of(context)
+                                  .primaryColor
+                                  .withOpacity(0.3),
                             ),
                           ),
                           child: Center(
                             child: Text(
-                              'Customer',
+                              'عميل',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: _selectedRole == UserRole.customer
                                     ? Colors.white
-                                    : Theme.of(context).textTheme.bodyLarge?.color,
+                                    : Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color,
                               ),
                             ),
                           ),
@@ -103,7 +112,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: GestureDetector(
-                        onTap: () => setState(() => _selectedRole = UserRole.businessOwner),
+                        onTap: () => setState(
+                            () => _selectedRole = UserRole.businessOwner),
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
@@ -112,17 +122,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 : Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: Theme.of(context).primaryColor.withOpacity(0.3),
+                              color: Theme.of(context)
+                                  .primaryColor
+                                  .withOpacity(0.3),
                             ),
                           ),
                           child: Center(
                             child: Text(
-                              'Business Owner',
+                              'مالك صالون',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: _selectedRole == UserRole.businessOwner
                                     ? Colors.white
-                                    : Theme.of(context).textTheme.bodyLarge?.color,
+                                    : Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color,
                               ),
                             ),
                           ),
@@ -134,14 +149,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 28),
                 CustomTextField(
                   controller: _nameController,
-                  label: 'Full Name',
+                  label: 'الاسم الكامل',
                   prefixIcon: Icons.person_outline,
-                  validator: (v) => Validators.validateRequired(v, 'Full Name'),
+                  validator: (v) =>
+                      Validators.validateRequired(v, 'الاسم الكامل'),
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _emailController,
-                  label: 'Email Address',
+                  label: 'البريد الإلكتروني',
                   prefixIcon: Icons.email_outlined,
                   validator: Validators.validateEmail,
                   keyboardType: TextInputType.emailAddress,
@@ -149,7 +165,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _phoneController,
-                  label: 'Phone Number',
+                  label: 'رقم الهاتف',
                   prefixIcon: Icons.phone_outlined,
                   validator: Validators.validatePhone,
                   keyboardType: TextInputType.phone,
@@ -157,7 +173,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _passwordController,
-                  label: 'Password',
+                  label: 'كلمة المرور',
                   prefixIcon: Icons.lock_outline,
                   obscureText: true,
                   validator: Validators.validatePassword,

@@ -11,14 +11,22 @@ class BookingServiceScreen extends StatefulWidget {
 }
 
 class _BookingServiceScreenState extends State<BookingServiceScreen> {
-  String _selectedService = 'Royal Haircut & Beard Sculpting';
+  String _selectedService = 'قصة شعر ملكية ونحت اللحية';
 
   @override
   Widget build(BuildContext context) {
     final services = [
-      {'name': 'Royal Haircut & Beard Sculpting', 'price': '\$65.00', 'time': '45 mins'},
-      {'name': 'Hot Towel Shave', 'price': '\$45.00', 'time': '30 mins'},
-      {'name': 'Deep Facial Spa Treatment', 'price': '\$90.00', 'time': '60 mins'},
+      {
+        'name': 'قصة شعر ملكية ونحت اللحية',
+        'price': '\$65.00',
+        'time': '45 دقيقة'
+      },
+      {
+        'name': 'حلاقة بالمنشفة الساخنة',
+        'price': '\$45.00',
+        'time': '30 دقيقة'
+      },
+      {'name': 'جلسة سبا عميقة للوجه', 'price': '\$90.00', 'time': '60 دقيقة'},
     ];
 
     return PopScope(
@@ -44,7 +52,7 @@ class _BookingServiceScreenState extends State<BookingServiceScreen> {
               }
             },
           ),
-          title: const Text('Step 1: Select Service'),
+          title: const Text('الخطوة 1: اختر الخدمة'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -57,12 +65,20 @@ class _BookingServiceScreenState extends State<BookingServiceScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: GlassCard(
-                        onTap: () => setState(() => _selectedService = s['name']!),
-                        borderColor: isSel ? Theme.of(context).primaryColor : null,
+                        onTap: () =>
+                            setState(() => _selectedService = s['name']!),
+                        borderColor:
+                            isSel ? Theme.of(context).primaryColor : null,
                         child: ListTile(
-                          title: Text(s['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text(s['name']!,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text(s['time']!),
-                          trailing: Text(s['price']!, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).primaryColor)),
+                          trailing: Text(s['price']!,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Theme.of(context).primaryColor)),
                         ),
                       ),
                     );
@@ -70,7 +86,7 @@ class _BookingServiceScreenState extends State<BookingServiceScreen> {
                 ),
               ),
               CustomButton(
-                text: 'Next: Select Date',
+                text: 'التالي: اختر التاريخ',
                 onPressed: () => context.push('/booking-date'),
               ),
             ],

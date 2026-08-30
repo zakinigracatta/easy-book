@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/glass_card.dart';
 import '../../core/constants/app_colors.dart';
+import '../../services/auth_guard.dart';
 
 class GoogleMapsExplorerScreen extends StatelessWidget {
   const GoogleMapsExplorerScreen({super.key});
@@ -43,7 +44,9 @@ class GoogleMapsExplorerScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.map_rounded, size: 80, color: AppColors.accent),
                     SizedBox(height: 16),
-                    Text('Google Maps Explorer Live Feed', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text('Google Maps Explorer Live Feed',
+                        style: TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -56,14 +59,18 @@ class GoogleMapsExplorerScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Executive Barber Lounge', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('صالون إكزكيوتيف للحلاقة',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
-                    const Text('0.4 miles away • 4.9 ★ (328 reviews)', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                    const Text('0.4 miles away • 4.9 ★ (328 reviews)',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textMutedDark)),
                     const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: () async {
                         final allowed = await requireLogin(context);
-                        if (allowed) {
+                        if (allowed && context.mounted) {
                           context.push('/booking');
                         }
                       },

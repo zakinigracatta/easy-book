@@ -16,9 +16,12 @@ class ClientRetentionCampaignsScreen extends StatelessWidget {
             const GlassCard(
               child: Column(
                 children: [
-                  GradientText('Automated SMS & Email Marketing', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  GradientText('Automated SMS & Email Marketing',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
-                  Text('Re-engage clients who have not booked in the last 30 days automatically.'),
+                  Text(
+                      'Re-engage clients who have not booked in the last 30 days automatically.'),
                 ],
               ),
             ),

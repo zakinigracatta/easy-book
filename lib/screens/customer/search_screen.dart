@@ -18,7 +18,7 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search & Explore'),
+        title: const Text('البحث والاستكشاف'),
       ),
       body: Column(
         children: [
@@ -26,7 +26,7 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.all(16),
             child: CustomTextField(
               controller: _searchController,
-              label: 'Search Salons, Services or Stylists',
+              label: 'ابحث عن صالونات أو خدمات أو مختصين',
               prefixIcon: Icons.search,
             ),
           ),
@@ -34,9 +34,12 @@ class _SearchScreenState extends State<SearchScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _searchTile(context, 'Executive Barber Lounge', 'Barber Shop • Downtown', '/salon-details'),
-                _searchTile(context, 'Royal Spa & Wellness', 'Spa Center • Midtown', '/salon-details'),
-                _searchTile(context, 'Luxury Hair Studio', 'Hair Coloring • Uptown', '/salon-details'),
+                _searchTile(context, 'صالون إكزكيوتيف للحلاقة',
+                    'صالون حلاقة • وسط المدينة', '/salon-details'),
+                _searchTile(context, 'رويال سبا والعافية',
+                    'مركز سبا • وسط المدينة', '/salon-details'),
+                _searchTile(context, 'استوديو لاكجري للشعر',
+                    'صبغ شعر • شمال المدينة', '/salon-details'),
               ],
             ),
           ),
@@ -46,14 +49,16 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _searchTile(BuildContext context, String title, String sub, String route) {
+  Widget _searchTile(
+      BuildContext context, String title, String sub, String route) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassCard(
         onTap: () => context.push(route),
         child: ListTile(
           leading: const CircleAvatar(child: Icon(Icons.storefront_rounded)),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text(sub),
           trailing: const Icon(Icons.chevron_right_rounded),
         ),

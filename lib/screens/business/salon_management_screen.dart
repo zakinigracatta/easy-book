@@ -13,8 +13,10 @@ class SalonManagementScreen extends StatefulWidget {
 }
 
 class _SalonManagementScreenState extends State<SalonManagementScreen> {
-  final _nameController = TextEditingController(text: 'Executive Barber Lounge');
-  final _addressController = TextEditingController(text: '142 Luxury Blvd, Downtown NYC');
+  final _nameController =
+      TextEditingController(text: 'صالون إكزكيوتيف للحلاقة');
+  final _addressController =
+      TextEditingController(text: '142 شارع لاكجري، وسط نيويورك');
   final _phoneController = TextEditingController(text: '+1 (555) 987-6543');
 
   @override
@@ -42,7 +44,7 @@ class _SalonManagementScreenState extends State<SalonManagementScreen> {
               }
             },
           ),
-          title: const Text('Salon Management'),
+          title: const Text('إدارة الصالون'),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -51,16 +53,27 @@ class _SalonManagementScreenState extends State<SalonManagementScreen> {
               GlassCard(
                 child: Column(
                   children: [
-                    CustomTextField(controller: _nameController, label: 'Salon Business Name', prefixIcon: Icons.storefront_rounded),
+                    CustomTextField(
+                        controller: _nameController,
+                        label: 'اسم الصالون التجاري',
+                        prefixIcon: Icons.storefront_rounded),
                     const SizedBox(height: 14),
-                    CustomTextField(controller: _addressController, label: 'Full Physical Address', prefixIcon: Icons.location_on_rounded),
+                    CustomTextField(
+                        controller: _addressController,
+                        label: 'العنوان الكامل',
+                        prefixIcon: Icons.location_on_rounded),
                     const SizedBox(height: 14),
-                    CustomTextField(controller: _phoneController, label: 'Salon Contact Phone', prefixIcon: Icons.phone_rounded),
+                    CustomTextField(
+                        controller: _phoneController,
+                        label: 'هاتف الصالون',
+                        prefixIcon: Icons.phone_rounded),
                     const SizedBox(height: 24),
                     CustomButton(
-                      text: 'Update Salon Info',
+                      text: 'تحديث معلومات الصالون',
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Salon profile updated!')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('تم تحديث ملف الصالون!')));
                         if (context.canPop()) {
                           context.pop();
                         } else {

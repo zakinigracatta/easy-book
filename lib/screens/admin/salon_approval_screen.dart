@@ -9,8 +9,16 @@ class SalonApprovalScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pending = [
-      {'name': 'Elite Grooming Lounge', 'owner': 'Michael Scott', 'location': 'Brooklyn, NYC'},
-      {'name': 'Serenity Beauty Studio', 'owner': 'Rachel Green', 'location': 'Manhattan, NYC'},
+      {
+        'name': 'صالون إيليت للعناية',
+        'owner': 'مايكل سكوت',
+        'location': 'بروكلين، نيويورك'
+      },
+      {
+        'name': 'استوديو سيرينيتي للتجميل',
+        'owner': 'راشيل غرين',
+        'location': 'مانهاتن، نيويورك'
+      },
     ];
 
     return PopScope(
@@ -36,7 +44,7 @@ class SalonApprovalScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Pending Salon Approvals'),
+          title: const Text('طلبات اعتماد الصالونات المعلقة'),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),
@@ -49,16 +57,23 @@ class SalonApprovalScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(p['name']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(p['name']!,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
-                    Text('Owner: ${p['owner']} • ${p['location']}'),
+                    Text('المالك: ${p['owner']} • ${p['location']}'),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        OutlinedButton(onPressed: () {}, child: const Text('Reject', style: TextStyle(color: AppColors.error))),
+                        OutlinedButton(
+                            onPressed: () {},
+                            child: const Text('رفض',
+                                style: TextStyle(color: AppColors.error))),
                         const SizedBox(width: 8),
-                        ElevatedButton(onPressed: () {}, child: const Text('Approve Partner')),
+                        ElevatedButton(
+                            onPressed: () {},
+                            child: const Text('اعتماد الشريك')),
                       ],
                     ),
                   ],

@@ -36,7 +36,8 @@ class GoogleAuthScreen extends StatelessWidget {
                     ],
                   ),
                   child: const Center(
-                    child: Icon(Icons.g_mobiledata_rounded, size: 50, color: AppColors.primary),
+                    child: Icon(Icons.g_mobiledata_rounded,
+                        size: 50, color: AppColors.primary),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -48,7 +49,8 @@ class GoogleAuthScreen extends StatelessWidget {
                 const Text(
                   'Authenticating via Google Cloud Identity Services...',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMutedDark, fontSize: 14),
+                  style:
+                      TextStyle(color: AppColors.textMutedDark, fontSize: 14),
                 ),
                 const SizedBox(height: 32),
                 SizedBox(

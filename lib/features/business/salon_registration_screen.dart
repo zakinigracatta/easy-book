@@ -8,7 +8,8 @@ class SalonRegistrationScreen extends StatefulWidget {
   const SalonRegistrationScreen({super.key});
 
   @override
-  State<SalonRegistrationScreen> createState() => _SalonRegistrationScreenState();
+  State<SalonRegistrationScreen> createState() =>
+      _SalonRegistrationScreenState();
 }
 
 class _SalonRegistrationScreenState extends State<SalonRegistrationScreen> {
@@ -27,19 +28,32 @@ class _SalonRegistrationScreenState extends State<SalonRegistrationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_step == 1) ...[
-                const Text('Business Basic Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Business Basic Info',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
-                CustomTextField(label: 'Salon / Business Name', controller: _businessName, prefixIcon: Icons.storefront_rounded),
+                CustomTextField(
+                    label: 'Salon / Business Name',
+                    controller: _businessName,
+                    prefixIcon: Icons.storefront_rounded),
                 const SizedBox(height: 16),
-                CustomTextField(label: 'Full Street Address', controller: _address, prefixIcon: Icons.location_on_outlined),
+                CustomTextField(
+                    label: 'Full Street Address',
+                    controller: _address,
+                    prefixIcon: Icons.location_on_outlined),
               ] else if (_step == 2) ...[
-                const Text('Services & Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Services & Category',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 const ChoiceChip(label: Text('Barber Shop'), selected: true),
-                const ChoiceChip(label: Text('Hair Salon'), selected: false),
-                const ChoiceChip(label: Text('Spa & Wellness'), selected: false),
+                const ChoiceChip(label: Text('صالون شعر'), selected: false),
+                const ChoiceChip(
+                    label: Text('Spa & Wellness'), selected: false),
               ] else ...[
-                const Text('Verification & Documents', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text('Verification & Documents',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   icon: const Icon(Icons.upload_file),
@@ -52,7 +66,9 @@ class _SalonRegistrationScreenState extends State<SalonRegistrationScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (_step > 1)
-                    OutlinedButton(onPressed: () => setState(() => _step--), child: const Text('Back')),
+                    OutlinedButton(
+                        onPressed: () => setState(() => _step--),
+                        child: const Text('Back')),
                   CustomButton(
                     text: _step == 3 ? 'Complete Registration' : 'Next Step',
                     onPressed: () {

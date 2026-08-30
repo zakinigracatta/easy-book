@@ -6,6 +6,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../theme/app_colors.dart';
 import '../../providers/app_providers.dart';
+import '../../services/auth_failure.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -19,14 +20,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
-  String? _profileImageUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+
+  final String _profileImageUrl =
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
   bool _isLoading = false;
 
   Future<void> _handleRegister() async {
-    if (_nameController.text.isEmpty || _emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter name, email, and password.')),
+        const SnackBar(
+            content: Text('يرجى إدخال الاسم والبريد الإلكتروني وكلمة المرور.')),
       );
       return;
     }
@@ -34,23 +39,55 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).registerCustomer(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        profileImageUrl: _profileImageUrl,
-      );
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            profileImageUrl: _profileImageUrl,
+          );
 
+      var verificationSent = true;
+      try {
+        await ref.read(authProvider.notifier).sendEmailVerification();
+      } catch (error) {
+        verificationSent = false;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'تم إنشاء الحساب، لكن تعذر إرسال رسالة التحقق: '
+                '${authErrorMessage(error)}',
+              ),
+            ),
+          );
+        }
+      }
+      if (!mounted) return;
+      if (verificationSent) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('تم إنشاء الحساب. يرجى التحقق من بريدك للمتابعة.')),
+        );
+      }
+      context.go('/email-verification?sent=$verificationSent');
+    } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration successful! Role saved as "customer".')),
+          SnackBar(content: Text(authErrorMessage(error))),
         );
-        // Customer goes to Customer Home Dashboard
-        context.go('/home');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,7 +115,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               }
             },
           ),
-          title: const Text('Customer Registration'),
+          title: const Text('تسجيل العميل'),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -86,18 +123,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.person_add_alt_1_rounded, size: 60, color: AppColors.primary),
+                const Icon(Icons.person_add_alt_1_rounded,
+                    size: 60, color: AppColors.primary),
                 const SizedBox(height: 12),
                 const Text(
-                  'Create Customer Account',
+                  'إنشاء حساب عميل',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Register to book services. Saved in database with role "customer".',
+                  'سجّل لحجز الخدمات. سيُحفظ الحساب في قاعدة البيانات بصفة عميل.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textMutedDark, fontSize: 13),
+                  style:
+                      TextStyle(color: AppColors.textMutedDark, fontSize: 13),
                 ),
                 const SizedBox(height: 24),
 
@@ -108,7 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: AppColors.primary,
-                        backgroundImage: NetworkImage(_profileImageUrl!),
+                        backgroundImage: NetworkImage(_profileImageUrl),
                       ),
                       Positioned(
                         bottom: 0,
@@ -116,7 +155,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         child: CircleAvatar(
                           backgroundColor: AppColors.primary,
                           radius: 16,
-                          child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+                          child: const Icon(Icons.camera_alt_rounded,
+                              size: 16, color: Colors.white),
                         ),
                       ),
                     ],
@@ -130,33 +170,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     children: [
                       CustomTextField(
                         controller: _nameController,
-                        label: 'Full Name',
+                        label: 'الاسم الكامل',
                         prefixIcon: Icons.person_outline,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _phoneController,
-                        label: 'Phone Number',
+                        label: 'رقم الهاتف',
                         prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _emailController,
-                        label: 'Email Address',
+                        label: 'البريد الإلكتروني',
                         prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _passwordController,
-                        label: 'Password',
+                        label: 'كلمة المرور',
                         obscureText: true,
                         prefixIcon: Icons.lock_outline_rounded,
                       ),
                       const SizedBox(height: 24),
                       CustomButton(
-                        text: 'Register & Go to Customer Home',
+                        text: 'التسجيل والانتقال إلى الرئيسية',
                         isLoading: _isLoading,
                         onPressed: _handleRegister,
                       ),
@@ -168,10 +208,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already have an account? ', style: TextStyle(color: AppColors.textMutedDark)),
+                    const Text('لديك حساب بالفعل؟ ',
+                        style: TextStyle(color: AppColors.textMutedDark)),
                     TextButton(
                       onPressed: () => context.push('/login'),
-                      child: const Text('Sign In', style: TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.bold)),
+                      child: const Text('تسجيل الدخول',
+                          style: TextStyle(
+                              color: AppColors.primaryLight,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../providers/app_providers.dart';
 import '../../widgets/glass_card.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    final isLight = themeMode == ThemeMode.light;
+
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -30,24 +36,34 @@ class SettingsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('App Settings'),
+          title: const Text('إعدادات التطبيق'),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
-          children: const [
-            GlassCard(
+          children: [
+            const GlassCard(
               child: ListTile(
                 leading: Icon(Icons.notifications_rounded),
-                title: Text('Push Notifications'),
+                title: Text('الإشعارات الفورية'),
                 trailing: Switch(value: true, onChanged: null),
               ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             GlassCard(
-              child: ListTile(
-                leading: Icon(Icons.dark_mode_rounded),
-                title: Text('Dark Theme Mode'),
-                trailing: Switch(value: true, onChanged: null),
+              child: SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: Icon(
+                  isLight ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                ),
+                title: const Text('الوضع الفاتح'),
+                subtitle: Text(
+                  isLight ? 'المظهر الفاتح مفعّل' : 'تفعيل المظهر الفاتح',
+                ),
+                value: isLight,
+                onChanged: (value) {
+                  ref.read(themeModeProvider.notifier).state =
+                      value ? ThemeMode.light : ThemeMode.dark;
+                },
               ),
             ),
           ],

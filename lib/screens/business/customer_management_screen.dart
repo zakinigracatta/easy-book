@@ -9,8 +9,16 @@ class CustomerManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final clients = [
-      {'name': 'Ahmed Mohamed', 'visits': '12 Visits', 'total': '\$780.00 Spent'},
-      {'name': 'Sarah Jenkins', 'visits': '8 Visits', 'total': '\$520.00 Spent'},
+      {
+        'name': 'Ahmed Mohamed',
+        'visits': '12 زيارة',
+        'total': 'تم إنفاق \$780.00'
+      },
+      {
+        'name': 'سارة جينكنز',
+        'visits': '8 زيارات',
+        'total': 'تم إنفاق \$520.00'
+      },
     ];
 
     return PopScope(
@@ -36,7 +44,7 @@ class CustomerManagementScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Customer Relationship Database'),
+          title: const Text('قاعدة بيانات علاقات العملاء'),
         ),
         body: ListView.builder(
           padding: const EdgeInsets.all(20),
@@ -47,8 +55,10 @@ class CustomerManagementScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: GlassCard(
                 child: ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person_outline_rounded)),
-                  title: Text(c['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  leading: const CircleAvatar(
+                      child: Icon(Icons.person_outline_rounded)),
+                  title: Text(c['name']!,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text('${c['visits']} • ${c['total']}'),
                 ),
               ),

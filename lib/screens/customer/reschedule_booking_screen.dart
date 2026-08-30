@@ -6,7 +6,8 @@ class RescheduleBookingScreen extends StatefulWidget {
   const RescheduleBookingScreen({super.key});
 
   @override
-  State<RescheduleBookingScreen> createState() => _RescheduleBookingScreenState();
+  State<RescheduleBookingScreen> createState() =>
+      _RescheduleBookingScreenState();
 }
 
 class _RescheduleBookingScreenState extends State<RescheduleBookingScreen> {
@@ -37,7 +38,7 @@ class _RescheduleBookingScreenState extends State<RescheduleBookingScreen> {
               }
             },
           ),
-          title: const Text('Reschedule Booking'),
+          title: const Text('إعادة جدولة الحجز'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -51,9 +52,10 @@ class _RescheduleBookingScreenState extends State<RescheduleBookingScreen> {
               ),
               const Spacer(),
               CustomButton(
-                text: 'Save New Date & Time',
+                text: 'حفظ التاريخ والوقت الجديدين',
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appointment rescheduled!')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تمت إعادة جدولة الموعد!')));
                   context.go('/my-bookings');
                 },
               ),

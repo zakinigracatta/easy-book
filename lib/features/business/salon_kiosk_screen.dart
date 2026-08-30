@@ -17,16 +17,23 @@ class SalonKioskScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.touch_app_rounded, size: 80, color: AppColors.accent),
+              const Icon(Icons.touch_app_rounded,
+                  size: 80, color: AppColors.accent),
               const SizedBox(height: 16),
-              const GradientText('Self-Service Kiosk Check-In', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              const GradientText('Self-Service Kiosk Check-In',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              const Text('Enter your phone number or scan booking QR code to check in.', textAlign: TextAlign.center),
+              const Text(
+                  'Enter your phone number or scan booking QR code to check in.',
+                  textAlign: TextAlign.center),
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {},
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20)),
-                child: const Text('Tap to Check In', style: TextStyle(fontSize: 18)),
+                style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 20)),
+                child: const Text('Tap to Check In',
+                    style: TextStyle(fontSize: 18)),
               ),
             ],
           ),

@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../core/errors/app_failure.dart';
+
 class ApiService {
   late final Dio _dio;
 
@@ -30,4 +32,46 @@ class ApiService {
   }
 
   Dio get dio => _dio;
+
+  Future<Response<T>> get<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _guard(
+      () => _dio.get<T>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+      ),
+    );
+  }
+
+  Future<Response<T>> post<T>(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return _guard(
+      () => _dio.post<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+      ),
+    );
+  }
+
+  Future<Response<T>> _guard<T>(
+    Future<Response<T>> Function() request,
+  ) async {
+    try {
+      return await request();
+    } on DioException catch (error) {
+      throw AppFailure.fromDio(error);
+    } on Exception catch (error) {
+      throw AppFailure.from(error);
+    }
+  }
 }

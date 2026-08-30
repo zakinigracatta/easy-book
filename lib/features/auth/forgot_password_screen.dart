@@ -32,9 +32,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.mark_email_read_outlined, size: 72, color: Color(0xFF6C3EF4)),
+                    const Icon(Icons.mark_email_read_outlined,
+                        size: 72, color: Color(0xFF6C3EF4)),
                     const SizedBox(height: 20),
-                    Text('Check Your Email', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Check Your Email',
+                        style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 8),
                     Text(
                       'We have sent a password reset link to ${_emailController.text}',
@@ -52,13 +54,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    Text('Reset Password', style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 26)),
+                    Text('Reset Password',
+                        style: Theme.of(context)
+                            .textTheme
+                            .displayLarge
+                            ?.copyWith(fontSize: 26)),
                     const SizedBox(height: 8),
-                    Text('Enter your email to receive a password reset instructions.', style: Theme.of(context).textTheme.bodyMedium),
+                    Text(
+                        'Enter your email to receive a password reset instructions.',
+                        style: Theme.of(context).textTheme.bodyMedium),
                     const SizedBox(height: 32),
                     CustomTextField(
                       controller: _emailController,
-                      label: 'Email Address',
+                      label: 'البريد الإلكتروني',
                       prefixIcon: Icons.email_outlined,
                       validator: Validators.validateEmail,
                     ),

@@ -13,6 +13,7 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final mutedColor = Theme.of(context).colorScheme.onSurfaceVariant;
     final routes = ['/home', '/search', '/bookings', '/chat-list', '/profile'];
 
     return Container(
@@ -26,7 +27,7 @@ class CustomBottomNavBar extends StatelessWidget {
           backgroundColor: Colors.transparent,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textMutedDark,
+          unselectedItemColor: mutedColor,
           selectedFontSize: 11,
           unselectedFontSize: 11,
           onTap: (index) {
@@ -35,11 +36,17 @@ class CustomBottomNavBar extends StatelessWidget {
             }
           },
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.search_rounded), label: 'Search'),
-            BottomNavigationBarItem(icon: Icon(Icons.calendar_month_rounded), label: 'Bookings'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline_rounded), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.home_rounded), label: 'الرئيسية'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.search_rounded), label: 'البحث'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_month_rounded), label: 'الحجوزات'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_outline_rounded),
+                label: 'المحادثات'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.person_rounded), label: 'الملف الشخصي'),
           ],
         ),
       ),

@@ -20,13 +20,15 @@ class CustomerBookingsScreen extends ConsumerWidget {
       ),
       body: appointmentsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error loading appointments: $err')),
+        error: (err, _) =>
+            Center(child: Text('Error loading appointments: $err')),
         data: (appointments) {
           if (appointments.isEmpty) {
             return const EmptyStateWidget(
               icon: Icons.calendar_today_outlined,
               title: 'No Appointments Yet',
-              message: 'Book your first salon or spa appointment to see it here.',
+              message:
+                  'Book your first salon or spa appointment to see it here.',
             );
           }
 
@@ -50,53 +52,65 @@ class CustomerBookingsScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               apt.businessName,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 17),
                             ),
                           ),
                           LuxuryBadge(
                             text: apt.status.name.toUpperCase(),
-                            color: isCancelled ? Colors.red : const Color(0xFF10B981),
+                            color: isCancelled
+                                ? Colors.red
+                                : const Color(0xFF10B981),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
                         apt.serviceName,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 15),
                       ),
                       const SizedBox(height: 4),
-                      Text('Staff: ${apt.staffName}', style: TextStyle(color: Colors.grey.shade600)),
+                      Text('Staff: ${apt.staffName}',
+                          style: TextStyle(color: Colors.grey.shade600)),
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.access_time, size: 16, color: Color(0xFF6C3EF4)),
+                              const Icon(Icons.access_time,
+                                  size: 16, color: Color(0xFF6C3EF4)),
                               const SizedBox(width: 4),
                               Text(
                                 Formatters.formatDateTime(apt.dateTime),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                           Text(
                             Formatters.formatCurrency(apt.servicePrice),
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                         ],
                       ),
-                      if (!isCancelled && apt.status != AppointmentStatus.completed) ...[
+                      if (!isCancelled &&
+                          apt.status != AppointmentStatus.completed) ...[
                         const Divider(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             TextButton(
                               onPressed: () {
-                                ref.read(appointmentsProvider.notifier).cancelAppointment(apt.id);
+                                ref
+                                    .read(appointmentsProvider.notifier)
+                                    .cancelAppointment(apt.id);
                               },
-                              style: TextButton.styleFrom(foregroundColor: Colors.red),
-                              child: const Text('Cancel Booking'),
+                              style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red),
+                              child: const Text('إلغاء الحجز'),
                             ),
                           ],
                         ),

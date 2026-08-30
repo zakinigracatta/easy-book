@@ -3,16 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/business_model.dart';
 import '../models/appointment_model.dart';
 import '../models/chat_model.dart';
-import '../services/auth_service.dart';
-import '../repositories/auth_repository.dart';
 import '../repositories/business_repository.dart';
 import '../repositories/booking_repository.dart';
 export 'auth_provider.dart';
 
 // Services & Repositories Providers
-final authServiceProvider = Provider((ref) => AuthService());
-final authRepositoryProvider = Provider((ref) => AuthRepositoryImpl(ref.read(authServiceProvider)));
-
 final businessRepositoryProvider = Provider<BusinessRepository>((ref) => BusinessRepositoryImpl());
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) => BookingRepositoryImpl());
 

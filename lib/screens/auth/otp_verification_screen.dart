@@ -21,39 +21,48 @@ class OTPVerificationScreen extends StatelessWidget {
             }
           },
         ),
-        title: const Text('Verify Phone / OTP'),
+        title: const Text('التحقق من الهاتف / رمز OTP'),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const Icon(Icons.mark_email_read_rounded, size: 70, color: AppColors.primary),
+              const Icon(Icons.mark_email_read_rounded,
+                  size: 70, color: AppColors.primary),
               const SizedBox(height: 16),
-              const Text('Enter 4-Digit Code', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const Text('أدخل الرمز المكوّن من 4 أرقام',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              const Text('We sent a verification code to your registered mobile number.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+              const Text('أرسلنا رمز تحقق إلى رقم هاتفك المسجل.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 32),
               GlassCard(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(4, (index) => Container(
-                    width: 50,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: AppColors.bgDark,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.primary),
-                    ),
-                    child: const Center(
-                      child: Text('•', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                    ),
-                  )),
+                  children: List.generate(
+                      4,
+                      (index) => Container(
+                            width: 50,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: AppColors.bgDark,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.primary),
+                            ),
+                            child: const Center(
+                              child: Text('•',
+                                  style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold)),
+                            ),
+                          )),
                 ),
               ),
               const SizedBox(height: 32),
               CustomButton(
-                text: 'Verify & Continue',
+                text: 'تحقق وتابع',
                 onPressed: () => context.go('/home'),
               ),
             ],

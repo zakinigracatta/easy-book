@@ -9,7 +9,7 @@ class NotificationsScreen extends StatelessWidget {
     final notifications = NotificationService.getMockNotifications();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: const Text('الإشعارات')),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: notifications.length,
@@ -22,7 +22,8 @@ class NotificationsScreen extends StatelessWidget {
                 backgroundColor: Color(0xFF6C3EF4),
                 child: Icon(Icons.notifications, color: Colors.white, size: 20),
               ),
-              title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(n.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text(n.body),
             ),
           );

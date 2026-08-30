@@ -10,21 +10,25 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('App Settings')),
+      appBar: AppBar(title: const Text('إعدادات التطبيق')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           SwitchListTile(
-            title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Toggle between Light and Dark modern luxury theme'),
+            title: const Text('Dark Mode',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle:
+                const Text('Toggle between Light and Dark modern luxury theme'),
             value: themeMode == ThemeMode.dark,
             onChanged: (val) {
-              ref.read(themeModeProvider.notifier).state = val ? ThemeMode.dark : ThemeMode.light;
+              ref.read(themeModeProvider.notifier).state =
+                  val ? ThemeMode.dark : ThemeMode.light;
             },
           ),
           const Divider(),
           const ListTile(
-            title: Text('Push Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+            title: Text('الإشعارات الفورية',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text('Receive appointment updates & offers'),
             trailing: Icon(Icons.chevron_right),
           ),

@@ -44,16 +44,26 @@ class MobileAppDownloadScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.phone_iphone_rounded, size: 70),
                     const SizedBox(height: 16),
-                    const GradientText('Easy Book for iOS & Android', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const GradientText('Easy Book for iOS & Android',
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
-                    const Text('Get push updates, instant booking reminders, and offline wallet passes.', textAlign: TextAlign.center),
+                    const Text(
+                        'Get push updates, instant booking reminders, and offline wallet passes.',
+                        textAlign: TextAlign.center),
                     const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        ElevatedButton.icon(icon: const Icon(Icons.apple), label: const Text('App Store'), onPressed: () {}),
+                        ElevatedButton.icon(
+                            icon: const Icon(Icons.apple),
+                            label: const Text('App Store'),
+                            onPressed: () {}),
                         const SizedBox(width: 12),
-                        ElevatedButton.icon(icon: const Icon(Icons.android), label: const Text('Play Store'), onPressed: () {}),
+                        ElevatedButton.icon(
+                            icon: const Icon(Icons.android),
+                            label: const Text('Play Store'),
+                            onPressed: () {}),
                       ],
                     ),
                   ],

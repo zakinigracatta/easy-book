@@ -10,9 +10,21 @@ class ServicesManagementScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final services = [
-      {'name': 'Royal Haircut & Beard Sculpting', 'price': '\$65.00', 'duration': '45 mins'},
-      {'name': 'Hot Towel Shave', 'price': '\$45.00', 'duration': '30 mins'},
-      {'name': 'Deep Facial Spa Treatment', 'price': '\$90.00', 'duration': '60 mins'},
+      {
+        'name': 'قصة شعر ملكية ونحت اللحية',
+        'price': '\$65.00',
+        'duration': '45 دقيقة'
+      },
+      {
+        'name': 'حلاقة بالمنشفة الساخنة',
+        'price': '\$45.00',
+        'duration': '30 دقيقة'
+      },
+      {
+        'name': 'جلسة سبا عميقة للوجه',
+        'price': '\$90.00',
+        'duration': '60 دقيقة'
+      },
     ];
 
     return PopScope(
@@ -38,7 +50,7 @@ class ServicesManagementScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Services Menu Management'),
+          title: const Text('إدارة قائمة الخدمات'),
           actions: [
             IconButton(
               icon: const Icon(Icons.add_circle_outline_rounded),
@@ -55,9 +67,14 @@ class ServicesManagementScreen extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: GlassCard(
                 child: ListTile(
-                  title: Text(s['name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(s['name']!,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(s['duration']!),
-                  trailing: Text(s['price']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+                  trailing: Text(s['price']!,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: AppColors.primary)),
                 ),
               ),
             );

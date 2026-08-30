@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../widgets/glass_card.dart';
 import '../../theme/app_colors.dart';
 
 class ChatScreen extends StatelessWidget {
@@ -31,7 +30,7 @@ class ChatScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Salon Live Support'),
+          title: const Text('الدعم المباشر للصالون'),
         ),
         body: Column(
           children: [
@@ -39,8 +38,11 @@ class ChatScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  _msgBubble('Hello! Can I request Marcus for my 10 AM appointment?', isMe: true),
-                  _msgBubble('Hi Ahmed! Yes, Marcus Vance is assigned to your booking.', isMe: false),
+                  _msgBubble(
+                      'مرحبًا! هل يمكنني طلب ماركوس لموعدي الساعة 10 صباحًا؟',
+                      isMe: true),
+                  _msgBubble('مرحبًا أحمد! نعم، تم تعيين ماركوس فانس لحجزك.',
+                      isMe: false),
                 ],
               ),
             ),
@@ -51,8 +53,9 @@ class ChatScreen extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: 'Type your message...',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+                        hintText: 'اكتب رسالتك...',
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24)),
                         filled: true,
                         fillColor: AppColors.cardDark,
                       ),
@@ -62,7 +65,8 @@ class ChatScreen extends StatelessWidget {
                   CircleAvatar(
                     backgroundColor: AppColors.primary,
                     child: IconButton(
-                      icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                      icon: const Icon(Icons.send_rounded,
+                          color: Colors.white, size: 18),
                       onPressed: () {},
                     ),
                   ),

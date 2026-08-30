@@ -31,7 +31,7 @@ class BookingCalendarScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Booking Calendar'),
+          title: const Text('تقويم الحجوزات'),
         ),
         body: Column(
           children: [
@@ -48,8 +48,8 @@ class BookingCalendarScreen extends StatelessWidget {
                 children: const [
                   GlassCard(
                     child: ListTile(
-                      title: Text('10:00 AM - Sarah Jenkins'),
-                      subtitle: Text('Royal Haircut & Beard Sculpting • Marcus'),
+                      title: Text('10:00 ص - سارة جينكنز'),
+                      subtitle: Text('قصة شعر ملكية ونحت اللحية • ماركوس'),
                     ),
                   ),
                 ],

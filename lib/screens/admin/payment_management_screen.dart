@@ -31,16 +31,18 @@ class PaymentManagementScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Payout Queues & Commissions'),
+          title: const Text('قوائم التحويلات والعمولات'),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: const [
             GlassCard(
               child: ListTile(
-                title: Text('Executive Barber Lounge'),
-                subtitle: Text('Pending Payout: \$3,450.00'),
-                trailing: Text('Approve', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+                title: Text('صالون إكزكيوتيف للحلاقة'),
+                subtitle: Text('تحويل معلق: \$3,450.00'),
+                trailing: Text('موافقة',
+                    style: TextStyle(
+                        color: AppColors.success, fontWeight: FontWeight.bold)),
               ),
             ),
           ],

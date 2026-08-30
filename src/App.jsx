@@ -1,49 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
-import Home from './pages/Home';
-import Profile from './pages/Profile';
-import SalonDetails from './pages/SalonDetails';
-import Login from './pages/Login';
-import Search from './pages/Search';
-import Bookings from './pages/Bookings';
-import Dashboard from './pages/Dashboard';
-import Checkout from './pages/Checkout';
-import Welcome from './pages/Welcome';
-import AdminDashboard from './pages/AdminDashboard';
-import SalonRegistration from './pages/SalonRegistration';
-import StaffOnboarding from './pages/StaffOnboarding';
-import Notifications from './pages/Notifications';
-import Favorites from './pages/Favorites';
-import EditProfile from './pages/EditProfile';
-import Reviews from './pages/Reviews';
-import Rewards from './pages/Rewards';
-import PaymentMethods from './pages/PaymentMethods';
-import HelpSupport from './pages/HelpSupport';
-import AppSettings from './pages/AppSettings';
-import SalonAnalytics from './pages/SalonAnalytics';
-import SalonSettings from './pages/SalonSettings';
-import SubscriptionPlans from './pages/SubscriptionPlans';
-import GiftCards from './pages/GiftCards';
-import DealsOffers from './pages/DealsOffers';
-import StaffDirectory from './pages/StaffDirectory';
-import AppointmentDetails from './pages/AppointmentDetails';
-import AdminPayouts from './pages/AdminPayouts';
-import GoogleAuth from './pages/GoogleAuth';
-import GoogleMapsExplorer from './pages/GoogleMapsExplorer';
-import GoogleReserve from './pages/GoogleReserve';
-import MobileAppDownload from './pages/MobileAppDownload';
-import MobileWalletPass from './pages/MobileWalletPass';
-import SalonSuccess from './pages/SalonSuccess';
-import SalonKiosk from './pages/SalonKiosk';
-import PartnerVerificationCenter from './pages/PartnerVerificationCenter';
-import SalonPOS from './pages/SalonPOS';
-import SalonInventory from './pages/SalonInventory';
-import StaffPayroll from './pages/StaffPayroll';
-import ClientRetentionCampaigns from './pages/ClientRetentionCampaigns';
 import BottomNav from './components/BottomNav';
 import { useLanguage } from './context/LanguageContext';
 import './App.css';
+
+const Home = lazy(() => import('./pages/Home'));
+const Profile = lazy(() => import('./pages/Profile'));
+const SalonDetails = lazy(() => import('./pages/SalonDetails'));
+const Login = lazy(() => import('./pages/Login'));
+const Search = lazy(() => import('./pages/Search'));
+const Bookings = lazy(() => import('./pages/Bookings'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const Welcome = lazy(() => import('./pages/Welcome'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const SalonRegistration = lazy(() => import('./pages/SalonRegistration'));
+const StaffOnboarding = lazy(() => import('./pages/StaffOnboarding'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const Favorites = lazy(() => import('./pages/Favorites'));
+const EditProfile = lazy(() => import('./pages/EditProfile'));
+const Reviews = lazy(() => import('./pages/Reviews'));
+const Rewards = lazy(() => import('./pages/Rewards'));
+const PaymentMethods = lazy(() => import('./pages/PaymentMethods'));
+const HelpSupport = lazy(() => import('./pages/HelpSupport'));
+const AppSettings = lazy(() => import('./pages/AppSettings'));
+const SalonAnalytics = lazy(() => import('./pages/SalonAnalytics'));
+const SalonSettings = lazy(() => import('./pages/SalonSettings'));
+const SubscriptionPlans = lazy(() => import('./pages/SubscriptionPlans'));
+const GiftCards = lazy(() => import('./pages/GiftCards'));
+const DealsOffers = lazy(() => import('./pages/DealsOffers'));
+const StaffDirectory = lazy(() => import('./pages/StaffDirectory'));
+const AppointmentDetails = lazy(() => import('./pages/AppointmentDetails'));
+const AdminPayouts = lazy(() => import('./pages/AdminPayouts'));
+const GoogleAuth = lazy(() => import('./pages/GoogleAuth'));
+const GoogleMapsExplorer = lazy(() => import('./pages/GoogleMapsExplorer'));
+const GoogleReserve = lazy(() => import('./pages/GoogleReserve'));
+const MobileAppDownload = lazy(() => import('./pages/MobileAppDownload'));
+const MobileWalletPass = lazy(() => import('./pages/MobileWalletPass'));
+const SalonSuccess = lazy(() => import('./pages/SalonSuccess'));
+const SalonKiosk = lazy(() => import('./pages/SalonKiosk'));
+const PartnerVerificationCenter = lazy(() => import('./pages/PartnerVerificationCenter'));
+const SalonPOS = lazy(() => import('./pages/SalonPOS'));
+const SalonInventory = lazy(() => import('./pages/SalonInventory'));
+const StaffPayroll = lazy(() => import('./pages/StaffPayroll'));
+const ClientRetentionCampaigns = lazy(() => import('./pages/ClientRetentionCampaigns'));
+
+const PageLoader = () => (
+  <div role="status" aria-label="Loading" style={{ minHeight: '50vh', display: 'grid', placeItems: 'center' }}>
+    <div style={{ width: '34px', height: '34px', border: '3px solid var(--glass-border)', borderTopColor: 'var(--primary-color)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+  </div>
+);
 
 function App() {
   const [theme, setTheme] = useState('light');
@@ -52,8 +59,8 @@ function App() {
   const [fadeSplash, setFadeSplash] = useState(false);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setFadeSplash(true), 3500);
-    const t2 = setTimeout(() => setShowSplash(false), 4000);
+    const t1 = setTimeout(() => setFadeSplash(true), 450);
+    const t2 = setTimeout(() => setShowSplash(false), 700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
@@ -105,6 +112,7 @@ function App() {
           </button>
         </div>
 
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/client" element={<Home />} />
@@ -148,6 +156,7 @@ function App() {
           <Route path="/campaigns" element={<ClientRetentionCampaigns />} />
           <Route path="*" element={<Welcome />} />
         </Routes>
+        </Suspense>
         
         <BottomNav />
       </div>

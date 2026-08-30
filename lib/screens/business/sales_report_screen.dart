@@ -32,19 +32,22 @@ class SalesReportScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Sales & Financial Analytics'),
+          title: const Text('المبيعات والتحليلات المالية'),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
+        body: const Padding(
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
               GlassCard(
-                padding: const EdgeInsets.all(24),
-                child: const Column(
+                padding: EdgeInsets.all(24),
+                child: Column(
                   children: [
-                    Text('Total Sales MTD', style: TextStyle(color: AppColors.textMutedDark)),
+                    Text('إجمالي مبيعات الشهر حتى اليوم',
+                        style: TextStyle(color: AppColors.textMutedDark)),
                     SizedBox(height: 8),
-                    GradientText('\$14,250.00', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                    GradientText('\$14,250.00',
+                        style: TextStyle(
+                            fontSize: 32, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

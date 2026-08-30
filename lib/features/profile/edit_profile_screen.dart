@@ -12,7 +12,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: 'Sarah Jenkins');
+  final _nameController = TextEditingController(text: 'سارة جينكنز');
   final _emailController = TextEditingController(text: 'sarah.j@example.com');
   final _phoneController = TextEditingController(text: '+1 (555) 234-5678');
 
@@ -41,7 +41,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               }
             },
           ),
-          title: const Text('Edit Profile'),
+          title: const Text('تعديل الملف الشخصي'),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -52,7 +52,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     const CircleAvatar(
                       radius: 50,
-                      backgroundImage: NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80'),
+                      backgroundImage: NetworkImage(
+                          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80'),
                     ),
                     Positioned(
                       bottom: 0,
@@ -60,7 +61,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: CircleAvatar(
                         backgroundColor: Theme.of(context).primaryColor,
                         radius: 18,
-                        child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                        child: const Icon(Icons.camera_alt,
+                            size: 18, color: Colors.white),
                       ),
                     ),
                   ],
@@ -71,19 +73,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Column(
                   children: [
                     CustomTextField(
-                      label: 'Full Name',
+                      label: 'الاسم الكامل',
                       controller: _nameController,
                       prefixIcon: Icons.person_outline,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
-                      label: 'Email Address',
+                      label: 'البريد الإلكتروني',
                       controller: _emailController,
                       prefixIcon: Icons.email_outlined,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
-                      label: 'Phone Number',
+                      label: 'رقم الهاتف',
                       controller: _phoneController,
                       prefixIcon: Icons.phone_outlined,
                     ),
@@ -92,7 +94,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       text: 'Save Changes',
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Profile updated successfully!')),
+                          const SnackBar(
+                              content: Text('Profile updated successfully!')),
                         );
                         if (context.canPop()) {
                           context.pop();

@@ -10,18 +10,22 @@ class ReviewsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final reviews = [
       {
-        'user': 'Alex Johnson',
+        'user': 'أليكس جونسون',
         'rating': 5.0,
-        'date': '2 days ago',
-        'comment': 'Best haircut experience I have ever had! Professional staff and clean environment.',
-        'avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+        'date': 'قبل يومين',
+        'comment':
+            'Best haircut experience I have ever had! Professional staff and clean environment.',
+        'avatar':
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       },
       {
-        'user': 'Emily Davis',
+        'user': 'إيميلي ديفيس',
         'rating': 4.8,
-        'date': '1 week ago',
-        'comment': 'Very relaxed spa atmosphere. Recommending the deep tissue massage!',
-        'avatar': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+        'date': 'قبل أسبوع',
+        'comment':
+            'Very relaxed spa atmosphere. Recommending the deep tissue massage!',
+        'avatar':
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
       },
     ];
 
@@ -64,7 +68,8 @@ class ReviewsScreen extends StatelessWidget {
                     Row(
                       children: [
                         CircleAvatar(
-                          backgroundImage: NetworkImage(item['avatar'] as String),
+                          backgroundImage:
+                              NetworkImage(item['avatar'] as String),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -73,11 +78,13 @@ class ReviewsScreen extends StatelessWidget {
                             children: [
                               Text(
                                 item['user'] as String,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16),
                               ),
                               Text(
                                 item['date'] as String,
-                                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.grey.shade600),
                               ),
                             ],
                           ),

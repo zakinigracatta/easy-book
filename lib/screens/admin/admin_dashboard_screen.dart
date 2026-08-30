@@ -23,7 +23,7 @@ class AdminDashboardScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Super Admin Center'),
+          title: const Text('مركز الإدارة العليا'),
           leading: Builder(
             builder: (ctx) => IconButton(
               icon: const Icon(Icons.menu_rounded),
@@ -46,25 +46,34 @@ class AdminDashboardScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Platform Revenue MTD', style: TextStyle(color: AppColors.textMutedDark, fontSize: 13)),
+                        Text('إيرادات المنصة منذ بداية الشهر',
+                            style: TextStyle(
+                                color: AppColors.textMutedDark, fontSize: 13)),
                         SizedBox(height: 4),
-                        GradientText('\$124,500', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                        GradientText('\$124,500',
+                            style: TextStyle(
+                                fontSize: 30, fontWeight: FontWeight.bold)),
                       ],
                     ),
-                    Icon(Icons.shield_rounded, size: 40, color: AppColors.error),
+                    Icon(Icons.shield_rounded,
+                        size: 40, color: AppColors.error),
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-              const Text('Admin Management Control', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('لوحة تحكم الإدارة',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-
-              _adminTile(context, 'User & Account Management', Icons.group_rounded, '/users-management'),
-              _adminTile(context, 'Salon Verification & Approvals (3)', Icons.verified_user_rounded, '/salon-approval'),
-              _adminTile(context, 'Payout Queues & Commissions', Icons.payments_rounded, '/payment-management'),
-              _adminTile(context, 'Platform Traffic & Usage Analytics', Icons.bar_chart_rounded, '/analytics'),
-              _adminTile(context, 'System Audit Logs & Reports', Icons.summarize_rounded, '/reports'),
+              _adminTile(context, 'إدارة المستخدمين والحسابات',
+                  Icons.group_rounded, '/users-management'),
+              _adminTile(context, 'التحقق من الصالونات والموافقات (3)',
+                  Icons.verified_user_rounded, '/salon-approval'),
+              _adminTile(context, 'قوائم التحويلات والعمولات',
+                  Icons.payments_rounded, '/payment-management'),
+              _adminTile(context, 'تحليلات زيارات المنصة والاستخدام',
+                  Icons.bar_chart_rounded, '/analytics'),
+              _adminTile(context, 'سجلات وتقارير تدقيق النظام',
+                  Icons.summarize_rounded, '/reports'),
             ],
           ),
         ),
@@ -72,15 +81,19 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _adminTile(BuildContext context, String title, IconData icon, String route) {
+  Widget _adminTile(
+      BuildContext context, String title, IconData icon, String route) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
         onTap: () => context.push(route),
         child: ListTile(
           leading: Icon(icon, color: AppColors.error),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMutedDark),
+          title: Text(title,
+              style:
+                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          trailing: const Icon(Icons.chevron_right_rounded,
+              color: AppColors.textMutedDark),
         ),
       ),
     );

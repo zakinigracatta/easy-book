@@ -12,8 +12,17 @@ class BookingTimeScreen extends StatefulWidget {
 }
 
 class _BookingTimeScreenState extends State<BookingTimeScreen> {
-  String _selectedSlot = '10:00 AM';
-  final slots = ['09:00 AM', '10:00 AM', '11:30 AM', '01:00 PM', '02:30 PM', '04:00 PM', '05:30 PM', '07:00 PM'];
+  String _selectedSlot = '10:00 ص';
+  final slots = [
+    '09:00 ص',
+    '10:00 ص',
+    '11:30 ص',
+    '01:00 م',
+    '02:30 م',
+    '04:00 م',
+    '05:30 م',
+    '07:00 م'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +49,7 @@ class _BookingTimeScreenState extends State<BookingTimeScreen> {
               }
             },
           ),
-          title: const Text('Step 3: Select Time Slot'),
+          title: const Text('الخطوة 3: اختر الوقت'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -61,16 +70,22 @@ class _BookingTimeScreenState extends State<BookingTimeScreen> {
                     return GlassCard(
                       onTap: () => setState(() => _selectedSlot = s),
                       borderColor: isSel ? AppColors.primary : null,
-                      backgroundColor: isSel ? AppColors.primary.withValues(alpha: 0.2) : null,
+                      backgroundColor: isSel
+                          ? AppColors.primary.withValues(alpha: 0.2)
+                          : null,
                       child: Center(
-                        child: Text(s, style: TextStyle(fontWeight: FontWeight.bold, color: isSel ? AppColors.primary : Colors.white)),
+                        child: Text(s,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    isSel ? AppColors.primary : Colors.white)),
                       ),
                     );
                   },
                 ),
               ),
               CustomButton(
-                text: 'Next: Review Booking',
+                text: 'التالي: مراجعة الحجز',
                 onPressed: () => context.push('/booking-confirmation'),
               ),
             ],

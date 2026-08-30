@@ -12,8 +12,13 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  String _activeTab = 'Overview';
-  final List<String> _tabs = ['Overview', 'Salons', 'Finance', 'Users'];
+  String _activeTab = 'نظرة عامة';
+  final List<String> _tabs = [
+    'نظرة عامة',
+    'الصالونات',
+    'المالية',
+    'المستخدمون'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +45,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               }
             },
           ),
-          title: const Text('Admin Portal', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('بوابة الإدارة',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           actions: [
             IconButton(
               icon: const Icon(Icons.settings_rounded),
@@ -67,8 +73,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         selectedColor: AppColors.error,
                         backgroundColor: AppColors.glassBgDark,
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textMutedDark,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected
+                              ? Colors.white
+                              : AppColors.textMutedDark,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                         onSelected: (val) {
                           if (val) setState(() => _activeTab = t);
@@ -91,14 +100,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Platform Revenue (MTD)', style: TextStyle(color: AppColors.textMutedDark, fontSize: 13)),
+                        Text('إيرادات المنصة (منذ بداية الشهر)',
+                            style: TextStyle(
+                                color: AppColors.textMutedDark, fontSize: 13)),
                         SizedBox(height: 4),
-                        GradientText('\$124,500', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                        GradientText('\$124,500',
+                            style: TextStyle(
+                                fontSize: 32, fontWeight: FontWeight.bold)),
                         SizedBox(height: 4),
-                        Text('+18% from last month', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('+18% مقارنة بالشهر الماضي',
+                            style: TextStyle(
+                                color: AppColors.success,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12)),
                       ],
                     ),
-                    Icon(Icons.attach_money_rounded, size: 48, color: AppColors.primary),
+                    Icon(Icons.attach_money_rounded,
+                        size: 48, color: AppColors.primary),
                   ],
                 ),
               ),
@@ -116,14 +134,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.people_rounded, size: 20, color: AppColors.primary),
+                              Icon(Icons.people_rounded,
+                                  size: 20, color: AppColors.primary),
                               SizedBox(width: 8),
-                              Text('Users', style: TextStyle(fontSize: 13, color: AppColors.textMutedDark)),
+                              Text('المستخدمون',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textMutedDark)),
                             ],
                           ),
                           SizedBox(height: 8),
-                          Text('15,243', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                          Text('+120 today', style: TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.bold)),
+                          Text('15,243',
+                              style: TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold)),
+                          Text('+120 اليوم',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -137,14 +165,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.storefront_rounded, size: 20, color: AppColors.error),
+                              Icon(Icons.storefront_rounded,
+                                  size: 20, color: AppColors.error),
                               SizedBox(width: 8),
-                              Text('Salons', style: TextStyle(fontSize: 13, color: AppColors.textMutedDark)),
+                              Text('الصالونات',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textMutedDark)),
                             ],
                           ),
                           SizedBox(height: 8),
-                          Text('342', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                          Text('Active Partners', style: TextStyle(fontSize: 11, color: AppColors.textMutedDark)),
+                          Text('342',
+                              style: TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold)),
+                          Text('شركاء نشطون',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textMutedDark)),
                         ],
                       ),
                     ),
@@ -155,7 +192,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               const SizedBox(height: 24),
 
               // System Health
-              const Text('System Health', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('حالة النظام',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
 
               GlassCard(
@@ -167,15 +205,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       children: [
                         const Row(
                           children: [
-                            Icon(Icons.language_rounded, size: 20, color: AppColors.primary),
+                            Icon(Icons.language_rounded,
+                                size: 20, color: AppColors.primary),
                             SizedBox(width: 10),
-                            Text('API Status', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('حالة واجهة البرمجة',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: AppColors.success.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-                          child: const Text('100% Uptime', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 11)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                              color: AppColors.success.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6)),
+                          child: const Text('متاح بنسبة 100%',
+                              style: TextStyle(
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11)),
                         ),
                       ],
                     ),
@@ -185,12 +232,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.query_stats_rounded, size: 20, color: AppColors.accent),
+                            Icon(Icons.query_stats_rounded,
+                                size: 20, color: AppColors.accent),
                             SizedBox(width: 10),
-                            Text('Active Sessions', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('الجلسات النشطة',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
-                        Text('1,204', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('1,204',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
                   ],
@@ -200,7 +251,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               const SizedBox(height: 24),
 
               // Admin Actions
-              const Text('Admin Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text('إجراءات الإدارة',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
 
               ElevatedButton(
@@ -209,19 +261,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   minimumSize: const Size.fromHeight(50),
                   backgroundColor: AppColors.primary,
                 ),
-                child: const Text('Manage Salons & Users'),
+                child: const Text('إدارة الصالونات والمستخدمين'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => context.push('/business-approval'),
-                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-                child: const Text('Review Pending Approvals (3)'),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50)),
+                child: const Text('مراجعة طلبات الموافقة المعلقة (3)'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => context.push('/payouts'),
-                style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-                child: const Text('Approve Payout Requests'),
+                style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(50)),
+                child: const Text('اعتماد طلبات صرف المستحقات'),
               ),
             ],
           ),

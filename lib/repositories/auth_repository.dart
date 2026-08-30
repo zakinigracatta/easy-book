@@ -2,7 +2,10 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
 abstract class AuthRepository {
-  Future<UserModel> login(String email, String password, {UserRole? requestedRole});
+  Stream<UserModel?> authStateChanges();
+  Future<UserModel?> restoreSession();
+  Future<UserModel> login(String email, String password,
+      {UserRole? requestedRole});
   Future<UserModel> registerCustomer({
     required String name,
     required String phone,
@@ -19,6 +22,10 @@ abstract class AuthRepository {
     required String location,
     String? businessImageUrl,
   });
+  Future<void> signOut();
+  Future<void> sendEmailVerification();
+  Future<bool> isCurrentEmailVerified();
+  Future<void> sendPasswordResetEmail(String email);
 }
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -27,7 +34,14 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._authService);
 
   @override
-  Future<UserModel> login(String email, String password, {UserRole? requestedRole}) {
+  Stream<UserModel?> authStateChanges() => _authService.authStateChanges();
+
+  @override
+  Future<UserModel?> restoreSession() => _authService.restoreSession();
+
+  @override
+  Future<UserModel> login(String email, String password,
+      {UserRole? requestedRole}) {
     return _authService.login(email, password, requestedRole: requestedRole);
   }
 
@@ -68,4 +82,18 @@ class AuthRepositoryImpl implements AuthRepository {
       businessImageUrl: businessImageUrl,
     );
   }
+
+  @override
+  Future<void> signOut() => _authService.signOut();
+
+  @override
+  Future<void> sendEmailVerification() => _authService.sendEmailVerification();
+
+  @override
+  Future<bool> isCurrentEmailVerified() =>
+      _authService.isCurrentEmailVerified();
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) =>
+      _authService.sendPasswordResetEmail(email);
 }

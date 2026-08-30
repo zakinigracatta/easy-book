@@ -15,7 +15,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'alex.vance@example.com');
+  final _emailController =
+      TextEditingController(text: 'alex.vance@example.com');
   final _passwordController = TextEditingController(text: 'password123');
   bool _isLoading = false;
 
@@ -24,9 +25,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       setState(() => _isLoading = true);
       try {
         await ref.read(authProvider.notifier).login(
-          _emailController.text,
-          _passwordController.text,
-        );
+              _emailController.text,
+              _passwordController.text,
+            );
         if (mounted) {
           context.go('/home');
         }
@@ -39,7 +40,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      appBar: AppBar(title: const Text('تسجيل الدخول')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -51,7 +52,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
                 Text(
                   'Welcome Back',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 28),
+                  style: Theme.of(context)
+                      .textTheme
+                      .displayLarge
+                      ?.copyWith(fontSize: 28),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -61,7 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 36),
                 CustomTextField(
                   controller: _emailController,
-                  label: 'Email Address',
+                  label: 'البريد الإلكتروني',
                   prefixIcon: Icons.email_outlined,
                   validator: Validators.validateEmail,
                   keyboardType: TextInputType.emailAddress,
@@ -69,7 +73,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
                 CustomTextField(
                   controller: _passwordController,
-                  label: 'Password',
+                  label: 'كلمة المرور',
                   prefixIcon: Icons.lock_outline,
                   obscureText: true,
                   validator: Validators.validatePassword,
@@ -83,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 28),
                 CustomButton(
-                  text: 'Sign In',
+                  text: 'تسجيل الدخول',
                   isLoading: _isLoading,
                   onPressed: _handleLogin,
                 ),

@@ -42,11 +42,16 @@ class AppointmentDetailsScreen extends StatelessWidget {
               GlassCard(
                 child: Column(
                   children: [
-                    const Icon(Icons.qr_code_2_rounded, size: 140, color: AppColors.primary),
+                    const Icon(Icons.qr_code_2_rounded,
+                        size: 140, color: AppColors.primary),
                     const SizedBox(height: 12),
-                    Text('Booking Ref: #BK-$appointmentId', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text('Booking Ref: #BK-$appointmentId',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
-                    const Text('Show QR code upon salon arrival', style: TextStyle(color: AppColors.textMutedDark, fontSize: 12)),
+                    const Text('Show QR code upon salon arrival',
+                        style: TextStyle(
+                            color: AppColors.textMutedDark, fontSize: 12)),
                   ],
                 ),
               ),
@@ -55,12 +60,15 @@ class AppointmentDetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Executive Barber Lounge', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    const Text('صالون إكزكيوتيف للحلاقة',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18)),
                     const SizedBox(height: 4),
-                    const Text('142 Luxury Blvd, Downtown NYC', style: TextStyle(color: AppColors.textMutedDark)),
+                    const Text('142 شارع لاكجري، وسط نيويورك',
+                        style: TextStyle(color: AppColors.textMutedDark)),
                     const Divider(height: 24),
-                    _detailRow('Service', 'Royal Haircut & Beard Trim'),
-                    _detailRow('Specialist', 'Marcus Vance'),
+                    _detailRow('Service', 'قصة شعر ملكية وتشذيب اللحية'),
+                    _detailRow('Specialist', 'ماركوس فانس'),
                     _detailRow('Date & Time', 'Tomorrow at 2:30 PM'),
                     _detailRow('Total Paid', '\$65.00'),
                   ],

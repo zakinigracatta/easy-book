@@ -10,49 +10,119 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isBusiness = portalType == 'business';
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final mutedColor = theme.colorScheme.onSurfaceVariant;
 
     final businessItems = [
-      {'title': 'Dashboard', 'icon': Icons.dashboard_rounded, 'route': '/owner-dashboard'},
-      {'title': 'Salon Profile', 'icon': Icons.storefront_rounded, 'route': '/salon-management'},
-      {'title': 'Services Menu', 'icon': Icons.design_services_rounded, 'route': '/services-management'},
-      {'title': 'Employees', 'icon': Icons.badge_rounded, 'route': '/employee-management'},
-      {'title': 'Employee Schedule', 'icon': Icons.calendar_month_rounded, 'route': '/employee-schedule'},
-      {'title': 'Booking Calendar', 'icon': Icons.event_available_rounded, 'route': '/booking-calendar'},
-      {'title': 'Customers', 'icon': Icons.people_alt_rounded, 'route': '/customer-management'},
-      {'title': 'Sales Report', 'icon': Icons.assessment_rounded, 'route': '/sales-report'},
-      {'title': 'Promotions', 'icon': Icons.campaign_rounded, 'route': '/promotion-management'},
+      {
+        'title': 'لوحة التحكم',
+        'icon': Icons.dashboard_rounded,
+        'route': '/owner-dashboard'
+      },
+      {
+        'title': 'ملف الصالون',
+        'icon': Icons.storefront_rounded,
+        'route': '/salon-management'
+      },
+      {
+        'title': 'قائمة الخدمات',
+        'icon': Icons.design_services_rounded,
+        'route': '/services-management'
+      },
+      {
+        'title': 'الموظفون',
+        'icon': Icons.badge_rounded,
+        'route': '/employee-management'
+      },
+      {
+        'title': 'جدول الموظفين',
+        'icon': Icons.calendar_month_rounded,
+        'route': '/employee-schedule'
+      },
+      {
+        'title': 'تقويم الحجوزات',
+        'icon': Icons.event_available_rounded,
+        'route': '/booking-calendar'
+      },
+      {
+        'title': 'العملاء',
+        'icon': Icons.people_alt_rounded,
+        'route': '/customer-management'
+      },
+      {
+        'title': 'التقرير المالي',
+        'icon': Icons.assessment_rounded,
+        'route': '/sales-report'
+      },
+      {
+        'title': 'العروض',
+        'icon': Icons.campaign_rounded,
+        'route': '/promotion-management'
+      },
     ];
 
     final adminItems = [
-      {'title': 'Admin Portal', 'icon': Icons.admin_panel_settings_rounded, 'route': '/admin-dashboard'},
-      {'title': 'Manage Users', 'icon': Icons.group_rounded, 'route': '/users-management'},
-      {'title': 'Salon Approvals', 'icon': Icons.verified_user_rounded, 'route': '/salon-approval'},
-      {'title': 'Payment Management', 'icon': Icons.payments_rounded, 'route': '/payment-management'},
-      {'title': 'Platform Analytics', 'icon': Icons.bar_chart_rounded, 'route': '/analytics'},
-      {'title': 'Reports & Logs', 'icon': Icons.summarize_rounded, 'route': '/reports'},
+      {
+        'title': 'بوابة الإدارة',
+        'icon': Icons.admin_panel_settings_rounded,
+        'route': '/admin-dashboard'
+      },
+      {
+        'title': 'إدارة المستخدمين',
+        'icon': Icons.group_rounded,
+        'route': '/users-management'
+      },
+      {
+        'title': 'اعتماد الصالونات',
+        'icon': Icons.verified_user_rounded,
+        'route': '/salon-approval'
+      },
+      {
+        'title': 'إدارة المدفوعات',
+        'icon': Icons.payments_rounded,
+        'route': '/payment-management'
+      },
+      {
+        'title': 'تحليلات المنصة',
+        'icon': Icons.bar_chart_rounded,
+        'route': '/analytics'
+      },
+      {
+        'title': 'التقارير والسجلات',
+        'icon': Icons.summarize_rounded,
+        'route': '/reports'
+      },
     ];
 
     final items = isBusiness ? businessItems : adminItems;
 
     return Drawer(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: theme.colorScheme.surface,
       child: SafeArea(
         child: Column(
           children: [
             UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: AppColors.cardDark),
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.cardDark : AppColors.cardLight,
+              ),
               accountName: Text(
-                isBusiness ? 'Salon Management Center' : 'Platform Super Admin',
+                isBusiness ? 'مركز إدارة الصالون' : 'مدير المنصة',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               accountEmail: Text(
-                isBusiness ? 'easybook.business@portal.com' : 'admin@easybook.com',
-                style: const TextStyle(color: AppColors.textMutedDark, fontSize: 12),
+                isBusiness
+                    ? 'easybook.business@portal.com'
+                    : 'admin@easybook.com',
+                style: TextStyle(color: mutedColor, fontSize: 12),
               ),
               currentAccountPicture: CircleAvatar(
-                backgroundColor: isBusiness ? AppColors.primary : AppColors.error,
+                backgroundColor:
+                    isBusiness ? AppColors.primary : AppColors.error,
                 child: Icon(
-                  isBusiness ? Icons.storefront_rounded : Icons.security_rounded,
+                  isBusiness
+                      ? Icons.storefront_rounded
+                      : Icons.security_rounded,
                   color: Colors.white,
                 ),
               ),
@@ -62,25 +132,41 @@ class AppDrawer extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 children: [
                   ...items.map((item) => ListTile(
-                    leading: Icon(item['icon'] as IconData, color: isBusiness ? AppColors.primary : AppColors.accent),
-                    title: Text(item['title'] as String, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push(item['route'] as String);
-                    },
-                  )),
-                  const Divider(color: AppColors.glassBorderDark),
+                        leading: Icon(item['icon'] as IconData,
+                            color: isBusiness
+                                ? AppColors.primary
+                                : AppColors.accent),
+                        title: Text(item['title'] as String,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w600)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          context.push(item['route'] as String);
+                        },
+                      )),
+                  Divider(
+                    color: isDark
+                        ? AppColors.glassBorderDark
+                        : AppColors.glassBorderLight,
+                  ),
                   ListTile(
-                    leading: const Icon(Icons.settings_rounded, color: AppColors.textSecondaryDark),
-                    title: const Text('Settings'),
+                    leading: Icon(
+                      Icons.settings_rounded,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    title: const Text('الإعدادات'),
                     onTap: () {
                       Navigator.pop(context);
                       context.push('/settings');
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.logout_rounded, color: AppColors.error),
-                    title: const Text('Exit Portal', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                    leading: const Icon(Icons.logout_rounded,
+                        color: AppColors.error),
+                    title: const Text('تسجيل الخروج',
+                        style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.bold)),
                     onTap: () {
                       Navigator.pop(context);
                       context.go('/welcome');

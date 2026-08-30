@@ -30,15 +30,15 @@ class ReportsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('System Audit Reports'),
+          title: const Text('تقارير تدقيق النظام'),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: const [
             GlassCard(
               child: ListTile(
-                title: Text('Security & Database Audit Log'),
-                subtitle: Text('System operating normally. 0 breaches.'),
+                title: Text('سجل تدقيق الأمان وقاعدة البيانات'),
+                subtitle: Text('النظام يعمل بصورة طبيعية. لا توجد اختراقات.'),
               ),
             ),
           ],

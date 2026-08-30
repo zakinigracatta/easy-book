@@ -30,7 +30,7 @@ class AnalyticsScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Platform Analytics'),
+          title: const Text('تحليلات المنصة'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -38,8 +38,8 @@ class AnalyticsScreen extends StatelessWidget {
             children: const [
               GlassCard(
                 child: ListTile(
-                  title: Text('Monthly Active Users (MAU)'),
-                  subtitle: Text('15,243 Users (+12% growth)'),
+                  title: Text('المستخدمون النشطون شهريًا'),
+                  subtitle: Text('15,243 مستخدمًا (نمو +12%)'),
                 ),
               ),
             ],

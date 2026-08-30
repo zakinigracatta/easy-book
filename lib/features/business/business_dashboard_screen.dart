@@ -8,14 +8,22 @@ class BusinessDashboardScreen extends StatefulWidget {
   const BusinessDashboardScreen({super.key});
 
   @override
-  State<BusinessDashboardScreen> createState() => _BusinessDashboardScreenState();
+  State<BusinessDashboardScreen> createState() =>
+      _BusinessDashboardScreenState();
 }
 
 class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
   String _activeTab = 'Overview';
 
   final List<String> _tabs = [
-    'Overview', 'Schedule', 'Requests', 'Staff', 'Clients', 'Services', 'Marketing', 'Reviews'
+    'Overview',
+    'Schedule',
+    'Requests',
+    'الموظفون',
+    'Clients',
+    'Services',
+    'Marketing',
+    'التقييمات'
   ];
 
   @override
@@ -58,15 +66,21 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                         const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Salon Portal', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                            Text('Easy Book Business Center', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                            Text('Salon Portal',
+                                style: TextStyle(
+                                    fontSize: 22, fontWeight: FontWeight.w800)),
+                            Text('Easy Book Business Center',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textMutedDark)),
                           ],
                         ),
                       ],
                     ),
                     const CircleAvatar(
                       radius: 22,
-                      backgroundImage: NetworkImage('https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80'),
+                      backgroundImage: NetworkImage(
+                          'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&q=80'),
                     ),
                   ],
                 ),
@@ -78,12 +92,33 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _actionButton('POS Register', Icons.point_of_sale_rounded, AppColors.primary, () => context.push('/pos')),
-                      _actionButton('Verified Seal', Icons.verified_user_rounded, AppColors.success, () => context.push('/verify-partner')),
-                      _actionButton('Staff Payroll', Icons.people_rounded, AppColors.glassBgDark, () => context.push('/payroll')),
-                      _actionButton('Inventory', Icons.inventory_2_rounded, AppColors.glassBgDark, () => context.push('/inventory')),
-                      _actionButton('Campaigns', Icons.campaign_rounded, AppColors.glassBgDark, () => context.push('/campaigns')),
-                      _actionButton('Subscribers', Icons.star_rounded, AppColors.glassBgDark, () => context.push('/subscribe')),
+                      _actionButton('POS Register', Icons.point_of_sale_rounded,
+                          AppColors.primary, () => context.push('/pos')),
+                      _actionButton(
+                          'Verified Seal',
+                          Icons.verified_user_rounded,
+                          AppColors.success,
+                          () => context.push('/verify-partner')),
+                      _actionButton(
+                          'Staff Payroll',
+                          Icons.people_rounded,
+                          AppColors.glassBgDark,
+                          () => context.push('/payroll')),
+                      _actionButton(
+                          'Inventory',
+                          Icons.inventory_2_rounded,
+                          AppColors.glassBgDark,
+                          () => context.push('/inventory')),
+                      _actionButton(
+                          'Campaigns',
+                          Icons.campaign_rounded,
+                          AppColors.glassBgDark,
+                          () => context.push('/campaigns')),
+                      _actionButton(
+                          'Subscribers',
+                          Icons.star_rounded,
+                          AppColors.glassBgDark,
+                          () => context.push('/subscribe')),
                     ],
                   ),
                 ),
@@ -104,8 +139,12 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                           selectedColor: AppColors.primary,
                           backgroundColor: AppColors.glassBgDark,
                           labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : AppColors.textMutedDark,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            color: isSelected
+                                ? Colors.white
+                                : AppColors.textMutedDark,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                           onSelected: (selected) {
                             if (selected) setState(() => _activeTab = t);
@@ -131,22 +170,34 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                             const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Total Revenue (This Week)', style: TextStyle(fontSize: 12, color: AppColors.textMutedDark)),
+                                Text('Total Revenue (This Week)',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textMutedDark)),
                                 SizedBox(height: 4),
-                                GradientText('\$4,250.00', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                                GradientText('\$4,250.00',
+                                    style: TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold)),
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.success.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Row(
                                 children: [
-                                  Icon(Icons.trending_up_rounded, color: AppColors.success, size: 16),
+                                  Icon(Icons.trending_up_rounded,
+                                      color: AppColors.success, size: 16),
                                   SizedBox(width: 4),
-                                  Text('+12%', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text('+12%',
+                                      style: TextStyle(
+                                          color: AppColors.success,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12)),
                                 ],
                               ),
                             ),
@@ -158,14 +209,16 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [40, 70, 45, 90, 60, 100, 80].map((h) => Container(
-                              width: 24,
-                              height: h.toDouble(),
-                              decoration: BoxDecoration(
-                                gradient: AppColors.primaryGradient,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                            )).toList(),
+                            children: [40, 70, 45, 90, 60, 100, 80]
+                                .map((h) => Container(
+                                      width: 24,
+                                      height: h.toDouble(),
+                                      decoration: BoxDecoration(
+                                        gradient: AppColors.primaryGradient,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                    ))
+                                .toList(),
                           ),
                         ),
                       ],
@@ -177,20 +230,30 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
                   // Metrics Grid
                   Row(
                     children: [
-                      Expanded(child: _metricCard('Bookings', '142', '+18%', Icons.calendar_month_rounded)),
+                      Expanded(
+                          child: _metricCard('الحجوزات', '142', '+18%',
+                              Icons.calendar_month_rounded)),
                       const SizedBox(width: 12),
-                      Expanded(child: _metricCard('Active Staff', '8', 'Full Team', Icons.badge_rounded)),
+                      Expanded(
+                          child: _metricCard('Active Staff', '8', 'Full Team',
+                              Icons.badge_rounded)),
                       const SizedBox(width: 12),
-                      Expanded(child: _metricCard('Rating', '4.9 ★', '328 reviews', Icons.star_rounded)),
+                      Expanded(
+                          child: _metricCard('Rating', '4.9 ★', '328 reviews',
+                              Icons.star_rounded)),
                     ],
                   ),
 
                   const SizedBox(height: 24),
-                  const Text('Today\'s Appointments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text('Today\'s Appointments',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
 
-                  _appointmentTile('Sarah Jenkins', 'Royal Haircut & Beard Trim', '2:30 PM', '\$65.00', 'Confirmed'),
-                  _appointmentTile('Michael Chang', 'Deep Tissue Spa Massage', '4:00 PM', '\$90.00', 'Pending'),
+                  _appointmentTile('سارة جينكنز', 'قصة شعر ملكية وتشذيب اللحية',
+                      '2:30 PM', '\$65.00', 'مؤكد'),
+                  _appointmentTile('Michael Chang', 'Deep Tissue Spa Massage',
+                      '4:00 PM', '\$90.00', 'قيد الانتظار'),
                 ],
               ],
             ),
@@ -200,12 +263,14 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
     );
   }
 
-  Widget _actionButton(String label, IconData icon, Color bg, VoidCallback onTap) {
+  Widget _actionButton(
+      String label, IconData icon, Color bg, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ElevatedButton.icon(
         icon: Icon(icon, size: 18, color: Colors.white),
-        label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        label: Text(label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
         style: ElevatedButton.styleFrom(
           backgroundColor: bg,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -223,26 +288,39 @@ class _BusinessDashboardScreenState extends State<BusinessDashboardScreen> {
         children: [
           Icon(icon, size: 20, color: AppColors.primary),
           const SizedBox(height: 8),
-          Text(val, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMutedDark)),
+          Text(val,
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11, color: AppColors.textMutedDark)),
         ],
       ),
     );
   }
 
-  Widget _appointmentTile(String name, String service, String time, String price, String status) {
+  Widget _appointmentTile(
+      String name, String service, String time, String price, String status) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassCard(
         child: ListTile(
-          title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+          title:
+              Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text('$service • $time'),
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              Text(status, style: TextStyle(fontSize: 11, color: status == 'Confirmed' ? AppColors.success : AppColors.warning)),
+              Text(price,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(status,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: status == 'مؤكد'
+                          ? AppColors.success
+                          : AppColors.warning)),
             ],
           ),
         ),

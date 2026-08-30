@@ -32,7 +32,7 @@ class CancelBookingScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Cancel Booking'),
+          title: const Text('إلغاء الحجز'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -42,20 +42,26 @@ class CancelBookingScreen extends StatelessWidget {
                 borderColor: AppColors.error,
                 child: const Column(
                   children: [
-                    Icon(Icons.warning_amber_rounded, size: 50, color: AppColors.error),
+                    Icon(Icons.warning_amber_rounded,
+                        size: 50, color: AppColors.error),
                     SizedBox(height: 12),
-                    Text('Are you sure you want to cancel?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('هل أنت متأكد من رغبتك في الإلغاء؟',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 8),
-                    Text('Full refund will be credited to your Easy Book Wallet.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMutedDark)),
+                    Text('سيُعاد المبلغ كاملًا إلى محفظة Easy Book.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.textMutedDark)),
                   ],
                 ),
               ),
               const Spacer(),
               CustomButton(
-                text: 'Confirm Cancellation',
+                text: 'تأكيد الإلغاء',
                 backgroundColor: AppColors.error,
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking cancelled successfully.')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تم إلغاء الحجز بنجاح.')));
                   context.go('/my-bookings');
                 },
               ),

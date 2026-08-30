@@ -36,7 +36,7 @@ class GalleryScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Salon Photo Gallery'),
+          title: const Text('معرض صور الصالون'),
         ),
         body: GridView.builder(
           padding: const EdgeInsets.all(16),

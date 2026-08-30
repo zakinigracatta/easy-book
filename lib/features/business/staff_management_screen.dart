@@ -13,7 +13,8 @@ class StaffManagementScreen extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(child: Text('MV')),
-              title: Text('Marcus Vance', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('ماركوس فانس',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text('Master Barber • Full Time'),
               trailing: Icon(Icons.edit_outlined),
             ),
@@ -21,7 +22,8 @@ class StaffManagementScreen extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(child: Text('ER')),
-              title: Text('Elena Rostova', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('إيلينا روستوفا',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text('Hair Color Specialist • Full Time'),
               trailing: Icon(Icons.edit_outlined),
             ),
@@ -29,7 +31,8 @@ class StaffManagementScreen extends StatelessWidget {
           Card(
             child: ListTile(
               leading: CircleAvatar(child: Text('DK')),
-              title: Text('David Kim', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('ديفيد كيم',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text('Spa Therapist • Part Time'),
               trailing: Icon(Icons.edit_outlined),
             ),

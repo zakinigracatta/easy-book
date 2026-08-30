@@ -8,6 +8,8 @@ import '../../theme/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
 import '../../services/navigation_service.dart';
+import '../../services/auth_failure.dart';
+import '../../routes/role_routing.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -25,41 +27,65 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email and password.')),
+        const SnackBar(
+            content: Text('يرجى إدخال البريد الإلكتروني وكلمة المرور.')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      final user = await ref.read(authProvider.notifier).login(
+      final auth = ref.read(authProvider.notifier);
+      final user = await auth.login(
         _emailController.text.trim(),
         _passwordController.text,
         requestedRole: _selectedRole,
       );
 
-      if (mounted) {
-        final pendingRoute = NavigationService().consumePendingRoute();
-        if (user.role == UserRole.owner || user.role == UserRole.businessOwner) {
-          NavigationService().clearPendingRoute();
-          context.go('/owner-dashboard');
-        } else if (pendingRoute != null && pendingRoute.isNotEmpty) {
-          if (context.canPop()) {
-            context.pop(true);
-          } else {
-            context.go(pendingRoute);
-          }
+      final isVerified = await auth.isCurrentEmailVerified();
+      if (!mounted) return;
+      if (!isVerified) {
+        context.go('/email-verification');
+        return;
+      }
+
+      final pendingRoute = NavigationService().consumePendingRoute();
+      if (user.isAdmin) {
+        NavigationService().clearPendingRoute();
+        context.go(RoleRouting.homeFor(user));
+      } else if (user.role == UserRole.owner ||
+          user.role == UserRole.businessOwner) {
+        NavigationService().clearPendingRoute();
+        context.go('/owner-dashboard');
+      } else if (pendingRoute != null && pendingRoute.isNotEmpty) {
+        if (context.canPop()) {
+          context.pop(true);
         } else {
-          if (context.canPop()) {
-            context.pop(true);
-          } else {
-            context.go('/home');
-          }
+          context.go(pendingRoute);
         }
+      } else {
+        if (context.canPop()) {
+          context.pop(true);
+        } else {
+          context.go('/home');
+        }
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authErrorMessage(error))),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             }
           },
         ),
-        title: const Text('Sign In'),
+        title: const Text('تسجيل الدخول'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -84,9 +110,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Welcome Back 👋', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+              const Text('مرحبًا بعودتك 👋',
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
-              const Text('Sign in to access your portal', style: TextStyle(color: AppColors.textMutedDark)),
+              const Text('سجّل الدخول للوصول إلى بوابتك',
+                  style: TextStyle(color: AppColors.textMutedDark)),
               const SizedBox(height: 24),
 
               // Role Toggle Segment
@@ -94,16 +122,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _selectedRole = UserRole.customer),
+                      onTap: () =>
+                          setState(() => _selectedRole = UserRole.customer),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: _selectedRole == UserRole.customer ? AppColors.primary : AppColors.cardDark,
+                          color: _selectedRole == UserRole.customer
+                              ? AppColors.primary
+                              : AppColors.cardDark,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _selectedRole == UserRole.customer ? AppColors.primary : AppColors.glassBorderDark),
+                          border: Border.all(
+                              color: _selectedRole == UserRole.customer
+                                  ? AppColors.primary
+                                  : AppColors.glassBorderDark),
                         ),
                         child: const Center(
-                          child: Text('Customer', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('عميل',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
@@ -111,16 +146,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _selectedRole = UserRole.owner),
+                      onTap: () =>
+                          setState(() => _selectedRole = UserRole.owner),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: _selectedRole == UserRole.owner ? AppColors.accent : AppColors.cardDark,
+                          color: _selectedRole == UserRole.owner
+                              ? AppColors.accent
+                              : AppColors.cardDark,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: _selectedRole == UserRole.owner ? AppColors.accent : AppColors.glassBorderDark),
+                          border: Border.all(
+                              color: _selectedRole == UserRole.owner
+                                  ? AppColors.accent
+                                  : AppColors.glassBorderDark),
                         ),
                         child: const Center(
-                          child: Text('Business Owner', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('مالك صالون',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
@@ -135,23 +177,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   children: [
                     CustomTextField(
                       controller: _emailController,
-                      label: 'Email / Phone',
+                      label: 'البريد الإلكتروني / الهاتف',
                       prefixIcon: Icons.email_outlined,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
                     CustomTextField(
                       controller: _passwordController,
-                      label: 'Password',
+                      label: 'كلمة المرور',
                       obscureText: true,
                       prefixIcon: Icons.lock_outline_rounded,
                     ),
                     const SizedBox(height: 24),
                     CustomButton(
-                      text: 'Sign In',
+                      text: 'تسجيل الدخول',
                       isLoading: _isLoading,
-                      backgroundColor: _selectedRole == UserRole.owner ? AppColors.accent : AppColors.primary,
+                      backgroundColor: _selectedRole == UserRole.owner
+                          ? AppColors.accent
+                          : AppColors.primary,
                       onPressed: _handleLogin,
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => context.push('/forgot-password'),
+                        child: const Text('نسيت كلمة المرور؟'),
+                      ),
                     ),
                   ],
                 ),
@@ -162,20 +213,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Customer? ', style: TextStyle(color: AppColors.textMutedDark)),
+                      const Text('التسجيل كعميل؟ ',
+                          style: TextStyle(color: AppColors.textMutedDark)),
                       TextButton(
                         onPressed: () => context.push('/register'),
-                        child: const Text('Customer Register'),
+                        child: const Text('تسجيل عميل'),
                       ),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Register as Partner? ', style: TextStyle(color: AppColors.textMutedDark)),
+                      const Text('التسجيل كشريك؟ ',
+                          style: TextStyle(color: AppColors.textMutedDark)),
                       TextButton(
                         onPressed: () => context.push('/business-register'),
-                        child: const Text('Owner Register', style: TextStyle(color: AppColors.accent)),
+                        child: const Text('تسجيل مالك صالون',
+                            style: TextStyle(color: AppColors.accent)),
                       ),
                     ],
                   ),

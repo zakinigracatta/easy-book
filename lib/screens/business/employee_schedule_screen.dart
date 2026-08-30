@@ -30,14 +30,16 @@ class EmployeeScheduleScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Employee Roster & Schedule'),
+          title: const Text('قائمة الموظفين والجدول'),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            _shiftCard('Marcus Vance', 'Monday - Friday', '09:00 AM - 05:00 PM'),
-            _shiftCard('Elena Rostova', 'Tuesday - Saturday', '10:00 AM - 06:00 PM'),
-            _shiftCard('David Kim', 'Wednesday - Sunday', '12:00 PM - 08:00 PM'),
+            _shiftCard(
+                'ماركوس فانس', 'الاثنين - الجمعة', '09:00 AM - 05:00 PM'),
+            _shiftCard(
+                'إيلينا روستوفا', 'الثلاثاء - السبت', '10:00 AM - 06:00 PM'),
+            _shiftCard('ديفيد كيم', 'الأربعاء - الأحد', '12:00 PM - 08:00 PM'),
           ],
         ),
       ),
@@ -50,7 +52,8 @@ class EmployeeScheduleScreen extends StatelessWidget {
       child: GlassCard(
         child: ListTile(
           leading: const Icon(Icons.schedule_rounded),
-          title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+          title:
+              Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text('$days • $hours'),
         ),
       ),

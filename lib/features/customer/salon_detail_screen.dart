@@ -46,7 +46,8 @@ class SalonDetailScreen extends ConsumerWidget {
                   leading: IconButton(
                     icon: const CircleAvatar(
                       backgroundColor: Colors.black45,
-                      child: Icon(Icons.arrow_back_rounded, color: Colors.white),
+                      child:
+                          Icon(Icons.arrow_back_rounded, color: Colors.white),
                     ),
                     onPressed: () {
                       if (context.canPop()) {
@@ -66,13 +67,15 @@ class SalonDetailScreen extends ConsumerWidget {
                         ),
                       ),
                       onPressed: () {
-                        final currentFavs = Set<String>.from(ref.read(favoritesProvider));
+                        final currentFavs =
+                            Set<String>.from(ref.read(favoritesProvider));
                         if (isFav) {
                           currentFavs.remove(salonId);
                         } else {
                           currentFavs.add(salonId);
                         }
-                        ref.read(favoritesProvider.notifier).state = currentFavs;
+                        ref.read(favoritesProvider.notifier).state =
+                            currentFavs;
                       },
                     ),
                   ],
@@ -94,10 +97,14 @@ class SalonDetailScreen extends ConsumerWidget {
                           children: [
                             Text(
                               salon.name,
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(fontSize: 24),
                             ),
                             if (salon.isVerified)
-                              const LuxuryBadge(text: 'VERIFIED', icon: Icons.verified),
+                              const LuxuryBadge(
+                                  text: 'VERIFIED', icon: Icons.verified),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -112,20 +119,22 @@ class SalonDetailScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Text(
                               '${salon.rating} (${salon.reviewCount} reviews)',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
                         const Divider(height: 32),
                         const Text(
-                          'Services Menu',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          'قائمة الخدمات',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
                         _buildServiceItem(
                           context: context,
                           name: 'Luxury Haircut & Beard Sculpting',
-                          duration: '45 mins',
+                          duration: '45 دقيقة',
                           price: 65.0,
                           onBook: () async {
                             final allowed = await requireLogin(context);
@@ -137,7 +146,7 @@ class SalonDetailScreen extends ConsumerWidget {
                         _buildServiceItem(
                           context: context,
                           name: 'Hot Towel Royal Shave',
-                          duration: '30 mins',
+                          duration: '30 دقيقة',
                           price: 45.0,
                           onBook: () async {
                             final allowed = await requireLogin(context);
@@ -149,7 +158,7 @@ class SalonDetailScreen extends ConsumerWidget {
                         _buildServiceItem(
                           context: context,
                           name: 'Deep Tissue Massage & Spa',
-                          duration: '60 mins',
+                          duration: '60 دقيقة',
                           price: 110.0,
                           onBook: () async {
                             final allowed = await requireLogin(context);
@@ -192,9 +201,13 @@ class SalonDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text(name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15)),
                 const SizedBox(height: 4),
-                Text(duration, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                Text(duration,
+                    style:
+                        TextStyle(color: Colors.grey.shade600, fontSize: 13)),
                 const SizedBox(height: 6),
                 Text(
                   '\$$price',
@@ -212,7 +225,7 @@ class SalonDetailScreen extends ConsumerWidget {
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
-            child: const Text('Book'),
+            child: const Text('احجز'),
           ),
         ],
       ),

@@ -6,17 +6,12 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 class DefaultFirebaseOptions {
-
   static FirebaseOptions get currentPlatform {
-
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web.',
-      );
+      return web;
     }
 
     switch (defaultTargetPlatform) {
-
       case TargetPlatform.android:
         return android;
 
@@ -47,27 +42,30 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAr1BSFM3ODhP_pJaZhggpf8FvHkSbnKtk',
+    appId: '1:669700001010:web:38788bd9a29a489947946b',
+    messagingSenderId: '669700001010',
+    projectId: 'easy-book-zaki',
+    authDomain: 'easy-book-zaki.firebaseapp.com',
+    storageBucket: 'easy-book-zaki.firebasestorage.app',
+    measurementId: 'G-4CV5N3DXXM',
+  );
 
   static const FirebaseOptions android = FirebaseOptions(
-
     // Firebase API Key
-    apiKey:
-        'AIzaSyApbJ5knQAHW9wCBMeKq8Z4CrfQYWgsMCM',
+    apiKey: 'AIzaSyApbJ5knQAHW9wCBMeKq8Z4CrfQYWgsMCM',
 
     // App ID الخاص بـ ae.easybook.app
-    appId:
-        '1:669700001010:android:a47c10c1fe440d6a47946b',
+    appId: '1:669700001010:android:a47c10c1fe440d6a47946b',
 
     // Project Number
-    messagingSenderId:
-        '669700001010',
+    messagingSenderId: '669700001010',
 
     // Firebase Project ID
-    projectId:
-        'easy-book-zaki',
+    projectId: 'easy-book-zaki',
 
     // Storage Bucket
-    storageBucket:
-        'easy-book-zaki.firebasestorage.app',
+    storageBucket: 'easy-book-zaki.firebasestorage.app',
   );
 }

@@ -28,12 +28,16 @@ class BookingSuccessScreen extends StatelessWidget {
                     color: Color(0xFF10B981),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check_rounded, color: Colors.white, size: 64),
+                  child: const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 64),
                 ).animate().scale(duration: 500.ms),
                 const SizedBox(height: 24),
                 Text(
-                  'Booking Confirmed!',
-                  style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 26),
+                  'تم تأكيد الحجز!',
+                  style: Theme.of(context)
+                      .textTheme
+                      .displayLarge
+                      ?.copyWith(fontSize: 26),
                 ).animate().fadeIn().slideY(),
                 const SizedBox(height: 8),
                 Text(

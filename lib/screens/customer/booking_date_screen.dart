@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../widgets/custom_button.dart';
-import '../../theme/app_colors.dart';
 
 class BookingDateScreen extends StatefulWidget {
   const BookingDateScreen({super.key});
@@ -38,7 +37,7 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
               }
             },
           ),
-          title: const Text('Step 2: Select Date'),
+          title: const Text('الخطوة 2: اختر التاريخ'),
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -52,7 +51,7 @@ class _BookingDateScreenState extends State<BookingDateScreen> {
               ),
               const Spacer(),
               CustomButton(
-                text: 'Next: Select Time Slot',
+                text: 'التالي: اختر الوقت',
                 onPressed: () => context.push('/booking-time'),
               ),
             ],

@@ -30,7 +30,7 @@ class HelpScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Help & Support Center'),
+          title: const Text('مركز المساعدة والدعم'),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
@@ -38,8 +38,9 @@ class HelpScreen extends StatelessWidget {
             GlassCard(
               child: ListTile(
                 leading: Icon(Icons.help_center_rounded),
-                title: Text('Frequently Asked Questions'),
-                subtitle: Text('How to cancel, reschedule or pay for bookings'),
+                title: Text('الأسئلة الشائعة'),
+                subtitle:
+                    Text('كيفية إلغاء الحجوزات أو إعادة جدولتها أو دفعها'),
               ),
             ),
           ],

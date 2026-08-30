@@ -31,7 +31,7 @@ class LocationScreen extends StatelessWidget {
               }
             },
           ),
-          title: const Text('Salon Location & Directions'),
+          title: const Text('موقع الصالون والاتجاهات'),
         ),
         body: Stack(
           children: [
@@ -41,9 +41,12 @@ class LocationScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.location_on_rounded, size: 70, color: AppColors.primary),
+                    Icon(Icons.location_on_rounded,
+                        size: 70, color: AppColors.primary),
                     SizedBox(height: 12),
-                    Text('Executive Barber Lounge Map View', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text('عرض موقع صالون إكزكيوتيف للحلاقة',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                   ],
                 ),
               ),
@@ -56,13 +59,17 @@ class LocationScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('142 Luxury Blvd, Downtown NYC', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('142 شارع لاكجري، وسط نيويورك',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
-                    const Text('Open today: 9:00 AM - 9:00 PM • Free Parking', style: TextStyle(color: AppColors.textMutedDark, fontSize: 12)),
+                    const Text('مفتوح اليوم: 9:00 ص - 9:00 م • موقف مجاني',
+                        style: TextStyle(
+                            color: AppColors.textMutedDark, fontSize: 12)),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.directions_rounded),
-                      label: const Text('Get Directions'),
+                      label: const Text('عرض الاتجاهات'),
                       onPressed: () {},
                     ),
                   ],

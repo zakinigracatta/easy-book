@@ -1,4 +1,4 @@
-enum UserRole { customer, owner, businessOwner, admin }
+enum UserRole { customer, owner, businessOwner, admin, superAdmin }
 
 class UserModel {
   final String id;
@@ -29,19 +29,35 @@ class UserModel {
     this.businessImageUrl,
   });
 
-  String get roleString => role == UserRole.owner || role == UserRole.businessOwner ? 'owner' : 'customer';
+  String get roleString => switch (role) {
+        UserRole.owner || UserRole.businessOwner => 'owner',
+        UserRole.admin => 'admin',
+        UserRole.superAdmin => 'super_admin',
+        UserRole.customer => 'customer',
+      };
+
+  bool get isAdmin => role == UserRole.admin || role == UserRole.superAdmin;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     final roleStr = json['role'] as String? ?? 'customer';
     return UserModel(
       id: json['id'] as String? ?? '',
       email: json['email'] as String? ?? '',
-      fullName: json['full_name'] as String? ?? json['name'] as String? ?? 'Valued User',
+      fullName: json['full_name'] as String? ??
+          json['name'] as String? ??
+          'Valued User',
       phone: json['phone'] as String? ?? '',
-      avatarUrl: json['avatar_url'] as String? ?? json['profile_image'] as String?,
-      role: roleStr == 'owner' || roleStr == 'businessOwner' ? UserRole.owner : UserRole.customer,
+      avatarUrl:
+          json['avatar_url'] as String? ?? json['profile_image'] as String?,
+      role: switch (roleStr) {
+        'owner' || 'businessOwner' || 'business_owner' => UserRole.owner,
+        'admin' => UserRole.admin,
+        'super_admin' || 'superAdmin' => UserRole.superAdmin,
+        _ => UserRole.customer,
+      },
       walletBalance: (json['wallet_balance'] as num?)?.toDouble() ?? 0.0,
-      favoriteBusinessIds: List<String>.from(json['favorite_business_ids'] ?? []),
+      favoriteBusinessIds:
+          List<String>.from(json['favorite_business_ids'] ?? []),
       businessName: json['business_name'] as String?,
       category: json['category'] as String?,
       location: json['location'] as String?,

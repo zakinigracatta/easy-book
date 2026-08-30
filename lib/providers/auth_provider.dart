@@ -1,66 +1,65 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/user_model.dart';
 import '../repositories/auth_repository.dart';
 import '../services/auth_service.dart';
 import '../services/navigation_service.dart';
 
-/// Provider for NavigationService singleton
 final navigationServiceProvider = Provider<NavigationService>((ref) {
   return NavigationService();
 });
 
-/// Riverpod AuthNotifier managing Guest user vs Logged in user state.
-///
-/// Designed so FirebaseAuth listener (authStateChanges) or Firestore user fetching
-/// can replace the underlying mock logic without modifying any screen code.
+final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+final authRepositoryProvider = Provider<AuthRepository>(
+  (ref) => AuthRepositoryImpl(ref.watch(authServiceProvider)),
+);
+
+/// Riverpod auth state backed by Firebase Auth and the Firestore user profile.
 class AuthNotifier extends StateNotifier<UserModel?> {
-  final AuthRepository? _repository;
+  AuthNotifier(this._repository, this._setSessionResolved) : super(null) {
+    _authSubscription = _repository.authStateChanges().listen(
+          (user) {
+            state = user;
+            _setSessionResolved(true);
+          },
+          onError: (_, __) {
+            state = null;
+            _setSessionResolved(true);
+          },
+        );
+  }
 
-  /// Default state is null (Guest mode)
-  AuthNotifier([this._repository]) : super(null);
+  final AuthRepository _repository;
+  final void Function(bool value) _setSessionResolved;
+  late final StreamSubscription<UserModel?> _authSubscription;
 
-  /// Whether current user is logged in
   bool get isLoggedIn => state != null;
-
-  /// Whether user is currently browsing as Guest
   bool get isGuest => state == null;
 
-  /// Set explicit user state (e.g. from Firebase Auth state changes listener)
-  void setUser(UserModel? user) {
-    state = user;
-  }
-
-  /// Entry point for future FirebaseAuth.instance.authStateChanges() listener
-  void onAuthStateChanged(UserModel? user) {
-    state = user;
-  }
-
-  /// Login with email & password (compatible with future Firebase Auth signInWithEmailAndPassword)
-  Future<UserModel> login(String email, String password, {UserRole? requestedRole}) async {
-    final repo = _repository;
-    if (repo != null) {
-      final user = await repo.login(email, password, requestedRole: requestedRole);
+  Future<UserModel?> restoreSession() async {
+    try {
+      final user = await _repository.restoreSession();
       state = user;
       return user;
+    } finally {
+      _setSessionResolved(true);
     }
-
-    final isOwner = requestedRole == UserRole.owner || email.contains('owner') || email.contains('business');
-    final mockUser = UserModel(
-      id: 'usr_${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      fullName: isOwner ? 'Master Salon Partner' : 'Alex Vance',
-      phone: '+1 234 567 8900',
-      role: isOwner ? UserRole.owner : UserRole.customer,
-      walletBalance: 250.00,
-      businessName: isOwner ? 'Executive Barber Lounge' : null,
-      category: isOwner ? 'Barber' : null,
-      location: isOwner ? '142 Luxury Blvd, NYC' : null,
-    );
-    state = mockUser;
-    return mockUser;
   }
 
-  /// Register new Customer (compatible with future Firebase Auth createUserWithEmailAndPassword + Firestore)
+  Future<UserModel> login(String email, String password,
+      {UserRole? requestedRole}) async {
+    final user = await _repository.login(
+      email,
+      password,
+      requestedRole: requestedRole,
+    );
+    state = user;
+    _setSessionResolved(true);
+    return user;
+  }
+
   Future<UserModel> registerCustomer({
     required String name,
     required String phone,
@@ -68,41 +67,17 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     required String password,
     String? profileImageUrl,
   }) async {
-    final repo = _repository;
-    if (repo != null) {
-      final user = await repo.registerCustomer(
-        name: name,
-        phone: phone,
-        email: email,
-        password: password,
-        profileImageUrl: profileImageUrl,
-      );
-      state = user;
-      return user;
-    }
-
-    final mockUser = UserModel(
-      id: 'cust_${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      fullName: name,
+    final user = await _repository.registerCustomer(
+      name: name,
       phone: phone,
-      avatarUrl: profileImageUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-      role: UserRole.customer,
-      walletBalance: 100.00,
+      email: email,
+      password: password,
+      profileImageUrl: profileImageUrl,
     );
-    state = mockUser;
-    return mockUser;
+    state = user;
+    return user;
   }
 
-  /// Signup alias for customer registration
-  Future<UserModel> signup({
-    required String name,
-    required String phone,
-    required String email,
-    required String password,
-  }) => registerCustomer(name: name, phone: phone, email: email, password: password);
-
-  /// Register new Business Owner (compatible with future Firebase Auth + Firestore business user)
   Future<UserModel> registerBusinessOwner({
     required String businessName,
     required String category,
@@ -112,95 +87,116 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     required String location,
     String? businessImageUrl,
   }) async {
-    final repo = _repository;
-    if (repo != null) {
-      final user = await repo.registerBusinessOwner(
-        businessName: businessName,
-        category: category,
+    final user = await _repository.registerBusinessOwner(
+      businessName: businessName,
+      category: category,
+      phone: phone,
+      email: email,
+      password: password,
+      location: location,
+      businessImageUrl: businessImageUrl,
+    );
+    state = user;
+    return user;
+  }
+
+  Future<UserModel> signup({
+    required String fullName,
+    required String phone,
+    required String email,
+    required String password,
+    required UserRole role,
+  }) {
+    if (role == UserRole.owner || role == UserRole.businessOwner) {
+      return registerBusinessOwner(
+        businessName: fullName,
+        category: 'Other',
         phone: phone,
         email: email,
         password: password,
-        location: location,
-        businessImageUrl: businessImageUrl,
+        location: '',
       );
-      state = user;
-      return user;
     }
-
-    final mockUser = UserModel(
-      id: 'owner_${DateTime.now().millisecondsSinceEpoch}',
-      email: email,
-      fullName: businessName,
+    return registerCustomer(
+      name: fullName,
       phone: phone,
-      role: UserRole.owner,
-      businessName: businessName,
-      category: category,
-      location: location,
-      businessImageUrl: businessImageUrl ?? 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80',
+      email: email,
+      password: password,
     );
-    state = mockUser;
-    return mockUser;
   }
 
-  /// Logout user and return state to Guest mode (null)
-  void logout() {
+  Future<void> logout() async {
+    await _repository.signOut();
     state = null;
+    _setSessionResolved(true);
   }
 
-  /// Update user role (useful for role-switching between Customer, Owner, Admin)
+  Future<void> sendEmailVerification() => _repository.sendEmailVerification();
+
+  Future<bool> isCurrentEmailVerified() => _repository.isCurrentEmailVerified();
+
+  Future<void> sendPasswordResetEmail(String email) =>
+      _repository.sendPasswordResetEmail(email);
+
+  /// Updates the locally displayed role. Role persistence is managed by the
+  /// account registration flow and will be expanded with admin management.
   void updateUserRole(UserRole role) {
-    if (state != null) {
-      state = UserModel(
-        id: state!.id,
-        email: state!.email,
-        fullName: state!.fullName,
-        phone: state!.phone,
-        avatarUrl: state!.avatarUrl,
-        role: role,
-        walletBalance: state!.walletBalance,
-        favoriteBusinessIds: state!.favoriteBusinessIds,
-        businessName: state!.businessName,
-        category: state!.category,
-        location: state!.location,
-        businessImageUrl: state!.businessImageUrl,
-      );
-    }
+    final user = state;
+    if (user == null) return;
+    state = UserModel(
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      phone: user.phone,
+      avatarUrl: user.avatarUrl,
+      role: role,
+      walletBalance: user.walletBalance,
+      favoriteBusinessIds: user.favoriteBusinessIds,
+      businessName: user.businessName,
+      category: user.category,
+      location: user.location,
+      businessImageUrl: user.businessImageUrl,
+    );
   }
 
-  /// Update wallet balance
+  /// Keeps the current wallet UI responsive; wallet persistence is outside the
+  /// authentication scope.
   void updateWalletBalance(double amount) {
-    if (state != null) {
-      state = UserModel(
-        id: state!.id,
-        email: state!.email,
-        fullName: state!.fullName,
-        phone: state!.phone,
-        avatarUrl: state!.avatarUrl,
-        role: state!.role,
-        walletBalance: state!.walletBalance + amount,
-        favoriteBusinessIds: state!.favoriteBusinessIds,
-        businessName: state!.businessName,
-        category: state!.category,
-        location: state!.location,
-        businessImageUrl: state!.businessImageUrl,
-      );
-    }
+    final user = state;
+    if (user == null) return;
+    state = UserModel(
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      phone: user.phone,
+      avatarUrl: user.avatarUrl,
+      role: user.role,
+      walletBalance: user.walletBalance + amount,
+      favoriteBusinessIds: user.favoriteBusinessIds,
+      businessName: user.businessName,
+      category: user.category,
+      location: user.location,
+      businessImageUrl: user.businessImageUrl,
+    );
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    super.dispose();
   }
 }
 
-/// Main Auth Provider
+final authSessionResolvedProvider = StateProvider<bool>((ref) => false);
+
 final authProvider = StateNotifierProvider<AuthNotifier, UserModel?>((ref) {
-  final service = AuthService();
-  final repo = AuthRepositoryImpl(service);
-  return AuthNotifier(repo);
+  return AuthNotifier(
+    ref.watch(authRepositoryProvider),
+    (value) => ref.read(authSessionResolvedProvider.notifier).state = value,
+  );
 });
 
-/// Convenience provider checking if current user is authenticated
-final isLoggedInProvider = Provider<bool>((ref) {
-  return ref.watch(authProvider) != null;
-});
-
-/// Convenience provider checking if session is in Guest mode
-final isGuestProvider = Provider<bool>((ref) {
-  return ref.watch(authProvider) == null;
-});
+final isLoggedInProvider =
+    Provider<bool>((ref) => ref.watch(authProvider) != null);
+final isGuestProvider =
+    Provider<bool>((ref) => ref.watch(authProvider) == null);
