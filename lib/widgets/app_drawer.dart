@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   final String portalType; // 'business' or 'admin'
 
   const AppDrawer({super.key, required this.portalType});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isBusiness = portalType == 'business';
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -167,8 +169,10 @@ class AppDrawer extends StatelessWidget {
                         style: TextStyle(
                             color: AppColors.error,
                             fontWeight: FontWeight.bold)),
-                    onTap: () {
+                    onTap: () async {
                       Navigator.pop(context);
+                      await ref.read(authProvider.notifier).logout();
+                      if (!context.mounted) return;
                       context.go('/welcome');
                     },
                   ),
