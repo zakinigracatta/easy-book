@@ -189,6 +189,19 @@ String? evaluateRouteGuard({
     }
   }
 
+  // Admin login is intentionally public on web. Handle it before the broad
+  // `/admin/*` protection to avoid redirecting the login page to itself.
+  if (location == adminLoginRoute) {
+    if (!isWeb) return adminWebOnlyRoute;
+    if (hasFirebaseUser && userModel != null && userModel.isAdmin) {
+      return '/admin/dashboard';
+    }
+    return null;
+  }
+
+  // The denied page must remain reachable by an authenticated non-admin.
+  if (location == adminAccessDeniedRoute) return null;
+
   // Admin route protection — centralized FAIL CLOSED guard
   final isAdminRoute =
       adminProtectedRoutes.contains(location) || location.startsWith('/admin/');
@@ -204,14 +217,6 @@ String? evaluateRouteGuard({
     // Fail Closed: Authenticated user but profile/role is unresolved (null) OR not admin -> access denied
     if (userModel == null || !userModel.isAdmin) {
       return adminAccessDeniedRoute;
-    }
-  }
-
-  // Admin login page: only on web, and if already admin -> go to dashboard
-  if (location == adminLoginRoute) {
-    if (!isWeb) return adminWebOnlyRoute;
-    if (hasFirebaseUser && userModel != null && userModel.isAdmin) {
-      return '/admin/dashboard';
     }
   }
 
