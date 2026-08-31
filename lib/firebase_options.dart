@@ -8,9 +8,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web.',
-      );
+      return web;
     }
 
     switch (defaultTargetPlatform) {
@@ -43,6 +41,16 @@ class DefaultFirebaseOptions {
         );
     }
   }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAr1BSFM3ODhP_pJaZhggpf8FvHkSbnKtk',
+    appId: '1:669700001010:web:38788bd9a29a489947946b',
+    messagingSenderId: '669700001010',
+    projectId: 'easy-book-zaki',
+    authDomain: 'easy-book-zaki.firebaseapp.com',
+    storageBucket: 'easy-book-zaki.firebasestorage.app',
+    measurementId: 'G-4CV5N3DXXM',
+  );
 
   static const FirebaseOptions android = FirebaseOptions(
     // Firebase API Key
