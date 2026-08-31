@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../widgets/glass_card.dart';
+import 'admin_portal_shell.dart';
 
 class BusinessManagementScreen extends StatefulWidget {
   const BusinessManagementScreen({super.key});
@@ -46,8 +47,10 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
               }
             },
           ),
-          title: const Text('إدارة الأنشطة التجارية',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(
+            adminText(context, 'Business management', 'إدارة الأنشطة التجارية'),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         body: Column(
           children: [
@@ -61,11 +64,16 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                   SizedBox(
                     width: 320,
                     child: TextField(
-                      onChanged: (val) =>
-                          setState(() => _searchQuery = val.trim().toLowerCase()),
+                      onChanged: (val) => setState(
+                        () => _searchQuery = val.trim().toLowerCase(),
+                      ),
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.search_rounded),
-                        hintText: 'بحث بالاسم أو التصنيف أو العنوان...',
+                        hintText: adminText(
+                          context,
+                          'Search by name, category or address...',
+                          'بحث بالاسم أو التصنيف أو العنوان...',
+                        ),
                         isDense: true,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -74,10 +82,19 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                     ),
                   ),
                   SegmentedButton<bool?>(
-                    segments: const [
-                      ButtonSegment(value: null, label: Text('الكل')),
-                      ButtonSegment(value: true, label: Text('معتمد')),
-                      ButtonSegment(value: false, label: Text('غير معتمد')),
+                    segments: [
+                      ButtonSegment(
+                        value: null,
+                        label: Text(adminText(context, 'All', 'الكل')),
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        label: Text(adminText(context, 'Approved', 'معتمد')),
+                      ),
+                      ButtonSegment(
+                        value: false,
+                        label: Text(adminText(context, 'Pending', 'غير معتمد')),
+                      ),
                     ],
                     selected: {_verifiedFilter},
                     onSelectionChanged: (val) =>
@@ -91,17 +108,24 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                 stream: businessesStream,
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
-                    return const Center(
+                    return Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(24),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.cloud_off_rounded,
-                                size: 48, color: AppColors.error),
-                            SizedBox(height: 12),
+                            const Icon(
+                              Icons.cloud_off_rounded,
+                              size: 48,
+                              color: AppColors.error,
+                            ),
+                            const SizedBox(height: 12),
                             Text(
-                              'تعذر تحميل الأنشطة التجارية. تحقق من الاتصال.',
+                              adminText(
+                                context,
+                                'Unable to load businesses. Check your connection.',
+                                'تعذر تحميل الأنشطة التجارية. تحقق من الاتصال.',
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -143,17 +167,24 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                   }).toList();
 
                   if (filtered.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Padding(
-                        padding: EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(24),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.storefront_outlined,
-                                size: 56, color: AppColors.textMutedDark),
-                            SizedBox(height: 12),
+                            const Icon(
+                              Icons.storefront_outlined,
+                              size: 56,
+                              color: AppColors.textMutedDark,
+                            ),
+                            const SizedBox(height: 12),
                             Text(
-                              'لا توجد أنشطة تجارية مطابقة.',
+                              adminText(
+                                context,
+                                'No matching businesses found.',
+                                'لا توجد أنشطة تجارية مطابقة.',
+                              ),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -174,7 +205,8 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                       final address = (data['address'] ?? '').toString();
                       final isVerified = data['is_verified'] == true ||
                           data['isVerified'] == true;
-                      final rating = (data['rating'] as num?)?.toDouble() ?? 5.0;
+                      final rating =
+                          (data['rating'] as num?)?.toDouble() ?? 5.0;
 
                       final isMutating = _mutatingId == id;
                       final detailsPath =
@@ -190,8 +222,10 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                               children: [
                                 const CircleAvatar(
                                   backgroundColor: AppColors.primary,
-                                  child: Icon(Icons.storefront_rounded,
-                                      color: Colors.white),
+                                  child: Icon(
+                                    Icons.storefront_rounded,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
@@ -212,7 +246,17 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                                           ),
                                           Chip(
                                             label: Text(
-                                              isVerified ? 'معتمد' : 'غير معتمد',
+                                              isVerified
+                                                  ? adminText(
+                                                      context,
+                                                      'Approved',
+                                                      'معتمد',
+                                                    )
+                                                  : adminText(
+                                                      context,
+                                                      'Pending',
+                                                      'غير معتمد',
+                                                    ),
                                               style: TextStyle(
                                                 color: isVerified
                                                     ? AppColors.success
@@ -232,9 +276,9 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                                       Text(
                                         '$category • $address',
                                         style: TextStyle(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                           fontSize: 13,
                                         ),
                                       ),
@@ -250,24 +294,41 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                                 Column(
                                   children: [
                                     OutlinedButton(
-                                      onPressed: () => context.push(detailsPath),
-                                      child: const Text('التفاصيل'),
+                                      onPressed: () =>
+                                          context.push(detailsPath),
+                                      child: Text(
+                                        adminText(
+                                          context,
+                                          'Details',
+                                          'التفاصيل',
+                                        ),
+                                      ),
                                     ),
                                     if (!isVerified) ...[
                                       const SizedBox(height: 6),
                                       FilledButton(
                                         onPressed: isMutating
                                             ? null
-                                            : () => _verifyBusiness(doc.reference, id),
+                                            : () => _verifyBusiness(
+                                                  doc.reference,
+                                                  id,
+                                                ),
                                         child: isMutating
                                             ? const SizedBox.square(
                                                 dimension: 16,
-                                                child: CircularProgressIndicator(
+                                                child:
+                                                    CircularProgressIndicator(
                                                   strokeWidth: 2,
                                                   color: Colors.white,
                                                 ),
                                               )
-                                            : const Text('اعتماد'),
+                                            : Text(
+                                                adminText(
+                                                  context,
+                                                  'Approve',
+                                                  'اعتماد',
+                                                ),
+                                              ),
                                       ),
                                     ],
                                   ],
@@ -301,13 +362,29 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تم اعتماد النشاط بنجاح.')),
+          SnackBar(
+            content: Text(
+              adminText(
+                context,
+                'Business approved successfully.',
+                'تم اعتماد النشاط بنجاح.',
+              ),
+            ),
+          ),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تعذر اعتماد النشاط. تحقق من الاتصال.')),
+          SnackBar(
+            content: Text(
+              adminText(
+                context,
+                'Unable to approve the business. Check your connection.',
+                'تعذر اعتماد النشاط. تحقق من الاتصال.',
+              ),
+            ),
+          ),
         );
       }
     } finally {

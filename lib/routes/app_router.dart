@@ -83,6 +83,7 @@ import '../screens/admin/web_only_admin_access_screen.dart';
 // Admin Feature Screens (new architecture under lib/features/admin/)
 import '../features/admin/business_details_screen.dart';
 import '../features/admin/business_management_screen.dart';
+import '../features/admin/admin_portal_shell.dart';
 
 // General & Settings Screens
 import '../screens/settings/about_screen.dart';
@@ -189,8 +190,8 @@ String? evaluateRouteGuard({
   }
 
   // Admin route protection — centralized FAIL CLOSED guard
-  final isAdminRoute = adminProtectedRoutes.contains(location) ||
-      location.startsWith('/admin/');
+  final isAdminRoute =
+      adminProtectedRoutes.contains(location) || location.startsWith('/admin/');
   if (isAdminRoute) {
     // On mobile, admin portal is not available — show web-only screen.
     if (!isWeb) {
@@ -312,9 +313,18 @@ final appRouter = GoRouter(
       path: '/staff-profile',
       builder: (context, state) => const StaffProfileScreen(),
     ),
-    GoRoute(path: '/gallery', builder: (context, state) => const GalleryScreen()),
-    GoRoute(path: '/reviews', builder: (context, state) => const ReviewsScreen()),
-    GoRoute(path: '/location', builder: (context, state) => const LocationScreen()),
+    GoRoute(
+      path: '/gallery',
+      builder: (context, state) => const GalleryScreen(),
+    ),
+    GoRoute(
+      path: '/reviews',
+      builder: (context, state) => const ReviewsScreen(),
+    ),
+    GoRoute(
+      path: '/location',
+      builder: (context, state) => const LocationScreen(),
+    ),
     GoRoute(
       path: '/booking',
       builder: (context, state) => const BookingServiceScreen(),
@@ -343,7 +353,10 @@ final appRouter = GoRouter(
       path: '/booking-confirmation',
       builder: (context, state) => const BookingConfirmationScreen(),
     ),
-    GoRoute(path: '/payment', builder: (context, state) => const PaymentScreen()),
+    GoRoute(
+      path: '/payment',
+      builder: (context, state) => const PaymentScreen(),
+    ),
     GoRoute(
       path: '/booking-success',
       builder: (context, state) => const BookingSuccessScreen(),
@@ -484,45 +497,51 @@ final appRouter = GoRouter(
       path: adminLoginRoute,
       builder: (context, state) => const AdminLoginScreen(),
     ),
-    GoRoute(
-      path: '/admin',
-      builder: (context, state) => const AdminDashboardScreen(),
-    ),
-    GoRoute(
-      path: '/admin/dashboard',
-      builder: (context, state) => const AdminDashboardScreen(),
-    ),
-    GoRoute(
-      path: '/admin/businesses',
-      builder: (context, state) => const BusinessManagementScreen(),
-    ),
-    GoRoute(
-      path: '/admin/businesses/:businessId',
-      builder: (context, state) {
-        final businessId =
-            state.pathParameters['businessId'] ?? (state.extra as String?);
-        return AdminBusinessDetailsScreen(businessId: businessId ?? '');
-      },
-    ),
-    GoRoute(
-      path: '/admin/users',
-      builder: (context, state) => const UsersManagementScreen(),
-    ),
-    GoRoute(
-      path: '/admin/approvals',
-      builder: (context, state) => const SalonApprovalScreen(),
-    ),
-    GoRoute(
-      path: '/admin/payments',
-      builder: (context, state) => const PaymentManagementScreen(),
-    ),
-    GoRoute(
-      path: '/admin/analytics',
-      builder: (context, state) => const AnalyticsScreen(),
-    ),
-    GoRoute(
-      path: '/admin/reports',
-      builder: (context, state) => const ReportsScreen(),
+    ShellRoute(
+      builder: (context, state, child) =>
+          AdminPortalShell(location: state.uri.path, child: child),
+      routes: [
+        GoRoute(
+          path: '/admin',
+          builder: (context, state) => const AdminDashboardScreen(),
+        ),
+        GoRoute(
+          path: '/admin/dashboard',
+          builder: (context, state) => const AdminDashboardScreen(),
+        ),
+        GoRoute(
+          path: '/admin/businesses',
+          builder: (context, state) => const BusinessManagementScreen(),
+        ),
+        GoRoute(
+          path: '/admin/businesses/:businessId',
+          builder: (context, state) {
+            final businessId =
+                state.pathParameters['businessId'] ?? (state.extra as String?);
+            return AdminBusinessDetailsScreen(businessId: businessId ?? '');
+          },
+        ),
+        GoRoute(
+          path: '/admin/users',
+          builder: (context, state) => const UsersManagementScreen(),
+        ),
+        GoRoute(
+          path: '/admin/approvals',
+          builder: (context, state) => const SalonApprovalScreen(),
+        ),
+        GoRoute(
+          path: '/admin/payments',
+          builder: (context, state) => const PaymentManagementScreen(),
+        ),
+        GoRoute(
+          path: '/admin/analytics',
+          builder: (context, state) => const AnalyticsScreen(),
+        ),
+        GoRoute(
+          path: '/admin/reports',
+          builder: (context, state) => const ReportsScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: adminAccessDeniedRoute,
@@ -562,10 +581,7 @@ final appRouter = GoRouter(
       path: '/analytics',
       redirect: (context, state) => '/admin/analytics',
     ),
-    GoRoute(
-      path: '/reports',
-      redirect: (context, state) => '/admin/reports',
-    ),
+    GoRoute(path: '/reports', redirect: (context, state) => '/admin/reports'),
 
     // =====================================================================
     // General & Settings

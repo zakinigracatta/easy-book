@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
+import '../../providers/locale_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -40,9 +41,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _handleAdminLogin() async {
@@ -56,11 +57,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
 
     setState(() => _isLoading = true);
     try {
-      final user = await ref.read(authProvider.notifier).login(
-            email,
-            password,
-            requestedRole: UserRole.admin,
-          );
+      final user = await ref
+          .read(authProvider.notifier)
+          .login(email, password, requestedRole: UserRole.admin);
 
       if (!mounted) return;
 
@@ -68,7 +67,11 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       if (!user.isAdmin) {
         await ref.read(authProvider.notifier).logout();
         if (mounted) {
-          _showError(context.tr('You do not have administrative privileges to access this portal.'));
+          _showError(
+            context.tr(
+              'You do not have administrative privileges to access this portal.',
+            ),
+          );
         }
         return;
       }
@@ -89,9 +92,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         final message = switch (e.code) {
-          'role-mismatch' =>
-            context.tr('This account does not have administrator access.'),
-          'invalid-credential' || 'wrong-password' || 'user-not-found' =>
+          'role-mismatch' => context.tr(
+              'This account does not have administrator access.',
+            ),
+          'invalid-credential' ||
+          'wrong-password' ||
+          'user-not-found' =>
             context.tr('Invalid admin email or password.'),
           'too-many-requests' => context.tr(
               'Too many sign-in attempts. Please wait and try again.',
@@ -99,13 +105,18 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
           'network-request-failed' => context.tr(
               'Network connection failed. Check your connection and try again.',
             ),
-          _ => e.message ?? context.tr('Admin authentication failed. Please try again.'),
+          _ => e.message ??
+              context.tr('Admin authentication failed. Please try again.'),
         };
         _showError(message);
       }
     } catch (_) {
       if (mounted) {
-        _showError(context.tr('Admin sign in is unavailable right now. Please try again.'));
+        _showError(
+          context.tr(
+            'Admin sign in is unavailable right now. Please try again.',
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -114,6 +125,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = ref.watch(localeProvider) ?? Localizations.localeOf(context);
+    if (locale.languageCode != 'ar' && locale.languageCode != 'en') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(localeProvider.notifier).setLocale(const Locale('en'));
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -122,6 +139,26 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               context.canPop() ? context.pop() : context.go('/home'),
         ),
         title: Text(context.tr('Admin Sign In')),
+        actions: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 12),
+            child: SegmentedButton<String>(
+              segments: [
+                ButtonSegment(
+                    value: 'en',
+                    label: Text(locale.languageCode == 'ar'
+                        ? 'الإنجليزية'
+                        : 'English')),
+                const ButtonSegment(value: 'ar', label: Text('العربية')),
+              ],
+              selected: {locale.languageCode == 'ar' ? 'ar' : 'en'},
+              onSelectionChanged: (value) => ref
+                  .read(localeProvider.notifier)
+                  .setLocale(Locale(value.first)),
+              showSelectedIcon: false,
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -145,7 +182,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                context.tr('Platform management, partner verification & payouts'),
+                context.tr(
+                  'Platform management, partner verification & payouts',
+                ),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
