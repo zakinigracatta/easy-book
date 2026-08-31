@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/constants/app_colors.dart';
 import '../../widgets/glass_card.dart';
+import 'admin_portal_shell.dart';
 
 class AdminBusinessDetailsScreen extends StatefulWidget {
   const AdminBusinessDetailsScreen({required this.businessId, super.key});
@@ -44,8 +45,10 @@ class _AdminBusinessDetailsScreenState
   }
 
   Future<Map<String, dynamic>> _fetchBusinessDetails(String id) async {
-    final doc =
-        await FirebaseFirestore.instance.collection('businesses').doc(id).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('businesses')
+        .doc(id)
+        .get();
 
     if (!doc.exists || doc.data() == null) {
       throw StateError('Business not found');
@@ -56,8 +59,9 @@ class _AdminBusinessDetailsScreenState
 
     // Fetch owner information if available
     Map<String, dynamic>? ownerData;
-    final ownerId =
-        (data['owner_id'] ?? data['ownerId'] ?? '').toString().trim();
+    final ownerId = (data['owner_id'] ?? data['ownerId'] ?? '')
+        .toString()
+        .trim();
     if (ownerId.isNotEmpty) {
       try {
         final ownerDoc = await FirebaseFirestore.instance
@@ -88,14 +92,18 @@ class _AdminBusinessDetailsScreenState
         .collection('reviews')
         .get();
 
-    final results =
-        await Future.wait([servicesFuture, staffFuture, reviewsFuture]);
+    final results = await Future.wait([
+      servicesFuture,
+      staffFuture,
+      reviewsFuture,
+    ]);
 
     return {
       'business': data,
       'owner': ownerData,
-      'services':
-          results[0].docs.map((d) => {'id': d.id, ...d.data()}).toList(),
+      'services': results[0].docs
+          .map((d) => {'id': d.id, ...d.data()})
+          .toList(),
       'staff': results[1].docs.map((d) => {'id': d.id, ...d.data()}).toList(),
       'reviews': results[2].docs.map((d) => {'id': d.id, ...d.data()}).toList(),
     };
@@ -120,7 +128,11 @@ class _AdminBusinessDetailsScreenState
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            tooltip: 'العودة إلى الأنشطة',
+            tooltip: adminText(
+              context,
+              'Back to businesses',
+              'العودة إلى الأنشطة',
+            ),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -129,13 +141,19 @@ class _AdminBusinessDetailsScreenState
               }
             },
           ),
-          title: const Text('تفاصيل النشاط التجاري',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(
+            adminText(context, 'Business details', 'تفاصيل النشاط التجاري'),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         body: cleanId.isEmpty
-            ? const _ErrorState(
+            ? _ErrorState(
                 icon: Icons.error_outline_rounded,
-                text: 'معرّف النشاط غير صالح.',
+                text: adminText(
+                  context,
+                  'Invalid business ID.',
+                  'معرّف النشاط غير صالح.',
+                ),
               )
             : FutureBuilder<Map<String, dynamic>>(
                 future: _detailsFuture,
@@ -149,8 +167,16 @@ class _AdminBusinessDetailsScreenState
                     if (error is StateError) {
                       return _ErrorState(
                         icon: Icons.search_off_rounded,
-                        text: 'لم يتم العثور على هذا النشاط.',
-                        actionLabel: 'العودة للقائمة',
+                        text: adminText(
+                          context,
+                          'Business not found.',
+                          'لم يتم العثور على هذا النشاط.',
+                        ),
+                        actionLabel: adminText(
+                          context,
+                          'Back to list',
+                          'العودة للقائمة',
+                        ),
                         onAction: () {
                           if (context.canPop()) {
                             context.pop();
@@ -163,8 +189,16 @@ class _AdminBusinessDetailsScreenState
 
                     return _ErrorState(
                       icon: Icons.cloud_off_rounded,
-                      text: 'تعذر تحميل تفاصيل النشاط. تحقق من الاتصال.',
-                      actionLabel: 'إعادة المحاولة',
+                      text: adminText(
+                        context,
+                        'Unable to load business details. Check your connection.',
+                        'تعذر تحميل تفاصيل النشاط. تحقق من الاتصال.',
+                      ),
+                      actionLabel: adminText(
+                        context,
+                        'Try again',
+                        'إعادة المحاولة',
+                      ),
                       onAction: () => setState(() => _loadDetails()),
                     );
                   }
@@ -189,61 +223,91 @@ class _AdminBusinessDetailsScreenState
                           runSpacing: 16,
                           children: [
                             _InfoCard(
-                              title: 'المالك',
+                              title: adminText(context, 'Owner', 'المالك'),
                               items: owner == null
                                   ? []
                                   : [
                                       {
-                                        'title': (owner['full_name'] ??
-                                                owner['name'] ??
-                                                owner['email'] ??
-                                                'مالك النشاط')
-                                            .toString(),
+                                        'title':
+                                            (owner['full_name'] ??
+                                                    owner['name'] ??
+                                                    owner['email'] ??
+                                                    adminText(
+                                                      context,
+                                                      'Business owner',
+                                                      'مالك النشاط',
+                                                    ))
+                                                .toString(),
                                         'subtitle':
                                             '${owner['email'] ?? ''} • ${owner['phone'] ?? ''}',
-                                      }
+                                      },
                                     ],
                             ),
                             _InfoCard(
-                              title: 'الخدمات (${services.length})',
+                              title:
+                                  '${adminText(context, 'Services', 'الخدمات')} (${services.length})',
                               items: services
                                   .take(6)
-                                  .map((s) => {
-                                        'title': (s['name'] ??
-                                                s['service_name'] ??
-                                                'خدمة')
-                                            .toString(),
-                                        'subtitle':
-                                            '${s['price'] ?? 0} درهم • ${s['duration'] ?? s['duration_minutes'] ?? 30} دقيقة',
-                                      })
+                                  .map(
+                                    (s) => {
+                                      'title':
+                                          (s['name'] ??
+                                                  s['service_name'] ??
+                                                  adminText(
+                                                    context,
+                                                    'Service',
+                                                    'خدمة',
+                                                  ))
+                                              .toString(),
+                                      'subtitle':
+                                          '${s['price'] ?? 0} ${adminText(context, 'AED', 'درهم')} • ${s['duration'] ?? s['duration_minutes'] ?? 30} ${adminText(context, 'min', 'دقيقة')}',
+                                    },
+                                  )
                                   .toList(),
                             ),
                             _InfoCard(
-                              title: 'الموظفون (${staff.length})',
+                              title:
+                                  '${adminText(context, 'Employees', 'الموظفون')} (${staff.length})',
                               items: staff
                                   .take(6)
-                                  .map((st) => {
-                                        'title': (st['name'] ??
-                                                st['full_name'] ??
-                                                'موظف')
-                                            .toString(),
-                                        'subtitle': (st['role'] ??
-                                                st['specialty'] ??
-                                                'أخصائي')
-                                            .toString(),
-                                      })
+                                  .map(
+                                    (st) => {
+                                      'title':
+                                          (st['name'] ??
+                                                  st['full_name'] ??
+                                                  adminText(
+                                                    context,
+                                                    'Employee',
+                                                    'موظف',
+                                                  ))
+                                              .toString(),
+                                      'subtitle':
+                                          (st['role'] ??
+                                                  st['specialty'] ??
+                                                  adminText(
+                                                    context,
+                                                    'Specialist',
+                                                    'أخصائي',
+                                                  ))
+                                              .toString(),
+                                    },
+                                  )
                                   .toList(),
                             ),
                             _InfoCard(
-                              title: 'التقييمات (${reviews.length})',
+                              title:
+                                  '${adminText(context, 'Reviews', 'التقييمات')} (${reviews.length})',
                               items: reviews
                                   .take(6)
-                                  .map((r) => {
-                                        'title':
-                                            '⭐ ${(r['rating'] ?? 5.0).toString()} - ${(r['user_name'] ?? r['userName'] ?? 'عميل').toString()}',
-                                        'subtitle': (r['comment'] ?? r['text'] ?? '')
-                                            .toString(),
-                                      })
+                                  .map(
+                                    (r) => {
+                                      'title':
+                                          '⭐ ${(r['rating'] ?? 5.0).toString()} - ${(r['user_name'] ?? r['userName'] ?? adminText(context, 'Customer', 'عميل')).toString()}',
+                                      'subtitle':
+                                          (r['comment'] ?? r['text'] ?? '')
+                                              .toString(),
+                                    },
+                                  )
                                   .toList(),
                             ),
                           ],
@@ -272,15 +336,23 @@ class _BusinessHeaderCard extends StatelessWidget {
     final rating =
         (business['rating'] as num?)?.toDouble().toStringAsFixed(1) ?? '5.0';
 
-    final isVerified = business['is_verified'] == true ||
-        business['isVerified'] == true;
+    final isVerified =
+        business['is_verified'] == true || business['isVerified'] == true;
     final isActive =
         business['is_active'] == true || business['isActive'] == true;
 
-    final phone = (business['phone'] ?? business['phone_number'] ?? owner?['phone'] ?? '—')
-        .toString();
-    final email = (business['email'] ?? business['contact_email'] ?? owner?['email'] ?? '—')
-        .toString();
+    final phone =
+        (business['phone'] ??
+                business['phone_number'] ??
+                owner?['phone'] ??
+                '—')
+            .toString();
+    final email =
+        (business['email'] ??
+                business['contact_email'] ??
+                owner?['email'] ??
+                '—')
+            .toString();
     final website = (business['website'] ?? '—').toString();
 
     final rawDate = business['created_at'] ?? business['createdAt'];
@@ -298,12 +370,13 @@ class _BusinessHeaderCard extends StatelessWidget {
       }
     }
 
-    final ownerName = (owner?['full_name'] ??
-            owner?['name'] ??
-            business['owner_id'] ??
-            business['ownerId'] ??
-            '—')
-        .toString();
+    final ownerName =
+        (owner?['full_name'] ??
+                owner?['name'] ??
+                business['owner_id'] ??
+                business['ownerId'] ??
+                '—')
+            .toString();
 
     return GlassCard(
       padding: const EdgeInsets.all(24),
@@ -317,8 +390,8 @@ class _BusinessHeaderCard extends StatelessWidget {
                 child: Text(
                   name,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               Row(
@@ -332,18 +405,20 @@ class _BusinessHeaderCard extends StatelessWidget {
                       color: isVerified ? AppColors.success : AppColors.warning,
                     ),
                     label: Text(
-                      isVerified ? 'معتمد' : 'غير معتمد',
+                      isVerified
+                          ? adminText(context, 'Approved', 'معتمد')
+                          : adminText(context, 'Pending', 'غير معتمد'),
                       style: TextStyle(
-                        color:
-                            isVerified ? AppColors.success : AppColors.warning,
+                        color: isVerified
+                            ? AppColors.success
+                            : AppColors.warning,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
                     ),
-                    backgroundColor: (isVerified
-                            ? AppColors.success
-                            : AppColors.warning)
-                        .withValues(alpha: 0.15),
+                    backgroundColor:
+                        (isVerified ? AppColors.success : AppColors.warning)
+                            .withValues(alpha: 0.15),
                   ),
                   const SizedBox(width: 8),
                   Chip(
@@ -355,7 +430,9 @@ class _BusinessHeaderCard extends StatelessWidget {
                       color: isActive ? AppColors.info : AppColors.error,
                     ),
                     label: Text(
-                      isActive ? 'نشط' : 'غير نشط',
+                      isActive
+                          ? adminText(context, 'Active', 'نشط')
+                          : adminText(context, 'Inactive', 'غير نشط'),
                       style: TextStyle(
                         color: isActive ? AppColors.info : AppColors.error,
                         fontWeight: FontWeight.bold,
@@ -375,14 +452,39 @@ class _BusinessHeaderCard extends StatelessWidget {
             spacing: 24,
             runSpacing: 16,
             children: [
-              _DetailItem(label: 'المالك', value: ownerName),
-              _DetailItem(label: 'التصنيف', value: category),
-              _DetailItem(label: 'العنوان', value: address),
-              _DetailItem(label: 'التقييم', value: '⭐ $rating'),
-              _DetailItem(label: 'الهاتف', value: phone, isDirectional: true),
-              _DetailItem(label: 'البريد الإلكتروني', value: email),
-              _DetailItem(label: 'الموقع الإلكتروني', value: website),
-              _DetailItem(label: 'تاريخ الإنشاء', value: createdDate),
+              _DetailItem(
+                label: adminText(context, 'Owner', 'المالك'),
+                value: ownerName,
+              ),
+              _DetailItem(
+                label: adminText(context, 'Category', 'التصنيف'),
+                value: category,
+              ),
+              _DetailItem(
+                label: adminText(context, 'Address', 'العنوان'),
+                value: address,
+              ),
+              _DetailItem(
+                label: adminText(context, 'Rating', 'التقييم'),
+                value: '⭐ $rating',
+              ),
+              _DetailItem(
+                label: adminText(context, 'Phone', 'الهاتف'),
+                value: phone,
+                isDirectional: true,
+              ),
+              _DetailItem(
+                label: adminText(context, 'Email', 'البريد الإلكتروني'),
+                value: email,
+              ),
+              _DetailItem(
+                label: adminText(context, 'Website', 'الموقع الإلكتروني'),
+                value: website,
+              ),
+              _DetailItem(
+                label: adminText(context, 'Created', 'تاريخ الإنشاء'),
+                value: createdDate,
+              ),
             ],
           ),
         ],
@@ -406,10 +508,7 @@ class _DetailItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final textWidget = SelectableText(
       value,
-      style: const TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 14,
-      ),
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
     );
 
     return SizedBox(
@@ -454,17 +553,18 @@ class _InfoCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const Divider(height: 20),
             if (items.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  'لا توجد بيانات متاحة.',
+                  adminText(
+                    context,
+                    'No data available.',
+                    'لا توجد بيانات متاحة.',
+                  ),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 13,
@@ -480,7 +580,8 @@ class _InfoCard extends StatelessWidget {
                     (item['title'] ?? '').toString(),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: item['subtitle'] != null &&
+                  subtitle:
+                      item['subtitle'] != null &&
                           item['subtitle']!.toString().isNotEmpty
                       ? Text(item['subtitle']!.toString())
                       : null,
@@ -523,10 +624,7 @@ class _ErrorState extends StatelessWidget {
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
+              OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
             ],
           ],
         ),

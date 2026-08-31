@@ -69,8 +69,11 @@ void main() {
     );
   }
 
-  group('Pure evaluateRouteGuard Unit Tests (Web & Mobile Authorization Rules)', () {
-    test('1. Fail-Closed: Authenticated user with unresolved/null role cannot access /admin on Web', () {
+  group('Pure evaluateRouteGuard Unit Tests (Web & Mobile Authorization Rules)',
+      () {
+    test(
+        '1. Fail-Closed: Authenticated user with unresolved/null role cannot access /admin on Web',
+        () {
       final redirectTarget = evaluateRouteGuard(
         location: '/admin/dashboard',
         isWeb: true,
@@ -79,7 +82,8 @@ void main() {
         userModel: null, // Profile/role has not loaded yet
       );
       expect(redirectTarget, equals(adminAccessDeniedRoute),
-          reason: 'Unresolved role must fail closed and redirect to access-denied');
+          reason:
+              'Unresolved role must fail closed and redirect to access-denied');
     });
 
     test('2. Customer cannot access /admin on Web', () {
@@ -103,7 +107,8 @@ void main() {
         userModel: AuthFixtures.ownerUser,
       );
       expect(redirectTarget, equals(adminAccessDeniedRoute),
-          reason: 'Business owner user must be denied access to Web Admin routes');
+          reason:
+              'Business owner user must be denied access to Web Admin routes');
     });
 
     test('4. Admin CAN access /admin on Web', () {
@@ -127,10 +132,13 @@ void main() {
         userModel: AuthFixtures.superAdminUser,
       );
       expect(redirectTarget, isNull,
-          reason: 'Super admin user must be granted access to Web Admin routes');
+          reason:
+              'Super admin user must be granted access to Web Admin routes');
     });
 
-    test('6. Unauthenticated Guest on Web accessing /admin redirects to /admin/login', () {
+    test(
+        '6. Unauthenticated Guest on Web accessing /admin redirects to /admin/login',
+        () {
       final redirectTarget = evaluateRouteGuard(
         location: '/admin/dashboard',
         isWeb: true,
@@ -141,7 +149,35 @@ void main() {
       expect(redirectTarget, equals(adminLoginRoute));
     });
 
-    test('6b. Customer cannot access /admin/businesses or /admin/businesses/:id on Web', () {
+    test('6a. Admin login remains reachable for unauthenticated web users', () {
+      expect(
+        evaluateRouteGuard(
+          location: adminLoginRoute,
+          isWeb: true,
+          hasFirebaseUser: false,
+          isEmailVerified: true,
+          userModel: null,
+        ),
+        isNull,
+      );
+    });
+
+    test('6aa. Access denied page does not redirect to itself', () {
+      expect(
+        evaluateRouteGuard(
+          location: adminAccessDeniedRoute,
+          isWeb: true,
+          hasFirebaseUser: true,
+          isEmailVerified: true,
+          userModel: null,
+        ),
+        isNull,
+      );
+    });
+
+    test(
+        '6b. Customer cannot access /admin/businesses or /admin/businesses/:id on Web',
+        () {
       final redirectTargetBusinesses = evaluateRouteGuard(
         location: '/admin/businesses',
         isWeb: true,
@@ -161,7 +197,9 @@ void main() {
       expect(redirectTargetDetails, equals(adminAccessDeniedRoute));
     });
 
-    test('6c. Admin CAN access /admin/businesses and /admin/businesses/:id on Web', () {
+    test(
+        '6c. Admin CAN access /admin/businesses and /admin/businesses/:id on Web',
+        () {
       final redirectTargetBusinesses = evaluateRouteGuard(
         location: '/admin/businesses',
         isWeb: true,
@@ -181,7 +219,9 @@ void main() {
       expect(redirectTargetDetails, isNull);
     });
 
-    test('7. Mobile user (any role) accessing /admin redirects to /admin-web-only', () {
+    test(
+        '7. Mobile user (any role) accessing /admin redirects to /admin-web-only',
+        () {
       for (final roleUser in [
         null,
         AuthFixtures.customerUser,
@@ -197,11 +237,13 @@ void main() {
           userModel: roleUser,
         );
         expect(redirectTarget, equals(adminWebOnlyRoute),
-            reason: 'All mobile attempts to access /admin must redirect to /admin-web-only');
+            reason:
+                'All mobile attempts to access /admin must redirect to /admin-web-only');
       }
     });
 
-    test('8. Existing Customer protected routes remain protected for Guests', () {
+    test('8. Existing Customer protected routes remain protected for Guests',
+        () {
       for (final route in customerProtectedRoutes) {
         final redirectTarget = evaluateRouteGuard(
           location: route,
@@ -211,7 +253,8 @@ void main() {
           userModel: null,
         );
         expect(redirectTarget, equals('/login'),
-            reason: 'Guest accessing customer route $route must redirect to /login');
+            reason:
+                'Guest accessing customer route $route must redirect to /login');
       }
     });
 
@@ -226,7 +269,8 @@ void main() {
           userModel: null,
         );
         expect(guestRedirect, equals('/owner-login'),
-            reason: 'Guest accessing owner route $route must redirect to /owner-login');
+            reason:
+                'Guest accessing owner route $route must redirect to /owner-login');
 
         // Customer attempt
         final customerRedirect = evaluateRouteGuard(
@@ -237,7 +281,8 @@ void main() {
           userModel: AuthFixtures.customerUser,
         );
         expect(customerRedirect, equals('/home'),
-            reason: 'Customer accessing owner route $route must redirect to /home');
+            reason:
+                'Customer accessing owner route $route must redirect to /home');
 
         // Owner attempt
         final ownerRedirect = evaluateRouteGuard(
@@ -254,7 +299,8 @@ void main() {
   });
 
   group('Widget & Router Flow Tests', () {
-    testWidgets('Customer cannot access Admin routes on mobile (redirected to /admin-web-only)',
+    testWidgets(
+        'Customer cannot access Admin routes on mobile (redirected to /admin-web-only)',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -278,7 +324,8 @@ void main() {
       expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
-    testWidgets('Business Partner cannot access Admin routes on mobile (redirected to /admin-web-only)',
+    testWidgets(
+        'Business Partner cannot access Admin routes on mobile (redirected to /admin-web-only)',
         (tester) async {
       final container = ProviderContainer(
         overrides: [
@@ -299,7 +346,8 @@ void main() {
       expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
-    testWidgets('Admin and Super Admin role models correctly identify admin privileges',
+    testWidgets(
+        'Admin and Super Admin role models correctly identify admin privileges',
         (tester) async {
       expect(AuthFixtures.adminUser.isAdmin, isTrue);
       expect(AuthFixtures.superAdminUser.isAdmin, isTrue);
@@ -321,7 +369,8 @@ void main() {
       expect(getCurrentLocation(), equals('/admin-web-only'));
     });
 
-    testWidgets('Public UI (WelcomeScreen) does not contain Register as Admin or Admin Portal',
+    testWidgets(
+        'Public UI (WelcomeScreen) does not contain Register as Admin or Admin Portal',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -508,10 +557,71 @@ class MockHttpClientResponse extends Fake implements HttpClientResponse {
 }
 
 final transparentPixel = <int>[
-  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
-  0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-  0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
-  0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-  0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
-  0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82
 ];
