@@ -1,0 +1,33 @@
+name: Firestore Finance Rules
+
+on:
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'firebase_tests/**'
+      - '.github/workflows/firestore_finance_rules.yml'
+  workflow_dispatch:
+
+jobs:
+  finance-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: firebase_tests/package-lock.json
+
+      - name: Install Firebase test dependencies
+        run: npm ci --prefix firebase_tests
+
+      - name: Run Firestore rules tests
+        run: >-
+          npx --yes firebase-tools@latest emulators:exec
+          --only firestore
+          --project demo-easy-book-finance
+          "npm --prefix firebase_tests test"
