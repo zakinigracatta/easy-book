@@ -25,12 +25,6 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
-    function isAdminAccount() {
-      return isAuthenticated() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
     function isBusinessOwner(businessId) {
       return isAuthenticated() &&
         exists(/databases/$(database)/documents/businesses/$(businessId)) &&
@@ -169,7 +163,12 @@ service cloud.firestore {
 
     // Businesses Collection & Subcollections
     match /businesses/{businessId} {
-      allow read: if isBusinessOwner(businessId)
+      // Owner bootstrap checks businesses/{uid} before falling back to ownerId
+      // queries. Permit a signed-in user to read that self-keyed path even when
+      // the document does not exist, so the client receives "not found" instead
+      // of permission-denied and can continue to the legacy lookup queries.
+      allow read: if (isAuthenticated() && businessId == request.auth.uid)
+                  || isBusinessOwner(businessId)
                   || isAdminAccount()
                   || (
                     ('is_verified' in resource.data)
