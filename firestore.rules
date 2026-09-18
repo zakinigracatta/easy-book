@@ -25,12 +25,6 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
-    function isAdminAccount() {
-      return isAuthenticated() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
     function isBusinessOwner(businessId) {
       return isAuthenticated() &&
         exists(/databases/$(database)/documents/businesses/$(businessId)) &&
@@ -144,7 +138,7 @@ service cloud.firestore {
 
     // Users Collection
     match /users/{userId} {
-      allow read: if isUser(userId);
+      allow read: if isUser(userId) || isAdminAccount();
 
       allow create: if isUser(userId)
                     && request.path == /databases/$(database)/documents/users/$(userId)
@@ -313,11 +307,11 @@ service cloud.firestore {
       }
     }
 
-    // Slot locks contain only non-sensitive availability state. Guests may read
-    // them so they can browse open appointment times before signing in. All
-    // writes remain server-only through trusted backend code.
+    // Slot locks are internal booking-coordination records. Authenticated
+    // clients may read them for real-time availability; all writes remain
+    // server-only through trusted backend code.
     match /booking_slots/{slotId} {
-      allow read, get, list: if true;
+      allow read, get, list: if isAuthenticated();
       allow create, update, delete: if false;
     }
 
