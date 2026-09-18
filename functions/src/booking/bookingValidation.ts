@@ -164,11 +164,11 @@ export async function validateBookingRequirements(
     );
   }
   const bizData = bizSnap.data() || {};
-  const isActive = (bizData.isActive ?? bizData.is_active) !== false;
+  const isActive = (bizData.isActive ?? bizData.is_active) === true;
   const acceptingBookings =
-    (bizData.acceptingBookings ?? bizData.accepting_bookings) !== false;
+    (bizData.acceptingBookings ?? bizData.accepting_bookings) === true;
   const businessStatus =
-    bizData.businessStatus || bizData.business_status || 'open';
+    bizData.businessStatus || bizData.business_status || 'closed';
 
   if (!isActive || !acceptingBookings || businessStatus !== 'open') {
     throw new HttpsError(
