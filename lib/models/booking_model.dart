@@ -68,11 +68,13 @@ class BookingModel {
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     DateTime parseDate(dynamic val) {
-      if (val == null) return DateTime.now();
+      final invalid = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+      if (val == null) return invalid;
       if (val is Timestamp) return val.toDate();
-      if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
+      if (val is DateTime) return val;
+      if (val is String) return DateTime.tryParse(val) ?? invalid;
       if (val is int) return DateTime.fromMillisecondsSinceEpoch(val);
-      return DateTime.now();
+      return invalid;
     }
 
     final statusStr = json['status'] as String? ?? 'pending';
@@ -93,13 +95,13 @@ class BookingModel {
       businessId: json['businessId'] as String? ??
           json['business_id'] as String? ??
           json['salon_id'] as String? ??
-          'b1',
+          '',
       businessName: json['businessName'] as String? ??
           json['business_name'] as String? ??
           json['salon_name'] as String? ??
-          'Executive Barber Lounge',
+          'Business',
       serviceId:
-          json['serviceId'] as String? ?? json['service_id'] as String? ?? 's1',
+          json['serviceId'] as String? ?? json['service_id'] as String? ?? '',
       serviceName: json['serviceName'] as String? ??
           json['service_name'] as String? ??
           'Service',
@@ -107,7 +109,7 @@ class BookingModel {
           (json['service_price'] as num?)?.toDouble() ??
           0.0,
       staffId:
-          json['staffId'] as String? ?? json['staff_id'] as String? ?? 'st1',
+          json['staffId'] as String? ?? json['staff_id'] as String? ?? '',
       staffName: json['staffName'] as String? ??
           json['staff_name'] as String? ??
           json['employee_name'] as String? ??
