@@ -184,7 +184,12 @@ String? evaluateRouteGuard({
   // Owner / Business Partner route protection
   if (ownerProtectedRoutes.contains(location)) {
     if (!hasFirebaseUser) return '/owner-login';
-    if (userModel != null && !userModel.isOwnerRole) {
+
+    // Auth exists but the Firestore profile/role has not resolved yet.
+    // Route back through splash so authorization never fails open.
+    if (userModel == null) return '/splash';
+
+    if (!userModel.isOwnerRole) {
       return '/home';
     }
   }
@@ -214,8 +219,11 @@ String? evaluateRouteGuard({
     // Unauthenticated -> admin login
     if (!hasFirebaseUser) return adminLoginRoute;
 
-    // Fail Closed: Authenticated user but profile/role is unresolved (null) OR not admin -> access denied
-    if (userModel == null || !userModel.isAdmin) {
+    // Auth exists but the Firestore profile/role has not resolved yet.
+    // Route through splash instead of falsely denying a legitimate admin.
+    if (userModel == null) return '/splash';
+
+    if (!userModel.isAdmin) {
       return adminAccessDeniedRoute;
     }
   }
