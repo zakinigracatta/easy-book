@@ -311,7 +311,7 @@ service cloud.firestore {
     // clients may read them for real-time availability; all writes remain
     // server-only through trusted backend code.
     match /booking_slots/{slotId} {
-      allow read, get, list: if isAuthenticated();
+      allow read: if isAuthenticated();
       allow create, update, delete: if false;
     }
 
