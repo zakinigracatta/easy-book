@@ -55,7 +55,7 @@ jobs:
         run: npm ci
 
       - name: Run Firestore security rule tests
-        run: npx --yes firebase-tools emulators:exec --only firestore "npm --prefix firebase_tests test"
+        run: npx --yes firebase-tools emulators:exec --project demo-easy-book --only firestore "npm --prefix firebase_tests test"
 
       - name: Build Android debug APK
         run: flutter build apk --debug
