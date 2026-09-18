@@ -115,10 +115,7 @@ class ReviewsSection extends StatelessWidget {
           separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final r = reviews[index];
-            const defaultAvatar =
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
-            final avatarUrl =
-                r.userAvatar.isNotEmpty ? r.userAvatar : defaultAvatar;
+            final avatarUrl = r.userAvatar.trim();
             final dateStr = DateFormat('MMM dd, yyyy').format(r.createdAt);
 
             return GlassCard(
@@ -129,16 +126,38 @@ class ReviewsSection extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: CachedNetworkImage(
-                          imageUrl: avatarUrl,
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, err) => Image.network(
-                              defaultAvatar,
-                              width: 40,
-                              height: 40),
-                        ),
+                        child: avatarUrl.isEmpty
+                            ? Container(
+                                width: 40,
+                                height: 40,
+                                alignment: Alignment.center,
+                                color: Theme.of(context).colorScheme.surface,
+                                child: Icon(
+                                  Icons.person_rounded,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                              )
+                            : CachedNetworkImage(
+                                imageUrl: avatarUrl,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                                errorWidget: (context, url, err) => Container(
+                                  width: 40,
+                                  height: 40,
+                                  alignment: Alignment.center,
+                                  color:
+                                      Theme.of(context).colorScheme.surface,
+                                  child: Icon(
+                                    Icons.person_rounded,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
