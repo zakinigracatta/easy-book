@@ -6,22 +6,28 @@ import '../../../theme/app_colors.dart';
 class BookingDateSelector extends StatelessWidget {
   final DateTime selectedDate;
   final ValueChanged<DateTime> onDateSelected;
+  final DateTime today;
   final int maxDays;
 
   const BookingDateSelector({
     super.key,
     required this.selectedDate,
     required this.onDateSelected,
+    required this.today,
     this.maxDays = 60,
   });
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final maxDate = today.add(Duration(days: maxDays));
-    final daysList =
-        List.generate(14, (index) => today.add(Duration(days: index)));
+    final calendarToday = DateTime(today.year, today.month, today.day);
+    final maxDate = calendarToday.add(Duration(days: maxDays));
+    final normalizedSelected = selectedDate.isBefore(calendarToday)
+        ? calendarToday
+        : selectedDate;
+    final daysList = List.generate(
+      14,
+      (index) => calendarToday.add(Duration(days: index)),
+    );
     final material = MaterialLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? Theme.of(context).colorScheme.surface : AppColors.cardLight;
@@ -47,8 +53,8 @@ class BookingDateSelector extends StatelessWidget {
               onPressed: () async {
                 final picked = await showDatePicker(
                   context: context,
-                  initialDate: selectedDate,
-                  firstDate: today,
+                  initialDate: normalizedSelected,
+                  firstDate: calendarToday,
                   lastDate: maxDate,
                 );
                 if (picked != null) onDateSelected(picked);
@@ -59,7 +65,7 @@ class BookingDateSelector extends StatelessWidget {
                 color: AppColors.primary,
               ),
               label: Text(
-                material.formatMonthYear(selectedDate),
+                material.formatMonthYear(normalizedSelected),
                 style: const TextStyle(
                   color: AppColors.primary,
                   fontSize: 13,
@@ -78,8 +84,8 @@ class BookingDateSelector extends StatelessWidget {
             separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final date = daysList[index];
-              final isSelected = DateUtils.isSameDay(date, selectedDate);
-              final isToday = DateUtils.isSameDay(date, today);
+              final isSelected = DateUtils.isSameDay(date, normalizedSelected);
+              final isToday = DateUtils.isSameDay(date, calendarToday);
               final weekday = material.narrowWeekdays[date.weekday % 7];
 
               return GestureDetector(

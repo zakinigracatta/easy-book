@@ -184,7 +184,12 @@ String? evaluateRouteGuard({
   // Owner / Business Partner route protection
   if (ownerProtectedRoutes.contains(location)) {
     if (!hasFirebaseUser) return '/owner-login';
-    if (userModel != null && !userModel.isOwnerRole) {
+
+    // Auth exists but the Firestore profile/role has not resolved yet.
+    // Route back through splash so authorization never fails open.
+    if (userModel == null) return '/splash';
+
+    if (!userModel.isOwnerRole) {
       return '/home';
     }
   }
@@ -214,8 +219,11 @@ String? evaluateRouteGuard({
     // Unauthenticated -> admin login
     if (!hasFirebaseUser) return adminLoginRoute;
 
-    // Fail Closed: Authenticated user but profile/role is unresolved (null) OR not admin -> access denied
-    if (userModel == null || !userModel.isAdmin) {
+    // Auth exists but the Firestore profile/role has not resolved yet.
+    // Route through splash instead of falsely denying a legitimate admin.
+    if (userModel == null) return '/splash';
+
+    if (!userModel.isAdmin) {
       return adminAccessDeniedRoute;
     }
   }
@@ -312,23 +320,28 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/service-details',
-      builder: (context, state) => const ServiceDetailsScreen(),
+      builder: (context, state) =>
+          ServiceDetailsScreen(service: state.extra as ServiceModel?),
     ),
     GoRoute(
       path: '/staff-profile',
-      builder: (context, state) => const StaffProfileScreen(),
+      builder: (context, state) =>
+          StaffProfileScreen(staff: state.extra as StaffModel?),
     ),
     GoRoute(
       path: '/gallery',
-      builder: (context, state) => const GalleryScreen(),
+      builder: (context, state) =>
+          GalleryScreen(businessId: state.extra as String?),
     ),
     GoRoute(
       path: '/reviews',
-      builder: (context, state) => const ReviewsScreen(),
+      builder: (context, state) =>
+          ReviewsScreen(businessId: state.extra as String?),
     ),
     GoRoute(
       path: '/location',
-      builder: (context, state) => const LocationScreen(),
+      builder: (context, state) =>
+          LocationScreen(businessId: state.extra as String?),
     ),
     GoRoute(
       path: '/booking',

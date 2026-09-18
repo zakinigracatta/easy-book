@@ -313,7 +313,7 @@ test('16. Unauthenticated booking_slots read -> DENY', async () => {
   await assertFails(unauthDb.collection('booking_slots').doc('slot_1').get());
 });
 
-test('17. Authenticated availability lock read -> ALLOW', async () => {
+test('17. Authenticated raw booking_slots read -> DENY', async () => {
   await testEnv.withSecurityRulesDisabled(async (context) => {
     const adminDb = context.firestore();
     await adminDb.collection('booking_slots').doc('slot_public').set({
@@ -325,7 +325,7 @@ test('17. Authenticated availability lock read -> ALLOW', async () => {
   });
 
   const aliceDb = testEnv.authenticatedContext('cust_alice').firestore();
-  await assertSucceeds(
+  await assertFails(
     aliceDb.collection('booking_slots').doc('slot_public').get()
   );
 });
@@ -372,4 +372,39 @@ test('20. Admin reads admin_config -> ALLOW', async () => {
 
   const adminUserDb = testEnv.authenticatedContext('admin_uid').firestore();
   await assertSucceeds(adminUserDb.collection('admin_config').doc('sys_cfg').get());
+});
+
+
+test('21. Super admin reads admin_config -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('super_uid').set({
+      id: 'super_uid',
+      role: 'super_admin',
+    });
+    await adminDb.collection('admin_config').doc('sys_cfg').set({
+      setting: 'secret',
+    });
+  });
+
+  const superDb = testEnv.authenticatedContext('super_uid').firestore();
+  await assertSucceeds(superDb.collection('admin_config').doc('sys_cfg').get());
+});
+
+test('22. Admin reads another user profile -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('admin_uid').set({
+      id: 'admin_uid',
+      role: 'admin',
+    });
+    await adminDb.collection('users').doc('owner_uid').set({
+      id: 'owner_uid',
+      role: 'owner',
+      email: 'owner@example.com',
+    });
+  });
+
+  const adminUserDb = testEnv.authenticatedContext('admin_uid').firestore();
+  await assertSucceeds(adminUserDb.collection('users').doc('owner_uid').get());
 });

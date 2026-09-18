@@ -77,7 +77,8 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    final startDateTime = _parseStartDateTime(draft.date!, draft.timeSlot!);
+    final startDateTime =
+        draft.resolvedStartAt ?? _parseStartDateTime(draft.date!, draft.timeSlot!);
     if (startDateTime == null) {
       _showMessage(
         'The selected appointment time is invalid. Please choose it again.',
@@ -95,13 +96,19 @@ class _BookingConfirmationScreenState
     final slotLockId =
         '${businessId}_${staffId}_${startDateTime.millisecondsSinceEpoch}';
 
+    final profile = ref.read(authProvider);
+    final profilePhone = profile?.phone.trim() ?? '';
+    final firebasePhone = refreshedUser.phoneNumber?.trim() ?? '';
+
     final booking = BookingModel(
       id: '',
       customerId: refreshedUser.uid,
       customerName: refreshedUser.displayName?.trim().isNotEmpty == true
           ? refreshedUser.displayName!.trim()
           : refreshedUser.email ?? 'Valued Customer',
-      customerPhone: refreshedUser.phoneNumber,
+      customerPhone: profilePhone.isNotEmpty
+          ? profilePhone
+          : (firebasePhone.isNotEmpty ? firebasePhone : null),
       businessId: businessId,
       businessName: businessName.isEmpty ? 'Business' : businessName,
       serviceId: serviceId,

@@ -144,4 +144,59 @@ void main() {
       reason: failures.join('\n\n'),
     );
   });
+  test('admin portal contains no known demo operational claims', () {
+    const adminFiles = <String>[
+      'lib/screens/admin/users_management_screen.dart',
+      'lib/screens/admin/payment_management_screen.dart',
+      'lib/screens/admin/analytics_screen.dart',
+      'lib/screens/admin/reports_screen.dart',
+    ];
+    const forbidden = <String>[
+      'Ahmed Mohamed',
+      'Sarah Jenkins',
+      '15,243 Users (+12% growth)',
+      r'Pending Payout: {amount}',
+      'System operating normally. 0 breaches.',
+    ];
+
+    final failures = <String>[];
+    for (final path in adminFiles) {
+      final source = File(path).readAsStringSync();
+      for (final value in forbidden) {
+        if (source.contains(value)) {
+          failures.add('$path: $value');
+        }
+      }
+    }
+
+    expect(
+      failures,
+      isEmpty,
+      reason: 'Demo Admin content remains:\n${failures.join('\n')}',
+    );
+  });
+
+
+  test('admin fallbacks use canonical routes and honest missing ratings', () {
+    final approval =
+        File('lib/screens/admin/salon_approval_screen.dart').readAsStringSync();
+    final management =
+        File('lib/features/admin/business_management_screen.dart')
+            .readAsStringSync();
+    final details =
+        File('lib/features/admin/business_details_screen.dart')
+            .readAsStringSync();
+    final businessModel =
+        File('lib/models/business_model.dart').readAsStringSync();
+
+    expect(approval, isNot(contains("'/admin-dashboard'")));
+    expect(management, isNot(contains("?? 5.0")));
+    expect(details, isNot(contains("?? '5.0'")));
+    expect(
+      businessModel,
+      contains("rating: (json['rating'] as num?)?.toDouble() ?? 0.0"),
+    );
+  });
+
+
 }

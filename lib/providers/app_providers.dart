@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/available_slot.dart';
 import '../models/booking_model.dart';
 import '../models/business_model.dart';
-import '../models/chat_model.dart';
 import '../models/review_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
@@ -31,23 +30,6 @@ final availabilityServiceProvider = Provider((ref) => AvailabilityService());
 final availabilityEngineProvider =
     Provider((ref) => BookingAvailabilityEngine());
 
-final availableSlotsProvider = FutureProvider.family<
-    List<String>,
-    ({
-      String businessId,
-      String staffId,
-      int durationMinutes,
-      DateTime date
-    })>((ref, arg) async {
-  final service = ref.watch(availabilityServiceProvider);
-  return service.getAvailableSlots(
-    businessId: arg.businessId,
-    staffId: arg.staffId,
-    durationMinutes: arg.durationMinutes,
-    date: arg.date,
-  );
-});
-
 // Engine Powered Available Slots Provider
 final availableSlotsEngineProvider = FutureProvider.family<
     List<AvailableSlot>,
@@ -61,8 +43,24 @@ final availableSlotsEngineProvider = FutureProvider.family<
     })>((ref, arg) async {
   final engine = ref.watch(availabilityEngineProvider);
   final availabilityService = ref.watch(availabilityServiceProvider);
-  final timeOffs = await availabilityService.getPublicTimeOffs(
-    businessId: arg.business.id,
+  final eligibleStaff = BookingAvailabilityEngine.filterEligibleStaff(
+    arg.allStaff,
+    arg.selectedServices,
+  );
+  final targetStaffIds =
+      (arg.specialistId != null &&
+              arg.specialistId!.isNotEmpty &&
+              !arg.anySpecialist)
+          ? eligibleStaff
+              .where((staff) => staff.id == arg.specialistId)
+              .map((staff) => staff.id)
+              .toList(growable: false)
+          : eligibleStaff.map((staff) => staff.id).toList(growable: false);
+
+  final snapshot = await availabilityService.getAvailabilitySnapshot(
+    business: arg.business,
+    date: arg.date,
+    staffIds: targetStaffIds,
   );
 
   return engine.computeAvailableSlots(
@@ -72,7 +70,54 @@ final availableSlotsEngineProvider = FutureProvider.family<
     specialistId: arg.specialistId,
     anySpecialist: arg.anySpecialist,
     date: arg.date,
-    employeeTimeOffs: timeOffs,
+    employeeTimeOffs: snapshot.timeOffs,
+    occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
+  );
+});
+
+final rescheduleSlotsProvider = FutureProvider.family<
+    List<AvailableSlot>,
+    ({
+      String businessId,
+      String serviceId,
+      String staffId,
+      DateTime date,
+    })>((ref, arg) async {
+  if (arg.businessId.isEmpty || arg.serviceId.isEmpty || arg.staffId.isEmpty) {
+    return [];
+  }
+
+  final repo = ref.watch(businessRepositoryProvider);
+  final business = await repo.fetchBusinessById(arg.businessId);
+  if (business == null) return [];
+
+  final services = await repo.fetchServices(arg.businessId);
+  final selectedServices =
+      services.where((service) => service.id == arg.serviceId).toList();
+  if (selectedServices.isEmpty) return [];
+
+  final staff = await repo.fetchStaff(arg.businessId);
+  final selectedStaff =
+      staff.where((employee) => employee.id == arg.staffId).toList();
+  if (selectedStaff.isEmpty) return [];
+
+  final availabilityService = ref.watch(availabilityServiceProvider);
+  final snapshot = await availabilityService.getAvailabilitySnapshot(
+    business: business,
+    date: arg.date,
+    staffIds: [arg.staffId],
+  );
+
+  final engine = ref.watch(availabilityEngineProvider);
+  return engine.computeAvailableSlots(
+    business: business,
+    selectedServices: selectedServices,
+    allStaff: selectedStaff,
+    specialistId: arg.staffId,
+    anySpecialist: false,
+    date: arg.date,
+    employeeTimeOffs: snapshot.timeOffs,
+    occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
   );
 });
 
@@ -93,6 +138,7 @@ class BookingDraft {
   final String? resolvedStaffName;
   final DateTime? date;
   final String? timeSlot;
+  final DateTime? resolvedStartAt;
 
   BookingDraft({
     this.businessId,
@@ -110,6 +156,7 @@ class BookingDraft {
     this.resolvedStaffName,
     this.date,
     this.timeSlot,
+    this.resolvedStartAt,
   });
 
   bool get isComplete {
@@ -170,6 +217,7 @@ class BookingDraft {
     String? resolvedStaffName,
     DateTime? date,
     String? timeSlot,
+    DateTime? resolvedStartAt,
   }) {
     return BookingDraft(
       businessId: businessId ?? this.businessId,
@@ -188,6 +236,7 @@ class BookingDraft {
       resolvedStaffName: resolvedStaffName ?? this.resolvedStaffName,
       date: date ?? this.date,
       timeSlot: timeSlot ?? this.timeSlot,
+      resolvedStartAt: resolvedStartAt ?? this.resolvedStartAt,
     );
   }
 }
@@ -334,12 +383,10 @@ class AppointmentsNotifier
   Future<BookingModel> rescheduleAppointment({
     required String bookingId,
     required DateTime newStartDateTime,
-    required DateTime newEndDateTime,
   }) async {
     final updated = await _repository.rescheduleBooking(
       bookingId: bookingId,
       newStartDateTime: newStartDateTime,
-      newEndDateTime: newEndDateTime,
     );
     await loadAppointments();
     return updated;
@@ -357,30 +404,3 @@ final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 // Legacy in-memory favorites state. New customer UI uses savedFavoritesProvider.
 final favoritesProvider = StateProvider<Set<String>>((ref) => <String>{});
-
-// Chat State Provider
-final chatMessagesProvider = StateProvider<List<ChatMessageModel>>((ref) => [
-      ChatMessageModel(
-        id: 'm1',
-        senderId: 'b1',
-        text:
-            'Hello Alex! Welcome to Executive Barber Lounge. How can we assist you today?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-        isFromCustomer: false,
-      ),
-      ChatMessageModel(
-        id: 'm2',
-        senderId: 'usr_123',
-        text:
-            'Hi! Do you have any open slots for a hot towel haircut tomorrow at 3 PM?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-        isFromCustomer: true,
-      ),
-      ChatMessageModel(
-        id: 'm3',
-        senderId: 'b1',
-        text: 'Yes! Master Barber Marcus Vance has an opening at 3:30 PM.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-        isFromCustomer: false,
-      ),
-    ]);

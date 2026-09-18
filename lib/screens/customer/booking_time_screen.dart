@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/utils/business_clock.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/available_slot.dart';
 import '../../models/staff_model.dart';
@@ -22,6 +23,7 @@ class BookingTimeScreen extends ConsumerStatefulWidget {
 class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
   AvailableSlot? _selectedSlot;
   late DateTime _selectedDate;
+  bool _hasUserSelectedDate = false;
 
   Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
       ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -72,9 +74,16 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
       return;
     }
 
+    final selectedDate = DateTime(
+      _selectedSlot!.startAt.year,
+      _selectedSlot!.startAt.month,
+      _selectedSlot!.startAt.day,
+    );
+
     ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
-      date: _selectedDate,
+      date: selectedDate,
       timeSlot: _selectedSlot!.timeString,
+      resolvedStartAt: _selectedSlot!.startAt,
       resolvedStaffId: resolvedId,
       resolvedStaffName: resolvedName,
     );
@@ -132,6 +141,15 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
               );
             }
 
+            final businessToday =
+                BusinessClock.calendarToday(business.timeZone);
+            final effectiveSelectedDate =
+                !_hasUserSelectedDate && draft.date == null
+                    ? businessToday
+                    : (_selectedDate.isBefore(businessToday)
+                        ? businessToday
+                        : _selectedDate);
+
             return eligibleStaffState.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) => Center(
@@ -149,7 +167,7 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                     allStaff: eligibleStaff,
                     specialistId: draft.staffId,
                     anySpecialist: draft.anySpecialist,
-                    date: _selectedDate,
+                    date: effectiveSelectedDate,
                   )),
                 );
 
@@ -161,10 +179,12 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
                       const BookingProgressHeader(currentStep: 2),
                       const SizedBox(height: 16),
                       BookingDateSelector(
-                        selectedDate: _selectedDate,
+                        selectedDate: effectiveSelectedDate,
+                        today: businessToday,
                         onDateSelected: (date) {
                           setState(() {
                             _selectedDate = date;
+                            _hasUserSelectedDate = true;
                             _selectedSlot = null;
                           });
                         },

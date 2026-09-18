@@ -297,10 +297,11 @@ class AuthService {
       'gallery_urls': <String>[],
       'isActive': true,
       'is_active': true,
-      'businessStatus': 'open',
-      'business_status': 'open',
-      'acceptingBookings': true,
-      'accepting_bookings': true,
+      'businessStatus': 'closed',
+      'business_status': 'closed',
+      'acceptingBookings': false,
+      'accepting_bookings': false,
+      'timeZone': 'Asia/Dubai',
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
     });
@@ -313,6 +314,10 @@ class AuthService {
   bool _matchesRequestedRole(UserRole actual, UserRole requested) {
     if (_isOwner(requested)) {
       return _isOwner(actual);
+    }
+
+    if (requested == UserRole.admin || requested == UserRole.superAdmin) {
+      return actual == UserRole.admin || actual == UserRole.superAdmin;
     }
 
     return actual == requested;

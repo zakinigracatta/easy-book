@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-
-import '../core/domain_exceptions.dart';
+import 'package:timezone/timezone.dart' show TZDateTime;
+import '../core/utils/business_clock.dart';
 import '../models/available_slot.dart';
 import '../models/business_model.dart';
 import '../models/employee_time_off_model.dart';
@@ -10,27 +8,14 @@ import '../models/service_model.dart';
 import '../models/staff_model.dart';
 import '../models/staff_schedule_model.dart';
 
-export 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 export '../models/employee_time_off_model.dart' show EmployeeTimeOffModel;
 
 class BookingAvailabilityEngine {
-  final FirebaseFirestore? _firestore;
-
   static const int defaultStepMinutes = 15;
   static const int minimumLeadTimeMinutes = 30;
   static const int maxAdvanceBookingDays = 60;
 
-  BookingAvailabilityEngine([FirebaseFirestore? firestore])
-      : _firestore = firestore;
-
-  FirebaseFirestore? get _db {
-    if (_firestore != null) return _firestore;
-    try {
-      return FirebaseFirestore.instance;
-    } catch (_) {
-      return null;
-    }
-  }
+  const BookingAvailabilityEngine();
 
   static List<StaffModel> filterEligibleStaff(
     List<StaffModel> allStaff,
@@ -57,6 +42,7 @@ class BookingAvailabilityEngine {
     List<BlockedPeriodModel> blockedPeriods = const [],
     List<StaffBreakModel> staffBreaks = const [],
     List<EmployeeTimeOffModel> employeeTimeOffs = const [],
+    Map<String, Set<int>> occupiedSlotsByStaff = const {},
   }) async {
     if (!business.isActive ||
         !business.acceptingBookings ||
@@ -65,10 +51,23 @@ class BookingAvailabilityEngine {
       return [];
     }
 
-    final now = nowOverride ?? DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final businessLocation = BusinessClock.locationFor(business.timeZone);
+    final now = nowOverride == null
+        ? BusinessClock.now(business.timeZone)
+        : BusinessClock.wallClock(nowOverride, business.timeZone);
+    final today = TZDateTime(
+      businessLocation,
+      now.year,
+      now.month,
+      now.day,
+    );
     final maxDate = today.add(const Duration(days: maxAdvanceBookingDays));
-    final targetDateOnly = DateTime(date.year, date.month, date.day);
+    final targetDateOnly = TZDateTime(
+      businessLocation,
+      date.year,
+      date.month,
+      date.day,
+    );
     if (targetDateOnly.isBefore(today) || targetDateOnly.isAfter(maxDate)) {
       return [];
     }
@@ -82,7 +81,7 @@ class BookingAvailabilityEngine {
       'Saturday',
       'Sunday',
     ];
-    final dayName = dayNames[date.weekday - 1];
+    final dayName = dayNames[targetDateOnly.weekday - 1];
     final dailyHours = business.workingHours.schedule[dayName];
     if (dailyHours == null || dailyHours.isClosed) return [];
 
@@ -106,45 +105,10 @@ class BookingAvailabilityEngine {
     );
     if (totalDurationMinutes <= 0) return [];
 
-    final occupiedBucketsMap = <String, Set<int>>{};
-    final dayStartMs = targetDateOnly.millisecondsSinceEpoch;
-    final nextDayMs = targetDateOnly
-        .add(const Duration(days: 1))
-        .millisecondsSinceEpoch;
-
-    for (final staff in targetStaffList) {
-      occupiedBucketsMap[staff.id] = <int>{};
-      final db = _db;
-      if (db == null) continue;
-
-      try {
-        // Only fetch lock buckets that can affect the requested day. The old
-        // query downloaded the employee's entire booking history every time a
-        // customer changed the calendar date.
-        final lockSnap = await db
-            .collection('booking_slots')
-            .where('businessId', isEqualTo: business.id)
-            .where('staffId', isEqualTo: staff.id)
-            .where('startTimestamp', isGreaterThanOrEqualTo: dayStartMs)
-            .where('startTimestamp', isLessThan: nextDayMs)
-            .get();
-
-        for (final doc in lockSnap.docs) {
-          final data = doc.data();
-          final ts = (data['startTimestamp'] as num?)?.toInt();
-          if (ts != null) occupiedBucketsMap[staff.id]!.add(ts);
-        }
-      } on FirebaseException catch (e) {
-        debugPrint('AVAILABILITY_SLOTS_FETCH_ERROR: ${e.code} - ${e.message}');
-        throw DomainException(
-          'Unable to confirm real-time slot availability. Please try again.',
-        );
-      } catch (e) {
-        if (e is DomainException) rethrow;
-        debugPrint('AVAILABILITY_ENGINE_ERROR: $e');
-        throw DomainException('Unable to verify slot availability.');
-      }
-    }
+    final occupiedBucketsMap = <String, Set<int>>{
+      for (final staff in targetStaffList)
+        staff.id: occupiedSlotsByStaff[staff.id] ?? const <int>{},
+    };
 
     final resultSlots = <AvailableSlot>[];
     final isToday = targetDateOnly == today;
@@ -157,7 +121,14 @@ class BookingAvailabilityEngine {
         minutes += defaultStepMinutes) {
       final hour = minutes ~/ 60;
       final minute = minutes % 60;
-      final candStart = DateTime(date.year, date.month, date.day, hour, minute);
+      final candStart = TZDateTime(
+        businessLocation,
+        date.year,
+        date.month,
+        date.day,
+        hour,
+        minute,
+      );
       final candEnd = candStart.add(Duration(minutes: totalDurationMinutes));
 
       if (isToday && candStart.isBefore(leadTimeCutoff)) continue;
@@ -175,7 +146,7 @@ class BookingAvailabilityEngine {
           employeeTimeOffs: employeeTimeOffs,
           bOpenMinutes: bOpenMinutes,
           bCloseMinutes: bCloseMinutes,
-          targetDateWeekday: date.weekday,
+          targetDateWeekday: targetDateOnly.weekday,
           targetDayName: dayName,
         )) {
           availableStaffForThisSlot.add(staff.id);

@@ -43,7 +43,7 @@ class ReviewModel {
           'Anonymous',
       userAvatar:
           json['user_avatar'] as String? ?? json['userAvatar'] as String? ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       comment: json['comment'] as String? ?? '',
       createdAt: parseDate(json['created_at'] ?? json['createdAt']) ??
           DateTime.now(),

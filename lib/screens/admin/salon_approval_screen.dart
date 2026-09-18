@@ -20,7 +20,7 @@ class SalonApprovalScreen extends StatelessWidget {
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
-          context.canPop() ? context.pop() : context.go('/admin-dashboard');
+          context.canPop() ? context.pop() : context.go('/admin/dashboard');
         }
       },
       child: Scaffold(
@@ -29,7 +29,7 @@ class SalonApprovalScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back_rounded),
             onPressed: () => context.canPop()
                 ? context.pop()
-                : context.go('/admin-dashboard'),
+                : context.go('/admin/dashboard'),
           ),
           title: Text(context.tr('Pending Salon Approvals')),
         ),

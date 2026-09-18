@@ -25,6 +25,7 @@ class BusinessModel {
   final bool isActive; // Platform level entity active state
   final String businessStatus; // 'open', 'closed', 'temporarilyClosed'
   final bool acceptingBookings; // Online booking availability state
+  final String timeZone; // IANA timezone, e.g. Asia/Dubai
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -42,18 +43,14 @@ class BusinessModel {
     this.latitude = 0.0,
     this.longitude = 0.0,
     WorkingHoursModel? workingHours,
-    this.amenities = const [
-      'Wi-Fi',
-      'Parking',
-      'Card Payment',
-      'Wheelchair Access'
-    ],
+    this.amenities = const [],
     this.phone,
     this.website,
     this.galleryUrls = const [],
     this.isActive = true,
     String? businessStatus,
     bool? acceptingBookings,
+    this.timeZone = 'Asia/Dubai',
     this.createdAt,
     this.updatedAt,
   })  : workingHours = workingHours ?? WorkingHoursModel.defaultSchedule(),
@@ -82,17 +79,17 @@ class BusinessModel {
 
     final rawStatus = json['business_status'] as String? ??
         json['businessStatus'] as String? ??
-        'open';
+        'closed';
     final rawAccepting = json['accepting_bookings'] as bool? ??
         json['acceptingBookings'] as bool? ??
-        true;
+        false;
 
     return BusinessModel(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? 'Unnamed Business',
       category: json['category'] as String? ?? 'Salons',
       address: json['address'] as String? ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount:
           json['review_count'] as int? ?? json['reviewCount'] as int? ?? 0,
       imageUrl:
@@ -109,16 +106,17 @@ class BusinessModel {
           : json['workingHours'] is Map<String, dynamic>
               ? WorkingHoursModel.fromJson(
                   json['workingHours'] as Map<String, dynamic>)
-              : WorkingHoursModel.defaultSchedule(),
+              : WorkingHoursModel.closedSchedule(),
       amenities: json['amenities'] != null
           ? parseStringList(json['amenities'])
-          : const ['Wi-Fi', 'Parking', 'Card Payment', 'Wheelchair Access'],
+          : const [],
       phone: json['phone'] as String?,
       website: json['website'] as String?,
       galleryUrls: parseStringList(json['gallery_urls'] ?? json['galleryUrls']),
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
       businessStatus: rawStatus,
       acceptingBookings: rawAccepting,
+      timeZone: (json['timeZone'] ?? json['timezone'] ?? 'Asia/Dubai').toString(),
       createdAt: parseOptionalDate(json['created_at'] ?? json['createdAt']),
       updatedAt: parseOptionalDate(json['updated_at'] ?? json['updatedAt']),
     );
@@ -146,6 +144,7 @@ class BusinessModel {
       'is_active': isActive,
       'business_status': businessStatus,
       'accepting_bookings': acceptingBookings,
+      'timeZone': timeZone,
       if (createdAt != null) 'created_at': Timestamp.fromDate(createdAt!),
       if (updatedAt != null) 'updated_at': Timestamp.fromDate(updatedAt!),
     };
@@ -172,6 +171,7 @@ class BusinessModel {
     bool? isActive,
     String? businessStatus,
     bool? acceptingBookings,
+    String? timeZone,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -202,6 +202,7 @@ class BusinessModel {
       isActive: isActive ?? this.isActive,
       businessStatus: nextStatus,
       acceptingBookings: nextAccepting,
+      timeZone: timeZone ?? this.timeZone,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

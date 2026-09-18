@@ -90,9 +90,7 @@ class SpecialistOptionCard extends StatelessWidget {
     }
 
     final s = staff!;
-    const fallbackAvatar =
-        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80';
-    final avatarUrl = s.avatarUrl.isNotEmpty ? s.avatarUrl : fallbackAvatar;
+    final avatarUrl = s.avatarUrl.trim();
 
     return GlassCard(
       onTap: onTap,
@@ -103,14 +101,34 @@ class SpecialistOptionCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: CachedNetworkImage(
-              imageUrl: avatarUrl,
-              width: 56,
-              height: 56,
-              fit: BoxFit.cover,
-              errorWidget: (context, url, err) => Image.network(fallbackAvatar,
-                  width: 56, height: 56, fit: BoxFit.cover),
-            ),
+            child: avatarUrl.isEmpty
+                ? Container(
+                    width: 56,
+                    height: 56,
+                    alignment: Alignment.center,
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Icon(
+                      Icons.person_rounded,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : CachedNetworkImage(
+                    imageUrl: avatarUrl,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, err) => Container(
+                      width: 56,
+                      height: 56,
+                      alignment: Alignment.center,
+                      color: Theme.of(context).colorScheme.surface,
+                      child: Icon(
+                        Icons.person_rounded,
+                        color:
+                            Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -137,17 +155,24 @@ class SpecialistOptionCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded,
-                        color: AppColors.gold, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${s.rating.toStringAsFixed(1)} (${s.reviewCount})',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                    if (s.rating > 0) ...[
+                      const Icon(
+                        Icons.star_rounded,
                         color: AppColors.gold,
+                        size: 14,
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      Text(
+                        s.reviewCount > 0
+                            ? '${s.rating.toStringAsFixed(1)} (${s.reviewCount})'
+                            : s.rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                    ],
                     if (s.experienceYears > 0) ...[
                       const SizedBox(width: 8),
                       Text(

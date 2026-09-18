@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/admin/admin_portal_shell.dart';
+import '../../features/admin/admin_localization.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -34,8 +34,8 @@ class AdminDashboardScreen extends StatelessWidget {
     _Destination(
         'Payments',
         'المدفوعات',
-        'Monitor payouts and platform transactions',
-        'متابعة التحويلات ومعاملات المنصة',
+        'Payment integration status and future payout tools',
+        'حالة تكامل المدفوعات وأدوات التحويل القادمة',
         Icons.account_balance_wallet_rounded,
         Color(0xFFEA580C),
         '/admin/payments'),
@@ -50,8 +50,8 @@ class AdminDashboardScreen extends StatelessWidget {
     _Destination(
         'Reports',
         'التقارير',
-        'Access operational reports and audit records',
-        'الوصول إلى التقارير وسجلات التدقيق',
+        'Audit integration status and future operational reports',
+        'حالة تكامل التدقيق والتقارير التشغيلية القادمة',
         Icons.summarize_rounded,
         Color(0xFF475569),
         '/admin/reports'),

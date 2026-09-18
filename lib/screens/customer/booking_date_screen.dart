@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/utils/business_clock.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/custom_button.dart';
@@ -17,6 +18,7 @@ class BookingDateScreen extends ConsumerStatefulWidget {
 
 class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
   late DateTime _selectedDate;
+  bool _hasUserSelectedDate = false;
 
   @override
   void initState() {
@@ -26,14 +28,30 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
     _selectedDate = draftDate ?? DateTime(now.year, now.month, now.day);
   }
 
-  void _onNext() {
+  void _onNext(DateTime selectedDate) {
     ref.read(bookingDraftProvider.notifier).state =
-        ref.read(bookingDraftProvider).copyWith(date: _selectedDate);
+        ref.read(bookingDraftProvider).copyWith(date: selectedDate);
     context.push('/booking-time');
   }
 
   @override
   Widget build(BuildContext context) {
+    final draft = ref.watch(bookingDraftProvider);
+    final businessState =
+        ref.watch(businessDetailProvider(draft.businessId ?? ''));
+    final business = businessState.maybeWhen(
+      data: (value) => value,
+      orElse: () => null,
+    );
+    final businessToday =
+        BusinessClock.calendarToday(business?.timeZone ?? 'Asia/Dubai');
+    final effectiveSelectedDate =
+        !_hasUserSelectedDate && draft.date == null
+            ? businessToday
+            : (_selectedDate.isBefore(businessToday)
+                ? businessToday
+                : _selectedDate);
+
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -58,14 +76,18 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
               const BookingProgressHeader(currentStep: 2),
               const SizedBox(height: 20),
               BookingDateSelector(
-                selectedDate: _selectedDate,
-                onDateSelected: (date) => setState(() => _selectedDate = date),
+                selectedDate: effectiveSelectedDate,
+                today: businessToday,
+                onDateSelected: (date) => setState(() {
+                  _selectedDate = date;
+                  _hasUserSelectedDate = true;
+                }),
               ),
               const SizedBox(height: 24),
               const Spacer(),
               CustomButton(
                 text: 'Next: Select Time Slot',
-                onPressed: _onNext,
+                onPressed: () => _onNext(effectiveSelectedDate),
               ),
             ],
           ),

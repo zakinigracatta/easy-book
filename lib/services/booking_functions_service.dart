@@ -171,6 +171,11 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final endDateTime =
           DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final responseStatus = (resData['status'] ?? 'pending').toString();
+      final status = BookingStatus.values.firstWhere(
+        (value) => value.name == responseStatus,
+        orElse: () => BookingStatus.pending,
+      );
 
       return BookingModel(
         id: bookingId,
@@ -186,7 +191,7 @@ class BookingFunctionsService {
         staffName: '',
         startDateTime: newRequestedStartAt,
         endDateTime: endDateTime,
-        status: BookingStatus.pending,
+        status: status,
         bookingSource: 'app',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

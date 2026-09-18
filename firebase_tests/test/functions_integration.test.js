@@ -34,6 +34,10 @@ async function seedBaseData() {
     isActive: true,
     acceptingBookings: true,
     businessStatus: 'open',
+    timeZone: 'UTC',
+    workingHours: {
+      monday: { open: '09:00 AM', close: '08:00 PM', is_closed: false },
+    },
   });
 
   // Seed Service (60 mins, AED 100)
@@ -49,6 +53,7 @@ async function seedBaseData() {
       discountPrice: 0,
       durationMinutes: 60,
       isActive: true,
+      isBookable: true,
       currency: 'AED',
     });
 
@@ -346,3 +351,78 @@ test('TEST J: Cancellation Releases Locks Cleanly', async () => {
   });
   assert.equal(res2.success, true);
 });
+
+test('TEST K: Zero discount does not turn a paid service into a free service', async () => {
+  const reqDate = new Date('2026-08-17T16:00:00.000Z');
+  const res = await createBookingInternal(db, {
+    customerId: 'cust_zero_discount',
+    businessId: 'biz_test',
+    serviceId: 'srv_haircut',
+    staffId: 'st_ahmed',
+    requestedStartAt: reqDate,
+    bookingSource: 'app',
+  });
+
+  assert.equal(res.servicePrice, 100);
+});
+
+test('TEST L: Missing service duration is rejected', async () => {
+  await db
+    .collection('businesses')
+    .doc('biz_test')
+    .collection('services')
+    .doc('srv_haircut')
+    .update({ durationMinutes: FieldValue.delete(), duration: FieldValue.delete() });
+
+  await assert.rejects(
+    createBookingInternal(db, {
+      customerId: 'cust_missing_duration',
+      businessId: 'biz_test',
+      serviceId: 'srv_haircut',
+      staffId: 'st_ahmed',
+      requestedStartAt: new Date('2026-08-17T16:00:00.000Z'),
+      bookingSource: 'app',
+    }),
+    /INVALID_SERVICE_DURATION/
+  );
+});
+
+test('TEST M: Missing business hours are rejected', async () => {
+  await db.collection('businesses').doc('biz_test').update({
+    workingHours: FieldValue.delete(),
+  });
+
+  await assert.rejects(
+    createBookingInternal(db, {
+      customerId: 'cust_no_hours',
+      businessId: 'biz_test',
+      serviceId: 'srv_haircut',
+      staffId: 'st_ahmed',
+      requestedStartAt: new Date('2026-08-17T16:00:00.000Z'),
+      bookingSource: 'app',
+    }),
+    /BUSINESS_HOURS_NOT_CONFIGURED/
+  );
+});
+
+test('TEST N: Non-bookable service is rejected', async () => {
+  await db
+    .collection('businesses')
+    .doc('biz_test')
+    .collection('services')
+    .doc('srv_haircut')
+    .update({ isBookable: false });
+
+  await assert.rejects(
+    createBookingInternal(db, {
+      customerId: 'cust_unbookable',
+      businessId: 'biz_test',
+      serviceId: 'srv_haircut',
+      staffId: 'st_ahmed',
+      requestedStartAt: new Date('2026-08-17T16:00:00.000Z'),
+      bookingSource: 'app',
+    }),
+    /SERVICE_INACTIVE/
+  );
+});
+

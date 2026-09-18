@@ -8,12 +8,14 @@ class ServiceCategorySection extends StatefulWidget {
   final List<ServiceModel> services;
   final List<String> selectedServiceIds;
   final Function(ServiceModel) onServiceSelect;
+  final Function(ServiceModel)? onServiceDetails;
 
   const ServiceCategorySection({
     super.key,
     required this.services,
     required this.selectedServiceIds,
     required this.onServiceSelect,
+    this.onServiceDetails,
   });
 
   @override
@@ -117,6 +119,9 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
               service: service,
               isSelected: isSelected,
               onBookTap: () => widget.onServiceSelect(service),
+              cardTap: widget.onServiceDetails == null
+                  ? null
+                  : () => widget.onServiceDetails!(service),
             );
           },
         ),
