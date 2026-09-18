@@ -350,6 +350,8 @@ test('TEST J: Cancellation Releases Locks Cleanly', async () => {
     bookingSource: 'app',
   });
   assert.equal(res2.success, true);
+});
+
 test('TEST K: Zero discount does not turn a paid service into a free service', async () => {
   const reqDate = new Date('2026-08-17T16:00:00.000Z');
   const res = await createBookingInternal(db, {
@@ -424,5 +426,3 @@ test('TEST N: Non-bookable service is rejected', async () => {
   );
 });
 
-
-});
