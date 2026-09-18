@@ -43,12 +43,7 @@ class BusinessModel {
     this.latitude = 0.0,
     this.longitude = 0.0,
     WorkingHoursModel? workingHours,
-    this.amenities = const [
-      'Wi-Fi',
-      'Parking',
-      'Card Payment',
-      'Wheelchair Access'
-    ],
+    this.amenities = const [],
     this.phone,
     this.website,
     this.galleryUrls = const [],
@@ -84,10 +79,10 @@ class BusinessModel {
 
     final rawStatus = json['business_status'] as String? ??
         json['businessStatus'] as String? ??
-        'open';
+        'closed';
     final rawAccepting = json['accepting_bookings'] as bool? ??
         json['acceptingBookings'] as bool? ??
-        true;
+        false;
 
     return BusinessModel(
       id: json['id'] as String? ?? '',
@@ -114,7 +109,7 @@ class BusinessModel {
               : WorkingHoursModel.defaultSchedule(),
       amenities: json['amenities'] != null
           ? parseStringList(json['amenities'])
-          : const ['Wi-Fi', 'Parking', 'Card Payment', 'Wheelchair Access'],
+          : const [],
       phone: json['phone'] as String?,
       website: json['website'] as String?,
       galleryUrls: parseStringList(json['gallery_urls'] ?? json['galleryUrls']),
