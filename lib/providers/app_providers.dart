@@ -43,8 +43,24 @@ final availableSlotsEngineProvider = FutureProvider.family<
     })>((ref, arg) async {
   final engine = ref.watch(availabilityEngineProvider);
   final availabilityService = ref.watch(availabilityServiceProvider);
-  final timeOffs = await availabilityService.getPublicTimeOffs(
-    businessId: arg.business.id,
+  final eligibleStaff = BookingAvailabilityEngine.filterEligibleStaff(
+    arg.allStaff,
+    arg.selectedServices,
+  );
+  final targetStaffIds =
+      (arg.specialistId != null &&
+              arg.specialistId!.isNotEmpty &&
+              !arg.anySpecialist)
+          ? eligibleStaff
+              .where((staff) => staff.id == arg.specialistId)
+              .map((staff) => staff.id)
+              .toList(growable: false)
+          : eligibleStaff.map((staff) => staff.id).toList(growable: false);
+
+  final snapshot = await availabilityService.getAvailabilitySnapshot(
+    business: arg.business,
+    date: arg.date,
+    staffIds: targetStaffIds,
   );
 
   return engine.computeAvailableSlots(
@@ -54,7 +70,8 @@ final availableSlotsEngineProvider = FutureProvider.family<
     specialistId: arg.specialistId,
     anySpecialist: arg.anySpecialist,
     date: arg.date,
-    employeeTimeOffs: timeOffs,
+    employeeTimeOffs: snapshot.timeOffs,
+    occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
   );
 });
 
@@ -85,8 +102,10 @@ final rescheduleSlotsProvider = FutureProvider.family<
   if (selectedStaff.isEmpty) return [];
 
   final availabilityService = ref.watch(availabilityServiceProvider);
-  final timeOffs = await availabilityService.getPublicTimeOffs(
-    businessId: arg.businessId,
+  final snapshot = await availabilityService.getAvailabilitySnapshot(
+    business: business,
+    date: arg.date,
+    staffIds: [arg.staffId],
   );
 
   final engine = ref.watch(availabilityEngineProvider);
@@ -97,7 +116,8 @@ final rescheduleSlotsProvider = FutureProvider.family<
     specialistId: arg.staffId,
     anySpecialist: false,
     date: arg.date,
-    employeeTimeOffs: timeOffs,
+    employeeTimeOffs: snapshot.timeOffs,
+    occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
   );
 });
 
