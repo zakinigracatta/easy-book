@@ -313,7 +313,7 @@ test('16. Unauthenticated booking_slots read -> DENY', async () => {
   await assertFails(unauthDb.collection('booking_slots').doc('slot_1').get());
 });
 
-test('17. Authenticated availability lock read -> ALLOW', async () => {
+test('17. Authenticated raw booking_slots read -> DENY', async () => {
   await testEnv.withSecurityRulesDisabled(async (context) => {
     const adminDb = context.firestore();
     await adminDb.collection('booking_slots').doc('slot_public').set({
@@ -325,7 +325,7 @@ test('17. Authenticated availability lock read -> ALLOW', async () => {
   });
 
   const aliceDb = testEnv.authenticatedContext('cust_alice').firestore();
-  await assertSucceeds(
+  await assertFails(
     aliceDb.collection('booking_slots').doc('slot_public').get()
   );
 });
