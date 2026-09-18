@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/available_slot.dart';
 import '../models/booking_model.dart';
 import '../models/business_model.dart';
-import '../models/chat_model.dart';
 import '../models/review_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
@@ -385,30 +384,3 @@ final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 // Legacy in-memory favorites state. New customer UI uses savedFavoritesProvider.
 final favoritesProvider = StateProvider<Set<String>>((ref) => <String>{});
-
-// Chat State Provider
-final chatMessagesProvider = StateProvider<List<ChatMessageModel>>((ref) => [
-      ChatMessageModel(
-        id: 'm1',
-        senderId: 'b1',
-        text:
-            'Hello Alex! Welcome to Executive Barber Lounge. How can we assist you today?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-        isFromCustomer: false,
-      ),
-      ChatMessageModel(
-        id: 'm2',
-        senderId: 'usr_123',
-        text:
-            'Hi! Do you have any open slots for a hot towel haircut tomorrow at 3 PM?',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 25)),
-        isFromCustomer: true,
-      ),
-      ChatMessageModel(
-        id: 'm3',
-        senderId: 'b1',
-        text: 'Yes! Master Barber Marcus Vance has an opening at 3:30 PM.',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
-        isFromCustomer: false,
-      ),
-    ]);
