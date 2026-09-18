@@ -106,7 +106,7 @@ class BusinessModel {
           : json['workingHours'] is Map<String, dynamic>
               ? WorkingHoursModel.fromJson(
                   json['workingHours'] as Map<String, dynamic>)
-              : WorkingHoursModel.defaultSchedule(),
+              : WorkingHoursModel.closedSchedule(),
       amenities: json['amenities'] != null
           ? parseStringList(json['amenities'])
           : const [],
