@@ -320,23 +320,28 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/service-details',
-      builder: (context, state) => const ServiceDetailsScreen(),
+      builder: (context, state) =>
+          ServiceDetailsScreen(service: state.extra as ServiceModel?),
     ),
     GoRoute(
       path: '/staff-profile',
-      builder: (context, state) => const StaffProfileScreen(),
+      builder: (context, state) =>
+          StaffProfileScreen(staff: state.extra as StaffModel?),
     ),
     GoRoute(
       path: '/gallery',
-      builder: (context, state) => const GalleryScreen(),
+      builder: (context, state) =>
+          GalleryScreen(businessId: state.extra as String?),
     ),
     GoRoute(
       path: '/reviews',
-      builder: (context, state) => const ReviewsScreen(),
+      builder: (context, state) =>
+          ReviewsScreen(businessId: state.extra as String?),
     ),
     GoRoute(
       path: '/location',
-      builder: (context, state) => const LocationScreen(),
+      builder: (context, state) =>
+          LocationScreen(businessId: state.extra as String?),
     ),
     GoRoute(
       path: '/booking',
