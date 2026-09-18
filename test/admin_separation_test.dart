@@ -81,9 +81,9 @@ void main() {
         isEmailVerified: true,
         userModel: null, // Profile/role has not loaded yet
       );
-      expect(redirectTarget, equals(adminAccessDeniedRoute),
+      expect(redirectTarget, equals('/splash'),
           reason:
-              'Unresolved role must fail closed and redirect to access-denied');
+              'Unresolved role must fail closed and wait for profile resolution');
     });
 
     test('2. Customer cannot access /admin on Web', () {
@@ -271,6 +271,18 @@ void main() {
         expect(guestRedirect, equals('/owner-login'),
             reason:
                 'Guest accessing owner route $route must redirect to /owner-login');
+
+        // Authenticated user while profile/role is still resolving
+        final unresolvedRedirect = evaluateRouteGuard(
+          location: route,
+          isWeb: false,
+          hasFirebaseUser: true,
+          isEmailVerified: true,
+          userModel: null,
+        );
+        expect(unresolvedRedirect, equals('/splash'),
+            reason:
+                'Owner routes must not fail open while the profile is unresolved');
 
         // Customer attempt
         final customerRedirect = evaluateRouteGuard(

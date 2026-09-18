@@ -315,6 +315,10 @@ class AuthService {
       return _isOwner(actual);
     }
 
+    if (requested == UserRole.admin || requested == UserRole.superAdmin) {
+      return actual == UserRole.admin || actual == UserRole.superAdmin;
+    }
+
     return actual == requested;
   }
 }
