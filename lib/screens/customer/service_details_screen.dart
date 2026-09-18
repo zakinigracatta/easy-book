@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/service_model.dart';
+import '../../providers/app_providers.dart';
 import '../../services/auth_guard.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
-class ServiceDetailsScreen extends StatelessWidget {
-  const ServiceDetailsScreen({super.key});
+class ServiceDetailsScreen extends ConsumerWidget {
+  const ServiceDetailsScreen({super.key, this.service});
+
+  final ServiceModel? service;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final item = service;
+
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -22,63 +30,119 @@ class ServiceDetailsScreen extends StatelessWidget {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => context.canPop() ? context.pop() : context.go('/home'),
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
           title: Text(context.tr('Service Information')),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GlassCard(
+        body: item == null
+            ? _UnavailableState(
+                message: context.tr('Service details are not available.'),
+              )
+            : SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(context.tr('Royal Haircut & Beard Sculpting'),
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Directionality(
-                      textDirection: TextDirection.ltr,
-                      child: Text(
-                        'AED 65.00 • 45 ${context.tr('minutes')}',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    GlassCard(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Text(
+                              '${CurrencyFormatter.format(item.effectivePrice, currency: item.currency)} • ${item.durationMinutes} ${context.tr('minutes')}',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          if (item.categoryName.trim().isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            Text(
+                              item.categoryName,
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                          if (item.description?.trim().isNotEmpty == true) ...[
+                            const Divider(height: 24),
+                            Text(
+                              item.description!.trim(),
+                              style: const TextStyle(height: 1.5),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    const Divider(height: 24),
-                    Text(
-                      context.tr('Service Highlights:'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      context.tr(
-                        '• Precision hair consultation & custom styling\n• Hot towel facial wrap & beard oil conditioning\n• Scalp massage and premium hair wash finish',
-                      ),
+                    const SizedBox(height: 24),
+                    CustomButton(
+                      text: context.tr('Proceed to Booking'),
+                      onPressed: !item.isActive || !item.isBookable
+                          ? null
+                          : () async {
+                              final draft = ref.read(bookingDraftProvider);
+                              ref.read(bookingDraftProvider.notifier).state =
+                                  draft.copyWith(
+                                businessId: draft.businessId?.isNotEmpty == true
+                                    ? draft.businessId
+                                    : item.salonId,
+                                serviceId: item.id,
+                                serviceName: item.name,
+                                servicePrice: item.effectivePrice,
+                                serviceDuration: item.duration,
+                                serviceDurationMinutes: item.durationMinutes,
+                                selectedServices: [item],
+                              );
+
+                              final allowed = await requireLogin(
+                                context,
+                                targetRoute: '/booking-specialist',
+                              );
+                              if (allowed && context.mounted) {
+                                context.push('/booking-specialist');
+                              }
+                            },
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              CustomButton(
-                text: context.tr('Proceed to Booking'),
-                onPressed: () async {
-                  final allowed = await requireLogin(context);
-                  if (allowed && context.mounted) {
-                    context.push('/booking-service');
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
+}
+
+class _UnavailableState extends StatelessWidget {
+  const _UnavailableState({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.design_services_outlined, size: 52),
+              const SizedBox(height: 12),
+              Text(message, textAlign: TextAlign.center),
+            ],
+          ),
+        ),
+      );
 }
