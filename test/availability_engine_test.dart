@@ -256,5 +256,33 @@ void main() {
       expect(local.hour, equals(9));
       expect(local.minute, equals(0));
     });
+
+    test('12. Sanitized occupied slot timestamps block conflicting slots',
+        () async {
+      final occupiedStart = BusinessClock.wallClock(
+        DateTime(2026, 8, 17, 9, 0),
+        'Asia/Dubai',
+      ).millisecondsSinceEpoch;
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness,
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+        occupiedSlotsByStaff: {
+          testStaff.id: {occupiedStart},
+        },
+      );
+
+      expect(
+        slots.any((slot) => slot.startAt.hour == 9 && slot.startAt.minute == 0),
+        isFalse,
+      );
+      expect(
+        slots.any((slot) => slot.startAt.hour == 9 && slot.startAt.minute == 15),
+        isFalse,
+      );
+    });
   });
 }
