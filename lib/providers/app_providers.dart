@@ -31,23 +31,6 @@ final availabilityServiceProvider = Provider((ref) => AvailabilityService());
 final availabilityEngineProvider =
     Provider((ref) => BookingAvailabilityEngine());
 
-final availableSlotsProvider = FutureProvider.family<
-    List<String>,
-    ({
-      String businessId,
-      String staffId,
-      int durationMinutes,
-      DateTime date
-    })>((ref, arg) async {
-  final service = ref.watch(availabilityServiceProvider);
-  return service.getAvailableSlots(
-    businessId: arg.businessId,
-    staffId: arg.staffId,
-    durationMinutes: arg.durationMinutes,
-    date: arg.date,
-  );
-});
-
 // Engine Powered Available Slots Provider
 final availableSlotsEngineProvider = FutureProvider.family<
     List<AvailableSlot>,
@@ -76,6 +59,49 @@ final availableSlotsEngineProvider = FutureProvider.family<
   );
 });
 
+final rescheduleSlotsProvider = FutureProvider.family<
+    List<AvailableSlot>,
+    ({
+      String businessId,
+      String serviceId,
+      String staffId,
+      DateTime date,
+    })>((ref, arg) async {
+  if (arg.businessId.isEmpty || arg.serviceId.isEmpty || arg.staffId.isEmpty) {
+    return [];
+  }
+
+  final repo = ref.watch(businessRepositoryProvider);
+  final business = await repo.fetchBusinessById(arg.businessId);
+  if (business == null) return [];
+
+  final services = await repo.fetchServices(arg.businessId);
+  final selectedServices =
+      services.where((service) => service.id == arg.serviceId).toList();
+  if (selectedServices.isEmpty) return [];
+
+  final staff = await repo.fetchStaff(arg.businessId);
+  final selectedStaff =
+      staff.where((employee) => employee.id == arg.staffId).toList();
+  if (selectedStaff.isEmpty) return [];
+
+  final availabilityService = ref.watch(availabilityServiceProvider);
+  final timeOffs = await availabilityService.getPublicTimeOffs(
+    businessId: arg.businessId,
+  );
+
+  final engine = ref.watch(availabilityEngineProvider);
+  return engine.computeAvailableSlots(
+    business: business,
+    selectedServices: selectedServices,
+    allStaff: selectedStaff,
+    specialistId: arg.staffId,
+    anySpecialist: false,
+    date: arg.date,
+    employeeTimeOffs: timeOffs,
+  );
+});
+
 // Booking Flow Draft State
 class BookingDraft {
   final String? businessId;
@@ -93,6 +119,7 @@ class BookingDraft {
   final String? resolvedStaffName;
   final DateTime? date;
   final String? timeSlot;
+  final DateTime? resolvedStartAt;
 
   BookingDraft({
     this.businessId,
@@ -110,6 +137,7 @@ class BookingDraft {
     this.resolvedStaffName,
     this.date,
     this.timeSlot,
+    this.resolvedStartAt,
   });
 
   bool get isComplete {
@@ -170,6 +198,7 @@ class BookingDraft {
     String? resolvedStaffName,
     DateTime? date,
     String? timeSlot,
+    DateTime? resolvedStartAt,
   }) {
     return BookingDraft(
       businessId: businessId ?? this.businessId,
@@ -188,6 +217,7 @@ class BookingDraft {
       resolvedStaffName: resolvedStaffName ?? this.resolvedStaffName,
       date: date ?? this.date,
       timeSlot: timeSlot ?? this.timeSlot,
+      resolvedStartAt: resolvedStartAt ?? this.resolvedStartAt,
     );
   }
 }
@@ -334,12 +364,10 @@ class AppointmentsNotifier
   Future<BookingModel> rescheduleAppointment({
     required String bookingId,
     required DateTime newStartDateTime,
-    required DateTime newEndDateTime,
   }) async {
     final updated = await _repository.rescheduleBooking(
       bookingId: bookingId,
       newStartDateTime: newStartDateTime,
-      newEndDateTime: newEndDateTime,
     );
     await loadAppointments();
     return updated;

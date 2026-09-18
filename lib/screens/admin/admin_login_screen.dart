@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
-import '../../providers/locale_provider.dart';
-import '../../features/admin/admin_portal_shell.dart';
+import '../../features/admin/admin_locale_provider.dart';
+import '../../features/admin/admin_localization.dart';
 
 /// Admin Sign In screen — web only.
 ///
@@ -43,12 +42,18 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  String _t(String english, String arabic) {
+    return ref.read(adminLocaleProvider).languageCode == 'ar'
+        ? arabic
+        : english;
+  }
+
   Future<void> _handleAdminLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      _showError(context.tr('Please enter admin email and password.'));
+      _showError(_t('Please enter admin email and password.', 'يرجى إدخال بريد المسؤول وكلمة المرور.'));
       return;
     }
 
@@ -65,8 +70,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         await ref.read(authProvider.notifier).logout();
         if (mounted) {
           _showError(
-            context.tr(
+            _t(
               'You do not have administrative privileges to access this portal.',
+              'لا تملك صلاحيات إدارية للوصول إلى هذه البوابة.',
             ),
           );
         }
@@ -78,7 +84,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       if (firebaseUser != null && !firebaseUser.emailVerified) {
         await ref.read(authProvider.notifier).logout();
         if (mounted) {
-          _showError(context.tr('Admin email address must be verified.'));
+          _showError(_t('Admin email address must be verified.', 'يجب التحقق من البريد الإلكتروني للمسؤول.'));
         }
         return;
       }
@@ -89,29 +95,33 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         final message = switch (e.code) {
-          'role-mismatch' => context.tr(
+          'role-mismatch' => _t(
               'This account does not have administrator access.',
+              'هذا الحساب لا يملك صلاحية المسؤول.',
             ),
           'invalid-credential' ||
           'wrong-password' ||
           'user-not-found' =>
-            context.tr('Invalid admin email or password.'),
-          'too-many-requests' => context.tr(
+            _t('Invalid admin email or password.', 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'),
+          'too-many-requests' => _t(
               'Too many sign-in attempts. Please wait and try again.',
+              'عدد محاولات تسجيل الدخول كبير. يرجى الانتظار والمحاولة مجددًا.',
             ),
-          'network-request-failed' => context.tr(
+          'network-request-failed' => _t(
               'Network connection failed. Check your connection and try again.',
+              'تعذر الاتصال بالشبكة. تحقق من الاتصال وحاول مجددًا.',
             ),
           _ => e.message ??
-              context.tr('Admin authentication failed. Please try again.'),
+              _t('Admin authentication failed. Please try again.', 'فشل التحقق من حساب المسؤول. حاول مجددًا.'),
         };
         _showError(message);
       }
     } catch (_) {
       if (mounted) {
         _showError(
-          context.tr(
+          _t(
             'Admin sign in is unavailable right now. Please try again.',
+            'تسجيل دخول المسؤول غير متاح حاليًا. حاول مجددًا.',
           ),
         );
       }
@@ -122,14 +132,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(localeProvider) ?? Localizations.localeOf(context);
-    if (locale.languageCode != 'ar' && locale.languageCode != 'en') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(localeProvider.notifier).setLocale(const Locale('en'));
-      });
-    }
+    final locale = ref.watch(adminLocaleProvider);
     final isArabic = locale.languageCode == 'ar';
-    return Scaffold(
+    final screen = Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       body: SafeArea(
         child: LayoutBuilder(
@@ -179,7 +184,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                   start: 20,
                   child: _TopIconButton(
                     icon: Icons.arrow_back_rounded,
-                    tooltip: adminText(context, 'Back', 'رجوع'),
+                    tooltip: isArabic ? 'رجوع' : 'Back',
                     onPressed: () =>
                         context.canPop() ? context.pop() : context.go('/home'),
                   ),
@@ -202,15 +207,15 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                           label: isArabic ? 'الإنجليزية' : 'English',
                           selected: !isArabic,
                           onTap: () => ref
-                              .read(localeProvider.notifier)
-                              .setLocale(const Locale('en')),
+                              .read(adminLocaleProvider.notifier)
+                              .state = const Locale('en'),
                         ),
                         _LocaleButton(
                           label: 'العربية',
                           selected: isArabic,
                           onTap: () => ref
-                              .read(localeProvider.notifier)
-                              .setLocale(const Locale('ar')),
+                              .read(adminLocaleProvider.notifier)
+                              .state = const Locale('ar'),
                         ),
                       ],
                     ),
@@ -220,6 +225,15 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             );
           },
         ),
+      ),
+    );
+
+    return Localizations.override(
+      context: context,
+      locale: locale,
+      child: Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: screen,
       ),
     );
   }

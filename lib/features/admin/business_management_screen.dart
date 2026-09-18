@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../widgets/glass_card.dart';
-import 'admin_portal_shell.dart';
+import 'admin_localization.dart';
 
 class BusinessManagementScreen extends StatefulWidget {
   const BusinessManagementScreen({super.key});
@@ -206,7 +206,7 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                       final isVerified = data['is_verified'] == true ||
                           data['isVerified'] == true;
                       final rating =
-                          (data['rating'] as num?)?.toDouble() ?? 5.0;
+                          (data['rating'] as num?)?.toDouble() ?? 0.0;
 
                       final isMutating = _mutatingId == id;
                       final detailsPath =

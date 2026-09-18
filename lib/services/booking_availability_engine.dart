@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-
+import 'package:timezone/timezone.dart' show TZDateTime;
 import '../core/domain_exceptions.dart';
+import '../core/utils/business_clock.dart';
 import '../models/available_slot.dart';
 import '../models/business_model.dart';
 import '../models/employee_time_off_model.dart';
@@ -15,7 +16,6 @@ export '../models/employee_time_off_model.dart' show EmployeeTimeOffModel;
 
 class BookingAvailabilityEngine {
   final FirebaseFirestore? _firestore;
-
   static const int defaultStepMinutes = 15;
   static const int minimumLeadTimeMinutes = 30;
   static const int maxAdvanceBookingDays = 60;
@@ -65,10 +65,23 @@ class BookingAvailabilityEngine {
       return [];
     }
 
-    final now = nowOverride ?? DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final businessLocation = BusinessClock.locationFor(business.timeZone);
+    final now = nowOverride == null
+        ? BusinessClock.now(business.timeZone)
+        : BusinessClock.wallClock(nowOverride, business.timeZone);
+    final today = TZDateTime(
+      businessLocation,
+      now.year,
+      now.month,
+      now.day,
+    );
     final maxDate = today.add(const Duration(days: maxAdvanceBookingDays));
-    final targetDateOnly = DateTime(date.year, date.month, date.day);
+    final targetDateOnly = TZDateTime(
+      businessLocation,
+      date.year,
+      date.month,
+      date.day,
+    );
     if (targetDateOnly.isBefore(today) || targetDateOnly.isAfter(maxDate)) {
       return [];
     }
@@ -82,7 +95,7 @@ class BookingAvailabilityEngine {
       'Saturday',
       'Sunday',
     ];
-    final dayName = dayNames[date.weekday - 1];
+    final dayName = dayNames[targetDateOnly.weekday - 1];
     final dailyHours = business.workingHours.schedule[dayName];
     if (dailyHours == null || dailyHours.isClosed) return [];
 
@@ -108,9 +121,12 @@ class BookingAvailabilityEngine {
 
     final occupiedBucketsMap = <String, Set<int>>{};
     final dayStartMs = targetDateOnly.millisecondsSinceEpoch;
-    final nextDayMs = targetDateOnly
-        .add(const Duration(days: 1))
-        .millisecondsSinceEpoch;
+    final nextDayMs = TZDateTime(
+      businessLocation,
+      date.year,
+      date.month,
+      date.day + 1,
+    ).millisecondsSinceEpoch;
 
     for (final staff in targetStaffList) {
       occupiedBucketsMap[staff.id] = <int>{};
@@ -157,7 +173,14 @@ class BookingAvailabilityEngine {
         minutes += defaultStepMinutes) {
       final hour = minutes ~/ 60;
       final minute = minutes % 60;
-      final candStart = DateTime(date.year, date.month, date.day, hour, minute);
+      final candStart = TZDateTime(
+        businessLocation,
+        date.year,
+        date.month,
+        date.day,
+        hour,
+        minute,
+      );
       final candEnd = candStart.add(Duration(minutes: totalDurationMinutes));
 
       if (isToday && candStart.isBefore(leadTimeCutoff)) continue;
@@ -175,7 +198,7 @@ class BookingAvailabilityEngine {
           employeeTimeOffs: employeeTimeOffs,
           bOpenMinutes: bOpenMinutes,
           bCloseMinutes: bCloseMinutes,
-          targetDateWeekday: date.weekday,
+          targetDateWeekday: targetDateOnly.weekday,
           targetDayName: dayName,
         )) {
           availableStaffForThisSlot.add(staff.id);

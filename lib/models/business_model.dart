@@ -25,6 +25,7 @@ class BusinessModel {
   final bool isActive; // Platform level entity active state
   final String businessStatus; // 'open', 'closed', 'temporarilyClosed'
   final bool acceptingBookings; // Online booking availability state
+  final String timeZone; // IANA timezone, e.g. Asia/Dubai
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -54,6 +55,7 @@ class BusinessModel {
     this.isActive = true,
     String? businessStatus,
     bool? acceptingBookings,
+    this.timeZone = 'Asia/Dubai',
     this.createdAt,
     this.updatedAt,
   })  : workingHours = workingHours ?? WorkingHoursModel.defaultSchedule(),
@@ -92,7 +94,7 @@ class BusinessModel {
       name: json['name'] as String? ?? 'Unnamed Business',
       category: json['category'] as String? ?? 'Salons',
       address: json['address'] as String? ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount:
           json['review_count'] as int? ?? json['reviewCount'] as int? ?? 0,
       imageUrl:
@@ -119,6 +121,7 @@ class BusinessModel {
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
       businessStatus: rawStatus,
       acceptingBookings: rawAccepting,
+      timeZone: (json['timeZone'] ?? json['timezone'] ?? 'Asia/Dubai').toString(),
       createdAt: parseOptionalDate(json['created_at'] ?? json['createdAt']),
       updatedAt: parseOptionalDate(json['updated_at'] ?? json['updatedAt']),
     );
@@ -146,6 +149,7 @@ class BusinessModel {
       'is_active': isActive,
       'business_status': businessStatus,
       'accepting_bookings': acceptingBookings,
+      'timeZone': timeZone,
       if (createdAt != null) 'created_at': Timestamp.fromDate(createdAt!),
       if (updatedAt != null) 'updated_at': Timestamp.fromDate(updatedAt!),
     };
@@ -172,6 +176,7 @@ class BusinessModel {
     bool? isActive,
     String? businessStatus,
     bool? acceptingBookings,
+    String? timeZone,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -202,6 +207,7 @@ class BusinessModel {
       isActive: isActive ?? this.isActive,
       businessStatus: nextStatus,
       acceptingBookings: nextAccepting,
+      timeZone: timeZone ?? this.timeZone,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:easy_book/services/booking_availability_engine.dart';
+import 'package:easy_book/core/utils/business_clock.dart';
 import 'package:easy_book/models/business_model.dart';
 import 'package:easy_book/models/service_model.dart';
 import 'package:easy_book/models/staff_model.dart';
@@ -144,8 +145,10 @@ void main() {
         nowOverride: now,
       );
 
-      final earlySlots =
-          slots.where((s) => s.startAt.isBefore(DateTime(2026, 8, 17, 10, 30)));
+      final earlySlots = slots.where((s) {
+        final minuteOfDay = s.startAt.hour * 60 + s.startAt.minute;
+        return minuteOfDay < (10 * 60 + 30);
+      });
       expect(earlySlots.isEmpty, isTrue);
     });
 
@@ -212,6 +215,46 @@ void main() {
             (s.startAt.hour == 13 && s.startAt.minute == 30);
       });
       expect(breakSlots.isEmpty, isTrue);
+    });
+
+    test('9. Generates Dubai wall-clock slots as the correct UTC instant',
+        () async {
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness.copyWith(timeZone: 'Asia/Dubai'),
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots, isNotEmpty);
+      expect(slots.first.startAt.hour, equals(9));
+      expect(slots.first.startAt.timeZoneOffset, const Duration(hours: 4));
+      expect(slots.first.startAt.toUtc().hour, equals(5));
+    });
+
+    test('10. Falls back safely when business timezone is invalid', () async {
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness.copyWith(timeZone: 'Invalid/Timezone'),
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots, isNotEmpty);
+      expect(slots.first.startAt.timeZoneOffset, const Duration(hours: 4));
+    });
+
+    test('11. Converts stored UTC booking instant to Dubai wall clock', () {
+      final instant = DateTime.utc(2026, 8, 17, 5, 0);
+      final local = BusinessClock.inTimeZone(instant, 'Asia/Dubai');
+
+      expect(local.year, equals(2026));
+      expect(local.month, equals(8));
+      expect(local.day, equals(17));
+      expect(local.hour, equals(9));
+      expect(local.minute, equals(0));
     });
   });
 }

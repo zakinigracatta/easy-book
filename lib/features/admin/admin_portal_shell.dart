@@ -4,10 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/locale_provider.dart';
-
-String adminText(BuildContext context, String english, String arabic) =>
-    Localizations.localeOf(context).languageCode == 'ar' ? arabic : english;
+import 'admin_locale_provider.dart';
 
 class AdminPortalShell extends ConsumerWidget {
   const AdminPortalShell({
@@ -66,43 +63,124 @@ class AdminPortalShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider) ?? Localizations.localeOf(context);
-    if (locale.languageCode != 'ar' && locale.languageCode != 'en') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(localeProvider.notifier).setLocale(const Locale('en'));
-      });
-    }
-
+    final locale = ref.watch(adminLocaleProvider);
+    final isArabic = locale.languageCode == 'ar';
     final wide = MediaQuery.sizeOf(context).width >= 1050;
-    if (!wide) return child;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
-      body: Row(
-        textDirection: Directionality.of(context),
-        children: [
-          _Sidebar(
-            location: location,
-            locale: locale.languageCode == 'ar' ? 'ar' : 'en',
-            onLocaleChanged: (code) =>
-                ref.read(localeProvider.notifier).setLocale(Locale(code)),
-            onLogout: () async {
+    final localizedChild = wide
+        ? Scaffold(
+            backgroundColor:
+                Theme.of(context).colorScheme.surfaceContainerLowest,
+            body: Row(
+              children: [
+                _Sidebar(
+                  location: location,
+                  locale: locale.languageCode,
+                  onLocaleChanged: (code) => ref
+                      .read(adminLocaleProvider.notifier)
+                      .state = Locale(code),
+                  onLogout: () async {
+                    await ref.read(authProvider.notifier).logout();
+                    if (context.mounted) context.go('/admin/login');
+                  },
+                ),
+                Expanded(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerLowest,
+                    ),
+                    child: child,
+                  ),
+                ),
+              ],
+            ),
+          )
+        : Stack(
+            children: [
+              child,
+              PositionedDirectional(
+                start: 16,
+                bottom: 16,
+                child: SafeArea(
+                  child: FloatingActionButton.extended(
+                    heroTag: 'admin_compact_menu',
+                    onPressed: () => _showCompactMenu(
+                      context,
+                      ref,
+                      locale.languageCode,
+                    ),
+                    icon: const Icon(Icons.admin_panel_settings_rounded),
+                    label: Text(isArabic ? 'قائمة الإدارة' : 'Admin menu'),
+                  ),
+                ),
+              ),
+            ],
+          );
+
+    return Localizations.override(
+      context: context,
+      locale: locale,
+      child: Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: localizedChild,
+      ),
+    );
+  }
+
+  Future<void> _showCompactMenu(
+    BuildContext context,
+    WidgetRef ref,
+    String localeCode,
+  ) async {
+    final isArabic = localeCode == 'ar';
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) => Directionality(
+        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+          children: [
+          for (final item in _items)
+            ListTile(
+              leading: Icon(item.icon),
+              title: Text(isArabic ? item.arabic : item.english),
+              selected: item.route == '/admin/dashboard'
+                  ? location == '/admin' || location == item.route
+                  : location.startsWith(item.route),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                context.go(item.route);
+              },
+            ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.language_rounded),
+            title: Text(isArabic ? 'English' : 'العربية'),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              ref.read(adminLocaleProvider.notifier).state =
+                  Locale(isArabic ? 'en' : 'ar');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout_rounded),
+            title: Text(isArabic ? 'تسجيل الخروج' : 'Sign out'),
+            onTap: () async {
+              Navigator.pop(sheetContext);
               await ref.read(authProvider.notifier).logout();
               if (context.mounted) context.go('/admin/login');
             },
           ),
-          Expanded(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
-              ),
-              child: child,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
 }
 
 class _Sidebar extends StatelessWidget {

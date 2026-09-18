@@ -8,7 +8,6 @@ abstract class BookingRepository {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newStartDateTime,
-    required DateTime newEndDateTime,
   });
 }
 
@@ -38,12 +37,10 @@ class BookingRepositoryImpl implements BookingRepository {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newStartDateTime,
-    required DateTime newEndDateTime,
   }) {
     return _service.rescheduleBooking(
       bookingId: bookingId,
       newStartDateTime: newStartDateTime,
-      newEndDateTime: newEndDateTime,
     );
   }
 }

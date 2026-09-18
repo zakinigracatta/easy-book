@@ -114,7 +114,6 @@ class BookingService {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newStartDateTime,
-    required DateTime newEndDateTime,
   }) async {
     validateCanonical15MinAlignment(newStartDateTime);
     return _functionsService.rescheduleBooking(
