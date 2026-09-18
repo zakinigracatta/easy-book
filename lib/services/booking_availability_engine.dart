@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' show TZDateTime;
-import '../core/domain_exceptions.dart';
 import '../core/utils/business_clock.dart';
 import '../models/available_slot.dart';
 import '../models/business_model.dart';
@@ -11,26 +8,14 @@ import '../models/service_model.dart';
 import '../models/staff_model.dart';
 import '../models/staff_schedule_model.dart';
 
-export 'package:cloud_firestore/cloud_firestore.dart' show FirebaseFirestore;
 export '../models/employee_time_off_model.dart' show EmployeeTimeOffModel;
 
 class BookingAvailabilityEngine {
-  final FirebaseFirestore? _firestore;
   static const int defaultStepMinutes = 15;
   static const int minimumLeadTimeMinutes = 30;
   static const int maxAdvanceBookingDays = 60;
 
-  BookingAvailabilityEngine([FirebaseFirestore? firestore])
-      : _firestore = firestore;
-
-  FirebaseFirestore? get _db {
-    if (_firestore != null) return _firestore;
-    try {
-      return FirebaseFirestore.instance;
-    } catch (_) {
-      return null;
-    }
-  }
+  const BookingAvailabilityEngine();
 
   static List<StaffModel> filterEligibleStaff(
     List<StaffModel> allStaff,
@@ -57,6 +42,7 @@ class BookingAvailabilityEngine {
     List<BlockedPeriodModel> blockedPeriods = const [],
     List<StaffBreakModel> staffBreaks = const [],
     List<EmployeeTimeOffModel> employeeTimeOffs = const [],
+    Map<String, Set<int>> occupiedSlotsByStaff = const {},
   }) async {
     if (!business.isActive ||
         !business.acceptingBookings ||
@@ -119,48 +105,10 @@ class BookingAvailabilityEngine {
     );
     if (totalDurationMinutes <= 0) return [];
 
-    final occupiedBucketsMap = <String, Set<int>>{};
-    final dayStartMs = targetDateOnly.millisecondsSinceEpoch;
-    final nextDayMs = TZDateTime(
-      businessLocation,
-      date.year,
-      date.month,
-      date.day + 1,
-    ).millisecondsSinceEpoch;
-
-    for (final staff in targetStaffList) {
-      occupiedBucketsMap[staff.id] = <int>{};
-      final db = _db;
-      if (db == null) continue;
-
-      try {
-        // Only fetch lock buckets that can affect the requested day. The old
-        // query downloaded the employee's entire booking history every time a
-        // customer changed the calendar date.
-        final lockSnap = await db
-            .collection('booking_slots')
-            .where('businessId', isEqualTo: business.id)
-            .where('staffId', isEqualTo: staff.id)
-            .where('startTimestamp', isGreaterThanOrEqualTo: dayStartMs)
-            .where('startTimestamp', isLessThan: nextDayMs)
-            .get();
-
-        for (final doc in lockSnap.docs) {
-          final data = doc.data();
-          final ts = (data['startTimestamp'] as num?)?.toInt();
-          if (ts != null) occupiedBucketsMap[staff.id]!.add(ts);
-        }
-      } on FirebaseException catch (e) {
-        debugPrint('AVAILABILITY_SLOTS_FETCH_ERROR: ${e.code} - ${e.message}');
-        throw DomainException(
-          'Unable to confirm real-time slot availability. Please try again.',
-        );
-      } catch (e) {
-        if (e is DomainException) rethrow;
-        debugPrint('AVAILABILITY_ENGINE_ERROR: $e');
-        throw DomainException('Unable to verify slot availability.');
-      }
-    }
+    final occupiedBucketsMap = <String, Set<int>>{
+      for (final staff in targetStaffList)
+        staff.id: occupiedSlotsByStaff[staff.id] ?? const <int>{},
+    };
 
     final resultSlots = <AvailableSlot>[];
     final isToday = targetDateOnly == today;
