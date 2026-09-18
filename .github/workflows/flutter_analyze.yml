@@ -50,6 +50,12 @@ jobs:
       - name: Test
         run: flutter test
 
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Install Firebase test dependencies
         working-directory: firebase_tests
         run: npm ci
