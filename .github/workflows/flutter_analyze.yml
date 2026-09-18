@@ -50,5 +50,12 @@ jobs:
       - name: Test
         run: flutter test
 
+      - name: Install Firebase test dependencies
+        working-directory: firebase_tests
+        run: npm ci
+
+      - name: Run Firestore security rule tests
+        run: npx --yes firebase-tools emulators:exec --only firestore "npm --prefix firebase_tests test"
+
       - name: Build Android debug APK
         run: flutter build apk --debug
