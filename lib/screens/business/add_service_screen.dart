@@ -9,6 +9,7 @@ import '../../widgets/business/business_image_picker.dart';
 import '../../providers/owner_providers.dart';
 import '../../models/service_model.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/media_upload_service.dart';
 
 class AddServiceScreen extends ConsumerStatefulWidget {
   final ServiceModel? initialService;
@@ -31,6 +32,9 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   int _selectedDurationMinutes = 30;
   bool _isActive = true;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
+  late final String _serviceId;
+  final _media = MediaUploadService();
 
   final List<int> _durationOptions = [15, 20, 30, 45, 60, 90, 120];
 
@@ -38,6 +42,8 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   void initState() {
     super.initState();
     final s = widget.initialService;
+    _serviceId =
+        s?.id ?? 'srv_${DateTime.now().millisecondsSinceEpoch}';
     _nameController = TextEditingController(text: s?.name ?? '');
     _categoryController =
         TextEditingController(text: s?.categoryName ?? 'Hair Services');
@@ -205,17 +211,11 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
                       // Image URL Picker Widget
                       BusinessImagePicker(
-                        label: 'Service Image',
+                        label: context.tr('Service Image'),
                         currentImageUrl: _imageUrlController.text,
-                        onPickImage: () {
-                          _imageUrlController.text =
-                              'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=800&q=80';
-                          setState(() {});
-                        },
-                        onDeleteImage: () {
-                          _imageUrlController.clear();
-                          setState(() {});
-                        },
+                        isLoading: _isUploadingImage,
+                        onPickImage: _pickServiceImage,
+                        onDeleteImage: _deleteServiceImage,
                       ),
 
                       const SizedBox(height: 16),
@@ -259,6 +259,54 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
     );
   }
 
+  Future<void> _pickServiceImage() async {
+    if (_isUploadingImage) return;
+    setState(() => _isUploadingImage = true);
+    try {
+      final businessId = await ref.read(currentBusinessIdProvider.future);
+      if (businessId.isEmpty) {
+        throw StateError('Business ID is not available.');
+      }
+
+      final url = await _media.pickAndUploadImage(
+        storageFolder: 'businesses/$businessId/services/$_serviceId',
+      );
+      if (url == null || !mounted) return;
+
+      final previous = _imageUrlController.text.trim();
+      _imageUrlController.text = url;
+      setState(() {});
+
+      if (previous.isNotEmpty && previous != url) {
+        await _media.deleteByUrl(previous);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('Photo upload failed. Please try again.'),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
+    }
+  }
+
+  Future<void> _deleteServiceImage() async {
+    final current = _imageUrlController.text.trim();
+    if (current.isEmpty) return;
+    setState(() => _isUploadingImage = true);
+    try {
+      await _media.deleteByUrl(current);
+      _imageUrlController.clear();
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
+    }
+  }
+
   Future<void> _saveService() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -273,8 +321,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       final bizId = ref.read(currentBusinessIdProvider).value ?? '';
 
       final service = ServiceModel(
-        id: widget.initialService?.id ??
-            'srv_${DateTime.now().millisecondsSinceEpoch}',
+        id: _serviceId,
         salonId: bizId,
         name: _nameController.text.trim(),
         price: price,
