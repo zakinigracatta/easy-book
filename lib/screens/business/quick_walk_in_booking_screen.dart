@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/business_clock.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
@@ -27,12 +28,23 @@ class _QuickWalkInBookingScreenState
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
 
-  bool _isNewCustomer = true;
   ServiceModel? _selectedService;
   StaffModel? _selectedStaff;
   DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
+  TimeOfDay _selectedTime = _nextQuarterHour();
   bool _isLoading = false;
+
+  static TimeOfDay _nextQuarterHour() {
+    final now = DateTime.now();
+    final roundedMinute = ((now.minute + 14) ~/ 15) * 15;
+    final rounded = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+    ).add(Duration(minutes: roundedMinute));
+    return TimeOfDay(hour: rounded.hour, minute: rounded.minute);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +56,7 @@ class _QuickWalkInBookingScreenState
     final bizId = businessAsync.value?.id ??
         ref.read(currentBusinessIdProvider).value ??
         '';
+    final bizTimeZone = businessAsync.value?.timeZone ?? 'Asia/Dubai';
 
     return PopScope(
       canPop: context.canPop(),
@@ -113,71 +126,6 @@ class _QuickWalkInBookingScreenState
 
                 const SizedBox(height: 20),
 
-                // Customer Segment Toggle (New vs Existing)
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isNewCustomer = true),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _isNewCustomer
-                                ? AppColors.primary
-                                : Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: _isNewCustomer
-                                    ? AppColors.primary
-                                    : Theme.of(context).dividerColor),
-                          ),
-                          child: Text(context.tr('New Customer'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: _isNewCustomer
-                                  ? Colors.white
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isNewCustomer = false),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: !_isNewCustomer
-                                ? AppColors.primary
-                                : Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: !_isNewCustomer
-                                    ? AppColors.primary
-                                    : Theme.of(context).dividerColor),
-                          ),
-                          child: Text(context.tr('Existing Customer'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: !_isNewCustomer
-                                  ? Colors.white
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
                 GlassCard(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -210,8 +158,17 @@ class _QuickWalkInBookingScreenState
                       // Service Picker Dropdown
                       servicesAsync.when(
                         data: (services) {
-                          if (_selectedService == null && services.isNotEmpty) {
-                            _selectedService = services.first;
+                          final selectableServices = services
+                              .where((service) =>
+                                  service.isActive && service.isBookable)
+                              .toList(growable: false);
+                          if (_selectedService == null ||
+                              !selectableServices.any(
+                                (service) => service.id == _selectedService!.id,
+                              )) {
+                            _selectedService = selectableServices.isEmpty
+                                ? null
+                                : selectableServices.first;
                           }
                           return DropdownButtonFormField<ServiceModel>(
                             initialValue: _selectedService,
@@ -231,11 +188,11 @@ class _QuickWalkInBookingScreenState
                               ),
                             ),
                             dropdownColor: Theme.of(context).colorScheme.surface,
-                            items: services.map((s) {
+                            items: selectableServices.map((s) {
                               return DropdownMenuItem(
                                 value: s,
                                 child: Text(
-                                  '${s.name} (AED ${s.price.toStringAsFixed(0)} • ${s.duration})',
+                                  '${s.name} (AED ${s.effectivePrice.toStringAsFixed(0)} • ${s.duration})',
                                   style: TextStyle(
                                       color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 13),
@@ -256,8 +213,15 @@ class _QuickWalkInBookingScreenState
                       // Employee Picker Dropdown
                       employeesAsync.when(
                         data: (staffList) {
-                          if (_selectedStaff == null && staffList.isNotEmpty) {
-                            _selectedStaff = staffList.first;
+                          final activeStaff = staffList
+                              .where((staff) => staff.isActive)
+                              .toList(growable: false);
+                          if (_selectedStaff == null ||
+                              !activeStaff.any(
+                                (staff) => staff.id == _selectedStaff!.id,
+                              )) {
+                            _selectedStaff =
+                                activeStaff.isEmpty ? null : activeStaff.first;
                           }
                           return DropdownButtonFormField<StaffModel>(
                             initialValue: _selectedStaff,
@@ -276,7 +240,7 @@ class _QuickWalkInBookingScreenState
                               ),
                             ),
                             dropdownColor: Theme.of(context).colorScheme.surface,
-                            items: staffList.map((st) {
+                            items: activeStaff.map((st) {
                               return DropdownMenuItem(
                                 value: st,
                                 child: Text(
@@ -303,7 +267,7 @@ class _QuickWalkInBookingScreenState
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: _pickDate,
+                              onTap: () => _pickDate(bizTimeZone),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 14),
@@ -381,7 +345,7 @@ class _QuickWalkInBookingScreenState
                       CustomButton(
                         text: 'Create Walk-in Booking',
                         isLoading: _isLoading,
-                        onPressed: () => _submitWalkIn(bizId, bizName),
+                        onPressed: () => _submitWalkIn(bizId, bizName, bizTimeZone),
                       ),
                     ],
                   ),
@@ -394,15 +358,18 @@ class _QuickWalkInBookingScreenState
     );
   }
 
-  Future<void> _pickDate() async {
+  Future<void> _pickDate(String timeZone) async {
+    final businessToday = BusinessClock.calendarToday(timeZone);
+    final initialDate =
+        _selectedDate.isBefore(businessToday) ? businessToday : _selectedDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
+      initialDate: initialDate,
+      firstDate: businessToday,
+      lastDate: businessToday.add(const Duration(days: 90)),
       builder: (ctx, child) => Theme(
-        data: ThemeData.dark().copyWith(
-          colorScheme: ColorScheme.dark(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
             primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Theme.of(context).colorScheme.surface,
@@ -421,8 +388,8 @@ class _QuickWalkInBookingScreenState
       context: context,
       initialTime: _selectedTime,
       builder: (ctx, child) => Theme(
-        data: ThemeData.dark().copyWith(
-          colorScheme: ColorScheme.dark(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
             primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Theme.of(context).colorScheme.surface,
@@ -432,11 +399,27 @@ class _QuickWalkInBookingScreenState
       ),
     );
     if (picked != null) {
+      if (picked.minute % 15 != 0) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.tr('Please select a time in 15-minute increments.'),
+            ),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        return;
+      }
       setState(() => _selectedTime = picked);
     }
   }
 
-  Future<void> _submitWalkIn(String bizId, String bizName) async {
+  Future<void> _submitWalkIn(
+    String bizId,
+    String bizName,
+    String timeZone,
+  ) async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedService == null || _selectedStaff == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -451,12 +434,19 @@ class _QuickWalkInBookingScreenState
     setState(() => _isLoading = true);
 
     try {
-      final startDt = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
+      if (_selectedTime.minute % 15 != 0) {
+        throw StateError('Walk-in time must use a 15-minute interval.');
+      }
+
+      final startDt = BusinessClock.wallClock(
+        DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
+        timeZone,
       );
 
       final endDt =
@@ -471,8 +461,7 @@ class _QuickWalkInBookingScreenState
         businessName: bizName,
         serviceId: _selectedService!.id,
         serviceName: _selectedService!.name,
-        servicePrice:
-            _selectedService!.discountPrice ?? _selectedService!.price,
+        servicePrice: _selectedService!.effectivePrice,
         staffId: _selectedStaff!.id,
         staffName: _selectedStaff!.name,
         startDateTime: startDt,
