@@ -231,6 +231,8 @@ class BookingDraft {
     DateTime? date,
     String? timeSlot,
     DateTime? resolvedStartAt,
+    bool clearStaffSelection = false,
+    bool clearSchedule = false,
   }) {
     return BookingDraft(
       businessId: businessId ?? this.businessId,
@@ -242,14 +244,22 @@ class BookingDraft {
       serviceDurationMinutes:
           serviceDurationMinutes ?? this.serviceDurationMinutes,
       selectedServices: selectedServices ?? this.selectedServices,
-      staffId: staffId ?? this.staffId,
-      staffName: staffName ?? this.staffName,
-      anySpecialist: anySpecialist ?? this.anySpecialist,
-      resolvedStaffId: resolvedStaffId ?? this.resolvedStaffId,
-      resolvedStaffName: resolvedStaffName ?? this.resolvedStaffName,
-      date: date ?? this.date,
-      timeSlot: timeSlot ?? this.timeSlot,
-      resolvedStartAt: resolvedStartAt ?? this.resolvedStartAt,
+      staffId: clearStaffSelection ? null : (staffId ?? this.staffId),
+      staffName: clearStaffSelection ? null : (staffName ?? this.staffName),
+      anySpecialist:
+          clearStaffSelection ? false : (anySpecialist ?? this.anySpecialist),
+      resolvedStaffId:
+          clearStaffSelection || clearSchedule
+              ? null
+              : (resolvedStaffId ?? this.resolvedStaffId),
+      resolvedStaffName:
+          clearStaffSelection || clearSchedule
+              ? null
+              : (resolvedStaffName ?? this.resolvedStaffName),
+      date: clearSchedule ? null : (date ?? this.date),
+      timeSlot: clearSchedule ? null : (timeSlot ?? this.timeSlot),
+      resolvedStartAt:
+          clearSchedule ? null : (resolvedStartAt ?? this.resolvedStartAt),
     );
   }
 }
