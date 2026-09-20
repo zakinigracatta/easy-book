@@ -82,7 +82,7 @@ class StaffModel {
           json['experienceYears'] as int? ??
           0,
       serviceIds: parseStringList(json['service_ids'] ?? json['serviceIds']),
-      isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
+      isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? false,
       shiftStart:
           json['shift_start'] as String? ?? json['shiftStart'] as String?,
       shiftEnd: json['shift_end'] as String? ?? json['shiftEnd'] as String?,
