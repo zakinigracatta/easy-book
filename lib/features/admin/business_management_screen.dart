@@ -357,7 +357,9 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
     try {
       await reference.update({
         'is_verified': true,
+        'isVerified': true,
         'is_active': true,
+        'isActive': true,
         'updated_at': FieldValue.serverTimestamp(),
       });
       if (mounted) {
