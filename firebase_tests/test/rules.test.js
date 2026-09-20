@@ -408,3 +408,258 @@ test('22. Admin reads another user profile -> ALLOW', async () => {
   const adminUserDb = testEnv.authenticatedContext('admin_uid').firestore();
   await assertSucceeds(adminUserDb.collection('users').doc('owner_uid').get());
 });
+
+
+test('23. Customer profile create with zero wallet -> ALLOW', async () => {
+  const db = testEnv
+    .authenticatedContext('cust_profile', { email: 'cust@example.com' })
+    .firestore();
+
+  await assertSucceeds(
+    db.collection('users').doc('cust_profile').set({
+      id: 'cust_profile',
+      email: 'cust@example.com',
+      full_name: 'Customer',
+      phone: '+971500000000',
+      role: 'customer',
+      wallet_balance: 0,
+    })
+  );
+});
+
+test('24. Customer profile create with forged wallet balance -> DENY', async () => {
+  const db = testEnv
+    .authenticatedContext('cust_profile', { email: 'cust@example.com' })
+    .firestore();
+
+  await assertFails(
+    db.collection('users').doc('cust_profile').set({
+      id: 'cust_profile',
+      email: 'cust@example.com',
+      role: 'customer',
+      wallet_balance: 999999,
+    })
+  );
+});
+
+test('25. Customer cannot update wallet balance -> DENY', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('users').doc('cust_wallet').set({
+      id: 'cust_wallet',
+      email: 'wallet@example.com',
+      role: 'customer',
+      wallet_balance: 0,
+      phone: '',
+    });
+  });
+
+  const db = testEnv.authenticatedContext('cust_wallet').firestore();
+  await assertFails(
+    db.collection('users').doc('cust_wallet').update({
+      wallet_balance: 500,
+    })
+  );
+});
+
+test('26. Customer can update normal profile fields -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('users').doc('cust_profile').set({
+      id: 'cust_profile',
+      email: 'profile@example.com',
+      role: 'customer',
+      wallet_balance: 0,
+      phone: '',
+    });
+  });
+
+  const db = testEnv.authenticatedContext('cust_profile').firestore();
+  await assertSucceeds(
+    db.collection('users').doc('cust_profile').update({
+      phone: '+971511111111',
+    })
+  );
+});
+
+test('27. Customer cannot add arbitrary privileged profile field -> DENY', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('users').doc('cust_profile').set({
+      id: 'cust_profile',
+      email: 'profile@example.com',
+      role: 'customer',
+      wallet_balance: 0,
+    });
+  });
+
+  const db = testEnv.authenticatedContext('cust_profile').firestore();
+  await assertFails(
+    db.collection('users').doc('cust_profile').update({
+      isSuperAdmin: true,
+    })
+  );
+});
+
+test('28. Verified business missing active flag is not public -> DENY', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_missing_active').set({
+      id: 'biz_missing_active',
+      is_verified: true,
+      ownerId: 'owner_missing_active',
+    });
+  });
+
+  const publicDb = testEnv.unauthenticatedContext().firestore();
+  await assertFails(
+    publicDb.collection('businesses').doc('biz_missing_active').get()
+  );
+});
+
+test('29. Explicitly verified and active business is public -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_public').set({
+      id: 'biz_public',
+      is_verified: true,
+      is_active: true,
+      ownerId: 'owner_public',
+    });
+  });
+
+  const publicDb = testEnv.unauthenticatedContext().firestore();
+  await assertSucceeds(publicDb.collection('businesses').doc('biz_public').get());
+});
+
+test('30. Legacy ownerId query resolves unpublished owner business -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('owner_query').set({
+      id: 'owner_query',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('legacy_business').set({
+      id: 'legacy_business',
+      ownerId: 'owner_query',
+      is_verified: false,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('owner_query').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses')
+      .where('ownerId', '==', 'owner_query')
+      .limit(1)
+      .get()
+  );
+});
+
+test('31. Legacy owner_id query resolves unpublished owner business -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('owner_query_legacy').set({
+      id: 'owner_query_legacy',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('legacy_business_snake').set({
+      id: 'legacy_business_snake',
+      owner_id: 'owner_query_legacy',
+      is_verified: false,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('owner_query_legacy').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses')
+      .where('owner_id', '==', 'owner_query_legacy')
+      .limit(1)
+      .get()
+  );
+});
+
+async function seedFinanceRulesFixture() {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('finance_owner').set({
+      id: 'finance_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('users').doc('finance_other_owner').set({
+      id: 'finance_other_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('finance_biz').set({
+      id: 'finance_biz',
+      ownerId: 'finance_owner',
+      is_verified: false,
+      is_active: true,
+    });
+    await adminDb.collection('bookings').doc('finance_booking').set({
+      id: 'finance_booking',
+      customerId: 'finance_customer',
+      businessId: 'finance_biz',
+      startDateTime: new Date('2026-09-07T12:00:00Z'),
+      status: 'completed',
+      servicePrice: 100,
+    });
+    await adminDb.collection('businesses').doc('finance_biz')
+      .collection('expenses').doc('finance_expense').set({
+        businessId: 'finance_biz',
+        category: 'rent',
+        description: 'September rent',
+        amount: 50,
+        expenseDate: new Date('2026-09-07T08:00:00Z'),
+        paymentMethod: 'cash',
+        frequency: 'monthly',
+        isActive: true,
+        createdBy: 'finance_owner',
+        createdAt: new Date('2026-09-01T08:00:00Z'),
+        updatedAt: new Date('2026-09-01T08:00:00Z'),
+      });
+  });
+}
+
+test('32. Finance owner can execute booking report query -> ALLOW', async () => {
+  await seedFinanceRulesFixture();
+  const ownerDb = testEnv.authenticatedContext('finance_owner').firestore();
+
+  await assertSucceeds(
+    ownerDb.collection('bookings')
+      .where('businessId', '==', 'finance_biz')
+      .where('startDateTime', '>=', new Date('2026-09-01T00:00:00Z'))
+      .where('startDateTime', '<', new Date('2026-10-01T00:00:00Z'))
+      .get()
+  );
+});
+
+test('33. Finance owner can query own expenses -> ALLOW', async () => {
+  await seedFinanceRulesFixture();
+  const ownerDb = testEnv.authenticatedContext('finance_owner').firestore();
+
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('finance_biz')
+      .collection('expenses')
+      .where('expenseDate', '>=', new Date('2026-09-01T00:00:00Z'))
+      .where('expenseDate', '<', new Date('2026-10-01T00:00:00Z'))
+      .get()
+  );
+});
+
+test('34. Another owner cannot read finance expenses -> DENY', async () => {
+  await seedFinanceRulesFixture();
+  const otherDb = testEnv.authenticatedContext('finance_other_owner').firestore();
+
+  await assertFails(
+    otherDb.collection('businesses').doc('finance_biz')
+      .collection('expenses').get()
+  );
+});
+
+test('35. Customer cannot query all bookings for a finance report -> DENY', async () => {
+  await seedFinanceRulesFixture();
+  const customerDb = testEnv.authenticatedContext('finance_customer').firestore();
+
+  await assertFails(
+    customerDb.collection('bookings')
+      .where('businessId', '==', 'finance_biz')
+      .get()
+  );
+});
