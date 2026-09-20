@@ -213,8 +213,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               businessName: business.name,
                               serviceId: selectedService.id,
                               serviceName: selectedService.name,
-                              servicePrice: selectedService.discountPrice ??
-                                  selectedService.price,
+                              servicePrice: selectedService.effectivePrice,
                               serviceDuration: selectedService.duration,
                               serviceDurationMinutes:
                                   selectedService.durationMinutes,
@@ -290,7 +289,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   businessName: business.name,
                   serviceId: service.id,
                   serviceName: service.name,
-                  servicePrice: service.discountPrice ?? service.price,
+                  servicePrice: service.effectivePrice,
                   serviceDuration: service.duration,
                   serviceDurationMinutes: service.durationMinutes,
                   selectedServices: [service],
