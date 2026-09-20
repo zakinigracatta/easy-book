@@ -234,9 +234,25 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     ),
                     InkWell(
                       borderRadius: BorderRadius.circular(10),
-                      onTap: () => ref
-                          .read(ownerBusinessProvider.notifier)
-                          .toggleAcceptingBookings(!acceptingBookings),
+                      onTap: () async {
+                        try {
+                          await ref
+                              .read(ownerBusinessProvider.notifier)
+                              .toggleAcceptingBookings(!acceptingBookings);
+                        } catch (_) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                context.tr(
+                                  'Unable to update booking availability. Please try again.',
+                                ),
+                              ),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
