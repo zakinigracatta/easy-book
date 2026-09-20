@@ -199,8 +199,6 @@ class OwnerBookingsScreen extends ConsumerWidget {
                             );
                           }
                         },
-                        onRescheduleTap: () =>
-                            context.push('/booking-calendar'),
                       );
                     },
                   );
