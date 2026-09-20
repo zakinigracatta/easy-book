@@ -33,6 +33,17 @@ void main() {
     expect(source, contains('lastDate: businessToday.add'));
   });
 
+  test('owner business updates rollback optimistic UI on failure', () {
+    final providerSource =
+        File('lib/providers/owner_providers.dart').readAsStringSync();
+    final dashboardSource =
+        File('lib/screens/business/owner_dashboard_screen.dart').readAsStringSync();
+
+    expect(providerSource, contains('final previous = state;'));
+    expect(providerSource, contains('state = previous;'));
+    expect(dashboardSource, contains('Unable to update booking availability. Please try again.'));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
