@@ -239,4 +239,9 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Phone': 'Телефон',
   'Phone number copied': 'Номер телефона скопирован',
   'Business details copied': 'Данные компании скопированы',
+  'Booking Submitted!': 'Запрос на запись отправлен!',
+  'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.':
+      'Запрос на запись успешно отправлен и ожидает подтверждения. Следить за статусом можно в разделе «Мои записи».',
+  'No Upcoming Bookings': 'Нет предстоящих записей',
+  'Future customer bookings will appear here.': 'Здесь будут отображаться предстоящие записи клиентов.',
 };
