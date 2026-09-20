@@ -113,7 +113,7 @@ class BusinessModel {
       phone: json['phone'] as String?,
       website: json['website'] as String?,
       galleryUrls: parseStringList(json['gallery_urls'] ?? json['galleryUrls']),
-      isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
+      isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? false,
       businessStatus: rawStatus,
       acceptingBookings: rawAccepting,
       timeZone: (json['timeZone'] ?? json['timezone'] ?? 'Asia/Dubai').toString(),
