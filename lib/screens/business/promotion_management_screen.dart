@@ -284,32 +284,68 @@ class PromotionManagementScreen extends ConsumerWidget {
               onPressed: () async {
                 if (titleController.text.trim().isEmpty) return;
 
-                final bizId = ref.read(currentBusinessIdProvider).value ?? '';
-                final newOffer = OfferModel(
-                  id: 'off_${DateTime.now().millisecondsSinceEpoch}',
-                  businessId: bizId,
-                  title: titleController.text.trim(),
-                  description: descController.text.trim(),
-                  discountType: DiscountType.percentage,
-                  discountValue:
-                      double.tryParse(valController.text.trim()) ?? 20.0,
-                  startDate: DateTime.now(),
-                  endDate: DateTime.now().add(const Duration(days: 30)),
-                );
+                final discount =
+                    double.tryParse(valController.text.trim());
+                if (discount == null || discount <= 0 || discount > 100) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        context.tr(
+                          'Enter a discount percentage between 1 and 100.',
+                        ),
+                      ),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                  return;
+                }
 
-                await ref.read(ownerRepositoryProvider).saveOffer(newOffer);
-                ref.invalidate(ownerOffersProvider);
+                try {
+                  final bizId =
+                      await ref.read(currentBusinessIdProvider.future);
+                  if (bizId.isEmpty) {
+                    throw StateError(
+                      'No business is linked to this owner account.',
+                    );
+                  }
 
-                if (!context.mounted || !ctx.mounted) return;
-                final messenger = ScaffoldMessenger.of(context);
-                final msg = context.tr('Offer published successfully!');
-                Navigator.pop(ctx);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(msg),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
+                  final newOffer = OfferModel(
+                    id: 'off_${DateTime.now().millisecondsSinceEpoch}',
+                    businessId: bizId,
+                    title: titleController.text.trim(),
+                    description: descController.text.trim(),
+                    discountType: DiscountType.percentage,
+                    discountValue: discount,
+                    startDate: DateTime.now(),
+                    endDate: DateTime.now().add(const Duration(days: 30)),
+                  );
+
+                  await ref.read(ownerRepositoryProvider).saveOffer(newOffer);
+                  ref.invalidate(ownerOffersProvider);
+
+                  if (!context.mounted || !ctx.mounted) return;
+                  final messenger = ScaffoldMessenger.of(context);
+                  final msg = context.tr('Offer published successfully!');
+                  Navigator.pop(ctx);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(msg),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                } catch (_) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        context.tr(
+                          'Unable to publish offer. Please try again.',
+                        ),
+                      ),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
               },
             ),
           ],
