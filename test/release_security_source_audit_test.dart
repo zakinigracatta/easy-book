@@ -103,4 +103,39 @@ void main() {
     expect(source, isNot(contains(".where('is_verified', isEqualTo: false)")));
   });
 
+  test('owner schedule and promotion forms reject invalid runtime state', () {
+    final businessHoursSource = File(
+      'lib/screens/business/business_working_hours_screen.dart',
+    ).readAsStringSync();
+    final staffScheduleSource = File(
+      'lib/screens/business/employee_schedule_screen.dart',
+    ).readAsStringSync();
+    final promotionSource = File(
+      'lib/screens/business/promotion_management_screen.dart',
+    ).readAsStringSync();
+
+    expect(businessHoursSource, contains('_workingHoursAreValid()'));
+    expect(staffScheduleSource, contains('_scheduleIsValid()'));
+    expect(
+      promotionSource,
+      contains('await ref.read(currentBusinessIdProvider.future)'),
+    );
+    expect(promotionSource, isNot(contains('?? 20.0')));
+    expect(promotionSource, contains('discount > 100'));
+  });
+
+  test('service and staff detail booking flows bind to their real business', () {
+    final serviceSource = File(
+      'lib/screens/customer/service_details_screen.dart',
+    ).readAsStringSync();
+    final staffSource = File(
+      'lib/screens/customer/staff_profile_screen.dart',
+    ).readAsStringSync();
+
+    expect(serviceSource, contains('businessName: business.name'));
+    expect(staffSource, contains('businessName: business.name'));
+    expect(serviceSource, contains('BookingDraft('));
+    expect(staffSource, contains('BookingDraft('));
+  });
+
 }
