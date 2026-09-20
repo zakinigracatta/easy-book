@@ -22,17 +22,11 @@ final currentBusinessIdProvider = FutureProvider<String>((ref) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null || user.uid.isEmpty) return '';
 
-  // New owner accounts use a deterministic business document ID equal to uid.
-  // Checking it first is faster and avoids depending on a query/index.
-  final directDoc = await FirebaseFirestore.instance
-      .collection('businesses')
-      .doc(user.uid)
-      .get();
-  if (directDoc.exists) {
-    return directDoc.id;
-  }
-
-  // Keep compatibility with existing records that used camelCase ownerId.
+  // Resolve ownership through an owner-scoped query first. Reading
+  // businesses/{uid} before we know it exists can be rejected by Firestore
+  // rules for legacy owners whose business document uses a different ID.
+  // Querying by the ownership field works for both deterministic and legacy
+  // document IDs without broadening read permissions.
   final snap = await FirebaseFirestore.instance
       .collection('businesses')
       .where('ownerId', isEqualTo: user.uid)
