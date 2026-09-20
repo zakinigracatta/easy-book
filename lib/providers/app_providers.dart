@@ -57,6 +57,14 @@ final availableSlotsEngineProvider = FutureProvider.family<
               .toList(growable: false)
           : eligibleStaff.map((staff) => staff.id).toList(growable: false);
 
+  if (!arg.business.isActive ||
+      !arg.business.acceptingBookings ||
+      arg.business.businessStatus != 'open' ||
+      arg.selectedServices.isEmpty ||
+      targetStaffIds.isEmpty) {
+    return [];
+  }
+
   final snapshot = await availabilityService.getAvailabilitySnapshot(
     business: arg.business,
     date: arg.date,
@@ -89,7 +97,12 @@ final rescheduleSlotsProvider = FutureProvider.family<
 
   final repo = ref.watch(businessRepositoryProvider);
   final business = await repo.fetchBusinessById(arg.businessId);
-  if (business == null) return [];
+  if (business == null ||
+      !business.isActive ||
+      !business.acceptingBookings ||
+      business.businessStatus != 'open') {
+    return [];
+  }
 
   final services = await repo.fetchServices(arg.businessId);
   final selectedServices =
