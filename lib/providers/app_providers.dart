@@ -256,7 +256,7 @@ class BookingDraft {
           clearStaffSelection || clearSchedule
               ? null
               : (resolvedStaffName ?? this.resolvedStaffName),
-      date: clearSchedule ? null : (date ?? this.date),
+      date: clearSchedule ? date : (date ?? this.date),
       timeSlot: clearSchedule ? null : (timeSlot ?? this.timeSlot),
       resolvedStartAt:
           clearSchedule ? null : (resolvedStartAt ?? this.resolvedStartAt),
