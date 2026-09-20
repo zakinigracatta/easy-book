@@ -31,11 +31,13 @@ class _QuickWalkInBookingScreenState
   ServiceModel? _selectedService;
   StaffModel? _selectedStaff;
   DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = _nextQuarterHour();
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 0, minute: 0);
   bool _isLoading = false;
+  String? _initializedTimeZone;
+  bool _dateWasChanged = false;
+  bool _timeWasChanged = false;
 
-  static TimeOfDay _nextQuarterHour() {
-    final now = DateTime.now();
+  static TimeOfDay _nextQuarterHour(DateTime now) {
     final roundedMinute = ((now.minute + 14) ~/ 15) * 15;
     final rounded = DateTime(
       now.year,
@@ -44,6 +46,36 @@ class _QuickWalkInBookingScreenState
       now.hour,
     ).add(Duration(minutes: roundedMinute));
     return TimeOfDay(hour: rounded.hour, minute: rounded.minute);
+  }
+
+  void _syncBusinessClock(String timeZone) {
+    if (_initializedTimeZone == timeZone) return;
+    _initializedTimeZone = timeZone;
+    final businessNow = BusinessClock.now(timeZone);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        if (!_dateWasChanged) {
+          _selectedDate = DateTime(
+            businessNow.year,
+            businessNow.month,
+            businessNow.day,
+          );
+        }
+        if (!_timeWasChanged) {
+          _selectedTime = _nextQuarterHour(businessNow);
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   @override
@@ -57,6 +89,9 @@ class _QuickWalkInBookingScreenState
         ref.read(currentBusinessIdProvider).value ??
         '';
     final bizTimeZone = businessAsync.value?.timeZone ?? 'Asia/Dubai';
+    if (businessAsync.value != null) {
+      _syncBusinessClock(bizTimeZone);
+    }
 
     return PopScope(
       canPop: context.canPop(),
@@ -199,8 +234,10 @@ class _QuickWalkInBookingScreenState
                                 ),
                               );
                             }).toList(),
-                            onChanged: (val) =>
-                                setState(() => _selectedService = val),
+                            onChanged: (val) => setState(() {
+                              _selectedService = val;
+                              _selectedStaff = null;
+                            }),
                           );
                         },
                         loading: () => const LinearProgressIndicator(
@@ -213,8 +250,16 @@ class _QuickWalkInBookingScreenState
                       // Employee Picker Dropdown
                       employeesAsync.when(
                         data: (staffList) {
+                          final selectedServiceId = _selectedService?.id;
                           final activeStaff = staffList
-                              .where((staff) => staff.isActive)
+                              .where(
+                                (staff) =>
+                                    staff.isActive &&
+                                    (selectedServiceId == null ||
+                                        staff.serviceIds.isEmpty ||
+                                        staff.serviceIds
+                                            .contains(selectedServiceId)),
+                              )
                               .toList(growable: false);
                           if (_selectedStaff == null ||
                               !activeStaff.any(
@@ -379,7 +424,10 @@ class _QuickWalkInBookingScreenState
       ),
     );
     if (picked != null) {
-      setState(() => _selectedDate = picked);
+      setState(() {
+        _selectedDate = picked;
+        _dateWasChanged = true;
+      });
     }
   }
 
@@ -411,7 +459,10 @@ class _QuickWalkInBookingScreenState
         );
         return;
       }
-      setState(() => _selectedTime = picked);
+      setState(() {
+        _selectedTime = picked;
+        _timeWasChanged = true;
+      });
     }
   }
 
@@ -421,6 +472,17 @@ class _QuickWalkInBookingScreenState
     String timeZone,
   ) async {
     if (!_formKey.currentState!.validate()) return;
+    if (bizId.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('Business details are still loading. Please try again.'),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     if (_selectedService == null || _selectedStaff == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
