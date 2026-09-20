@@ -19,6 +19,13 @@ class StaffProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final specialist = staff;
+    final currentDraft = ref.watch(bookingDraftProvider);
+    final staffBusinessId = specialist?.businessId.trim().isNotEmpty == true
+        ? specialist!.businessId.trim()
+        : (currentDraft.businessId ?? '');
+    final businessState = staffBusinessId.isEmpty
+        ? null
+        : ref.watch(businessDetailProvider(staffBusinessId));
 
     return PopScope(
       canPop: context.canPop(),
@@ -111,20 +118,32 @@ class StaffProfileScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
-                    onPressed: !specialist.isActive
+                    onPressed: !specialist.isActive ||
+                            businessState?.value == null
                         ? null
                         : () async {
+                            final business = businessState!.value!;
                             final draft = ref.read(bookingDraftProvider);
+                            final isSameBusiness =
+                                draft.businessId == business.id;
+
                             ref.read(bookingDraftProvider.notifier).state =
-                                draft.copyWith(
-                              businessId:
-                                  draft.businessId?.isNotEmpty == true
-                                      ? draft.businessId
-                                      : specialist.businessId,
-                              staffId: specialist.id,
-                              staffName: specialist.name,
-                              anySpecialist: false,
-                            );
+                                isSameBusiness
+                                    ? draft.copyWith(
+                                        businessId: business.id,
+                                        businessName: business.name,
+                                        staffId: specialist.id,
+                                        staffName: specialist.name,
+                                        anySpecialist: false,
+                                        resetAppointmentSelection: true,
+                                      )
+                                    : BookingDraft(
+                                        businessId: business.id,
+                                        businessName: business.name,
+                                        staffId: specialist.id,
+                                        staffName: specialist.name,
+                                        anySpecialist: false,
+                                      );
 
                             final allowed = await requireLogin(
                               context,
