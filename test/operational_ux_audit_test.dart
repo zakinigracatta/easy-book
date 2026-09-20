@@ -42,6 +42,19 @@ void main() {
     expect(source, contains('lastDate: businessToday.add'));
   });
 
+  test('owner booking actions respect backend timing and capabilities', () {
+    final cardSource =
+        File('lib/widgets/business/owner_booking_card.dart').readAsStringSync();
+    final listSource =
+        File('lib/screens/business/owner_bookings_screen.dart').readAsStringSync();
+
+    expect(cardSource, contains('final canStartService ='));
+    expect(cardSource, contains('onPressed: canStartService'));
+    expect(cardSource, contains('if (onRescheduleTap != null)'));
+    expect(cardSource, contains("if (!DateTime.now().isBefore(booking.startDateTime))"));
+    expect(listSource, isNot(contains("context.push('/booking-calendar')")));
+  });
+
   test('owner dashboard refresh waits for live providers', () {
     final source =
         File('lib/screens/business/owner_dashboard_screen.dart').readAsStringSync();
