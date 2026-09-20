@@ -197,4 +197,22 @@ void main() {
     );
   });
 
+  test('walk-in creation is not blocked by the online-booking toggle', () {
+    final validationSource = File(
+      'functions/src/booking/bookingValidation.ts',
+    ).readAsStringSync();
+    final walkInSource = File(
+      'functions/src/booking/createWalkInBooking.ts',
+    ).readAsStringSync();
+
+    expect(
+      validationSource,
+      contains('requireAcceptingBookings?: boolean'),
+    );
+    expect(
+      walkInSource,
+      contains('{ requireAcceptingBookings: false }'),
+    );
+  });
+
 }
