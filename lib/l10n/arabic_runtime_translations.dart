@@ -225,4 +225,9 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Phone': 'الهاتف',
   'Phone number copied': 'تم نسخ رقم الهاتف',
   'Business details copied': 'تم نسخ تفاصيل النشاط',
+  'Booking Submitted!': 'تم إرسال طلب الحجز!',
+  'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.':
+      'تم إرسال طلب الحجز بنجاح وهو بانتظار التأكيد. يمكنك متابعة حالته في حجوزاتي.',
+  'No Upcoming Bookings': 'لا توجد حجوزات قادمة',
+  'Future customer bookings will appear here.': 'ستظهر حجوزات العملاء القادمة هنا.',
 };
