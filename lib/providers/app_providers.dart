@@ -28,7 +28,7 @@ final bookingRepositoryProvider =
     Provider<BookingRepository>((ref) => BookingRepositoryImpl());
 final availabilityServiceProvider = Provider((ref) => AvailabilityService());
 final availabilityEngineProvider =
-    Provider((ref) => BookingAvailabilityEngine());
+    Provider((ref) => const BookingAvailabilityEngine());
 
 // Engine Powered Available Slots Provider
 final availableSlotsEngineProvider = FutureProvider.family<
