@@ -444,7 +444,8 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/quick-walk-in',
-      builder: (context, state) => const QuickWalkInBookingScreen(),
+      builder: (context, state) =>
+          QuickWalkInBookingScreen(initialDate: state.extra as DateTime?),
     ),
     GoRoute(
       path: '/salon-management',
