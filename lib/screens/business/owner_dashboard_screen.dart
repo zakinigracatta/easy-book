@@ -60,11 +60,14 @@ class OwnerDashboardScreen extends ConsumerWidget {
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(ownerBusinessProvider);
-              ref.invalidate(ownerBookingsProvider);
               ref.invalidate(ownerNotificationsProvider);
               ref.invalidate(ownerTodayProfitAndLossProvider);
-              await Future<void>.delayed(Duration.zero);
+              await Future.wait<void>([
+                ref.read(ownerBusinessProvider.notifier).loadBusiness(),
+                ref.read(ownerBookingsProvider.notifier).loadBookings(),
+                ref.read(ownerNotificationsProvider.future).then((_) {}),
+                ref.read(ownerTodayProfitAndLossProvider.future).then((_) {}),
+              ]);
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
