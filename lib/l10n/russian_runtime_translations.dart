@@ -239,4 +239,7 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Phone': 'Телефон',
   'Phone number copied': 'Номер телефона скопирован',
   'Business details copied': 'Данные компании скопированы',
+  'Please choose a time at :00, :15, :30 or :45.': 'Выберите время на :00, :15, :30 или :45.',
+  'Unable to update booking availability. Please try again.': 'Не удалось обновить доступность для бронирований. Попробуйте снова.',
+  'Walk-in times use 15-minute intervals.': 'Для записи без предварительной записи используются интервалы по 15 минут.',
 };
