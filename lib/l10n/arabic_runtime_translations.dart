@@ -225,4 +225,7 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Phone': 'الهاتف',
   'Phone number copied': 'تم نسخ رقم الهاتف',
   'Business details copied': 'تم نسخ تفاصيل النشاط',
+  'Please choose a time at :00, :15, :30 or :45.': 'يرجى اختيار وقت عند :00 أو :15 أو :30 أو :45.',
+  'Unable to update booking availability. Please try again.': 'تعذر تحديث حالة قبول الحجوزات. حاول مرة أخرى.',
+  'Walk-in times use 15-minute intervals.': 'أوقات الحجز المباشر تعمل بفواصل 15 دقيقة.',
 };
