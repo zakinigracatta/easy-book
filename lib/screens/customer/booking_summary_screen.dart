@@ -128,8 +128,7 @@ class BookingSummaryScreen extends ConsumerWidget {
                         const SizedBox(height: 12),
                         if (services.isNotEmpty)
                           ...services.map((service) {
-                            final price =
-                                service.discountPrice ?? service.price;
+                            final price = service.effectivePrice;
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 10),
                               child: Row(
