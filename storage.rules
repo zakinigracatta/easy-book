@@ -11,12 +11,36 @@ service firebase.storage {
         firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
+    function isAdminAccount() {
+      return isAuthenticated() && (
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'super_admin'
+      );
+    }
+
     function isBusinessOwner(businessId) {
       let biz = firestore.get(/databases/(default)/documents/businesses/$(businessId)).data;
       return isAuthenticated() && (
         ('owner_id' in biz && biz.owner_id == request.auth.uid) ||
         ('ownerId' in biz && biz.ownerId == request.auth.uid)
       );
+    }
+
+    function isPublishedBusiness(businessId) {
+      let biz = firestore.get(/databases/(default)/documents/businesses/$(businessId)).data;
+      return (
+          (('is_verified' in biz) && biz.is_verified == true) ||
+          (('isVerified' in biz) && biz.isVerified == true)
+        ) && (
+          (('is_active' in biz) && biz.is_active == true) ||
+          (('isActive' in biz) && biz.isActive == true)
+        );
+    }
+
+    function canReadBusinessAsset(businessId) {
+      return isPublishedBusiness(businessId)
+          || isBusinessOwner(businessId)
+          || isAdminAccount();
     }
 
     function isValidImageFile() {
@@ -26,28 +50,28 @@ service firebase.storage {
 
     // Public Profile Assets (Logo & Cover Photo)
     match /businesses/{businessId}/profile/{allPaths=**} {
-      allow read: if true;
+      allow read: if canReadBusinessAsset(businessId);
       allow write: if isBusinessOwner(businessId) && isValidImageFile();
       allow delete: if isBusinessOwner(businessId);
     }
 
     // Public Business Gallery Assets
     match /businesses/{businessId}/gallery/{imageId}/{fileName} {
-      allow read: if true;
+      allow read: if canReadBusinessAsset(businessId);
       allow write: if isBusinessOwner(businessId) && isValidImageFile();
       allow delete: if isBusinessOwner(businessId);
     }
 
     // Public Service Images
     match /businesses/{businessId}/services/{serviceId}/{fileName} {
-      allow read: if true;
+      allow read: if canReadBusinessAsset(businessId);
       allow write: if isBusinessOwner(businessId) && isValidImageFile();
       allow delete: if isBusinessOwner(businessId);
     }
 
     // Public Employee Photos
     match /businesses/{businessId}/employees/{employeeId}/{fileName} {
-      allow read: if true;
+      allow read: if canReadBusinessAsset(businessId);
       allow write: if isBusinessOwner(businessId) && isValidImageFile();
       allow delete: if isBusinessOwner(businessId);
     }
