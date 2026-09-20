@@ -41,7 +41,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
           ref.read(bookingDraftProvider).copyWith(
         serviceId: selected.id,
         serviceName: selected.name,
-        servicePrice: selected.discountPrice ?? selected.price,
+        servicePrice: selected.effectivePrice,
         serviceDuration: selected.duration,
         serviceDurationMinutes: selected.durationMinutes,
         selectedServices: [selected],
@@ -117,7 +117,7 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
                       itemBuilder: (context, index) {
                         final service = services[index];
                         final isSelected = _selectedServiceId == service.id;
-                        final price = service.discountPrice ?? service.price;
+                        final price = service.effectivePrice;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: GlassCard(
