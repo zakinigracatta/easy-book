@@ -3,6 +3,23 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('owner walk-in uses business time and valid booking inputs', () {
+    final source =
+        File('lib/screens/business/quick_walk_in_booking_screen.dart')
+            .readAsStringSync();
+
+    expect(source, contains('BusinessClock.now(timeZone)'));
+    expect(source, contains('BusinessClock.wallClock('));
+    expect(source, contains('picked.minute % 15 != 0'));
+    expect(source, contains('service.isActive && service.isBookable'));
+    expect(source, contains('staff.isActive &&'));
+    expect(source, contains('staff.serviceIds'));
+    expect(source, contains('_selectedService!.effectivePrice'));
+    expect(source, contains('_nameController.dispose()'));
+    expect(source, isNot(contains('_isNewCustomer')));
+    expect(source, isNot(contains('ThemeData.dark()')));
+  });
+
   test('customer search is debounced before repository refresh', () {
     final source =
         File('lib/screens/customer/search_screen.dart').readAsStringSync();
