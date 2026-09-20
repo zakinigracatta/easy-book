@@ -217,8 +217,30 @@ service cloud.firestore {
 
     // Businesses Collection & Subcollections
     match /businesses/{businessId} {
-      allow read: if isBusinessOwner(businessId)
-                  || isAdminAccount()
+      // Single-document reads can validate ownership through the concrete
+      // document path. Collection queries do not have a concrete wildcard ID,
+      // so list authorization must be expressed against resource.data instead.
+      allow get: if isBusinessOwner(businessId)
+                 || isAdminAccount()
+                 || (
+                   (
+                     (('is_verified' in resource.data) && resource.data.is_verified == true)
+                     || (('isVerified' in resource.data) && resource.data.isVerified == true)
+                   )
+                   && (
+                     (('is_active' in resource.data) && resource.data.is_active == true)
+                     || (('isActive' in resource.data) && resource.data.isActive == true)
+                   )
+                 );
+
+      allow list: if isAdminAccount()
+                  || (
+                    isAuthenticated()
+                    && (
+                      (('ownerId' in resource.data) && resource.data.ownerId == request.auth.uid)
+                      || (('owner_id' in resource.data) && resource.data.owner_id == request.auth.uid)
+                    )
+                  )
                   || (
                     (
                       (('is_verified' in resource.data) && resource.data.is_verified == true)
