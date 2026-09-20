@@ -95,13 +95,19 @@ class _BookingConfirmationScreenState
     final slotLockId =
         '${businessId}_${staffId}_${startDateTime.millisecondsSinceEpoch}';
 
+    final profile = ref.read(authProvider);
+    final profilePhone = profile?.phone.trim() ?? '';
+    final firebasePhone = refreshedUser.phoneNumber?.trim() ?? '';
+
     final booking = BookingModel(
       id: '',
       customerId: refreshedUser.uid,
       customerName: refreshedUser.displayName?.trim().isNotEmpty == true
           ? refreshedUser.displayName!.trim()
           : refreshedUser.email ?? 'Valued Customer',
-      customerPhone: refreshedUser.phoneNumber,
+      customerPhone: profilePhone.isNotEmpty
+          ? profilePhone
+          : (firebasePhone.isNotEmpty ? firebasePhone : null),
       businessId: businessId,
       businessName: businessName.isEmpty ? 'Business' : businessName,
       serviceId: serviceId,
