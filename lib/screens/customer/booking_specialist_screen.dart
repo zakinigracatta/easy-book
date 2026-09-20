@@ -54,6 +54,7 @@ class _BookingSpecialistScreenState
         anySpecialist: true,
         staffId: '',
         staffName: 'Any Available Specialist',
+        resetAppointmentSelection: true,
       );
     } else {
       if (_selectedStaffId == null || _selectedStaffId!.isEmpty) {
@@ -73,6 +74,7 @@ class _BookingSpecialistScreenState
         anySpecialist: false,
         staffId: staff.id,
         staffName: staff.name,
+        resetAppointmentSelection: true,
       );
     }
     context.push('/booking-date');
