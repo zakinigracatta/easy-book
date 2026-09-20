@@ -41,6 +41,7 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Walk-in': 'Без записи',
   'Finance': 'Финансы',
   'Add Service': 'Добавить услугу',
+  'Service Image': 'Изображение услуги',
   'Add Employee': 'Добавить сотрудника',
   'No Bookings Today': 'Сегодня записей нет',
   "You're all clear for now. New bookings will appear here.":
