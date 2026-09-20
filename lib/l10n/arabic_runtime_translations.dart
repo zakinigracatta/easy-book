@@ -230,4 +230,5 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
       'تم إرسال طلب الحجز بنجاح وهو بانتظار التأكيد. يمكنك متابعة حالته في حجوزاتي.',
   'No Upcoming Bookings': 'لا توجد حجوزات قادمة',
   'Future customer bookings will appear here.': 'ستظهر حجوزات العملاء القادمة هنا.',
+  'Unable to update booking availability. Please try again.': 'تعذر تحديث حالة توفر الحجز. حاول مرة أخرى.',
 };
