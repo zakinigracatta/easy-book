@@ -172,7 +172,8 @@ export async function validateBookingRequirements(
   businessId: string,
   serviceId: string,
   staffId: string,
-  requestedStartAt: Date
+  requestedStartAt: Date,
+  options: { requireAcceptingBookings?: boolean } = {}
 ): Promise<ValidatedBookingContext> {
   const bizRef = db.collection('businesses').doc(businessId);
   const bizSnap = await transaction.get(bizRef);
@@ -189,7 +190,13 @@ export async function validateBookingRequirements(
   const businessStatus =
     bizData.businessStatus || bizData.business_status || 'closed';
 
-  if (!isActive || !acceptingBookings || businessStatus !== 'open') {
+  const requireAcceptingBookings =
+    options.requireAcceptingBookings ?? true;
+  if (
+    !isActive ||
+    businessStatus !== 'open' ||
+    (requireAcceptingBookings && !acceptingBookings)
+  ) {
     throw new HttpsError(
       'failed-precondition',
       'BUSINESS_NOT_ACCEPTING_BOOKINGS: Business is currently closed or not accepting bookings.'
