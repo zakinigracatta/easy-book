@@ -49,12 +49,22 @@ class ServiceModel {
         final match = RegExp(r'(\d+)').firstMatch(raw);
         if (match != null) return int.parse(match.group(1)!);
       }
-      return 30;
+      return 0;
     }
 
     final parsedMinutes = parseDurationMinutes(
       json['duration_minutes'] ?? json['durationMinutes'] ?? json['duration'],
     );
+
+    final parsedPrice = (json['price'] as num?)?.toDouble();
+    final parsedIsActive =
+        json['is_active'] as bool? ?? json['isActive'] as bool? ?? false;
+    final parsedIsBookable =
+        json['is_bookable'] as bool? ?? json['isBookable'] as bool? ?? false;
+    final hasValidBookingConfig = parsedPrice != null &&
+        parsedPrice.isFinite &&
+        parsedPrice >= 0 &&
+        parsedMinutes > 0;
 
     return ServiceModel(
       id: json['id'] as String? ?? '',
@@ -63,7 +73,7 @@ class ServiceModel {
           json['businessId'] as String? ??
           '',
       name: json['name'] as String? ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      price: parsedPrice ?? 0.0,
       discountPrice: (json['discount_price'] ?? json['discountPrice']) != null
           ? ((json['discount_price'] ?? json['discountPrice']) as num)
               .toDouble()
@@ -79,9 +89,8 @@ class ServiceModel {
           json['categoryName'] as String? ??
           json['category'] as String? ??
           'Services',
-      isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
-      isBookable:
-          json['is_bookable'] as bool? ?? json['isBookable'] as bool? ?? true,
+      isActive: parsedIsActive,
+      isBookable: parsedIsBookable && hasValidBookingConfig,
       currency: json['currency'] as String? ?? 'AED',
     );
   }
