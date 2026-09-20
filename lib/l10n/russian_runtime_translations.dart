@@ -244,4 +244,5 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
       'Запрос на запись успешно отправлен и ожидает подтверждения. Следить за статусом можно в разделе «Мои записи».',
   'No Upcoming Bookings': 'Нет предстоящих записей',
   'Future customer bookings will appear here.': 'Здесь будут отображаться предстоящие записи клиентов.',
+  'Unable to update booking availability. Please try again.': 'Не удалось обновить доступность для записи. Попробуйте снова.',
 };
