@@ -42,6 +42,16 @@ void main() {
     expect(source, contains('lastDate: businessToday.add'));
   });
 
+  test('owner dashboard refresh waits for live providers', () {
+    final source =
+        File('lib/screens/business/owner_dashboard_screen.dart').readAsStringSync();
+
+    expect(source, contains('await Future.wait<void>(['));
+    expect(source, contains('loadBusiness()'));
+    expect(source, contains('loadBookings()'));
+    expect(source, isNot(contains('Future<void>.delayed(Duration.zero)')));
+  });
+
   test('owner business updates rollback optimistic UI on failure', () {
     final providerSource =
         File('lib/providers/owner_providers.dart').readAsStringSync();
