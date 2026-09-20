@@ -56,12 +56,12 @@ void main() {
       '1,450 Points',
       'VIP Gold Tier Member',
       'SARAH JENKINS',
-      'Balance: \\$240.00',
+      r'Balance: $240.00',
       'SUMMER30',
       'WELCOME20',
       'Marcus Vance',
       'Elena Rostova',
-      'Requested: \\$2,450.00',
+      r'Requested: $2,450.00',
       'Approve Payout',
     ];
 
