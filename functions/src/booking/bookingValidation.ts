@@ -277,7 +277,7 @@ export async function validateBookingRequirements(
     );
   }
   const staffData = staffSnap.data() || {};
-  if ((staffData.isActive ?? staffData.is_active) === false) {
+  if ((staffData.isActive ?? staffData.is_active) !== true) {
     throw new HttpsError(
       'failed-precondition',
       'STAFF_INACTIVE: Staff member is currently inactive.'

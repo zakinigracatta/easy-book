@@ -27,7 +27,13 @@ class AvailabilityService {
     required List<String> staffIds,
   }) async {
     final normalizedBusinessId = business.id.trim();
-    if (normalizedBusinessId.isEmpty) {
+    final normalizedStaffIds = staffIds
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList(growable: false);
+
+    if (normalizedBusinessId.isEmpty || normalizedStaffIds.isEmpty) {
       return const AvailabilitySnapshot(
         timeOffs: [],
         occupiedSlotsByStaff: {},
@@ -47,12 +53,6 @@ class AvailabilityService {
       date.month,
       date.day + 1,
     );
-
-    final normalizedStaffIds = staffIds
-        .map((id) => id.trim())
-        .where((id) => id.isNotEmpty)
-        .toSet()
-        .toList(growable: false);
 
     final callable = _functions.httpsCallable('getAvailabilityBlocks');
     final response = await callable.call({

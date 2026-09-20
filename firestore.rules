@@ -36,10 +36,26 @@ service cloud.firestore {
 
     function isPublishedBusiness(businessId) {
       return exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-        ('is_verified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-        get(/databases/$(database)/documents/businesses/$(businessId)).data.is_verified == true &&
-        (!('is_active' in get(/databases/$(database)/documents/businesses/$(businessId)).data) ||
-          get(/databases/$(database)/documents/businesses/$(businessId)).data.is_active == true);
+        (
+          (
+            ('is_verified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
+            get(/databases/$(database)/documents/businesses/$(businessId)).data.is_verified == true
+          ) ||
+          (
+            ('isVerified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
+            get(/databases/$(database)/documents/businesses/$(businessId)).data.isVerified == true
+          )
+        ) &&
+        (
+          (
+            ('is_active' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
+            get(/databases/$(database)/documents/businesses/$(businessId)).data.is_active == true
+          ) ||
+          (
+            ('isActive' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
+            get(/databases/$(database)/documents/businesses/$(businessId)).data.isActive == true
+          )
+        );
     }
 
     function validExpenseCategory(category) {
@@ -142,15 +158,53 @@ service cloud.firestore {
 
       allow create: if isUser(userId)
                     && request.path == /databases/$(database)/documents/users/$(userId)
-                    && request.resource.data.keys().hasAny(['email', 'role'])
+                    && request.resource.data.keys().hasOnly([
+                      'id',
+                      'email',
+                      'full_name',
+                      'name',
+                      'phone',
+                      'avatar_url',
+                      'profile_image',
+                      'role',
+                      'wallet_balance',
+                      'walletBalance',
+                      'favorite_business_ids',
+                      'business_name',
+                      'category',
+                      'location',
+                      'business_image_url',
+                      'created_at',
+                      'updated_at',
+                      'createdAt',
+                      'updatedAt'
+                    ])
+                    && request.resource.data.keys().hasAll(['id', 'email', 'role'])
                     && request.resource.data.id == userId
                     && ('email' in request.auth.token)
                     && request.resource.data.email == request.auth.token.email
-                    && (request.resource.data.role == 'customer' || request.resource.data.role == 'owner');
+                    && (request.resource.data.role == 'customer' || request.resource.data.role == 'owner')
+                    && (!('wallet_balance' in request.resource.data) || request.resource.data.wallet_balance == 0)
+                    && (!('walletBalance' in request.resource.data) || request.resource.data.walletBalance == 0);
 
+      // Profile updates are intentionally limited to non-authoritative display
+      // fields. Role, email, identity, and financial balances are server-owned.
       allow update: if isUser(userId)
                     && request.path == /databases/$(database)/documents/users/$(userId)
-                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email']);
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                      'full_name',
+                      'name',
+                      'phone',
+                      'avatar_url',
+                      'profile_image',
+                      'favorite_business_ids',
+                      'business_name',
+                      'category',
+                      'location',
+                      'business_image_url',
+                      'updated_at',
+                      'updatedAt'
+                    ]);
 
       match /favorites/{businessId} {
         allow read, delete: if isUser(userId);
@@ -163,12 +217,39 @@ service cloud.firestore {
 
     // Businesses Collection & Subcollections
     match /businesses/{businessId} {
-      allow read: if isBusinessOwner(businessId)
-                  || isAdminAccount()
+      // Single-document reads can validate ownership through the concrete
+      // document path. Collection queries do not have a concrete wildcard ID,
+      // so list authorization must be expressed against resource.data instead.
+      allow get: if isBusinessOwner(businessId)
+                 || isAdminAccount()
+                 || (
+                   (
+                     (('is_verified' in resource.data) && resource.data.is_verified == true)
+                     || (('isVerified' in resource.data) && resource.data.isVerified == true)
+                   )
+                   && (
+                     (('is_active' in resource.data) && resource.data.is_active == true)
+                     || (('isActive' in resource.data) && resource.data.isActive == true)
+                   )
+                 );
+
+      allow list: if isAdminAccount()
                   || (
-                    ('is_verified' in resource.data)
-                    && resource.data.is_verified == true
-                    && (!('is_active' in resource.data) || resource.data.is_active == true)
+                    isAuthenticated()
+                    && (
+                      (('ownerId' in resource.data) && resource.data.ownerId == request.auth.uid)
+                      || (('owner_id' in resource.data) && resource.data.owner_id == request.auth.uid)
+                    )
+                  )
+                  || (
+                    (
+                      (('is_verified' in resource.data) && resource.data.is_verified == true)
+                      || (('isVerified' in resource.data) && resource.data.isVerified == true)
+                    )
+                    && (
+                      (('is_active' in resource.data) && resource.data.is_active == true)
+                      || (('isActive' in resource.data) && resource.data.isActive == true)
+                    )
                   );
 
       allow create: if isOwnerAccount()

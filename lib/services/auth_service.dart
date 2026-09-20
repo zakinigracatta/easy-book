@@ -252,9 +252,9 @@ class AuthService {
     if (!_isOwner(user.role) || user.id.isEmpty) return;
 
     final deterministicRef = _businesses.doc(user.id);
-    final deterministicDoc = await deterministicRef.get();
-    if (deterministicDoc.exists) return;
 
+    // Query ownership first. A direct read of businesses/{uid} may be denied
+    // for legacy owners whose business document uses a different document ID.
     final modernMatch = await _businesses
         .where('ownerId', isEqualTo: user.id)
         .limit(1)

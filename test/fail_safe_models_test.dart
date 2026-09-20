@@ -1,6 +1,7 @@
 import 'package:easy_book/models/booking_model.dart';
 import 'package:easy_book/models/business_model.dart';
 import 'package:easy_book/models/service_model.dart';
+import 'package:easy_book/models/staff_model.dart';
 import 'package:easy_book/models/working_hours_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -73,6 +74,29 @@ void main() {
       expect(service.isActive, isFalse);
       expect(service.isBookable, isFalse);
       expect(service.durationMinutes, 0);
+    });
+
+    test('missing staff active flag parses as inactive', () {
+      final staff = StaffModel.fromJson({
+        'id': 'staff_missing_active',
+        'business_id': 'biz_1',
+        'name': 'Legacy Staff',
+        'rating': 0,
+      });
+
+      expect(staff.isActive, isFalse);
+    });
+
+    test('explicitly active staff stays active', () {
+      final staff = StaffModel.fromJson({
+        'id': 'staff_active',
+        'business_id': 'biz_1',
+        'name': 'Active Staff',
+        'rating': 0,
+        'is_active': true,
+      });
+
+      expect(staff.isActive, isTrue);
     });
 
     test('complete service record stays bookable', () {

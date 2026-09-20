@@ -16,18 +16,28 @@ function requiredBusinessId(value: unknown): string {
 }
 
 function requestedStaffIds(value: unknown): string[] {
-  if (value == null) return [];
-  if (!Array.isArray(value) || value.length > 50) {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 50) {
     throw new HttpsError(
       'invalid-argument',
-      'INVALID_STAFF_IDS: staffIds must be an array with at most 50 items.'
+      'INVALID_STAFF_IDS: staffIds must contain between 1 and 50 identifiers.'
     );
   }
 
-  const result = value
-    .map((item) => (typeof item === 'string' ? item.trim() : ''))
-    .filter((item) => item.length > 0 && item.length <= 200);
-  return [...new Set(result)];
+  const result = [
+    ...new Set(
+      value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter((item) => item.length > 0 && item.length <= 200)
+    ),
+  ];
+
+  if (result.length === 0) {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_STAFF_IDS: At least one valid staff identifier is required.'
+    );
+  }
+  return result;
 }
 
 function asDate(value: unknown): Date | null {
@@ -43,10 +53,15 @@ function asDate(value: unknown): Date | null {
 function requestedRange(data: Record<string, unknown>): {
   start: Date;
   end: Date;
-} | null {
+} {
   const hasStart = data.startAt != null;
   const hasEnd = data.endAt != null;
-  if (!hasStart && !hasEnd) return null;
+  if (!hasStart || !hasEnd) {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_RANGE: startAt and endAt are required.'
+    );
+  }
 
   const start = asDate(data.startAt);
   const end = asDate(data.endAt);
@@ -62,6 +77,19 @@ function requestedRange(data: Record<string, unknown>): {
     throw new HttpsError(
       'invalid-argument',
       'INVALID_RANGE: Availability range cannot exceed 48 hours.'
+    );
+  }
+
+  const now = Date.now();
+  const pastGraceMs = 24 * 60 * 60 * 1000;
+  const maxAdvanceMs = 61 * 24 * 60 * 60 * 1000;
+  if (
+    start.getTime() < now - pastGraceMs ||
+    end.getTime() > now + maxAdvanceMs
+  ) {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_RANGE: Availability may only be requested for the active booking window.'
     );
   }
 
@@ -90,13 +118,40 @@ export const getAvailabilityBlocks = onCall(async (request) => {
   const isVerified =
     business.is_verified === true || business.isVerified === true;
   const isActive = (business.is_active ?? business.isActive) === true;
+  const acceptingBookings =
+    (business.accepting_bookings ?? business.acceptingBookings) === true;
+  const businessStatus =
+    business.business_status ?? business.businessStatus ?? 'closed';
 
-  if (!isVerified || !isActive) {
+  if (
+    !isVerified ||
+    !isActive ||
+    !acceptingBookings ||
+    businessStatus !== 'open'
+  ) {
     throw new HttpsError(
       'failed-precondition',
       'BUSINESS_NOT_PUBLISHED: Availability is not public for this business.'
     );
   }
+
+  // Public availability accepts only active staff IDs that actually belong to
+  // this business. This prevents callers from probing arbitrary employee IDs.
+  const activeStaffIds: string[] = [];
+  for (const staffId of staffIds) {
+    const staffSnap = await db
+      .collection('businesses')
+      .doc(businessId)
+      .collection('staff')
+      .doc(staffId)
+      .get();
+    if (!staffSnap.exists) continue;
+    const staff = staffSnap.data() || {};
+    if ((staff.is_active ?? staff.isActive) === true) {
+      activeStaffIds.push(staffId);
+    }
+  }
+  const activeStaffIdSet = new Set(activeStaffIds);
 
   const timeOffSnapshot = await db
     .collection('businesses')
@@ -105,7 +160,6 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     .get();
 
   const blocks: Array<{
-    id: string;
     employeeId: string;
     startDate: string;
     endDate: string;
@@ -120,17 +174,16 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     const endDate = asDate(item.endDate ?? item.end_date);
 
     if (!employeeId || !startDate || !endDate) continue;
+    if (!activeStaffIdSet.has(employeeId)) continue;
     if (endDate.getTime() < startDate.getTime()) continue;
     if (
-      range &&
-      (startDate.getTime() >= range.end.getTime() ||
-        endDate.getTime() <= range.start.getTime())
+      startDate.getTime() >= range.end.getTime() ||
+      endDate.getTime() <= range.start.getTime()
     ) {
       continue;
     }
 
     blocks.push({
-      id: doc.id,
       employeeId,
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -142,8 +195,8 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     startTimestamp: number;
   }> = [];
 
-  if (range && staffIds.length > 0) {
-    for (const staffId of staffIds) {
+  if (activeStaffIds.length > 0) {
+    for (const staffId of activeStaffIds) {
       const snapshot = await db
         .collection('booking_slots')
         .where('businessId', '==', businessId)
