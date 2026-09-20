@@ -558,9 +558,9 @@ class OwnerDashboardScreen extends ConsumerWidget {
         if (visibleUpcoming.isEmpty) {
           return OwnerEmptyStateWidget(
             icon: Icons.event_available_rounded,
-            title: 'No Bookings Today',
+            title: 'No Upcoming Bookings',
             description:
-                "You're all clear for now. New bookings will appear here.",
+                'Future customer bookings will appear here.',
             actionLabel: 'Create Walk-in',
             onActionTap: () => context.push('/quick-walk-in'),
           );
