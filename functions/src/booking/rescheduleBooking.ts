@@ -73,20 +73,20 @@ export const rescheduleBooking = onCall(async (request) => {
       );
     }
 
-    let isAuthorized = false;
+    let actor: 'customer' | 'owner' | '' = '';
     if (customerId && customerId === callerUid) {
-      isAuthorized = true;
+      actor = 'customer';
     } else if (businessId) {
       const bizRef = db.collection('businesses').doc(businessId);
       const bizSnap = await transaction.get(bizRef);
       if (bizSnap.exists) {
         const bizData = bizSnap.data() || {};
         const ownerId = bizData.ownerId || bizData.owner_id;
-        isAuthorized = ownerId === callerUid;
+        if (ownerId === callerUid) actor = 'owner';
       }
     }
 
-    if (!isAuthorized) {
+    if (!actor) {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: You are not authorized to reschedule this booking.'
@@ -184,12 +184,13 @@ export const rescheduleBooking = onCall(async (request) => {
     }
 
     const primarySlotLockId = newLockObjects[0].lockId;
+    const nextStatus = actor === 'owner' ? currentStatus : 'pending';
     transaction.update(bookingRef, {
       startDateTime: admin.firestore.Timestamp.fromDate(newStartAt),
       endDateTime: admin.firestore.Timestamp.fromDate(context.calculatedEndAt),
       startTimestamp: newStartAt.getTime(),
       slotLockId: primarySlotLockId,
-      status: 'pending',
+      status: nextStatus,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
@@ -198,7 +199,7 @@ export const rescheduleBooking = onCall(async (request) => {
       bookingId,
       startDateTime: newStartAt.toISOString(),
       endDateTime: context.calculatedEndAt.toISOString(),
-      status: 'pending',
+      status: nextStatus,
     };
   });
 });

@@ -5,7 +5,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import '../../core/constants/app_colors.dart';
 import '../../widgets/glass_card.dart';
-import 'admin_portal_shell.dart';
+import 'admin_localization.dart';
 
 class AdminBusinessDetailsScreen extends StatefulWidget {
   const AdminBusinessDetailsScreen({required this.businessId, super.key});
@@ -302,7 +302,7 @@ class _AdminBusinessDetailsScreenState
                                   .map(
                                     (r) => {
                                       'title':
-                                          '⭐ ${(r['rating'] ?? 5.0).toString()} - ${(r['user_name'] ?? r['userName'] ?? adminText(context, 'Customer', 'عميل')).toString()}',
+                                          '⭐ ${(r['rating'] ?? '—').toString()} - ${(r['user_name'] ?? r['userName'] ?? adminText(context, 'Customer', 'عميل')).toString()}',
                                       'subtitle':
                                           (r['comment'] ?? r['text'] ?? '')
                                               .toString(),
@@ -334,7 +334,7 @@ class _BusinessHeaderCard extends StatelessWidget {
     final category = (business['category'] ?? '—').toString();
     final address = (business['address'] ?? '—').toString();
     final rating =
-        (business['rating'] as num?)?.toDouble().toStringAsFixed(1) ?? '5.0';
+        (business['rating'] as num?)?.toDouble().toStringAsFixed(1) ?? '—';
 
     final isVerified =
         business['is_verified'] == true || business['isVerified'] == true;

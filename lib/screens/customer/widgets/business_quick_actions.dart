@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,13 +40,14 @@ class BusinessQuickActions extends ConsumerWidget {
           _actionBtn(
             context,
             icon: Icons.phone_outlined,
-            label: context.tr('Call'),
-            onTap: () {
+            label: context.tr('Phone'),
+            onTap: () async {
+              final phone = business.phone!.trim();
+              await Clipboard.setData(ClipboardData(text: phone));
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    '${context.tr('Call')}: ${business.phone}',
-                  ),
+                  content: Text(context.tr('Phone number copied')),
                 ),
               );
             },
@@ -56,15 +58,7 @@ class BusinessQuickActions extends ConsumerWidget {
             icon: Icons.directions_outlined,
             label: context.tr('Directions'),
             onTap: onDirectionsTap ??
-                () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${context.tr('Directions')}: ${business.name}',
-                      ),
-                    ),
-                  );
-                },
+                () => context.push('/location', extra: business.id),
           ),
         _actionBtn(
           context,
@@ -102,10 +96,19 @@ class BusinessQuickActions extends ConsumerWidget {
           icon: Icons.share_outlined,
           label: context.tr('Share'),
           onTap: onShareTap ??
-              () {
+              () async {
+                final details = [
+                  business.name,
+                  if (business.address.trim().isNotEmpty)
+                    business.address.trim(),
+                  if (business.phone?.trim().isNotEmpty == true)
+                    business.phone!.trim(),
+                ].join('\n');
+                await Clipboard.setData(ClipboardData(text: details));
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('${context.tr('Share')}: ${business.name}'),
+                    content: Text(context.tr('Business details copied')),
                   ),
                 );
               },

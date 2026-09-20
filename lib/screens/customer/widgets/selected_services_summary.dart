@@ -22,7 +22,7 @@ class SelectedServicesSummary extends StatelessWidget {
 
     final totalPrice = services.fold<double>(
       0,
-      (sum, service) => sum + (service.discountPrice ?? service.price),
+      (sum, service) => sum + service.effectivePrice,
     );
     final totalDuration = services.fold<int>(
       0,
@@ -61,7 +61,7 @@ class SelectedServicesSummary extends StatelessWidget {
           const SizedBox(height: 10),
           Column(
             children: services.map((service) {
-              final price = service.discountPrice ?? service.price;
+              final price = service.effectivePrice;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Row(

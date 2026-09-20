@@ -147,6 +147,25 @@ function readString(
   return null;
 }
 
+function readServiceDurationMinutes(
+  source: Record<string, unknown>
+): number | null {
+  const numeric =
+    typeof source.durationMinutes === 'number'
+      ? source.durationMinutes
+      : typeof source.duration_minutes === 'number'
+        ? source.duration_minutes
+        : null;
+  if (numeric !== null) return Math.round(numeric);
+
+  if (typeof source.duration === 'string') {
+    const match = source.duration.match(/\d+/);
+    if (match) return Number.parseInt(match[0], 10);
+  }
+
+  return null;
+}
+
 export async function validateBookingRequirements(
   db: admin.firestore.Firestore,
   transaction: admin.firestore.Transaction,
@@ -164,11 +183,11 @@ export async function validateBookingRequirements(
     );
   }
   const bizData = bizSnap.data() || {};
-  const isActive = (bizData.isActive ?? bizData.is_active) !== false;
+  const isActive = (bizData.isActive ?? bizData.is_active) === true;
   const acceptingBookings =
-    (bizData.acceptingBookings ?? bizData.accepting_bookings) !== false;
+    (bizData.acceptingBookings ?? bizData.accepting_bookings) === true;
   const businessStatus =
-    bizData.businessStatus || bizData.business_status || 'open';
+    bizData.businessStatus || bizData.business_status || 'closed';
 
   if (!isActive || !acceptingBookings || businessStatus !== 'open') {
     throw new HttpsError(
@@ -192,37 +211,45 @@ export async function validateBookingRequirements(
     );
   }
   const srvData = srvSnap.data() || {};
-  if ((srvData.isActive ?? srvData.is_active) === false) {
+  const serviceActive = (srvData.isActive ?? srvData.is_active) === true;
+  const serviceBookable =
+    (srvData.isBookable ?? srvData.is_bookable) === true;
+  if (!serviceActive || !serviceBookable) {
     throw new HttpsError(
       'failed-precondition',
-      'SERVICE_INACTIVE: Selected service is not currently active.'
+      'SERVICE_INACTIVE: Selected service is not currently bookable.'
     );
   }
 
-  const price = typeof srvData.price === 'number' ? srvData.price : 0;
-  const discountPrice =
-    typeof srvData.discountPrice === 'number' && srvData.discountPrice >= 0
-      ? srvData.discountPrice
-      : typeof srvData.discount_price === 'number' && srvData.discount_price >= 0
-        ? srvData.discount_price
-        : null;
-  const effectivePrice = discountPrice ?? price;
-
-  if (!Number.isFinite(effectivePrice) || effectivePrice < 0) {
+  const price =
+    typeof srvData.price === 'number' && Number.isFinite(srvData.price)
+      ? srvData.price
+      : null;
+  if (price === null || price < 0) {
     throw new HttpsError(
       'failed-precondition',
       'INVALID_SERVICE_PRICE: The selected service has an invalid price.'
     );
   }
 
-  const durationRaw =
-    typeof srvData.durationMinutes === 'number'
-      ? srvData.durationMinutes
-      : typeof srvData.duration_minutes === 'number'
-        ? srvData.duration_minutes
-        : 30;
-  const durationMinutes = Math.round(durationRaw);
+  const rawDiscount =
+    typeof srvData.discountPrice === 'number'
+      ? srvData.discountPrice
+      : typeof srvData.discount_price === 'number'
+        ? srvData.discount_price
+        : null;
+  const discountPrice =
+    rawDiscount !== null &&
+    Number.isFinite(rawDiscount) &&
+    rawDiscount > 0 &&
+    rawDiscount < price
+      ? rawDiscount
+      : null;
+  const effectivePrice = discountPrice ?? price;
+
+  const durationMinutes = readServiceDurationMinutes(srvData);
   if (
+    durationMinutes === null ||
     !Number.isFinite(durationMinutes) ||
     durationMinutes <= 0 ||
     durationMinutes > 24 * 60
@@ -281,34 +308,49 @@ export async function validateBookingRequirements(
     );
   }
 
-  // Business opening hours are authoritative. Older records may not contain
-  // them, in which case staff hours remain the limiting schedule.
+  // Business opening hours are authoritative and required for online booking.
+  // Missing or partial schedules fail closed instead of inventing hours.
   const businessHours = bizData.workingHours ?? bizData.working_hours;
-  if (businessHours && typeof businessHours === 'object') {
-    const dayConfig =
-      businessHours[localStart.dayName.toLowerCase()] ??
-      businessHours[localStart.dayName];
-    if (dayConfig && typeof dayConfig === 'object') {
-      if ((dayConfig.isClosed ?? dayConfig.is_closed) === true) {
-        throw new HttpsError(
-          'failed-precondition',
-          'OUTSIDE_BUSINESS_HOURS: Business is closed on the selected day.'
-        );
-      }
-      const openRaw = readString(dayConfig, 'openTime', 'open_time', 'open');
-      const closeRaw = readString(dayConfig, 'closeTime', 'close_time', 'close');
-      if (openRaw && closeRaw) {
-        validateWithinInterval(
-          localStart.minuteOfDay,
-          localEnd.minuteOfDay,
-          parseTimeStringToMinutes(openRaw),
-          parseTimeStringToMinutes(closeRaw),
-          'OUTSIDE_BUSINESS_HOURS',
-          'Requested appointment is outside business operating hours.'
-        );
-      }
-    }
+  if (!businessHours || typeof businessHours !== 'object') {
+    throw new HttpsError(
+      'failed-precondition',
+      'BUSINESS_HOURS_NOT_CONFIGURED: Business working hours are required before accepting bookings.'
+    );
   }
+
+  const dayConfig =
+    businessHours[localStart.dayName.toLowerCase()] ??
+    businessHours[localStart.dayName];
+  if (!dayConfig || typeof dayConfig !== 'object') {
+    throw new HttpsError(
+      'failed-precondition',
+      'OUTSIDE_BUSINESS_HOURS: Business is closed on the selected day.'
+    );
+  }
+  if ((dayConfig.isClosed ?? dayConfig.is_closed) === true) {
+    throw new HttpsError(
+      'failed-precondition',
+      'OUTSIDE_BUSINESS_HOURS: Business is closed on the selected day.'
+    );
+  }
+
+  const openRaw = readString(dayConfig, 'openTime', 'open_time', 'open');
+  const closeRaw = readString(dayConfig, 'closeTime', 'close_time', 'close');
+  if (!openRaw || !closeRaw) {
+    throw new HttpsError(
+      'failed-precondition',
+      'INVALID_WORKING_HOURS: Open and close times must be configured for the selected day.'
+    );
+  }
+
+  validateWithinInterval(
+    localStart.minuteOfDay,
+    localEnd.minuteOfDay,
+    parseTimeStringToMinutes(openRaw),
+    parseTimeStringToMinutes(closeRaw),
+    'OUTSIDE_BUSINESS_HOURS',
+    'Requested appointment is outside business operating hours.'
+  );
 
   // Mirror the Flutter availability engine: a per-day weekly schedule takes
   // precedence over the legacy workingDays + global shift fields.

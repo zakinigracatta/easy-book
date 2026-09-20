@@ -77,11 +77,38 @@ export async function createBookingInternal(db, params) {
     if (!bizSnap.exists) throw new Error('BUSINESS_NOT_FOUND');
     const bizData = bizSnap.data() || {};
     if (
-      bizData.isActive === false ||
-      bizData.acceptingBookings === false ||
-      (bizData.businessStatus && bizData.businessStatus !== 'open')
+      bizData.isActive !== true ||
+      bizData.acceptingBookings !== true ||
+      bizData.businessStatus !== 'open'
     ) {
       throw new Error('BUSINESS_NOT_ACCEPTING_BOOKINGS');
+    }
+
+    const businessHours = bizData.workingHours ?? bizData.working_hours;
+    if (!businessHours || typeof businessHours !== 'object') {
+      throw new Error('BUSINESS_HOURS_NOT_CONFIGURED');
+    }
+
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+    const dayName = dayNames[requestedStartAt.getUTCDay()];
+    const dayConfig =
+      businessHours[dayName.toLowerCase()] ?? businessHours[dayName];
+    if (!dayConfig || typeof dayConfig !== 'object' || dayConfig.isClosed === true || dayConfig.is_closed === true) {
+      throw new Error('OUTSIDE_BUSINESS_HOURS');
+    }
+
+    const businessOpen = dayConfig.openTime ?? dayConfig.open_time ?? dayConfig.open;
+    const businessClose = dayConfig.closeTime ?? dayConfig.close_time ?? dayConfig.close;
+    if (typeof businessOpen !== 'string' || typeof businessClose !== 'string') {
+      throw new Error('INVALID_WORKING_HOURS');
     }
 
     // 2. Service Check
@@ -93,15 +120,35 @@ export async function createBookingInternal(db, params) {
     const srvSnap = await transaction.get(srvRef);
     if (!srvSnap.exists) throw new Error('SERVICE_NOT_FOUND');
     const srvData = srvSnap.data() || {};
-    if (srvData.isActive === false) throw new Error('SERVICE_INACTIVE');
+    if (srvData.isActive !== true || srvData.isBookable !== true) {
+      throw new Error('SERVICE_INACTIVE');
+    }
 
-    const price = typeof srvData.price === 'number' ? srvData.price : 0;
+    const price =
+      typeof srvData.price === 'number' && Number.isFinite(srvData.price)
+        ? srvData.price
+        : null;
+    if (price === null || price < 0) throw new Error('INVALID_SERVICE_PRICE');
+
     const discountPrice =
-      typeof srvData.discountPrice === 'number' && srvData.discountPrice > 0
+      typeof srvData.discountPrice === 'number' &&
+      Number.isFinite(srvData.discountPrice) &&
+      srvData.discountPrice > 0 &&
+      srvData.discountPrice < price
         ? srvData.discountPrice
         : null;
     const effectivePrice = discountPrice !== null ? discountPrice : price;
-    const durationMinutes = srvData.durationMinutes || 30;
+
+    const rawDuration =
+      typeof srvData.durationMinutes === 'number'
+        ? srvData.durationMinutes
+        : typeof srvData.duration === 'string'
+          ? Number.parseInt(srvData.duration.match(/\d+/)?.[0] || '', 10)
+          : Number.NaN;
+    const durationMinutes = Math.round(rawDuration);
+    if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+      throw new Error('INVALID_SERVICE_DURATION');
+    }
 
     const calculatedEndAt = new Date(
       requestedStartAt.getTime() + durationMinutes * 60 * 1000
@@ -118,10 +165,20 @@ export async function createBookingInternal(db, params) {
     const staffData = staffSnap.data() || {};
     if (staffData.isActive === false) throw new Error('STAFF_INACTIVE');
 
-    // Shift Check (UTC)
+    // Business and shift checks (integration helper uses UTC fixtures).
     const candStartMin =
       requestedStartAt.getUTCHours() * 60 + requestedStartAt.getUTCMinutes();
     const candEndMin = candStartMin + durationMinutes;
+
+    const businessOpenMin = parseTimeStringToMinutes(businessOpen);
+    const businessCloseMin = parseTimeStringToMinutes(businessClose);
+    if (
+      businessCloseMin <= businessOpenMin ||
+      candStartMin < businessOpenMin ||
+      candEndMin > businessCloseMin
+    ) {
+      throw new Error('OUTSIDE_BUSINESS_HOURS');
+    }
 
     if (staffData.shiftStart) {
       const sStartMin = parseTimeStringToMinutes(staffData.shiftStart);

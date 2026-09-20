@@ -77,7 +77,8 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    final startDateTime = _parseStartDateTime(draft.date!, draft.timeSlot!);
+    final startDateTime =
+        draft.resolvedStartAt ?? _parseStartDateTime(draft.date!, draft.timeSlot!);
     if (startDateTime == null) {
       _showMessage(
         'The selected appointment time is invalid. Please choose it again.',

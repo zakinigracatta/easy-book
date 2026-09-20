@@ -18,15 +18,22 @@ class DailyHours {
       return DailyHours(
         dayName: day,
         openTime: '09:00 AM',
-        closeTime: '10:00 PM',
-        isClosed: false,
+        closeTime: '09:00 AM',
+        isClosed: true,
       );
     }
 
+    final rawOpen = json['open'] ?? json['openTime'] ?? json['open_time'];
+    final rawClose = json['close'] ?? json['closeTime'] ?? json['close_time'];
+    final hasHours = rawOpen is String &&
+        rawOpen.trim().isNotEmpty &&
+        rawClose is String &&
+        rawClose.trim().isNotEmpty;
     final isClosed =
-        json['is_closed'] as bool? ?? json['isClosed'] as bool? ?? false;
-    final open = json['open'] as String? ?? '09:00 AM';
-    final close = json['close'] as String? ?? '10:00 PM';
+        (json['is_closed'] as bool? ?? json['isClosed'] as bool? ?? false) ||
+            !hasHours;
+    final open = hasHours ? rawOpen.trim() : '09:00 AM';
+    final close = hasHours ? rawClose.trim() : '09:00 AM';
 
     return DailyHours(
       dayName: day,
@@ -82,7 +89,7 @@ class WorkingHoursModel {
     ];
 
     if (json == null || json.isEmpty) {
-      return WorkingHoursModel.defaultSchedule();
+      return WorkingHoursModel.closedSchedule();
     }
 
     final map = <String, DailyHours>{};
@@ -95,13 +102,36 @@ class WorkingHoursModel {
         map[day] = DailyHours(
           dayName: day,
           openTime: '09:00 AM',
-          closeTime: '10:00 PM',
-          isClosed: false,
+          closeTime: '09:00 AM',
+          isClosed: true,
         );
       }
     }
 
     return WorkingHoursModel(schedule: map);
+  }
+
+  factory WorkingHoursModel.closedSchedule() {
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    return WorkingHoursModel(
+      schedule: {
+        for (final day in days)
+          day: DailyHours(
+            dayName: day,
+            openTime: '09:00 AM',
+            closeTime: '09:00 AM',
+            isClosed: true,
+          ),
+      },
+    );
   }
 
   factory WorkingHoursModel.defaultSchedule() {

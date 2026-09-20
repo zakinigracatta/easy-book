@@ -27,8 +27,7 @@ class _BusinessRegisterScreenState
   final _locationController = TextEditingController();
 
   String _selectedCategory = 'Barber';
-  final String _businessImageUrl =
-      'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80';
+  final String _businessImageUrl = '';
   bool _isLoading = false;
 
   static const List<String> _categories = [
@@ -180,25 +179,16 @@ class _BusinessRegisterScreenState
                             color: AppColors.accent,
                             width: 2,
                           ),
-                          image: DecorationImage(
-                            image: NetworkImage(_businessImageUrl),
-                            fit: BoxFit.cover,
-                          ),
+                          color: AppColors.accent.withValues(alpha: 0.08),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.storefront_rounded,
+                          size: 46,
+                          color: AppColors.accent,
                         ),
                       ),
-                      const Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: CircleAvatar(
-                          backgroundColor: AppColors.accent,
-                          radius: 16,
-                          child: Icon(
-                            Icons.camera_alt_rounded,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+
                     ],
                   ),
                 ),

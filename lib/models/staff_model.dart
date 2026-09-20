@@ -26,7 +26,7 @@ class StaffModel {
     required this.avatarUrl,
     required this.rating,
     this.reviewCount = 0,
-    this.experienceYears = 5,
+    this.experienceYears = 0,
     this.serviceIds = const [],
     this.isActive = true,
     this.shiftStart,
@@ -75,12 +75,12 @@ class StaffModel {
           'Specialist',
       avatarUrl:
           json['avatar_url'] as String? ?? json['avatarUrl'] as String? ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount:
           json['review_count'] as int? ?? json['reviewCount'] as int? ?? 0,
       experienceYears: json['experience_years'] as int? ??
           json['experienceYears'] as int? ??
-          5,
+          0,
       serviceIds: parseStringList(json['service_ids'] ?? json['serviceIds']),
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
       shiftStart:

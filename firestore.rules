@@ -307,12 +307,10 @@ service cloud.firestore {
       }
     }
 
-    // Slot locks are internal booking-coordination records. Authenticated
-    // clients may read them for real-time availability; all writes remain
-    // server-only through trusted backend code.
+    // Slot locks are internal booking-coordination records. Availability is
+    // exposed only through the sanitized getAvailabilityBlocks callable.
     match /booking_slots/{slotId} {
-      allow read: if isAuthenticated();
-      allow create, update, delete: if false;
+      allow read, create, update, delete: if false;
     }
 
     // Bookings Collection (Untrusted Client Direct Writes Denied; Cloud Functions Admin SDK Execution Canonical)

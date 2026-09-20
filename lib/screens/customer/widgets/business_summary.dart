@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/utils/business_clock.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/business_model.dart';
 import '../../../theme/app_colors.dart';
@@ -16,7 +17,9 @@ class BusinessSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusInfo = business.workingHours.getStatus();
+    final statusInfo = business.workingHours.getStatus(
+      now: BusinessClock.now(business.timeZone),
+    );
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final secondaryColor = isDark
         ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -88,40 +91,44 @@ class BusinessSummary extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.gold.withValues(alpha: 0.3),
+            if (business.reviewCount > 0) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.gold,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      business.rating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.gold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.star_rounded,
-                    color: AppColors.gold,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    business.rating.toStringAsFixed(1),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.gold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
+              const SizedBox(width: 10),
+            ],
             Text(
-              context.tr(
-                '{count} reviews',
-                params: {'count': business.reviewCount},
-              ),
+              business.reviewCount > 0
+                  ? context.tr(
+                      '{count} reviews',
+                      params: {'count': business.reviewCount},
+                    )
+                  : context.tr('No reviews yet'),
               style: TextStyle(
                 color: secondaryColor,
                 fontSize: 13,

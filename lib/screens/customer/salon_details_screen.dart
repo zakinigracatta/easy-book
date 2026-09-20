@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -53,7 +54,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
     final effectiveId =
         (widget.businessId != null && widget.businessId!.isNotEmpty)
             ? widget.businessId!
-            : (extraId != null && extraId.isNotEmpty ? extraId : 'b1');
+            : (extraId != null && extraId.isNotEmpty ? extraId : '');
 
     final businessState = ref.watch(businessDetailProvider(effectiveId));
 
@@ -121,14 +122,39 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              BusinessSummary(
-                                business: business,
-                                distanceText: context.tr('1.8 km away'),
-                              ),
+                              BusinessSummary(business: business),
                               const SizedBox(height: 20),
                               Divider(color: _dividerColor, height: 1),
                               const SizedBox(height: 16),
-                              BusinessQuickActions(business: business),
+                              BusinessQuickActions(
+                                business: business,
+                                onDirectionsTap: () => context.push(
+                                  '/location',
+                                  extra: business.id,
+                                ),
+                                onShareTap: () async {
+                                  final details = [
+                                    business.name,
+                                    if (business.address.trim().isNotEmpty)
+                                      business.address.trim(),
+                                    if (business.phone?.trim().isNotEmpty == true)
+                                      business.phone!.trim(),
+                                    if (business.website?.trim().isNotEmpty == true)
+                                      business.website!.trim(),
+                                  ].join('\n');
+                                  await Clipboard.setData(
+                                    ClipboardData(text: details),
+                                  );
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        context.tr('Business details copied'),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                               const SizedBox(height: 20),
                               ValueListenableBuilder<int>(
                                 valueListenable: _selectedTabIndex,
@@ -187,8 +213,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               businessName: business.name,
                               serviceId: selectedService.id,
                               serviceName: selectedService.name,
-                              servicePrice: selectedService.discountPrice ??
-                                  selectedService.price,
+                              servicePrice: selectedService.effectivePrice,
                               serviceDuration: selectedService.duration,
                               serviceDurationMinutes:
                                   selectedService.durationMinutes,
@@ -243,6 +268,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
           data: (services) => ServiceCategorySection(
             services: services,
             selectedServiceIds: _selectedServiceIds,
+            onServiceDetails: (service) =>
+                context.push('/service-details', extra: service),
             onServiceSelect: (service) {
               setState(() {
                 if (_selectedServiceIds.contains(service.id)) {
@@ -262,7 +289,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   businessName: business.name,
                   serviceId: service.id,
                   serviceName: service.name,
-                  servicePrice: service.discountPrice ?? service.price,
+                  servicePrice: service.effectivePrice,
                   serviceDuration: service.duration,
                   serviceDurationMinutes: service.durationMinutes,
                   selectedServices: [service],
@@ -333,7 +360,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                     final staff = staffList[index];
                     return SpecialistCard(
                       staff: staff,
-                      onTap: () => context.push('/staff-profile'),
+                      onTap: () =>
+                          context.push('/staff-profile', extra: staff),
                     );
                   },
                 );
