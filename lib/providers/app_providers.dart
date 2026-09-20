@@ -180,7 +180,7 @@ class BookingDraft {
     if (selectedServices.isNotEmpty) {
       return selectedServices.fold(
         0.0,
-        (total, service) => total + (service.discountPrice ?? service.price),
+        (total, service) => total + service.effectivePrice,
       );
     }
     return servicePrice ?? 0.0;
