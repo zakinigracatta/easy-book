@@ -9,6 +9,7 @@ import '../../widgets/business/owner_booking_card.dart';
 import '../../widgets/business/owner_empty_state.dart';
 import '../../providers/owner_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/business_clock.dart';
 
 class BookingCalendarScreen extends ConsumerStatefulWidget {
   const BookingCalendarScreen({super.key});
@@ -20,10 +21,17 @@ class BookingCalendarScreen extends ConsumerStatefulWidget {
 
 class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
   DateTime _selectedDate = DateTime.now();
+  bool _hasSelectedDate = false;
 
   @override
   Widget build(BuildContext context) {
     final bookingsAsync = ref.watch(ownerBookingsProvider);
+    final timeZone =
+        ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
+    final businessToday = BusinessClock.calendarToday(timeZone);
+    final effectiveSelectedDate = _hasSelectedDate
+        ? _selectedDate
+        : businessToday;
 
     return PopScope(
       canPop: context.canPop(),
@@ -53,7 +61,8 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
             IconButton(
               icon: const Icon(Icons.add_rounded),
               tooltip: 'Add Booking for Date',
-              onPressed: () => context.push('/quick-walk-in'),
+              onPressed: () =>
+                  context.push('/quick-walk-in', extra: effectiveSelectedDate),
             ),
           ],
         ),
@@ -64,11 +73,15 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(8),
               child: CalendarDatePicker(
-                initialDate: _selectedDate,
-                firstDate: DateTime.now().subtract(const Duration(days: 90)),
-                lastDate: DateTime.now().add(const Duration(days: 180)),
+                initialDate: effectiveSelectedDate,
+                firstDate:
+                    businessToday.subtract(const Duration(days: 90)),
+                lastDate: businessToday.add(const Duration(days: 180)),
                 onDateChanged: (d) {
-                  setState(() => _selectedDate = d);
+                  setState(() {
+                    _selectedDate = d;
+                    _hasSelectedDate = true;
+                  });
                 },
               ),
             ),
@@ -80,7 +93,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    context.tr('Bookings for {date}', params: {'date': DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}),
+                    context.tr('Bookings for {date}', params: {'date': DateFormat('EEE, MMM d, yyyy').format(effectiveSelectedDate)}),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -88,7 +101,8 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                     ),
                   ),
                   TextButton.icon(
-                    onPressed: () => context.push('/quick-walk-in'),
+                    onPressed: () =>
+                  context.push('/quick-walk-in', extra: effectiveSelectedDate),
                     icon: const Icon(Icons.add_rounded, size: 16),
                     label: Text(context.tr('New Booking'),
                         style: const TextStyle(
@@ -115,7 +129,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                       icon: Icons.event_available_rounded,
                       title: 'No Bookings on this Date',
                       description:
-                          'Schedule is clear for ${DateFormat('MMM d').format(_selectedDate)}.',
+                          'Schedule is clear for ${DateFormat('MMM d').format(effectiveSelectedDate)}.',
                       actionLabel: 'Create Booking',
                       onActionTap: () => context.push('/quick-walk-in'),
                     );
