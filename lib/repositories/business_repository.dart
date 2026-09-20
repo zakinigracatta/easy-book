@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/business_model.dart';
+import '../models/gallery_image_model.dart';
 import '../models/review_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
@@ -98,7 +99,32 @@ class BusinessRepositoryImpl implements BusinessRepository {
     data['id'] = doc.id;
     final business = BusinessModel.fromJson(data);
 
-    return business.isActive && business.isVerified ? business : null;
+    if (!business.isActive || !business.isVerified) return null;
+
+    final gallerySnapshot = await _firestore
+        .collection('businesses')
+        .doc(normalizedId)
+        .collection('gallery')
+        .get();
+    final galleryImages = gallerySnapshot.docs
+        .map((galleryDoc) {
+          final galleryData =
+              Map<String, dynamic>.from(galleryDoc.data());
+          galleryData['id'] = galleryDoc.id;
+          return GalleryImageModel.fromJson(galleryData);
+        })
+        .where((image) => image.imageUrl.trim().isNotEmpty)
+        .toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+    final galleryUrls = <String>{
+      ...business.galleryUrls
+          .map((url) => url.trim())
+          .where((url) => url.isNotEmpty),
+      ...galleryImages.map((image) => image.imageUrl.trim()),
+    }.toList(growable: false);
+
+    return business.copyWith(galleryUrls: galleryUrls);
   }
 
   @override
