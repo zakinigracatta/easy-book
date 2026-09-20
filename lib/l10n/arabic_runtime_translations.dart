@@ -22,6 +22,7 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Walk-in': 'حجز مباشر',
   'Finance': 'المالية',
   'Add Service': 'إضافة خدمة',
+  'Service Image': 'صورة الخدمة',
   'Add Employee': 'إضافة موظف',
   'No Bookings Today': 'لا توجد حجوزات اليوم',
   "You're all clear for now. New bookings will appear here.":
