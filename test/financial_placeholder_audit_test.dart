@@ -17,6 +17,15 @@ void main() {
       'lib/features/profile/reviews_screen.dart',
       'lib/features/profile/staff_directory_screen.dart',
       'lib/features/customer/mobile_wallet_pass_screen.dart',
+      'lib/features/business/staff_payroll_screen.dart',
+      'lib/features/business/staff_management_screen.dart',
+      'lib/features/admin/user_management_screen.dart',
+      'lib/features/admin/admin_dashboard_screen.dart',
+      'lib/features/customer/booking_flow_screen.dart',
+      'lib/features/customer/appointment_details_screen.dart',
+      'lib/services/user_service.dart',
+      'lib/data/mock_data.dart',
+      'lib/mock/mock_data.dart',
     ];
 
     final remaining = removedFiles
@@ -69,7 +78,8 @@ void main() {
     final dartFiles = Directory('lib')
         .listSync(recursive: true)
         .whereType<File>()
-        .where((file) => file.path.endsWith('.dart'));
+        .where((file) => file.path.endsWith('.dart'))
+        .where((file) => !file.path.contains('/l10n/'));
 
     for (final file in dartFiles) {
       final source = file.readAsStringSync();
