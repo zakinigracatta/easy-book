@@ -218,6 +218,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               serviceDurationMinutes:
                                   selectedService.durationMinutes,
                               selectedServices: [selectedService],
+                              resetStaffSelection: true,
+                              resetAppointmentSelection: true,
                             );
                           } else {
                             ref.read(bookingDraftProvider.notifier).state =
@@ -227,6 +229,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               selectedServices: const [],
                               serviceId: '',
                               serviceName: '',
+                              resetStaffSelection: true,
+                              resetAppointmentSelection: true,
                             );
                           }
 
@@ -293,6 +297,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   serviceDuration: service.duration,
                   serviceDurationMinutes: service.durationMinutes,
                   selectedServices: [service],
+                  resetStaffSelection: true,
+                  resetAppointmentSelection: true,
                 );
               } else {
                 ref.read(bookingDraftProvider.notifier).state =
@@ -302,6 +308,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   selectedServices: const [],
                   serviceId: '',
                   serviceName: '',
+                  resetStaffSelection: true,
+                  resetAppointmentSelection: true,
                 );
               }
             },
