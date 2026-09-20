@@ -14,7 +14,9 @@ import '../../l10n/app_localizations.dart';
 import '../../core/utils/business_clock.dart';
 
 class QuickWalkInBookingScreen extends ConsumerStatefulWidget {
-  const QuickWalkInBookingScreen({super.key});
+  const QuickWalkInBookingScreen({super.key, this.initialDate});
+
+  final DateTime? initialDate;
 
   @override
   ConsumerState<QuickWalkInBookingScreen> createState() =>
@@ -31,9 +33,16 @@ class _QuickWalkInBookingScreenState
   bool _isNewCustomer = true;
   ServiceModel? _selectedService;
   StaffModel? _selectedStaff;
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
   TimeOfDay _selectedTime = _toQuarterHour(TimeOfDay.now());
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialDate ?? DateTime.now();
+    _selectedDate = DateTime(initial.year, initial.month, initial.day);
+  }
 
   @override
   Widget build(BuildContext context) {
