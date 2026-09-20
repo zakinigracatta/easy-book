@@ -87,15 +87,20 @@ class OwnerBusinessNotifier extends StateNotifier<AsyncValue<BusinessModel>> {
   }
 
   Future<void> updateBusiness(BusinessModel updated) async {
-    state = AsyncValue.data(updated);
     await _repo.updateOwnerBusiness(updated);
+    state = AsyncValue.data(updated);
   }
 
-  Future<void> toggleAcceptingBookings(bool accepts) async {
+  Future<bool> toggleAcceptingBookings(bool accepts) async {
     final current = state.value;
-    if (current != null) {
-      final updated = current.copyWith(acceptingBookings: accepts);
+    if (current == null) return false;
+
+    final updated = current.copyWith(acceptingBookings: accepts);
+    try {
       await updateBusiness(updated);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }
