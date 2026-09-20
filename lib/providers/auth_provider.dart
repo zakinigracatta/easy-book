@@ -140,25 +140,6 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     );
   }
 
-  void updateWalletBalance(double amount) {
-    final current = state;
-    if (current == null) return;
-
-    state = UserModel(
-      id: current.id,
-      email: current.email,
-      fullName: current.fullName,
-      phone: current.phone,
-      avatarUrl: current.avatarUrl,
-      role: current.role,
-      walletBalance: current.walletBalance + amount,
-      favoriteBusinessIds: current.favoriteBusinessIds,
-      businessName: current.businessName,
-      category: current.category,
-      location: current.location,
-      businessImageUrl: current.businessImageUrl,
-    );
-  }
 
   @override
   void dispose() {
