@@ -3,6 +3,15 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('customer search is debounced before repository refresh', () {
+    final source =
+        File('lib/screens/customer/search_screen.dart').readAsStringSync();
+
+    expect(source, contains('Timer? _searchDebounce;'));
+    expect(source, contains('Duration(milliseconds: 300)'));
+    expect(source, contains('_searchDebounce?.cancel();'));
+  });
+
   test('booking success copy matches pending backend state', () {
     final source =
         File('lib/screens/customer/booking_success_screen.dart').readAsStringSync();
