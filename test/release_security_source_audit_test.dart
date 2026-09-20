@@ -73,4 +73,34 @@ void main() {
       isTrue,
     );
   });
+  test('runtime booking and owner flows wait for authoritative state', () {
+    final serviceSource =
+        File('lib/screens/business/add_service_screen.dart').readAsStringSync();
+    final walkInSource = File(
+      'lib/screens/business/quick_walk_in_booking_screen.dart',
+    ).readAsStringSync();
+
+    expect(
+      serviceSource,
+      contains('await ref.read(currentBusinessIdProvider.future)'),
+    );
+    expect(
+      walkInSource,
+      contains('await ref.read(currentBusinessIdProvider.future)'),
+    );
+    expect(walkInSource, contains('_toQuarterHour'));
+    expect(walkInSource, contains('BusinessClock.wallClock'));
+  });
+
+  test('admin approvals include legacy camelCase publication fields', () {
+    final source =
+        File('lib/screens/admin/salon_approval_screen.dart').readAsStringSync();
+
+    expect(source, contains("data['is_verified'] == true"));
+    expect(source, contains("data['isVerified'] == true"));
+    expect(source, contains("data['is_active'] == true"));
+    expect(source, contains("data['isActive'] == true"));
+    expect(source, isNot(contains(".where('is_verified', isEqualTo: false)")));
+  });
+
 }
