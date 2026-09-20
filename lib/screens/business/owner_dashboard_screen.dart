@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
 import '../../models/profit_and_loss_summary.dart';
 import '../../providers/owner_finance_providers.dart';
+import '../../core/utils/business_clock.dart';
 import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_drawer.dart';
@@ -37,6 +38,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
     final bookingsAsync = ref.watch(ownerBookingsProvider);
     final notificationsAsync = ref.watch(ownerNotificationsProvider);
     final todayFinanceAsync = ref.watch(ownerTodayProfitAndLossProvider);
+    final businessTimeZone =
+        businessAsync.value?.timeZone ?? 'Asia/Dubai';
 
     final unreadNotificationsCount = notificationsAsync.maybeWhen(
       data: (notifications) =>
@@ -82,6 +85,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     context,
                     bookingsAsync,
                     todayFinanceAsync,
+                    businessTimeZone,
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -119,7 +123,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  _buildUpcomingBookingsList(context, ref, bookingsAsync),
+                  _buildUpcomingBookingsList(
+                    context,
+                    ref,
+                    bookingsAsync,
+                    businessTimeZone,
+                  ),
                 ],
               ),
             ),
@@ -353,15 +362,18 @@ class OwnerDashboardScreen extends ConsumerWidget {
     BuildContext context,
     AsyncValue<List<BookingModel>> bookingsAsync,
     AsyncValue<ProfitAndLossSummary> financeAsync,
+    String timeZone,
   ) {
-    final now = DateTime.now();
+    final now = BusinessClock.now(timeZone);
 
     return bookingsAsync.when(
       data: (bookings) {
         final todayBookings = bookings.where((booking) {
-          return booking.startDateTime.year == now.year &&
-              booking.startDateTime.month == now.month &&
-              booking.startDateTime.day == now.day;
+          final localStart =
+              BusinessClock.inTimeZone(booking.startDateTime, timeZone);
+          return localStart.year == now.year &&
+              localStart.month == now.month &&
+              localStart.day == now.day;
         }).toList();
         final pendingCount =
             bookings.where((booking) => booking.status == BookingStatus.pending).length;
@@ -537,19 +549,26 @@ class OwnerDashboardScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     AsyncValue<List<BookingModel>> bookingsAsync,
+    String timeZone,
   ) {
     return bookingsAsync.when(
       data: (bookings) {
+        final now = BusinessClock.now(timeZone);
         final upcoming = bookings
             .where(
               (booking) =>
+                  booking.startDateTime.isAfter(now) &&
                   booking.status != BookingStatus.cancelled &&
-                  booking.status != BookingStatus.completed,
+                  booking.status != BookingStatus.completed &&
+                  booking.status != BookingStatus.noShow,
             )
-            .take(3)
-            .toList();
+            .toList()
+          ..sort(
+            (a, b) => a.startDateTime.compareTo(b.startDateTime),
+          );
+        final nextBookings = upcoming.take(3).toList();
 
-        if (upcoming.isEmpty) {
+        if (nextBookings.isEmpty) {
           return OwnerEmptyStateWidget(
             icon: Icons.event_available_rounded,
             title: 'No Bookings Today',
@@ -561,7 +580,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
         }
 
         return Column(
-          children: upcoming.map((booking) {
+          children: nextBookings.map((booking) {
             return OwnerBookingCard(
               booking: booking,
               onStatusChanged: (newStatus) async {
