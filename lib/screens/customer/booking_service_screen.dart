@@ -37,14 +37,18 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
 
     try {
       final selected = services.firstWhere((s) => s.id == _selectedServiceId);
+      final currentDraft = ref.read(bookingDraftProvider);
+      final serviceChanged = currentDraft.serviceId != selected.id;
       ref.read(bookingDraftProvider.notifier).state =
-          ref.read(bookingDraftProvider).copyWith(
+          currentDraft.copyWith(
         serviceId: selected.id,
         serviceName: selected.name,
         servicePrice: selected.effectivePrice,
         serviceDuration: selected.duration,
         serviceDurationMinutes: selected.durationMinutes,
         selectedServices: [selected],
+        clearStaffSelection: serviceChanged,
+        clearSchedule: serviceChanged,
       );
       context.push('/booking-specialist');
     } catch (_) {
