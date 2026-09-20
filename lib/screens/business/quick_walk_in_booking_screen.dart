@@ -11,6 +11,7 @@ import '../../models/booking_model.dart';
 import '../../models/service_model.dart';
 import '../../models/staff_model.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/business_clock.dart';
 
 class QuickWalkInBookingScreen extends ConsumerStatefulWidget {
   const QuickWalkInBookingScreen({super.key});
@@ -31,7 +32,7 @@ class _QuickWalkInBookingScreenState
   ServiceModel? _selectedService;
   StaffModel? _selectedStaff;
   DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
+  TimeOfDay _selectedTime = _toQuarterHour(TimeOfDay.now());
   bool _isLoading = false;
 
   @override
@@ -41,9 +42,6 @@ class _QuickWalkInBookingScreenState
     final businessAsync = ref.watch(ownerBusinessProvider);
 
     final bizName = businessAsync.value?.name ?? 'Business';
-    final bizId = businessAsync.value?.id ??
-        ref.read(currentBusinessIdProvider).value ??
-        '';
 
     return PopScope(
       canPop: context.canPop(),
@@ -381,7 +379,7 @@ class _QuickWalkInBookingScreenState
                       CustomButton(
                         text: 'Create Walk-in Booking',
                         isLoading: _isLoading,
-                        onPressed: () => _submitWalkIn(bizId, bizName),
+                        onPressed: _isLoading ? null : () => _submitWalkIn(bizName),
                       ),
                     ],
                   ),
@@ -395,11 +393,15 @@ class _QuickWalkInBookingScreenState
   }
 
   Future<void> _pickDate() async {
+    final timeZone =
+        ref.read(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
+    final today = BusinessClock.calendarToday(timeZone);
+    final initialDate = _selectedDate.isBefore(today) ? today : _selectedDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
+      initialDate: initialDate,
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 90)),
       builder: (ctx, child) => Theme(
         data: ThemeData.dark().copyWith(
           colorScheme: ColorScheme.dark(
@@ -432,11 +434,28 @@ class _QuickWalkInBookingScreenState
       ),
     );
     if (picked != null) {
-      setState(() => _selectedTime = picked);
+      final normalized = _toQuarterHour(picked);
+      setState(() => _selectedTime = normalized);
+      if (normalized.minute != picked.minute && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.tr('Walk-in times use 15-minute intervals.'),
+            ),
+          ),
+        );
+      }
     }
   }
 
-  Future<void> _submitWalkIn(String bizId, String bizName) async {
+  static TimeOfDay _toQuarterHour(TimeOfDay value) {
+    return TimeOfDay(
+      hour: value.hour,
+      minute: (value.minute ~/ 15) * 15,
+    );
+  }
+
+  Future<void> _submitWalkIn(String bizName) async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedService == null || _selectedStaff == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -448,16 +467,42 @@ class _QuickWalkInBookingScreenState
       return;
     }
 
+    if (_selectedTime.minute % 15 != 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('Please choose a time at :00, :15, :30 or :45.'),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      final startDt = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
+      final bizId = await ref.read(currentBusinessIdProvider.future);
+      if (bizId.isEmpty) {
+        throw StateError('No business is linked to this owner account.');
+      }
+
+      final business = ref.read(ownerBusinessProvider).value;
+      final timeZone = business?.timeZone ?? 'Asia/Dubai';
+      final startDt = BusinessClock.wallClock(
+        DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
+        timeZone,
       );
+      final nowAtBusiness = BusinessClock.now(timeZone);
+      if (startDt.isBefore(nowAtBusiness.subtract(const Duration(minutes: 15)))) {
+        throw StateError('Walk-in booking time is too far in the past.');
+      }
 
       final endDt =
           startDt.add(Duration(minutes: _selectedService!.durationMinutes));
