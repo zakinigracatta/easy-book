@@ -242,4 +242,8 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Please choose a time at :00, :15, :30 or :45.': 'Выберите время на :00, :15, :30 или :45.',
   'Unable to update booking availability. Please try again.': 'Не удалось обновить доступность для бронирований. Попробуйте снова.',
   'Walk-in times use 15-minute intervals.': 'Для записи без предварительной записи используются интервалы по 15 минут.',
+  'Closing time must be after opening time for every working day.': 'В каждый рабочий день время закрытия должно быть позже времени открытия.',
+  'Please correct shift and break times before saving.': 'Исправьте время смены и перерыва перед сохранением.',
+  'Enter a discount percentage between 1 and 100.': 'Введите процент скидки от 1 до 100.',
+  'Unable to publish offer. Please try again.': 'Не удалось опубликовать предложение. Попробуйте снова.',
 };
