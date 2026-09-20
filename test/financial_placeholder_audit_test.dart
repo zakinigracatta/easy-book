@@ -24,8 +24,12 @@ void main() {
       'lib/features/customer/booking_flow_screen.dart',
       'lib/features/customer/appointment_details_screen.dart',
       'lib/services/user_service.dart',
+      'lib/services/salon_service.dart',
       'lib/data/mock_data.dart',
       'lib/mock/mock_data.dart',
+      'lib/models/salon_model.dart',
+      'lib/models/employee_model.dart',
+      'lib/models/appointment_model.dart',
     ];
 
     final remaining = removedFiles
