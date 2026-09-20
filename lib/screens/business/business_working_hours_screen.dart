@@ -226,6 +226,20 @@ class _BusinessWorkingHoursScreenState
   }
 
   Future<void> _save(BusinessModel business) async {
+    if (!_workingHoursAreValid()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'Closing time must be after opening time for every working day.',
+            ),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final updated = business.copyWith(
@@ -251,6 +265,18 @@ class _BusinessWorkingHoursScreenState
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  bool _workingHoursAreValid() {
+    for (final hours in _hoursMap.values) {
+      if (hours.isClosed) continue;
+      final open = _parseTime(hours.openTime);
+      final close = _parseTime(hours.closeTime);
+      final openMinutes = open.hour * 60 + open.minute;
+      final closeMinutes = close.hour * 60 + close.minute;
+      if (closeMinutes <= openMinutes) return false;
+    }
+    return true;
   }
 
   TimeOfDay _parseTime(String raw) {
