@@ -231,4 +231,6 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'No Upcoming Bookings': 'لا توجد حجوزات قادمة',
   'Future customer bookings will appear here.': 'ستظهر حجوزات العملاء القادمة هنا.',
   'Unable to update booking availability. Please try again.': 'تعذر تحديث حالة توفر الحجز. حاول مرة أخرى.',
+  'Please select a time in 15-minute increments.': 'يرجى اختيار وقت بفواصل 15 دقيقة.',
+  'Business details are still loading. Please try again.': 'تفاصيل النشاط ما زالت قيد التحميل. حاول مرة أخرى.',
 };
