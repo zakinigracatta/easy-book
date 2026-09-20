@@ -8,6 +8,7 @@ import '../models/service_model.dart';
 import '../models/staff_model.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
+import '../services/navigation_service.dart';
 
 // Auth Screens
 import '../screens/auth/forgot_password_screen.dart';
@@ -251,13 +252,21 @@ final appRouter = GoRouter(
       currentUserModel = container.read(authProvider);
     } catch (_) {}
 
-    return evaluateRouteGuard(
+    final redirectTarget = evaluateRouteGuard(
       location: state.matchedLocation,
       isWeb: kIsWeb,
       hasFirebaseUser: user != null,
       isEmailVerified: user?.emailVerified ?? true,
       userModel: currentUserModel,
     );
+
+    if (user == null &&
+        redirectTarget == '/login' &&
+        customerProtectedRoutes.contains(state.matchedLocation)) {
+      NavigationService().setPendingRoute(state.matchedLocation);
+    }
+
+    return redirectTarget;
   },
   routes: [
     // =====================================================================
