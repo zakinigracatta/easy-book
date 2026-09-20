@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/business_clock.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/business_bottom_nav.dart';
@@ -20,10 +21,19 @@ class BookingCalendarScreen extends ConsumerStatefulWidget {
 
 class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
   DateTime _selectedDate = DateTime.now();
+  bool _hasUserSelectedDate = false;
 
   @override
   Widget build(BuildContext context) {
     final bookingsAsync = ref.watch(ownerBookingsProvider);
+    final businessAsync = ref.watch(ownerBusinessProvider);
+    final timeZone = businessAsync.maybeWhen(
+      data: (business) => business.timeZone,
+      orElse: () => 'Asia/Dubai',
+    );
+    final businessToday = BusinessClock.calendarToday(timeZone);
+    final effectiveSelectedDate =
+        _hasUserSelectedDate ? effectiveSelectedDate : businessToday;
 
     return PopScope(
       canPop: context.canPop(),
@@ -64,11 +74,14 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               margin: const EdgeInsets.all(16),
               padding: const EdgeInsets.all(8),
               child: CalendarDatePicker(
-                initialDate: _selectedDate,
+                initialDate: effectiveSelectedDate,
                 firstDate: DateTime.now().subtract(const Duration(days: 90)),
                 lastDate: DateTime.now().add(const Duration(days: 180)),
                 onDateChanged: (d) {
-                  setState(() => _selectedDate = d);
+                  setState(() {
+                  _selectedDate = d;
+                  _hasUserSelectedDate = true;
+                });
                 },
               ),
             ),
@@ -80,7 +93,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    context.tr('Bookings for {date}', params: {'date': DateFormat('EEE, MMM d, yyyy').format(_selectedDate)}),
+                    context.tr('Bookings for {date}', params: {'date': DateFormat('EEE, MMM d, yyyy').format(effectiveSelectedDate)}),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -105,9 +118,11 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               child: bookingsAsync.when(
                 data: (allBookings) {
                   final dateBookings = allBookings.where((b) {
-                    return b.startDateTime.year == _selectedDate.year &&
-                        b.startDateTime.month == _selectedDate.month &&
-                        b.startDateTime.day == _selectedDate.day;
+                    final localStart =
+                        BusinessClock.inTimeZone(b.startDateTime, timeZone);
+                    return localStart.year == effectiveSelectedDate.year &&
+                        localStart.month == effectiveSelectedDate.month &&
+                        localStart.day == effectiveSelectedDate.day;
                   }).toList();
 
                   if (dateBookings.isEmpty) {
@@ -115,7 +130,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                       icon: Icons.event_available_rounded,
                       title: 'No Bookings on this Date',
                       description:
-                          'Schedule is clear for ${DateFormat('MMM d').format(_selectedDate)}.',
+                          'Schedule is clear for ${DateFormat('MMM d').format(effectiveSelectedDate)}.',
                       actionLabel: 'Create Booking',
                       onActionTap: () => context.push('/quick-walk-in'),
                     );
