@@ -1,0 +1,44 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  test('booking success copy matches pending backend state', () {
+    final source =
+        File('lib/screens/customer/booking_success_screen.dart').readAsStringSync();
+
+    expect(source, contains("context.tr('Booking Submitted!')"));
+    expect(source, contains('pending confirmation'));
+    expect(source, isNot(contains("context.tr('Booking Confirmed!')")));
+  });
+
+  test('owner dashboard upcoming list is future-only and timezone-aware', () {
+    final source =
+        File('lib/screens/business/owner_dashboard_screen.dart').readAsStringSync();
+
+    expect(source, contains('BusinessClock.now(timeZone)'));
+    expect(source, contains('BusinessClock.inTimeZone(booking.startDateTime, timeZone)'));
+    expect(source, contains('localStart.isAfter(now)'));
+    expect(source, contains('booking.status != BookingStatus.noShow'));
+    expect(source, contains('sort((a, b) => a.startDateTime.compareTo(b.startDateTime))'));
+  });
+
+  test('owner calendar groups bookings by business timezone', () {
+    final source =
+        File('lib/screens/business/booking_calendar_screen.dart').readAsStringSync();
+
+    expect(source, contains('BusinessClock.calendarToday(timeZone)'));
+    expect(source, contains('BusinessClock.inTimeZone(b.startDateTime, timeZone)'));
+    expect(source, contains('firstDate: businessToday.subtract'));
+    expect(source, contains('lastDate: businessToday.add'));
+  });
+
+  test('admin shell retains responsive compact navigation', () {
+    final source =
+        File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
+
+    expect(source, contains('MediaQuery.sizeOf(context).width >= 1050'));
+    expect(source, contains('_showCompactMenu'));
+    expect(source, contains("context.go(item.route)"));
+  });
+}
