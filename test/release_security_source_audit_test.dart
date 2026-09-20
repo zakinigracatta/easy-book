@@ -148,4 +148,53 @@ void main() {
     expect(source, contains("redirectTarget == '/login'"));
   });
 
+  test('owner profile updates avoid protected business fields', () {
+    final source =
+        File('lib/repositories/owner_repository.dart').readAsStringSync();
+
+    expect(source, contains("doc(business.id).update({"));
+    expect(
+      source,
+      isNot(contains(".set(business.toJson(), SetOptions(merge: true))")),
+    );
+  });
+
+  test('customer business details include real gallery subcollection uploads', () {
+    final source =
+        File('lib/repositories/business_repository.dart').readAsStringSync();
+
+    expect(source, contains(".collection('gallery')"));
+    expect(source, contains('GalleryImageModel.fromJson'));
+    expect(source, contains('business.copyWith(galleryUrls: galleryUrls)'));
+  });
+
+  test('owner dashboard only shows future bookings as upcoming', () {
+    final source = File(
+      'lib/screens/business/owner_dashboard_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('booking.startDateTime.isAfter(now)'));
+    expect(
+      source,
+      contains('a.startDateTime.compareTo(b.startDateTime)'),
+    );
+    expect(source, contains('BusinessClock.inTimeZone'));
+  });
+
+  test('owner calendar passes selected date into walk-in booking', () {
+    final calendarSource = File(
+      'lib/screens/business/booking_calendar_screen.dart',
+    ).readAsStringSync();
+    final routerSource = File('lib/routes/app_router.dart').readAsStringSync();
+
+    expect(
+      calendarSource,
+      contains("context.push('/quick-walk-in', extra: effectiveSelectedDate)"),
+    );
+    expect(
+      routerSource,
+      contains('QuickWalkInBookingScreen(initialDate: state.extra as DateTime?)'),
+    );
+  });
+
 }
