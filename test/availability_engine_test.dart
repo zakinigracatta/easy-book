@@ -14,7 +14,7 @@ void main() {
   late StaffModel testStaff;
 
   setUp(() {
-    engine = BookingAvailabilityEngine();
+    engine = const BookingAvailabilityEngine();
     testBusiness = BusinessModel(
       id: 'biz_1',
       name: 'Test Barber Lounge',
@@ -263,6 +263,8 @@ void main() {
         DateTime(2026, 8, 17, 9, 0),
         'Asia/Dubai',
       ).millisecondsSinceEpoch;
+      const bucketMs = BookingAvailabilityEngine.defaultStepMinutes * 60 * 1000;
+      final occupiedNextBucket = occupiedStart + bucketMs;
 
       final slots = await engine.computeAvailableSlots(
         business: testBusiness,
@@ -271,7 +273,7 @@ void main() {
         date: DateTime(2026, 8, 17),
         nowOverride: DateTime(2026, 8, 1, 9, 0),
         occupiedSlotsByStaff: {
-          testStaff.id: {occupiedStart},
+          testStaff.id: {occupiedStart, occupiedNextBucket},
         },
       );
 
