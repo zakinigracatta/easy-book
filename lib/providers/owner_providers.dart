@@ -12,6 +12,7 @@ import '../models/customer_profile_model.dart';
 import '../models/owner_notification_model.dart';
 import '../models/employee_time_off_model.dart';
 import '../repositories/owner_repository.dart';
+import '../core/utils/business_clock.dart';
 
 final ownerRepositoryProvider = Provider<OwnerRepository>((ref) {
   return OwnerRepositoryImpl();
@@ -172,25 +173,31 @@ final filteredOwnerBookingsProvider = Provider<List<BookingModel>>((ref) {
   final bookingsAsync = ref.watch(ownerBookingsProvider);
   final filter = ref.watch(ownerBookingFilterProvider);
   final query = ref.watch(ownerBookingSearchQueryProvider).toLowerCase();
+  final timeZone =
+      ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
 
   return bookingsAsync.maybeWhen(
     data: (list) {
-      final now = DateTime.now();
+      final now = BusinessClock.now(timeZone);
       var result = list;
 
       if (filter == 'Today') {
         result = result.where((b) {
-          return b.startDateTime.year == now.year &&
-              b.startDateTime.month == now.month &&
-              b.startDateTime.day == now.day;
+          final localStart =
+              BusinessClock.inTimeZone(b.startDateTime, timeZone);
+          return localStart.year == now.year &&
+              localStart.month == now.month &&
+              localStart.day == now.day;
         }).toList();
       } else if (filter == 'Upcoming') {
         result = result
             .where((b) =>
                 b.startDateTime.isAfter(now) &&
                 b.status != BookingStatus.cancelled &&
-                b.status != BookingStatus.completed)
-            .toList();
+                b.status != BookingStatus.completed &&
+                b.status != BookingStatus.noShow)
+            .toList()
+          ..sort((a, b) => a.startDateTime.compareTo(b.startDateTime));
       } else if (filter == 'Pending') {
         result =
             result.where((b) => b.status == BookingStatus.pending).toList();
