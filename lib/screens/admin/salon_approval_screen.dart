@@ -11,10 +11,8 @@ class SalonApprovalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pendingQuery = FirebaseFirestore.instance
-        .collection('businesses')
-        .where('is_verified', isEqualTo: false)
-        .where('is_active', isEqualTo: true);
+    final businessesQuery =
+        FirebaseFirestore.instance.collection('businesses');
 
     return PopScope(
       canPop: context.canPop(),
@@ -34,7 +32,7 @@ class SalonApprovalScreen extends StatelessWidget {
           title: Text(context.tr('Pending Salon Approvals')),
         ),
         body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: pendingQuery.snapshots(),
+          stream: businessesQuery.snapshots(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Center(
@@ -52,7 +50,14 @@ class SalonApprovalScreen extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final docs = snapshot.data!.docs;
+            final docs = snapshot.data!.docs.where((doc) {
+              final data = doc.data();
+              final isVerified =
+                  data['is_verified'] == true || data['isVerified'] == true;
+              final isActive =
+                  data['is_active'] == true || data['isActive'] == true;
+              return !isVerified && isActive;
+            }).toList(growable: false);
             if (docs.isEmpty) {
               return Center(
                 child: Padding(
@@ -162,7 +167,9 @@ class SalonApprovalScreen extends StatelessWidget {
     try {
       await reference.update({
         'is_verified': true,
+        'isVerified': true,
         'is_active': true,
+        'isActive': true,
         'updated_at': FieldValue.serverTimestamp(),
       });
       if (!context.mounted) return;
@@ -206,6 +213,7 @@ class SalonApprovalScreen extends StatelessWidget {
     try {
       await reference.update({
         'is_active': false,
+        'isActive': false,
         'updated_at': FieldValue.serverTimestamp(),
       });
       if (!context.mounted) return;
