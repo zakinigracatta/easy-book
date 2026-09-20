@@ -138,4 +138,14 @@ void main() {
     expect(staffSource, contains('BookingDraft('));
   });
 
+  test('protected customer routes preserve their post-login destination', () {
+    final source = File('lib/routes/app_router.dart').readAsStringSync();
+
+    expect(
+      source,
+      contains('NavigationService().setPendingRoute(state.matchedLocation)'),
+    );
+    expect(source, contains("redirectTarget == '/login'"));
+  });
+
 }
