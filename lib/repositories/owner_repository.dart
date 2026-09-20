@@ -75,11 +75,33 @@ class OwnerRepositoryImpl implements OwnerRepository {
 
   @override
   Future<void> updateOwnerBusiness(BusinessModel business) async {
+    if (business.id.trim().isEmpty) {
+      throw DomainException('Business ID cannot be empty.');
+    }
+
     try {
-      await _firestore
-          .collection('businesses')
-          .doc(business.id)
-          .set(business.toJson(), SetOptions(merge: true));
+      // Only send fields that Firestore explicitly allows a business owner to
+      // change. Serializing the entire model can normalize legacy protected
+      // fields (owner/verification/activation/rating) and turn an innocent
+      // profile edit into a permission-denied write.
+      await _firestore.collection('businesses').doc(business.id).update({
+        'name': business.name,
+        'category': business.category,
+        'address': business.address,
+        'description': business.description,
+        'image_url': business.imageUrl,
+        'latitude': business.latitude,
+        'longitude': business.longitude,
+        'working_hours': business.workingHours.toJson(),
+        'amenities': business.amenities,
+        'phone': business.phone,
+        'website': business.website,
+        'gallery_urls': business.galleryUrls,
+        'business_status': business.businessStatus,
+        'accepting_bookings': business.acceptingBookings,
+        'timeZone': business.timeZone,
+        'updated_at': FieldValue.serverTimestamp(),
+      });
     } on FirebaseException catch (e) {
       throw DomainException(
           'Failed to update business profile: ${e.message ?? e.code}');
