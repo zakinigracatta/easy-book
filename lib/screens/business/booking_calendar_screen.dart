@@ -33,7 +33,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
     );
     final businessToday = BusinessClock.calendarToday(timeZone);
     final effectiveSelectedDate =
-        _hasUserSelectedDate ? effectiveSelectedDate : businessToday;
+        _hasUserSelectedDate ? _selectedDate : businessToday;
 
     return PopScope(
       canPop: context.canPop(),
@@ -75,13 +75,13 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               padding: const EdgeInsets.all(8),
               child: CalendarDatePicker(
                 initialDate: effectiveSelectedDate,
-                firstDate: DateTime.now().subtract(const Duration(days: 90)),
-                lastDate: DateTime.now().add(const Duration(days: 180)),
+                firstDate: businessToday.subtract(const Duration(days: 90)),
+                lastDate: businessToday.add(const Duration(days: 180)),
                 onDateChanged: (d) {
                   setState(() {
-                  _selectedDate = d;
-                  _hasUserSelectedDate = true;
-                });
+                    _selectedDate = d;
+                    _hasUserSelectedDate = true;
+                  });
                 },
               ),
             ),
