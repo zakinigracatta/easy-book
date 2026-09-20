@@ -45,7 +45,6 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
         serviceDuration: selected.duration,
         serviceDurationMinutes: selected.durationMinutes,
         selectedServices: [selected],
-        resetStaffSelection: true,
         resetAppointmentSelection: true,
       );
       context.push('/booking-specialist');
