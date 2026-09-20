@@ -231,6 +231,8 @@ class BookingDraft {
     DateTime? date,
     String? timeSlot,
     DateTime? resolvedStartAt,
+    bool resetStaffSelection = false,
+    bool resetAppointmentSelection = false,
   }) {
     return BookingDraft(
       businessId: businessId ?? this.businessId,
@@ -242,14 +244,23 @@ class BookingDraft {
       serviceDurationMinutes:
           serviceDurationMinutes ?? this.serviceDurationMinutes,
       selectedServices: selectedServices ?? this.selectedServices,
-      staffId: staffId ?? this.staffId,
-      staffName: staffName ?? this.staffName,
-      anySpecialist: anySpecialist ?? this.anySpecialist,
-      resolvedStaffId: resolvedStaffId ?? this.resolvedStaffId,
-      resolvedStaffName: resolvedStaffName ?? this.resolvedStaffName,
-      date: date ?? this.date,
-      timeSlot: timeSlot ?? this.timeSlot,
-      resolvedStartAt: resolvedStartAt ?? this.resolvedStartAt,
+      staffId: resetStaffSelection ? null : (staffId ?? this.staffId),
+      staffName: resetStaffSelection ? null : (staffName ?? this.staffName),
+      anySpecialist: resetStaffSelection
+          ? false
+          : (anySpecialist ?? this.anySpecialist),
+      resolvedStaffId: resetStaffSelection || resetAppointmentSelection
+          ? null
+          : (resolvedStaffId ?? this.resolvedStaffId),
+      resolvedStaffName: resetStaffSelection || resetAppointmentSelection
+          ? null
+          : (resolvedStaffName ?? this.resolvedStaffName),
+      date: date ?? (resetAppointmentSelection ? null : this.date),
+      timeSlot:
+          resetAppointmentSelection ? null : (timeSlot ?? this.timeSlot),
+      resolvedStartAt: resetAppointmentSelection
+          ? null
+          : (resolvedStartAt ?? this.resolvedStartAt),
     );
   }
 }
