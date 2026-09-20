@@ -218,7 +218,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               serviceDurationMinutes:
                                   selectedService.durationMinutes,
                               selectedServices: [selectedService],
-                              resetStaffSelection: true,
+                              resetStaffSelection:
+                                  currentDraft.businessId != business.id,
                               resetAppointmentSelection: true,
                             );
                           } else {
@@ -229,7 +230,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               selectedServices: const [],
                               serviceId: '',
                               serviceName: '',
-                              resetStaffSelection: true,
+                              resetStaffSelection:
+                                  currentDraft.businessId != business.id,
                               resetAppointmentSelection: true,
                             );
                           }
@@ -297,7 +299,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   serviceDuration: service.duration,
                   serviceDurationMinutes: service.durationMinutes,
                   selectedServices: [service],
-                  resetStaffSelection: true,
+                  resetStaffSelection:
+                      currentDraft.businessId != business.id,
                   resetAppointmentSelection: true,
                 );
               } else {
@@ -308,7 +311,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   selectedServices: const [],
                   serviceId: '',
                   serviceName: '',
-                  resetStaffSelection: true,
+                  resetStaffSelection:
+                      currentDraft.businessId != business.id,
                   resetAppointmentSelection: true,
                 );
               }
