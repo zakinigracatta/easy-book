@@ -31,6 +31,7 @@ class BookingModel {
   final String? notes;
   final String? ownerNotes;
   final String? slotLockId;
+  final String? clientRequestId;
   final bool anySpecialist;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -56,6 +57,7 @@ class BookingModel {
     this.notes,
     this.ownerNotes,
     this.slotLockId,
+    this.clientRequestId,
     this.anySpecialist = false,
     this.createdAt,
     this.updatedAt,
@@ -136,6 +138,8 @@ class BookingModel {
           json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
       slotLockId:
           json['slotLockId'] as String? ?? json['slot_lock_id'] as String?,
+      clientRequestId: json['clientRequestId'] as String? ??
+          json['client_request_id'] as String?,
       anySpecialist: json['anySpecialist'] is bool
           ? json['anySpecialist'] == true
           : json['any_specialist'] == true,
@@ -168,6 +172,7 @@ class BookingModel {
       'bookingSource': bookingSource,
       if (notes != null) 'notes': notes,
       'slotLockId': computedSlotLockId,
+      if (clientRequestId != null) 'clientRequestId': clientRequestId,
       'anySpecialist': anySpecialist,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
@@ -196,6 +201,7 @@ class BookingModel {
       'bookingSource': bookingSource,
       if (notes != null) 'notes': notes,
       'slotLockId': computedSlotLockId,
+      if (clientRequestId != null) 'clientRequestId': clientRequestId,
       'anySpecialist': anySpecialist,
       'createdAt': createdAt != null
           ? Timestamp.fromDate(createdAt!)
@@ -227,6 +233,7 @@ class BookingModel {
     String? notes,
     String? ownerNotes,
     String? slotLockId,
+    String? clientRequestId,
     bool? anySpecialist,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -252,6 +259,7 @@ class BookingModel {
       notes: notes ?? this.notes,
       ownerNotes: ownerNotes ?? this.ownerNotes,
       slotLockId: slotLockId ?? this.slotLockId,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
       anySpecialist: anySpecialist ?? this.anySpecialist,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
