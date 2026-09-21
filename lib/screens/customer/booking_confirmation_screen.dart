@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../core/domain_exceptions.dart';
 import '../../core/utils/business_clock.dart';
@@ -25,6 +26,7 @@ class BookingConfirmationScreen extends ConsumerStatefulWidget {
 class _BookingConfirmationScreenState
     extends ConsumerState<BookingConfirmationScreen> {
   bool _isCreating = false;
+  final String _clientRequestId = const Uuid().v4();
 
   Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
       ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -130,9 +132,11 @@ class _BookingConfirmationScreenState
     final booking = BookingModel(
       id: '',
       customerId: refreshedUser.uid,
-      customerName: refreshedUser.displayName?.trim().isNotEmpty == true
-          ? refreshedUser.displayName!.trim()
-          : refreshedUser.email ?? 'Valued Customer',
+      customerName: profile?.fullName.trim().isNotEmpty == true
+          ? profile!.fullName.trim()
+          : refreshedUser.displayName?.trim().isNotEmpty == true
+              ? refreshedUser.displayName!.trim()
+              : refreshedUser.email ?? 'Valued Customer',
       customerPhone: profilePhone.isNotEmpty
           ? profilePhone
           : (firebasePhone.isNotEmpty ? firebasePhone : null),
@@ -148,6 +152,7 @@ class _BookingConfirmationScreenState
       endDateTime: endDateTime,
       status: BookingStatus.pending,
       anySpecialist: draft.anySpecialist,
+      clientRequestId: _clientRequestId,
       slotLockId: slotLockId,
     );
 
