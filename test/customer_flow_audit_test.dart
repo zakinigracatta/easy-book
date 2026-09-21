@@ -131,7 +131,8 @@ void main() {
     expect(screen, contains('bookingId: booking.id'));
 
     expect(screen, contains('booking.anySpecialist'));
-    expect(screen, contains('slot.availableStaffIds.first'));
+    expect(screen, contains('booking.anySpecialist ? null : booking.staffId'));
+    expect(screen, isNot(contains('slot.availableStaffIds.first')));
     expect(screen, contains('newStaffId: newStaffId'));
 
     expect(client, contains("'anySpecialist': anySpecialist"));
@@ -141,12 +142,14 @@ void main() {
       createFunction,
       contains('const anySpecialist = data.anySpecialist === true;'),
     );
-    expect(createFunction, contains('anySpecialist,'));
+    expect(createFunction, contains('resolveAnyAvailableStaff'));
+    expect(createFunction, contains('staffId: resolvedStaffId'));
 
     expect(
       rescheduleFunction,
       contains("bookingData.anySpecialist === true"),
     );
+    expect(rescheduleFunction, contains('resolveAnyAvailableStaff'));
     expect(
       rescheduleFunction,
       contains("STAFF_CHANGE_NOT_ALLOWED"),
@@ -155,6 +158,25 @@ void main() {
     expect(rescheduleFunction, contains('NO_RESCHEDULE_CHANGE'));
     expect(client, contains("msg.contains('NO_RESCHEDULE_CHANGE')"));
   });
+  test('customer booking retries use a stable idempotency key', () {
+    final confirmation = File(
+      'lib/screens/customer/booking_confirmation_screen.dart',
+    ).readAsStringSync();
+    final client = File(
+      'lib/services/booking_functions_service.dart',
+    ).readAsStringSync();
+    final backend = File(
+      'functions/src/booking/createBooking.ts',
+    ).readAsStringSync();
+
+    expect(confirmation, contains('final String _clientRequestId = const Uuid().v4();'));
+    expect(confirmation, contains('clientRequestId: _clientRequestId'));
+    expect(client, contains("'clientRequestId': clientRequestId.trim()"));
+    expect(backend, contains("createHash('sha256')"));
+    expect(backend, contains('IDEMPOTENCY_KEY_REUSED'));
+    expect(backend, contains('idempotentReplay: true'));
+  });
+
   test('customer minimum lead time is enforced on trusted backend', () {
     final createFunction =
         File('functions/src/booking/createBooking.ts').readAsStringSync();
