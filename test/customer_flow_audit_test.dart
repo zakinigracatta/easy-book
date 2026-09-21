@@ -67,9 +67,33 @@ void main() {
     expect(source, contains("BookingStatus.noShow => 'No Show'"));
     expect(
       source,
+      contains(
+        'BookingStatus.cancelled || BookingStatus.noShow => AppColors.error',
+      ),
+    );
+    expect(
+      source,
+      contains(
+        'BookingStatus.confirmed || BookingStatus.completed => AppColors.success',
+      ),
+    );
+    expect(
+      source,
       isNot(contains(
         'booking.status.name[0].toUpperCase() +',
       )),
+    );
+  });
+
+  test('customer bookings prioritize the nearest upcoming appointment', () {
+    final source =
+        File('lib/services/booking_service.dart').readAsStringSync();
+
+    expect(source, contains('final isUpcoming = booking.startDateTime.isAfter(now)'));
+    expect(source, contains('return isUpcoming ? 0 : 1;'));
+    expect(
+      source,
+      contains('a.startDateTime.compareTo(b.startDateTime)'),
     );
   });
 
