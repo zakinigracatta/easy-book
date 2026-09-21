@@ -249,18 +249,27 @@ class _AdminBusinessDetailsScreenState
                               items: services
                                   .take(6)
                                   .map(
-                                    (s) => {
-                                      'title':
-                                          (s['name'] ??
-                                                  s['service_name'] ??
-                                                  adminText(
-                                                    context,
-                                                    'Service',
-                                                    'خدمة',
-                                                  ))
-                                              .toString(),
-                                      'subtitle':
-                                          '${s['price'] ?? 0} ${(s['currency'] ?? 'AED').toString()} • ${s['duration'] ?? s['duration_minutes'] ?? 30} ${adminText(context, 'min', 'دقيقة')}',
+                                    (s) {
+                                      final durationMinutes =
+                                          s['duration_minutes'];
+                                      final durationText =
+                                          durationMinutes != null
+                                              ? '${durationMinutes.toString()} ${adminText(context, 'min', 'دقيقة')}'
+                                              : (s['duration'] ?? '30 min')
+                                                  .toString();
+                                      return {
+                                        'title':
+                                            (s['name'] ??
+                                                    s['service_name'] ??
+                                                    adminText(
+                                                      context,
+                                                      'Service',
+                                                      'خدمة',
+                                                    ))
+                                                .toString(),
+                                        'subtitle':
+                                            '${s['price'] ?? 0} ${(s['currency'] ?? 'AED').toString()} • $durationText',
+                                      };
                                     },
                                   )
                                   .toList(),
