@@ -163,7 +163,10 @@ class EmployeeManagementScreen extends ConsumerWidget {
                           icon: const Icon(Icons.calendar_month_rounded,
                               color: AppColors.primaryLight, size: 20),
                           tooltip: 'Working Hours & Schedule',
-                          onPressed: () => context.push('/employee-schedule'),
+                          onPressed: () => context.push(
+                            '/employee-schedule',
+                            extra: st.id,
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.edit_rounded,
