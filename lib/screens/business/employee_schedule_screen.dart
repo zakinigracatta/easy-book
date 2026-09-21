@@ -188,8 +188,11 @@ class _EmployeeScheduleScreenState
       }
 
       final weekday = i + 1;
-      final working = staff.workingDays == null ||
-          staff.workingDays!.contains(weekday);
+      final hasWeeklySchedule = staff.weeklySchedule.isNotEmpty;
+      final working = hasWeeklySchedule
+          ? false
+          : (staff.workingDays == null ||
+              staff.workingDays!.contains(weekday));
       _schedule[day] = StaffWorkingHours(
         dayName: day,
         openTime: staff.shiftStart ?? '09:00 AM',
