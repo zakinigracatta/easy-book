@@ -207,6 +207,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
 
                           final currentDraft = ref.read(bookingDraftProvider);
                           if (selectedService != null) {
+                            final serviceChanged =
+                                currentDraft.serviceId != selectedService.id;
                             ref.read(bookingDraftProvider.notifier).state =
                                 currentDraft.copyWith(
                               businessId: business.id,
@@ -218,6 +220,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               serviceDurationMinutes:
                                   selectedService.durationMinutes,
                               selectedServices: [selectedService],
+                              clearStaffSelection: serviceChanged,
+                              clearSchedule: serviceChanged,
                             );
                           } else {
                             ref.read(bookingDraftProvider.notifier).state =
@@ -283,6 +287,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
 
               final currentDraft = ref.read(bookingDraftProvider);
               if (_selectedServiceIds.isNotEmpty) {
+                final serviceChanged = currentDraft.serviceId != service.id;
                 ref.read(bookingDraftProvider.notifier).state =
                     currentDraft.copyWith(
                   businessId: business.id,
@@ -293,6 +298,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   serviceDuration: service.duration,
                   serviceDurationMinutes: service.durationMinutes,
                   selectedServices: [service],
+                  clearStaffSelection: serviceChanged,
+                  clearSchedule: serviceChanged,
                 );
               } else {
                 ref.read(bookingDraftProvider.notifier).state =
@@ -302,6 +309,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   selectedServices: const [],
                   serviceId: '',
                   serviceName: '',
+                  clearStaffSelection: true,
+                  clearSchedule: true,
                 );
               }
             },
