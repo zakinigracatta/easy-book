@@ -144,35 +144,35 @@ class BookingService {
     required BookingStatus to,
     required String actorRole,
   }) {
-    if (from == BookingStatus.cancelled || from == BookingStatus.completed) {
-      return false;
-    }
-
     if (actorRole == 'customer') {
-      if (to == BookingStatus.cancelled) return true;
-      return false;
+      return to == BookingStatus.cancelled &&
+          (from == BookingStatus.pending || from == BookingStatus.confirmed);
     }
 
-    if (actorRole == 'owner') {
-      if (from == BookingStatus.pending && to == BookingStatus.confirmed) {
-        return true;
-      }
-      if (from == BookingStatus.confirmed && to == BookingStatus.arrived) {
-        return true;
-      }
-      if (from == BookingStatus.arrived && to == BookingStatus.inProgress) {
-        return true;
-      }
-      if (from == BookingStatus.inProgress && to == BookingStatus.completed) {
-        return true;
-      }
-      if (to == BookingStatus.cancelled || to == BookingStatus.noShow) {
-        return true;
-      }
-      return false;
-    }
+    if (actorRole != 'owner') return false;
 
-    return false;
+    final allowed = <BookingStatus, Set<BookingStatus>>{
+      BookingStatus.pending: {
+        BookingStatus.confirmed,
+        BookingStatus.cancelled,
+      },
+      BookingStatus.confirmed: {
+        BookingStatus.arrived,
+        BookingStatus.inProgress,
+        BookingStatus.noShow,
+        BookingStatus.cancelled,
+      },
+      BookingStatus.arrived: {
+        BookingStatus.inProgress,
+        BookingStatus.cancelled,
+      },
+      BookingStatus.inProgress: {
+        BookingStatus.completed,
+        BookingStatus.cancelled,
+      },
+    };
+
+    return allowed[from]?.contains(to) ?? false;
   }
 
   /// Updates booking status via trusted Callable Cloud Function.
