@@ -151,10 +151,10 @@ function readServiceDurationMinutes(
   source: Record<string, unknown>
 ): number | null {
   const numeric =
-    typeof source.durationMinutes === 'number'
-      ? source.durationMinutes
-      : typeof source.duration_minutes === 'number'
-        ? source.duration_minutes
+    typeof source.duration_minutes === 'number'
+      ? source.duration_minutes
+      : typeof source.durationMinutes === 'number'
+        ? source.durationMinutes
         : null;
   if (numeric !== null) return Math.round(numeric);
 
@@ -184,11 +184,11 @@ export async function validateBookingRequirements(
     );
   }
   const bizData = bizSnap.data() || {};
-  const isActive = (bizData.isActive ?? bizData.is_active) === true;
+  const isActive = (bizData.is_active ?? bizData.isActive) === true;
   const acceptingBookings =
-    (bizData.acceptingBookings ?? bizData.accepting_bookings) === true;
+    (bizData.accepting_bookings ?? bizData.acceptingBookings) === true;
   const businessStatus =
-    bizData.businessStatus || bizData.business_status || 'closed';
+    bizData.business_status || bizData.businessStatus || 'closed';
 
   const requireAcceptingBookings =
     options.requireAcceptingBookings ?? true;
@@ -218,9 +218,9 @@ export async function validateBookingRequirements(
     );
   }
   const srvData = srvSnap.data() || {};
-  const serviceActive = (srvData.isActive ?? srvData.is_active) === true;
+  const serviceActive = (srvData.is_active ?? srvData.isActive) === true;
   const serviceBookable =
-    (srvData.isBookable ?? srvData.is_bookable) === true;
+    (srvData.is_bookable ?? srvData.isBookable) === true;
   if (!serviceActive || !serviceBookable) {
     throw new HttpsError(
       'failed-precondition',
@@ -240,10 +240,10 @@ export async function validateBookingRequirements(
   }
 
   const rawDiscount =
-    typeof srvData.discountPrice === 'number'
-      ? srvData.discountPrice
-      : typeof srvData.discount_price === 'number'
-        ? srvData.discount_price
+    typeof srvData.discount_price === 'number'
+      ? srvData.discount_price
+      : typeof srvData.discountPrice === 'number'
+        ? srvData.discountPrice
         : null;
   const discountPrice =
     rawDiscount !== null &&
@@ -284,17 +284,17 @@ export async function validateBookingRequirements(
     );
   }
   const staffData = staffSnap.data() || {};
-  if ((staffData.isActive ?? staffData.is_active) !== true) {
+  if ((staffData.is_active ?? staffData.isActive) !== true) {
     throw new HttpsError(
       'failed-precondition',
       'STAFF_INACTIVE: Staff member is currently inactive.'
     );
   }
 
-  const serviceIds: string[] = Array.isArray(staffData.serviceIds)
-    ? staffData.serviceIds.map(String)
-    : Array.isArray(staffData.service_ids)
-      ? staffData.service_ids.map(String)
+  const serviceIds: string[] = Array.isArray(staffData.service_ids)
+    ? staffData.service_ids.map(String)
+    : Array.isArray(staffData.serviceIds)
+      ? staffData.serviceIds.map(String)
       : [];
   if (serviceIds.length > 0 && !serviceIds.includes(serviceId)) {
     throw new HttpsError(
@@ -317,7 +317,7 @@ export async function validateBookingRequirements(
 
   // Business opening hours are authoritative and required for online booking.
   // Missing or partial schedules fail closed instead of inventing hours.
-  const businessHours = bizData.workingHours ?? bizData.working_hours;
+  const businessHours = bizData.working_hours ?? bizData.workingHours;
   if (!businessHours || typeof businessHours !== 'object') {
     throw new HttpsError(
       'failed-precondition',
@@ -334,15 +334,15 @@ export async function validateBookingRequirements(
       'OUTSIDE_BUSINESS_HOURS: Business is closed on the selected day.'
     );
   }
-  if ((dayConfig.isClosed ?? dayConfig.is_closed) === true) {
+  if ((dayConfig.is_closed ?? dayConfig.isClosed) === true) {
     throw new HttpsError(
       'failed-precondition',
       'OUTSIDE_BUSINESS_HOURS: Business is closed on the selected day.'
     );
   }
 
-  const openRaw = readString(dayConfig, 'openTime', 'open_time', 'open');
-  const closeRaw = readString(dayConfig, 'closeTime', 'close_time', 'close');
+  const openRaw = readString(dayConfig, 'open', 'open_time', 'openTime');
+  const closeRaw = readString(dayConfig, 'close', 'close_time', 'closeTime');
   if (!openRaw || !closeRaw) {
     throw new HttpsError(
       'failed-precondition',
@@ -362,7 +362,7 @@ export async function validateBookingRequirements(
   // Mirror the Flutter availability engine: a per-day weekly schedule takes
   // precedence over the legacy workingDays + global shift fields.
   let usedWeeklySchedule = false;
-  const weeklySchedule = staffData.weeklySchedule ?? staffData.weekly_schedule;
+  const weeklySchedule = staffData.weekly_schedule ?? staffData.weeklySchedule;
   if (weeklySchedule && typeof weeklySchedule === 'object') {
     const rawDaySchedule =
       weeklySchedule[localStart.dayName] ??
@@ -370,7 +370,7 @@ export async function validateBookingRequirements(
     if (rawDaySchedule && typeof rawDaySchedule === 'object') {
       usedWeeklySchedule = true;
       const daySchedule = rawDaySchedule as Record<string, unknown>;
-      if ((daySchedule.isWorking ?? daySchedule.is_working) === false) {
+      if ((daySchedule.is_working ?? daySchedule.isWorking) === false) {
         throw new HttpsError(
           'failed-precondition',
           'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
@@ -379,14 +379,14 @@ export async function validateBookingRequirements(
 
       const dayOpen = readString(
         daySchedule,
-        'openTime',
         'open_time',
+        'openTime',
         'open'
       );
       const dayClose = readString(
         daySchedule,
-        'closeTime',
         'close_time',
+        'closeTime',
         'close'
       );
       if (dayOpen && dayClose) {
@@ -402,10 +402,10 @@ export async function validateBookingRequirements(
 
       const breakStart = readString(
         daySchedule,
-        'breakStart',
-        'break_start'
+        'break_start',
+        'breakStart'
       );
-      const breakEnd = readString(daySchedule, 'breakEnd', 'break_end');
+      const breakEnd = readString(daySchedule, 'break_end', 'breakEnd');
       if (breakStart && breakEnd) {
         const breakStartMinute = parseTimeStringToMinutes(breakStart);
         const breakEndMinute = parseTimeStringToMinutes(breakEnd);
@@ -429,10 +429,10 @@ export async function validateBookingRequirements(
   }
 
   if (!usedWeeklySchedule) {
-    const workingDays: number[] | null = Array.isArray(staffData.workingDays)
-      ? staffData.workingDays.map(Number)
-      : Array.isArray(staffData.working_days)
-        ? staffData.working_days.map(Number)
+    const workingDays: number[] | null = Array.isArray(staffData.working_days)
+      ? staffData.working_days.map(Number)
+      : Array.isArray(staffData.workingDays)
+        ? staffData.workingDays.map(Number)
         : null;
     if (workingDays && !workingDays.includes(localStart.dayNumber)) {
       throw new HttpsError(
@@ -442,16 +442,16 @@ export async function validateBookingRequirements(
     }
 
     const shiftStartStr =
-      typeof staffData.shiftStart === 'string'
-        ? staffData.shiftStart
-        : typeof staffData.shift_start === 'string'
-          ? staffData.shift_start
+      typeof staffData.shift_start === 'string'
+        ? staffData.shift_start
+        : typeof staffData.shiftStart === 'string'
+          ? staffData.shiftStart
           : null;
     const shiftEndStr =
-      typeof staffData.shiftEnd === 'string'
-        ? staffData.shiftEnd
-        : typeof staffData.shift_end === 'string'
-          ? staffData.shift_end
+      typeof staffData.shift_end === 'string'
+        ? staffData.shift_end
+        : typeof staffData.shiftEnd === 'string'
+          ? staffData.shiftEnd
           : null;
 
     if (shiftStartStr && shiftEndStr) {
