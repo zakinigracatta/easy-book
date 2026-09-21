@@ -25,20 +25,19 @@ class DailyHours {
 
     final rawOpen = json['open'] ?? json['openTime'] ?? json['open_time'];
     final rawClose = json['close'] ?? json['closeTime'] ?? json['close_time'];
-    final hasHours = rawOpen is String &&
-        rawOpen.trim().isNotEmpty &&
-        rawClose is String &&
-        rawClose.trim().isNotEmpty;
+    final normalizedOpen =
+        rawOpen is String ? _formatTimeString(rawOpen.trim()) : null;
+    final normalizedClose =
+        rawClose is String ? _formatTimeString(rawClose.trim()) : null;
+    final hasHours = normalizedOpen != null && normalizedClose != null;
     final isClosed =
         (json['is_closed'] as bool? ?? json['isClosed'] as bool? ?? false) ||
             !hasHours;
-    final open = hasHours ? rawOpen.trim() : '09:00 AM';
-    final close = hasHours ? rawClose.trim() : '09:00 AM';
 
     return DailyHours(
       dayName: day,
-      openTime: _formatTimeString(open),
-      closeTime: _formatTimeString(close),
+      openTime: normalizedOpen ?? '09:00 AM',
+      closeTime: normalizedClose ?? '09:00 AM',
       isClosed: isClosed,
     );
   }
@@ -51,18 +50,34 @@ class DailyHours {
     };
   }
 
-  static String _formatTimeString(String raw) {
-    if (raw.toUpperCase().contains('AM') || raw.toUpperCase().contains('PM')) {
-      return raw;
+  static String? _formatTimeString(String raw) {
+    if (raw.isEmpty) return null;
+
+    final upper = raw.toUpperCase();
+    final isPm = upper.contains('PM');
+    final isAm = upper.contains('AM');
+    final numeric = upper.replaceAll(RegExp(r'[^\d:]'), '');
+    final parts = numeric.split(':');
+    if (parts.isEmpty || parts.first.isEmpty) return null;
+
+    var hour = int.tryParse(parts.first);
+    final minute =
+        parts.length > 1 ? int.tryParse(parts[1]) : 0;
+    if (hour == null ||
+        minute == null ||
+        minute < 0 ||
+        minute > 59 ||
+        hour < 0 ||
+        hour > 23 ||
+        ((isAm || isPm) && hour > 12)) {
+      return null;
     }
-    final parts = raw.split(':');
-    if (parts.length >= 2) {
-      final hour = int.tryParse(parts[0]) ?? 9;
-      final minute = int.tryParse(parts[1]) ?? 0;
-      final dt = DateTime(2026, 1, 1, hour, minute);
-      return DateFormat('hh:mm a').format(dt);
-    }
-    return raw;
+
+    if (isPm && hour < 12) hour += 12;
+    if (isAm && hour == 12) hour = 0;
+
+    final dt = DateTime(2026, 1, 1, hour, minute);
+    return DateFormat('hh:mm a').format(dt);
   }
 
   @override
