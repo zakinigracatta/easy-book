@@ -77,6 +77,13 @@ class _EmployeeScheduleScreenState
               );
             }
 
+            final routeStaffId = GoRouterState.of(context).extra;
+            if (_selectedStaffId == null &&
+                routeStaffId is String &&
+                staffList.any((staff) => staff.id == routeStaffId)) {
+              _selectedStaffId = routeStaffId;
+              _schedule.clear();
+            }
             final selected = _resolveSelectedStaff(staffList);
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
