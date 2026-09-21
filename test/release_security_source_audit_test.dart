@@ -33,7 +33,7 @@ void main() {
 
     expect(
       source,
-      contains('(staffData.isActive ?? staffData.is_active) !== true'),
+      contains('(staffData.is_active ?? staffData.isActive) !== true'),
     );
   });
 
