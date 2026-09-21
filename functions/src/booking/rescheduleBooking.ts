@@ -4,7 +4,10 @@ import {
   generateIntervalSlotLockIds,
   validateCanonical15MinAlignment,
 } from './bookingLocks';
-import { validateBookingRequirements } from './bookingValidation';
+import {
+  validateBookingRequirements,
+  validateMaximumAdvanceDate,
+} from './bookingValidation';
 
 export const rescheduleBooking = onCall(async (request) => {
   if (!request.auth) {
@@ -164,6 +167,9 @@ export const rescheduleBooking = onCall(async (request) => {
       targetStaffId,
       newStartAt
     );
+    if (actor === 'customer') {
+      validateMaximumAdvanceDate(newStartAt, context.timeZone);
+    }
 
     const oldLockObjects = generateIntervalSlotLockIds(
       businessId,
