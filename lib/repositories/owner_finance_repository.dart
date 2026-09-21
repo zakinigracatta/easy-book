@@ -5,6 +5,7 @@ import '../core/domain_exceptions.dart';
 import '../models/booking_model.dart';
 import '../models/expense_model.dart';
 import '../models/profit_and_loss_summary.dart';
+import '../core/utils/business_clock.dart';
 import '../services/owner_finance_calculator.dart';
 
 abstract class OwnerFinanceRepository {
@@ -31,7 +32,7 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
         _auth = auth ?? FirebaseAuth.instance,
         _calculator = calculator;
 
-  Future<void> _assertOwner(String businessId) async {
+  Future<Map<String, dynamic>> _assertOwner(String businessId) async {
     final user = _auth.currentUser;
     if (user == null || user.uid.isEmpty) {
       throw DomainException('You must be signed in to access finance data.');
@@ -48,6 +49,7 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
     if (ownerId != user.uid) {
       throw DomainException('Only the business owner can access finance data.');
     }
+    return data;
   }
 
   CollectionReference<Map<String, dynamic>> _expenses(String businessId) =>
@@ -202,11 +204,21 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
       throw DomainException('The report end date cannot be before the start date.');
     }
 
-    await _assertOwner(businessId);
-
-    final start = DateTime(from.year, from.month, from.day);
-    final endExclusive = DateTime(to.year, to.month, to.day)
+    final businessData = await _assertOwner(businessId);
+    final timeZone =
+        (businessData['timeZone'] ?? businessData['timezone'] ?? 'Asia/Dubai')
+            .toString();
+    final start = BusinessClock.wallClock(
+      DateTime(from.year, from.month, from.day),
+      timeZone,
+    );
+    final reportTo = BusinessClock.wallClock(
+      DateTime(to.year, to.month, to.day),
+      timeZone,
+    );
+    final nextDay = DateTime(to.year, to.month, to.day)
         .add(const Duration(days: 1));
+    final endExclusive = BusinessClock.wallClock(nextDay, timeZone);
 
     try {
       final bookingSnapshot = await _fetchBookingsForReport(
@@ -243,7 +255,7 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
         bookings: bookings,
         expenses: expenses,
         from: start,
-        to: to,
+        to: reportTo,
       );
     } on FirebaseException catch (e) {
       throw DomainException(
