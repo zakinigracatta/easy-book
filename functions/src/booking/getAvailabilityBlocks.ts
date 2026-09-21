@@ -100,9 +100,10 @@ function requestedRange(data: Record<string, unknown>): {
   return { start, end };
 }
 
-/// Returns only the minimum scheduling data required by the customer
-/// availability engine. Raw booking IDs and private leave metadata never leave
-/// the trusted backend.
+/// Returns only blended 15-minute unavailability buckets required by the
+/// customer scheduling engine. Booking IDs, leave reasons, and exact time-off
+/// boundaries never leave the trusted backend, so callers cannot distinguish a
+/// booking from leave or another private source of unavailability.
 export const getAvailabilityBlocks = onCall(async (request) => {
   const data = (request.data || {}) as Record<string, unknown>;
   const businessId = requiredBusinessId(data.businessId);
@@ -170,33 +171,32 @@ export const getAvailabilityBlocks = onCall(async (request) => {
 
   // Public availability accepts only active staff IDs that actually belong to
   // this business. This prevents callers from probing arbitrary employee IDs.
-  const activeStaffIds: string[] = [];
-  for (const staffId of staffIds) {
-    const staffSnap = await db
-      .collection('businesses')
-      .doc(businessId)
-      .collection('staff')
-      .doc(staffId)
-      .get();
-    if (!staffSnap.exists) continue;
-    const staff = staffSnap.data() || {};
-    if ((staff.is_active ?? staff.isActive) === true) {
-      activeStaffIds.push(staffId);
-    }
-  }
+  const staffRefs = staffIds.map((staffId) =>
+    db.collection('businesses').doc(businessId).collection('staff').doc(staffId)
+  );
+  const staffSnapshots = await db.getAll(...staffRefs);
+  const activeStaffIds = staffSnapshots
+    .filter((staffSnap) => {
+      if (!staffSnap.exists) return false;
+      const staff = staffSnap.data() || {};
+      return (staff.is_active ?? staff.isActive) === true;
+    })
+    .map((staffSnap) => staffSnap.id);
   const activeStaffIdSet = new Set(activeStaffIds);
 
+  const bucketMs = 15 * 60 * 1000;
+  const unavailableBucketKeys = new Set<string>();
+  const addUnavailableBucket = (staffId: string, startTimestamp: number) => {
+    unavailableBucketKeys.add(`${staffId}|${startTimestamp}`);
+  };
+
+  // Convert private leave intervals into the same opaque occupancy buckets used
+  // for bookings. The client learns only that a slot is unavailable.
   const timeOffSnapshot = await db
     .collection('businesses')
     .doc(businessId)
     .collection('timeOffs')
     .get();
-
-  const blocks: Array<{
-    employeeId: string;
-    startDate: string;
-    endDate: string;
-  }> = [];
 
   for (const doc of timeOffSnapshot.docs) {
     const item = doc.data();
@@ -209,29 +209,22 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     if (!employeeId || !startDate || !endDate) continue;
     if (!activeStaffIdSet.has(employeeId)) continue;
 
-    const effectiveEnd = new Date(
-      normalizeInclusiveTimeOffEndMs(endDate, timeZone)
-    );
+    const effectiveEndMs = normalizeInclusiveTimeOffEndMs(endDate, timeZone);
+    const overlapStart = Math.max(startDate.getTime(), range.start.getTime());
+    const overlapEnd = Math.min(effectiveEndMs, range.end.getTime());
+    if (overlapEnd <= overlapStart) continue;
 
-    if (effectiveEnd.getTime() < startDate.getTime()) continue;
-    if (
-      startDate.getTime() >= range.end.getTime() ||
-      effectiveEnd.getTime() <= range.start.getTime()
-    ) {
-      continue;
+    let bucketStart = Math.floor(overlapStart / bucketMs) * bucketMs;
+    for (; bucketStart < overlapEnd; bucketStart += bucketMs) {
+      if (bucketStart + bucketMs <= overlapStart) continue;
+      if (
+        bucketStart >= range.start.getTime() &&
+        bucketStart < range.end.getTime()
+      ) {
+        addUnavailableBucket(employeeId, bucketStart);
+      }
     }
-
-    blocks.push({
-      employeeId,
-      startDate: startDate.toISOString(),
-      endDate: effectiveEnd.toISOString(),
-    });
   }
-
-  const occupiedSlots: Array<{
-    staffId: string;
-    startTimestamp: number;
-  }> = [];
 
   if (activeStaffIds.length > 0) {
     for (const staffId of activeStaffIds) {
@@ -253,10 +246,18 @@ export const getAvailabilityBlocks = onCall(async (request) => {
         }
         const startTimestamp = Number(slotData.startTimestamp);
         if (!Number.isFinite(startTimestamp)) continue;
-        occupiedSlots.push({ staffId, startTimestamp });
+        addUnavailableBucket(staffId, startTimestamp);
       }
     }
   }
 
-  return { blocks, occupiedSlots };
+  const unavailableSlots = [...unavailableBucketKeys].map((key) => {
+    const separator = key.lastIndexOf('|');
+    return {
+      staffId: key.slice(0, separator),
+      startTimestamp: Number(key.slice(separator + 1)),
+    };
+  });
+
+  return { unavailableSlots };
 });
