@@ -274,6 +274,18 @@ void main() {
     expect(source, contains('? false'));
   });
 
+
+  test('email verification routes all privileged role variants correctly', () {
+    final source = File(
+      'lib/screens/auth/verify_email_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('profile?.isOwnerRole == true'));
+    expect(source, contains('profile?.isAdmin == true'));
+    expect(source, contains("context.go('/admin/dashboard')"));
+    expect(source, isNot(contains('if (role == UserRole.admin)')));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
