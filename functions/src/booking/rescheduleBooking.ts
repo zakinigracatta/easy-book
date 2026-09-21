@@ -70,13 +70,6 @@ export const rescheduleBooking = onCall(async (request) => {
     const customerId = bookingData.customerId;
     const currentStatus = bookingData.status;
 
-    if (currentStatus !== 'pending' && currentStatus !== 'confirmed') {
-      throw new HttpsError(
-        'failed-precondition',
-        `CANNOT_RESCHEDULE: Cannot reschedule a ${currentStatus} appointment.`
-      );
-    }
-
     let actor: 'customer' | 'owner' | '' = '';
     if (customerId && customerId === callerUid) {
       actor = 'customer';
@@ -94,6 +87,13 @@ export const rescheduleBooking = onCall(async (request) => {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: You are not authorized to reschedule this booking.'
+      );
+    }
+
+    if (currentStatus !== 'pending' && currentStatus !== 'confirmed') {
+      throw new HttpsError(
+        'failed-precondition',
+        `CANNOT_RESCHEDULE: Cannot reschedule a ${currentStatus} appointment.`
       );
     }
 
