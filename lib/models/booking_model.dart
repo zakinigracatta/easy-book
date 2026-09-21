@@ -136,7 +136,9 @@ class BookingModel {
           json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
       slotLockId:
           json['slotLockId'] as String? ?? json['slot_lock_id'] as String?,
-      anySpecialist: json['anySpecialist'] == true || json['any_specialist'] == true,
+      anySpecialist: json['anySpecialist'] is bool
+          ? json['anySpecialist'] == true
+          : json['any_specialist'] == true,
       createdAt:
           json['createdAt'] != null ? parseDate(json['createdAt']) : null,
       updatedAt:
