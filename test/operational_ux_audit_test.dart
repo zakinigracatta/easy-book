@@ -187,6 +187,43 @@ void main() {
     expect(source, contains("context.tr('Service disabled')"));
   });
 
+
+  test('customer booking horizon is enforced by trusted backend', () {
+    final validation = File(
+      'functions/src/booking/bookingValidation.ts',
+    ).readAsStringSync();
+    final create = File(
+      'functions/src/booking/createBooking.ts',
+    ).readAsStringSync();
+    final reschedule = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(validation, contains('validateMaximumAdvanceDate'));
+    expect(validation, contains('START_TIME_TOO_FAR'));
+    expect(create, contains('validateMaximumAdvanceDate(requestedStartAt'));
+    expect(reschedule, contains("if (actor === 'customer')"));
+    expect(reschedule, contains('validateMaximumAdvanceDate(newStartAt'));
+  });
+
+  test('owner schedule editor preserves explicit no-working-days state', () {
+    final source = File(
+      'lib/screens/business/employee_schedule_screen.dart',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains(
+        'final working = staff.workingDays == null ||\n'
+        '          staff.workingDays!.contains(weekday);',
+      ),
+    );
+    expect(
+      source,
+      isNot(contains('staff.workingDays!.isEmpty ||')),
+    );
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
