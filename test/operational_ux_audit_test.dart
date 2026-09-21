@@ -340,6 +340,17 @@ void main() {
     expect(repository, contains("'is_bookable': false"));
   });
 
+
+  test('admin login refreshes Firebase verification state before access', () {
+    final source = File(
+      'lib/screens/admin/admin_login_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('await firebaseUser.reload()'));
+    expect(source, contains('final refreshedUser = FirebaseAuth.instance.currentUser'));
+    expect(source, contains('!refreshedUser.emailVerified'));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
