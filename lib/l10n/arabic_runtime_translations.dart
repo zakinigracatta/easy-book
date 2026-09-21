@@ -237,4 +237,10 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'The selected business is no longer available.': 'النشاط التجاري المحدد لم يعد متاحًا.',
   'Unable to verify the appointment time. Please try again.': 'تعذر التحقق من موعد الحجز. حاول مرة أخرى.',
   'Unable to load business details. Please try again.': 'تعذر تحميل بيانات النشاط التجاري. حاول مرة أخرى.',
+  'Services this employee can perform': 'الخدمات التي يمكن لهذا الموظف تقديمها',
+  'Select specific services, or leave all unchecked to allow all active services.': 'اختر خدمات محددة، أو اتركها كلها بدون تحديد للسماح بجميع الخدمات النشطة.',
+  'Unable to load services. Please try again.': 'تعذر تحميل الخدمات. حاول مرة أخرى.',
+  'No active services are available yet.': 'لا توجد خدمات نشطة متاحة حتى الآن.',
+  'Service disabled': 'تم تعطيل الخدمة',
+  'Unable to update this service. Please try again.': 'تعذر تحديث هذه الخدمة. حاول مرة أخرى.',
 };
