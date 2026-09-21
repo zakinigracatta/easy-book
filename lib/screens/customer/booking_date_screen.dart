@@ -29,8 +29,17 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
   }
 
   void _onNext(DateTime selectedDate) {
-    ref.read(bookingDraftProvider.notifier).state =
-        ref.read(bookingDraftProvider).copyWith(date: selectedDate);
+    final draft = ref.read(bookingDraftProvider);
+    final previousDate = draft.date;
+    final dateChanged = previousDate == null ||
+        previousDate.year != selectedDate.year ||
+        previousDate.month != selectedDate.month ||
+        previousDate.day != selectedDate.day;
+
+    ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
+      date: selectedDate,
+      clearSchedule: dateChanged,
+    );
     context.push('/booking-time');
   }
 
