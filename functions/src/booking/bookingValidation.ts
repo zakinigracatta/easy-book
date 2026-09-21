@@ -111,6 +111,25 @@ function zonedParts(date: Date, timeZone: string): {
   };
 }
 
+export function validateMaximumAdvanceDate(
+  requestedAt: Date,
+  timeZone: string,
+  maxDays = 60
+): void {
+  const nowParts = zonedParts(new Date(), timeZone);
+  const requestedParts = zonedParts(requestedAt, timeZone);
+  const nowDay = Date.parse(`${nowParts.dateKey}T00:00:00Z`);
+  const requestedDay = Date.parse(`${requestedParts.dateKey}T00:00:00Z`);
+  const dayDiff = Math.round((requestedDay - nowDay) / (24 * 60 * 60 * 1000));
+
+  if (dayDiff > maxDays) {
+    throw new HttpsError(
+      'failed-precondition',
+      `START_TIME_TOO_FAR: Customer bookings can be made up to ${maxDays} days in advance.`
+    );
+  }
+}
+
 function validateWithinInterval(
   startMinute: number,
   endMinute: number,
