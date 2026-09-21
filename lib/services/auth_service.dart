@@ -255,14 +255,14 @@ class AuthService {
 
     // Query ownership first. A direct read of businesses/{uid} may be denied
     // for legacy owners whose business document uses a different document ID.
-    final modernMatch = await _businesses
-        .where('ownerId', isEqualTo: user.id)
+    final canonicalMatch = await _businesses
+        .where('owner_id', isEqualTo: user.id)
         .limit(1)
         .get();
-    if (modernMatch.docs.isNotEmpty) return;
+    if (canonicalMatch.docs.isNotEmpty) return;
 
     final legacyMatch = await _businesses
-        .where('owner_id', isEqualTo: user.id)
+        .where('ownerId', isEqualTo: user.id)
         .limit(1)
         .get();
     if (legacyMatch.docs.isNotEmpty) return;
