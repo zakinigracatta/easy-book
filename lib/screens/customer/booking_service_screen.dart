@@ -111,7 +111,11 @@ class _BookingServiceScreenState extends ConsumerState<BookingServiceScreen> {
                       );
                     }
 
-                    _selectedServiceId ??= services.first.id;
+                    final selectionIsValid = _selectedServiceId != null &&
+                        services.any((service) => service.id == _selectedServiceId);
+                    if (!selectionIsValid) {
+                      _selectedServiceId = services.first.id;
+                    }
 
                     return ListView.builder(
                       itemCount: services.length,
