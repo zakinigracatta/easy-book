@@ -205,6 +205,18 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                       final address = (data['address'] ?? '').toString();
                       final isVerified = data['is_verified'] == true ||
                           data['isVerified'] == true;
+                      final isActive = data['is_active'] == true ||
+                          data['isActive'] == true;
+                      final statusLabel = isVerified
+                          ? adminText(context, 'Approved', 'معتمد')
+                          : isActive
+                              ? adminText(context, 'Pending', 'قيد الاعتماد')
+                              : adminText(context, 'Rejected', 'مرفوض');
+                      final statusColor = isVerified
+                          ? AppColors.success
+                          : isActive
+                              ? AppColors.warning
+                              : AppColors.error;
                       final rating =
                           (data['rating'] as num?)?.toDouble() ?? 0.0;
 
@@ -246,29 +258,17 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                                           ),
                                           Chip(
                                             label: Text(
-                                              isVerified
-                                                  ? adminText(
-                                                      context,
-                                                      'Approved',
-                                                      'معتمد',
-                                                    )
-                                                  : adminText(
-                                                      context,
-                                                      'Pending',
-                                                      'غير معتمد',
-                                                    ),
+                                              statusLabel,
                                               style: TextStyle(
-                                                color: isVerified
-                                                    ? AppColors.success
-                                                    : AppColors.warning,
+                                                color: statusColor,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 11,
                                               ),
                                             ),
-                                            backgroundColor: (isVerified
-                                                    ? AppColors.success
-                                                    : AppColors.warning)
-                                                .withValues(alpha: 0.15),
+                                            backgroundColor:
+                                                statusColor.withValues(
+                                              alpha: 0.15,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -357,7 +357,9 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
     try {
       await reference.update({
         'is_verified': true,
+        'isVerified': true,
         'is_active': true,
+        'isActive': true,
         'updated_at': FieldValue.serverTimestamp(),
       });
       if (mounted) {

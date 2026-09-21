@@ -18,6 +18,13 @@ class ServiceDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final item = service;
+    final currentDraft = ref.watch(bookingDraftProvider);
+    final serviceBusinessId = item?.salonId.trim().isNotEmpty == true
+        ? item!.salonId.trim()
+        : (currentDraft.businessId ?? '');
+    final businessState = serviceBusinessId.isEmpty
+        ? null
+        : ref.watch(businessDetailProvider(serviceBusinessId));
 
     return PopScope(
       canPop: context.canPop(),
@@ -92,22 +99,41 @@ class ServiceDetailsScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     CustomButton(
                       text: context.tr('Proceed to Booking'),
-                      onPressed: !item.isActive || !item.isBookable
+                      onPressed: !item.isActive ||
+                              !item.isBookable ||
+                              businessState?.value == null
                           ? null
                           : () async {
+                              final business = businessState!.value!;
                               final draft = ref.read(bookingDraftProvider);
+                              final isSameBusiness =
+                                  draft.businessId == business.id;
+
                               ref.read(bookingDraftProvider.notifier).state =
-                                  draft.copyWith(
-                                businessId: draft.businessId?.isNotEmpty == true
-                                    ? draft.businessId
-                                    : item.salonId,
-                                serviceId: item.id,
-                                serviceName: item.name,
-                                servicePrice: item.effectivePrice,
-                                serviceDuration: item.duration,
-                                serviceDurationMinutes: item.durationMinutes,
-                                selectedServices: [item],
-                              );
+                                  isSameBusiness
+                                      ? draft.copyWith(
+                                          businessId: business.id,
+                                          businessName: business.name,
+                                          serviceId: item.id,
+                                          serviceName: item.name,
+                                          servicePrice: item.effectivePrice,
+                                          serviceDuration: item.duration,
+                                          serviceDurationMinutes:
+                                              item.durationMinutes,
+                                          selectedServices: [item],
+                                          resetAppointmentSelection: true,
+                                        )
+                                      : BookingDraft(
+                                          businessId: business.id,
+                                          businessName: business.name,
+                                          serviceId: item.id,
+                                          serviceName: item.name,
+                                          servicePrice: item.effectivePrice,
+                                          serviceDuration: item.duration,
+                                          serviceDurationMinutes:
+                                              item.durationMinutes,
+                                          selectedServices: [item],
+                                        );
 
                               final allowed = await requireLogin(
                                 context,

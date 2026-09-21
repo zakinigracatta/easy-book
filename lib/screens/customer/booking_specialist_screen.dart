@@ -39,7 +39,11 @@ class _BookingSpecialistScreenState
 
   void _onNext(List<StaffModel> eligibleStaff) {
     final draft = ref.read(bookingDraftProvider);
-    if (_anySpecialist) {
+    final selectedStaffIsEligible = _selectedStaffId != null &&
+        eligibleStaff.any((staff) => staff.id == _selectedStaffId);
+    final useAnySpecialist = _anySpecialist || !selectedStaffIsEligible;
+
+    if (useAnySpecialist) {
       if (eligibleStaff.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -54,6 +58,7 @@ class _BookingSpecialistScreenState
         anySpecialist: true,
         staffId: '',
         staffName: 'Any Available Specialist',
+        resetAppointmentSelection: true,
       );
     } else {
       if (_selectedStaffId == null || _selectedStaffId!.isEmpty) {
@@ -73,6 +78,7 @@ class _BookingSpecialistScreenState
         anySpecialist: false,
         staffId: staff.id,
         staffName: staff.name,
+        resetAppointmentSelection: true,
       );
     }
     context.push('/booking-date');
@@ -176,11 +182,18 @@ class _BookingSpecialistScreenState
                         ),
                       );
                     }
+                    final selectedStaffIsEligible = _selectedStaffId != null &&
+                        eligibleStaff.any(
+                          (staff) => staff.id == _selectedStaffId,
+                        );
+                    final effectiveAnySpecialist =
+                        _anySpecialist || !selectedStaffIsEligible;
+
                     return ListView(
                       children: [
                         SpecialistOptionCard(
                           isAnySpecialist: true,
-                          isSelected: _anySpecialist,
+                          isSelected: effectiveAnySpecialist,
                           onTap: () {
                             setState(() {
                               _anySpecialist = true;
@@ -190,8 +203,8 @@ class _BookingSpecialistScreenState
                         ),
                         const SizedBox(height: 12),
                         ...eligibleStaff.map((staff) {
-                          final isSelected =
-                              !_anySpecialist && _selectedStaffId == staff.id;
+                          final isSelected = !effectiveAnySpecialist &&
+                              _selectedStaffId == staff.id;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: SpecialistOptionCard(

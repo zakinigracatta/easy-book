@@ -198,6 +198,8 @@ class OwnerBookingCard extends StatelessWidget {
   }
 
   Widget _buildActionRow(BuildContext context) {
+    final canStartService = !DateTime.now().isBefore(booking.startDateTime);
+
     switch (booking.status) {
       case BookingStatus.pending:
         return Row(
@@ -245,8 +247,9 @@ class OwnerBookingCard extends StatelessWidget {
                 label: 'Start Service',
                 icon: Icons.play_circle_outline_rounded,
                 color: AppColors.info,
-                onPressed: () =>
-                    onStatusChanged?.call(BookingStatus.inProgress),
+                onPressed: canStartService
+                    ? () => onStatusChanged?.call(BookingStatus.inProgress)
+                    : null,
               ),
             ),
             const SizedBox(width: 8),
@@ -300,7 +303,7 @@ class OwnerBookingCard extends StatelessWidget {
     required String label,
     required IconData icon,
     required Color color,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
   }) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
@@ -352,31 +355,42 @@ class OwnerBookingCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.event_repeat_rounded,
-                  color: AppColors.primary),
-              title: Text(context.tr('Reschedule Booking'),
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-              onTap: () {
-                Navigator.pop(ctx);
-                onRescheduleTap?.call();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_off_rounded,
-                  color: AppColors.warning),
-              title: Text(context.tr('Mark No Show'),
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _confirmAction(
-                  context,
-                  title: 'Mark as No Show',
-                  message: 'Mark customer as No Show for this appointment?',
-                  onConfirm: () => onStatusChanged?.call(BookingStatus.noShow),
-                );
-              },
-            ),
+            if (onRescheduleTap != null)
+              ListTile(
+                leading: const Icon(Icons.event_repeat_rounded,
+                    color: AppColors.primary),
+                title: Text(
+                  context.tr('Reschedule Booking'),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  onRescheduleTap?.call();
+                },
+              ),
+            if (!DateTime.now().isBefore(booking.startDateTime))
+              ListTile(
+                leading: const Icon(Icons.person_off_rounded,
+                    color: AppColors.warning),
+                title: Text(
+                  context.tr('Mark No Show'),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmAction(
+                    context,
+                    title: 'Mark as No Show',
+                    message: 'Mark customer as No Show for this appointment?',
+                    onConfirm: () =>
+                        onStatusChanged?.call(BookingStatus.noShow),
+                  );
+                },
+              ),
             ListTile(
               leading:
                   const Icon(Icons.cancel_outlined, color: AppColors.error),

@@ -218,6 +218,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               serviceDurationMinutes:
                                   selectedService.durationMinutes,
                               selectedServices: [selectedService],
+                              resetStaffSelection:
+                                  currentDraft.businessId != business.id,
+                              resetAppointmentSelection: true,
                             );
                           } else {
                             ref.read(bookingDraftProvider.notifier).state =
@@ -227,6 +230,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               selectedServices: const [],
                               serviceId: '',
                               serviceName: '',
+                              resetStaffSelection:
+                                  currentDraft.businessId != business.id,
+                              resetAppointmentSelection: true,
                             );
                           }
 
@@ -293,6 +299,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   serviceDuration: service.duration,
                   serviceDurationMinutes: service.durationMinutes,
                   selectedServices: [service],
+                  resetStaffSelection:
+                      currentDraft.businessId != business.id,
+                  resetAppointmentSelection: true,
                 );
               } else {
                 ref.read(bookingDraftProvider.notifier).state =
@@ -302,6 +311,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   selectedServices: const [],
                   serviceId: '',
                   serviceName: '',
+                  resetStaffSelection:
+                      currentDraft.businessId != business.id,
+                  resetAppointmentSelection: true,
                 );
               }
             },

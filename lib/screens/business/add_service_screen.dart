@@ -318,7 +318,10 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
           ? double.tryParse(_discountController.text.trim())
           : null;
 
-      final bizId = ref.read(currentBusinessIdProvider).value ?? '';
+      final bizId = await ref.read(currentBusinessIdProvider.future);
+      if (bizId.isEmpty) {
+        throw StateError('No business is linked to this owner account.');
+      }
 
       final service = ServiceModel(
         id: _serviceId,

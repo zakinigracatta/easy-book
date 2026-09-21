@@ -313,6 +313,18 @@ class _EmployeeScheduleScreenState
   }
 
   Future<void> _save(StaffModel staff) async {
+    if (!_scheduleIsValid()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('Please correct shift and break times before saving.'),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
       final workingDays = <int>[];
@@ -359,6 +371,32 @@ class _EmployeeScheduleScreenState
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  bool _scheduleIsValid() {
+    int toMinutes(String raw) {
+      final time = _parseTime(raw);
+      return time.hour * 60 + time.minute;
+    }
+
+    for (final hours in _schedule.values) {
+      if (!hours.isWorking) continue;
+
+      final shiftStart = toMinutes(hours.openTime);
+      final shiftEnd = toMinutes(hours.closeTime);
+      if (shiftEnd <= shiftStart) return false;
+
+      final breakStartRaw = hours.breakStart;
+      final breakEndRaw = hours.breakEnd;
+      if (breakStartRaw == null && breakEndRaw == null) continue;
+      if (breakStartRaw == null || breakEndRaw == null) return false;
+
+      final breakStart = toMinutes(breakStartRaw);
+      final breakEnd = toMinutes(breakEndRaw);
+      if (breakEnd <= breakStart) return false;
+      if (breakStart < shiftStart || breakEnd > shiftEnd) return false;
+    }
+    return true;
   }
 
   TimeOfDay _parseTime(String raw) {

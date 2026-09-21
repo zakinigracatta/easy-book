@@ -225,4 +225,13 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Phone': 'الهاتف',
   'Phone number copied': 'تم نسخ رقم الهاتف',
   'Business details copied': 'تم نسخ تفاصيل النشاط',
+  'Please choose a time at :00, :15, :30 or :45.': 'يرجى اختيار وقت عند :00 أو :15 أو :30 أو :45.',
+  'Unable to update booking availability. Please try again.': 'تعذر تحديث حالة قبول الحجوزات. حاول مرة أخرى.',
+  'Walk-in times use 15-minute intervals.': 'أوقات الحجز المباشر تعمل بفواصل 15 دقيقة.',
+  'Closing time must be after opening time for every working day.': 'يجب أن يكون وقت الإغلاق بعد وقت الفتح في كل يوم عمل.',
+  'Please correct shift and break times before saving.': 'يرجى تصحيح أوقات المناوبة والاستراحة قبل الحفظ.',
+  'Enter a discount percentage between 1 and 100.': 'أدخل نسبة خصم بين 1 و100.',
+  'Unable to publish offer. Please try again.': 'تعذر نشر العرض. حاول مرة أخرى.',
+  'Booking Submitted!': 'تم إرسال طلب الحجز!',
+  'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.': 'تم إرسال طلب الحجز بنجاح وهو بانتظار التأكيد. يمكنك متابعة حالته من حجوزاتي.',
 };

@@ -30,7 +30,10 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
 
   void _onNext(DateTime selectedDate) {
     ref.read(bookingDraftProvider.notifier).state =
-        ref.read(bookingDraftProvider).copyWith(date: selectedDate);
+        ref.read(bookingDraftProvider).copyWith(
+              date: selectedDate,
+              resetAppointmentSelection: true,
+            );
     context.push('/booking-time');
   }
 

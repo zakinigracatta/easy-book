@@ -36,7 +36,7 @@ class BookingSuccessScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  context.tr('Booking Confirmed!'),
+                  context.tr('Booking Submitted!'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 26,
@@ -46,7 +46,7 @@ class BookingSuccessScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   context.tr(
-                    'Your appointment has been successfully scheduled. You can review all details in My Bookings.',
+                    'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.',
                   ),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
