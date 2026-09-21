@@ -34,28 +34,33 @@ service cloud.firestore {
         );
     }
 
+    function hasVerifiedPublicationState(data) {
+      return (
+        ('is_verified' in data) &&
+        data.is_verified == true
+      ) || (
+        !('is_verified' in data) &&
+        ('isVerified' in data) &&
+        data.isVerified == true
+      );
+    }
+
+    function hasActivePublicationState(data) {
+      return (
+        ('is_active' in data) &&
+        data.is_active == true
+      ) || (
+        !('is_active' in data) &&
+        ('isActive' in data) &&
+        data.isActive == true
+      );
+    }
+
     function isPublishedBusiness(businessId) {
+      let biz = get(/databases/$(database)/documents/businesses/$(businessId)).data;
       return exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-        (
-          (
-            ('is_verified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.is_verified == true
-          ) ||
-          (
-            ('isVerified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.isVerified == true
-          )
-        ) &&
-        (
-          (
-            ('is_active' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.is_active == true
-          ) ||
-          (
-            ('isActive' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.isActive == true
-          )
-        );
+        hasVerifiedPublicationState(biz) &&
+        hasActivePublicationState(biz);
     }
 
     function validExpenseCategory(category) {
@@ -223,14 +228,8 @@ service cloud.firestore {
       allow get: if isBusinessOwner(businessId)
                  || isAdminAccount()
                  || (
-                   (
-                     (('is_verified' in resource.data) && resource.data.is_verified == true)
-                     || (('isVerified' in resource.data) && resource.data.isVerified == true)
-                   )
-                   && (
-                     (('is_active' in resource.data) && resource.data.is_active == true)
-                     || (('isActive' in resource.data) && resource.data.isActive == true)
-                   )
+                   hasVerifiedPublicationState(resource.data)
+                   && hasActivePublicationState(resource.data)
                  );
 
       allow list: if isAdminAccount()
@@ -242,14 +241,8 @@ service cloud.firestore {
                     )
                   )
                   || (
-                    (
-                      (('is_verified' in resource.data) && resource.data.is_verified == true)
-                      || (('isVerified' in resource.data) && resource.data.isVerified == true)
-                    )
-                    && (
-                      (('is_active' in resource.data) && resource.data.is_active == true)
-                      || (('isActive' in resource.data) && resource.data.isActive == true)
-                    )
+                    hasVerifiedPublicationState(resource.data)
+                    && hasActivePublicationState(resource.data)
                   );
 
       allow create: if isOwnerAccount()
