@@ -25,6 +25,7 @@ class AvailabilityService {
     required BusinessModel business,
     required DateTime date,
     required List<String> staffIds,
+    String? excludeBookingId,
   }) async {
     final normalizedBusinessId = business.id.trim();
     final normalizedStaffIds = staffIds
@@ -60,6 +61,8 @@ class AvailabilityService {
       'staffIds': normalizedStaffIds,
       'startAt': start.toUtc().toIso8601String(),
       'endAt': end.toUtc().toIso8601String(),
+      if (excludeBookingId != null && excludeBookingId.trim().isNotEmpty)
+        'excludeBookingId': excludeBookingId.trim(),
     });
 
     if (response.data is! Map) {

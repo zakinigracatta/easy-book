@@ -104,6 +104,10 @@ export const getAvailabilityBlocks = onCall(async (request) => {
   const businessId = requiredBusinessId(data.businessId);
   const staffIds = requestedStaffIds(data.staffIds);
   const range = requestedRange(data);
+  const excludeBookingId =
+    typeof data.excludeBookingId === 'string'
+      ? data.excludeBookingId.trim().slice(0, 200)
+      : '';
   const db = admin.firestore();
 
   const businessSnap = await db.collection('businesses').doc(businessId).get();
@@ -133,6 +137,30 @@ export const getAvailabilityBlocks = onCall(async (request) => {
       'failed-precondition',
       'BUSINESS_NOT_PUBLISHED: Availability is not public for this business.'
     );
+  }
+
+  let approvedExcludedBookingId = '';
+  if (excludeBookingId) {
+    if (!request.auth) {
+      throw new HttpsError(
+        'unauthenticated',
+        'UNAUTHENTICATED: Authentication is required to exclude a booking.'
+      );
+    }
+
+    const bookingSnap = await db.collection('bookings').doc(excludeBookingId).get();
+    if (bookingSnap.exists) {
+      const booking = bookingSnap.data() || {};
+      const ownerId = business.ownerId || business.owner_id;
+      const ownsBooking = booking.customerId === request.auth.uid;
+      const ownsBusiness = ownerId === request.auth.uid;
+      if (
+        booking.businessId === businessId &&
+        (ownsBooking || ownsBusiness)
+      ) {
+        approvedExcludedBookingId = excludeBookingId;
+      }
+    }
   }
 
   // Public availability accepts only active staff IDs that actually belong to
@@ -206,7 +234,14 @@ export const getAvailabilityBlocks = onCall(async (request) => {
         .get();
 
       for (const doc of snapshot.docs) {
-        const startTimestamp = Number(doc.data().startTimestamp);
+        const slotData = doc.data();
+        if (
+          approvedExcludedBookingId &&
+          slotData.bookingId === approvedExcludedBookingId
+        ) {
+          continue;
+        }
+        const startTimestamp = Number(slotData.startTimestamp);
         if (!Number.isFinite(startTimestamp)) continue;
         occupiedSlots.push({ staffId, startTimestamp });
       }

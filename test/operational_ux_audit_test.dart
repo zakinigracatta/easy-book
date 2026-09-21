@@ -106,6 +106,54 @@ void main() {
     );
   });
 
+  test('customer booking recovers stale services and waits for business timezone', () {
+    final serviceSource =
+        File('lib/screens/customer/booking_service_screen.dart')
+            .readAsStringSync();
+    final dateSource =
+        File('lib/screens/customer/booking_date_screen.dart').readAsStringSync();
+
+    expect(serviceSource, contains('final selectionIsValid ='));
+    expect(serviceSource, contains('_selectedServiceId = services.first.id'));
+    expect(dateSource, contains('body: businessState.when('));
+    expect(dateSource, contains('BusinessClock.calendarToday(business.timeZone)'));
+    expect(dateSource, isNot(contains("business?.timeZone ?? 'Asia/Dubai'")));
+  });
+
+  test('customer cancel and reschedule preserve safe domain errors', () {
+    final cancelSource =
+        File('lib/screens/customer/cancel_booking_screen.dart')
+            .readAsStringSync();
+    final rescheduleSource =
+        File('lib/screens/customer/reschedule_booking_screen.dart')
+            .readAsStringSync();
+
+    expect(cancelSource, contains('on DomainException catch (e)'));
+    expect(cancelSource, contains('context.tr(e.message)'));
+    expect(rescheduleSource, contains('on DomainException catch (e)'));
+    expect(rescheduleSource, contains('context.tr(e.message)'));
+  });
+
+  test('reschedule availability excludes only the current authorized booking', () {
+    final screenSource =
+        File('lib/screens/customer/reschedule_booking_screen.dart')
+            .readAsStringSync();
+    final providerSource =
+        File('lib/providers/app_providers.dart').readAsStringSync();
+    final availabilitySource =
+        File('lib/services/availability_service.dart').readAsStringSync();
+    final functionSource =
+        File('functions/src/booking/getAvailabilityBlocks.ts')
+            .readAsStringSync();
+
+    expect(screenSource, contains('bookingId: booking.id'));
+    expect(providerSource, contains('excludeBookingId: arg.bookingId'));
+    expect(availabilitySource, contains("'excludeBookingId': excludeBookingId.trim()"));
+    expect(functionSource, contains('approvedExcludedBookingId'));
+    expect(functionSource, contains('booking.customerId === request.auth.uid'));
+    expect(functionSource, contains('slotData.bookingId === approvedExcludedBookingId'));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();

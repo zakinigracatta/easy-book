@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain_exceptions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
@@ -47,6 +48,12 @@ class _CancelBookingScreenState extends ConsumerState<CancelBookingScreen> {
           ),
         );
         context.go('/my-bookings');
+      }
+    } on DomainException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr(e.message))),
+        );
       }
     } catch (_) {
       if (mounted) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain_exceptions.dart';
 import '../../core/utils/business_clock.dart';
 import '../../core/utils/formatters.dart';
 import '../../l10n/app_localizations.dart';
@@ -72,6 +73,14 @@ class _RescheduleBookingScreenState
         ),
       );
       context.go('/my-bookings');
+    } on DomainException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr(e.message)),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -127,6 +136,7 @@ class _RescheduleBookingScreenState
         serviceId: booking.serviceId,
         staffId: booking.staffId,
         date: effectiveSelectedDate,
+        bookingId: booking.id,
       )),
     );
 

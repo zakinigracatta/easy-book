@@ -90,6 +90,7 @@ final rescheduleSlotsProvider = FutureProvider.family<
       String serviceId,
       String staffId,
       DateTime date,
+      String bookingId,
     })>((ref, arg) async {
   if (arg.businessId.isEmpty || arg.serviceId.isEmpty || arg.staffId.isEmpty) {
     return [];
@@ -119,6 +120,7 @@ final rescheduleSlotsProvider = FutureProvider.family<
     business: business,
     date: arg.date,
     staffIds: [arg.staffId],
+    excludeBookingId: arg.bookingId,
   );
 
   final engine = ref.watch(availabilityEngineProvider);
