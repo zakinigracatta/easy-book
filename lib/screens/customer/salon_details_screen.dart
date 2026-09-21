@@ -231,9 +231,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               selectedServices: const [],
                               serviceId: '',
                               serviceName: '',
-                              resetStaffSelection:
-                                  currentDraft.businessId != business.id ||
-                                      currentDraft.serviceId != selectedService.id,
+                              resetStaffSelection: true,
                               resetAppointmentSelection: true,
                             );
                           }
