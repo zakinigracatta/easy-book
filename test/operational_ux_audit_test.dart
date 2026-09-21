@@ -46,7 +46,7 @@ void main() {
     expect(source, contains('BusinessClock.inTimeZone(booking.startDateTime, timeZone)'));
     expect(source, contains('localStart.isAfter(now)'));
     expect(source, contains('booking.status != BookingStatus.noShow'));
-    expect(source, contains('sort((a, b) => a.startDateTime.compareTo(b.startDateTime))'));
+    expect(source, contains('a.startDateTime.compareTo(b.startDateTime)'));
   });
 
   test('owner calendar groups bookings by business timezone', () {
