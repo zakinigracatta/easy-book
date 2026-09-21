@@ -25,6 +25,18 @@ class MyBookingsScreen extends ConsumerWidget {
         : AppColors.textSecondaryLight;
   }
 
+  String _statusKey(BookingStatus status) {
+    return switch (status) {
+      BookingStatus.pending => 'Pending',
+      BookingStatus.confirmed => 'Confirmed',
+      BookingStatus.arrived => 'Arrived',
+      BookingStatus.inProgress => 'In Progress',
+      BookingStatus.completed => 'Completed',
+      BookingStatus.cancelled => 'Cancelled',
+      BookingStatus.noShow => 'No Show',
+    };
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appointmentsState = ref.watch(appointmentsProvider);
@@ -127,8 +139,7 @@ class MyBookingsScreen extends ConsumerWidget {
                   : (isConfirmed
                       ? AppColors.success
                       : (isPending ? AppColors.warning : Colors.blue));
-              final statusKey = booking.status.name[0].toUpperCase() +
-                  booking.status.name.substring(1);
+              final statusKey = _statusKey(booking.status);
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
