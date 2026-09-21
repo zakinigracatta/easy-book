@@ -106,6 +106,26 @@ void main() {
     );
   });
 
+  test('reschedule availability excludes only the current authorized booking', () {
+    final screenSource =
+        File('lib/screens/customer/reschedule_booking_screen.dart')
+            .readAsStringSync();
+    final providerSource =
+        File('lib/providers/app_providers.dart').readAsStringSync();
+    final availabilitySource =
+        File('lib/services/availability_service.dart').readAsStringSync();
+    final functionSource =
+        File('functions/src/booking/getAvailabilityBlocks.ts')
+            .readAsStringSync();
+
+    expect(screenSource, contains('bookingId: booking.id'));
+    expect(providerSource, contains('excludeBookingId: arg.bookingId'));
+    expect(availabilitySource, contains("'excludeBookingId': excludeBookingId.trim()"));
+    expect(functionSource, contains('approvedExcludedBookingId'));
+    expect(functionSource, contains('booking.customerId === request.auth.uid'));
+    expect(functionSource, contains('slotData.bookingId === approvedExcludedBookingId'));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
