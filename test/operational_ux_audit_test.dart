@@ -349,6 +349,29 @@ void main() {
     expect(source, contains('!refreshedUser.emailVerified'));
   });
 
+
+  test('malformed availability responses fail closed', () {
+    final source = File(
+      'lib/services/availability_service.dart',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains('Availability service returned an invalid response.'),
+    );
+    expect(
+      source,
+      contains('Availability service returned incomplete scheduling data.'),
+    );
+    expect(
+      source,
+      isNot(contains(
+        'if (response.data is! Map) {\n'
+        '      return const AvailabilitySnapshot',
+      )),
+    );
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
