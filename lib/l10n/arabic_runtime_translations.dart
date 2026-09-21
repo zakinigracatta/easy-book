@@ -234,4 +234,7 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Unable to publish offer. Please try again.': 'تعذر نشر العرض. حاول مرة أخرى.',
   'Booking Submitted!': 'تم إرسال طلب الحجز!',
   'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.': 'تم إرسال طلب الحجز بنجاح وهو بانتظار التأكيد. يمكنك متابعة حالته من حجوزاتي.',
+  'The selected business is no longer available.': 'النشاط التجاري المحدد لم يعد متاحًا.',
+  'Unable to verify the appointment time. Please try again.': 'تعذر التحقق من موعد الحجز. حاول مرة أخرى.',
+  'Unable to load business details. Please try again.': 'تعذر تحميل بيانات النشاط التجاري. حاول مرة أخرى.',
 };

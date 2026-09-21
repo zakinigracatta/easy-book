@@ -248,4 +248,7 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Unable to publish offer. Please try again.': 'Не удалось опубликовать предложение. Попробуйте снова.',
   'Booking Submitted!': 'Запрос на бронирование отправлен!',
   'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.': 'Ваш запрос на бронирование успешно отправлен и ожидает подтверждения. Статус можно отслеживать в разделе «Мои бронирования».',
+  'The selected business is no longer available.': 'Выбранная компания больше недоступна.',
+  'Unable to verify the appointment time. Please try again.': 'Не удалось проверить время записи. Попробуйте снова.',
+  'Unable to load business details. Please try again.': 'Не удалось загрузить данные компании. Попробуйте снова.',
 };

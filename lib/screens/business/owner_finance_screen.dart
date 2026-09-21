@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../core/utils/business_clock.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/expense_model.dart';
 import '../../models/profit_and_loss_summary.dart';
 import '../../providers/owner_finance_providers.dart';
+import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/glass_card.dart';
@@ -18,6 +20,8 @@ class OwnerFinanceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final reportAsync = ref.watch(ownerProfitAndLossProvider);
     final range = ref.watch(ownerFinanceReportRangeProvider);
+    final timeZone =
+        ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
     final currency = NumberFormat.currency(symbol: 'AED ', decimalDigits: 2);
 
     return Scaffold(
@@ -40,7 +44,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
           children: [
-            _periodCard(context, ref, range),
+            _periodCard(context, ref, range, timeZone),
             const SizedBox(height: 16),
             reportAsync.when(
               loading: () => const Padding(
@@ -118,6 +122,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     FinanceReportRange range,
+    String timeZone,
   ) {
     final material = MaterialLocalizations.of(context);
     final from = material.formatMediumDate(range.from);
@@ -152,7 +157,7 @@ class OwnerFinanceScreen extends ConsumerWidget {
                 ),
               ),
               TextButton.icon(
-                onPressed: () => _selectRange(context, ref, range),
+                onPressed: () => _selectRange(context, ref, range, timeZone),
                 icon: const Icon(Icons.date_range_rounded, size: 18),
                 label: Text(context.tr('Change')),
               ),
@@ -163,9 +168,9 @@ class OwnerFinanceScreen extends ConsumerWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _periodButton(context, ref, 'Today', _todayRange()),
-              _periodButton(context, ref, 'This Month', _monthRange()),
-              _periodButton(context, ref, 'This Year', _yearRange()),
+              _periodButton(context, ref, 'Today', _todayRange(timeZone)),
+              _periodButton(context, ref, 'This Month', _monthRange(timeZone)),
+              _periodButton(context, ref, 'This Year', _yearRange(timeZone)),
             ],
           ),
         ],
@@ -551,11 +556,13 @@ class OwnerFinanceScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     FinanceReportRange current,
+    String timeZone,
   ) async {
+    final businessToday = BusinessClock.calendarToday(timeZone);
     final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: businessToday,
       initialDateRange: DateTimeRange(start: current.from, end: current.to),
     );
     if (picked == null) return;
@@ -564,25 +571,24 @@ class OwnerFinanceScreen extends ConsumerWidget {
         FinanceReportRange(from: picked.start, to: picked.end);
   }
 
-  FinanceReportRange _todayRange() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+  FinanceReportRange _todayRange(String timeZone) {
+    final today = BusinessClock.calendarToday(timeZone);
     return FinanceReportRange(from: today, to: today);
   }
 
-  FinanceReportRange _monthRange() {
-    final now = DateTime.now();
+  FinanceReportRange _monthRange(String timeZone) {
+    final today = BusinessClock.calendarToday(timeZone);
     return FinanceReportRange(
-      from: DateTime(now.year, now.month, 1),
-      to: DateTime(now.year, now.month, now.day),
+      from: DateTime(today.year, today.month, 1),
+      to: today,
     );
   }
 
-  FinanceReportRange _yearRange() {
-    final now = DateTime.now();
+  FinanceReportRange _yearRange(String timeZone) {
+    final today = BusinessClock.calendarToday(timeZone);
     return FinanceReportRange(
-      from: DateTime(now.year, 1, 1),
-      to: DateTime(now.year, now.month, now.day),
+      from: DateTime(today.year, 1, 1),
+      to: today,
     );
   }
 }
