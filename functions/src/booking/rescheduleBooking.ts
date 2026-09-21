@@ -69,7 +69,9 @@ export const rescheduleBooking = onCall(async (request) => {
     const serviceId = bookingData.serviceId;
     const staffId = bookingData.staffId;
     const anySpecialist =
-      bookingData.anySpecialist === true || bookingData.any_specialist === true;
+      typeof bookingData.anySpecialist === 'boolean'
+        ? bookingData.anySpecialist === true
+        : bookingData.any_specialist === true;
     const customerId = bookingData.customerId;
     const currentStatus = bookingData.status;
 
