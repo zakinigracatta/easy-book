@@ -175,6 +175,25 @@ void main() {
     expect(backend, contains("createHash('sha256')"));
     expect(backend, contains('IDEMPOTENCY_KEY_REUSED'));
     expect(backend, contains('idempotentReplay: true'));
+
+    final replayLookup = backend.indexOf('if (clientRequestId) {');
+    final leadTimeCheck = backend.indexOf('const minimumLeadTimeMs');
+    expect(replayLookup, greaterThanOrEqualTo(0));
+    expect(leadTimeCheck, greaterThan(replayLookup));
+  });
+
+  test('any-specialist UI does not promise a provisional employee', () {
+    final summary = File(
+      'lib/screens/customer/booking_summary_screen.dart',
+    ).readAsStringSync();
+    final confirmation = File(
+      'lib/screens/customer/booking_confirmation_screen.dart',
+    ).readAsStringSync();
+
+    expect(summary, contains("if (draft.anySpecialist)"));
+    expect(confirmation, contains("if (draft.anySpecialist)"));
+    expect(summary, contains("context.tr('Any Available Specialist')"));
+    expect(confirmation, contains("context.tr('Any Available Specialist')"));
   });
 
   test('customer minimum lead time is enforced on trusted backend', () {
