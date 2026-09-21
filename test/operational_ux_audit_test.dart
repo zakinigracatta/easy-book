@@ -106,6 +106,35 @@ void main() {
     );
   });
 
+  test('owner employee management keeps staff context and service eligibility', () {
+    final listSource =
+        File('lib/screens/business/employee_management_screen.dart')
+            .readAsStringSync();
+    final scheduleSource =
+        File('lib/screens/business/employee_schedule_screen.dart')
+            .readAsStringSync();
+    final editorSource =
+        File('lib/screens/business/add_edit_employee_screen.dart')
+            .readAsStringSync();
+
+    expect(listSource, contains("'/employee-schedule',"));
+    expect(listSource, contains('extra: st.id'));
+    expect(scheduleSource, contains('final routeStaffId = GoRouterState.of(context).extra'));
+    expect(editorSource, contains('_selectedServiceIds'));
+    expect(editorSource, contains('serviceIds: _selectedServiceIds.toList'));
+    expect(editorSource, contains('extra: _staffId'));
+  });
+
+  test('owner service mutations surface failures instead of throwing silently', () {
+    final source =
+        File('lib/screens/business/services_management_screen.dart')
+            .readAsStringSync();
+
+    expect(source, contains('Future<void> _toggleService('));
+    expect(source, contains('on DomainException catch (e)'));
+    expect(source, contains("context.tr('Service disabled')"));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
