@@ -186,4 +186,16 @@ void main() {
   });
 
 
+  test('cancel and reschedule enforce verified email on trusted backend', () {
+    for (final path in [
+      'functions/src/booking/cancelBooking.ts',
+      'functions/src/booking/rescheduleBooking.ts',
+    ]) {
+      final source = File(path).readAsStringSync();
+      expect(source, contains('request.auth.token.email_verified !== true'));
+      expect(source, contains('EMAIL_NOT_VERIFIED'));
+    }
+  });
+
+
 }
