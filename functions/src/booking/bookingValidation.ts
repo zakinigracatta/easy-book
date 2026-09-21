@@ -554,26 +554,20 @@ export async function validateBookingRequirements(
 
     if (timeOff.endDate && typeof timeOff.endDate.toMillis === 'function') {
       const endDate = timeOff.endDate.toDate();
-      if (
-        endDate.getUTCHours() === 0 &&
-        endDate.getUTCMinutes() === 0 &&
-        endDate.getUTCSeconds() === 0 &&
-        endDate.getUTCMilliseconds() === 0
-      ) {
-        endDate.setUTCDate(endDate.getUTCDate() + 1);
+      if (zonedParts(endDate, timeZone).minuteOfDay === 0) {
+        timeOffEndMs = endDate.getTime() + 24 * 60 * 60 * 1000;
+      } else {
+        timeOffEndMs = endDate.getTime();
       }
-      timeOffEndMs = endDate.getTime();
     } else if (typeof timeOff.endDate === 'string') {
       const endDate = new Date(timeOff.endDate);
-      if (
-        endDate.getUTCHours() === 0 &&
-        endDate.getUTCMinutes() === 0 &&
-        endDate.getUTCSeconds() === 0 &&
-        endDate.getUTCMilliseconds() === 0
-      ) {
-        endDate.setUTCDate(endDate.getUTCDate() + 1);
+      if (!Number.isNaN(endDate.getTime())) {
+        if (zonedParts(endDate, timeZone).minuteOfDay === 0) {
+          timeOffEndMs = endDate.getTime() + 24 * 60 * 60 * 1000;
+        } else {
+          timeOffEndMs = endDate.getTime();
+        }
       }
-      timeOffEndMs = endDate.getTime();
     }
 
     if (
