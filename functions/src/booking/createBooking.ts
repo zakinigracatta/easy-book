@@ -128,19 +128,6 @@ export const createBooking = onCall(async (request) => {
   }
 
   validateCanonical15MinAlignment(requestedStartAt);
-  const minimumLeadTimeMs = 30 * 60 * 1000;
-  if (requestedStartAt.getTime() <= Date.now()) {
-    throw new HttpsError(
-      'failed-precondition',
-      'START_TIME_IN_PAST: A customer booking must start in the future.'
-    );
-  }
-  if (requestedStartAt.getTime() < Date.now() + minimumLeadTimeMs) {
-    throw new HttpsError(
-      'failed-precondition',
-      'START_TIME_TOO_SOON: Customer bookings require at least 30 minutes lead time.'
-    );
-  }
 
   const db = admin.firestore();
   const deterministicId = clientRequestId
@@ -174,6 +161,20 @@ export const createBooking = onCall(async (request) => {
         }
         return idempotentResponse(bookingDocRef.id, existing);
       }
+    }
+
+    const minimumLeadTimeMs = 30 * 60 * 1000;
+    if (requestedStartAt.getTime() <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_IN_PAST: A customer booking must start in the future.'
+      );
+    }
+    if (requestedStartAt.getTime() < Date.now() + minimumLeadTimeMs) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_TOO_SOON: Customer bookings require at least 30 minutes lead time.'
+      );
     }
 
     const businessRef = db.collection('businesses').doc(businessId);
