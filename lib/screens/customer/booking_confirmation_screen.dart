@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/domain_exceptions.dart';
+import '../../core/utils/business_clock.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
@@ -77,8 +78,31 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    final startDateTime =
-        draft.resolvedStartAt ?? _parseStartDateTime(draft.date!, draft.timeSlot!);
+    DateTime? startDateTime = draft.resolvedStartAt;
+    if (startDateTime == null) {
+      try {
+        final business =
+            await ref.read(businessDetailProvider(businessId).future);
+        if (!mounted) return;
+        if (business == null) {
+          _showMessage('The selected business is no longer available.');
+          return;
+        }
+        startDateTime = _parseStartDateTime(
+          draft.date!,
+          draft.timeSlot!,
+          business.timeZone,
+        );
+      } catch (_) {
+        if (mounted) {
+          _showMessage(
+            'Unable to verify the appointment time. Please try again.',
+            isError: true,
+          );
+        }
+        return;
+      }
+    }
     if (startDateTime == null) {
       _showMessage(
         'The selected appointment time is invalid. Please choose it again.',
@@ -149,7 +173,11 @@ class _BookingConfirmationScreenState
     }
   }
 
-  DateTime? _parseStartDateTime(DateTime date, String rawTime) {
+  DateTime? _parseStartDateTime(
+    DateTime date,
+    String rawTime,
+    String timeZone,
+  ) {
     try {
       final normalized = rawTime.trim().toUpperCase();
       final parts = normalized.split(RegExp(r'\s+'));
@@ -165,7 +193,10 @@ class _BookingConfirmationScreenState
       if (period == 'AM' && hour == 12) hour = 0;
       if (hour < 0 || hour > 23) return null;
 
-      return DateTime(date.year, date.month, date.day, hour, minute);
+      return BusinessClock.wallClock(
+        DateTime(date.year, date.month, date.day, hour, minute),
+        timeZone,
+      );
     } catch (_) {
       return null;
     }
