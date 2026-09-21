@@ -19,6 +19,7 @@ class BookingFunctionsService {
     required DateTime requestedStartAt,
     required String customerName,
     required String customerPhone,
+    bool anySpecialist = false,
     String notes = '',
   }) async {
     try {
@@ -30,6 +31,7 @@ class BookingFunctionsService {
         'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
+        'anySpecialist': anySpecialist,
         'notes': notes,
       });
 
@@ -58,6 +60,7 @@ class BookingFunctionsService {
         notes: notes,
         slotLockId:
             '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+        anySpecialist: anySpecialist,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -160,12 +163,15 @@ class BookingFunctionsService {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newRequestedStartAt,
+    String? newStaffId,
   }) async {
     try {
       final callable = _functions.httpsCallable('rescheduleBooking');
       final response = await callable.call({
         'bookingId': bookingId,
         'newRequestedStartAt': _utcIso(newRequestedStartAt),
+        if (newStaffId != null && newStaffId.trim().isNotEmpty)
+          'newStaffId': newStaffId.trim(),
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
