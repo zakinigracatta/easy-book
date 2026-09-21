@@ -88,7 +88,8 @@ void main() {
       walkInSource,
       contains('await ref.read(currentBusinessIdProvider.future)'),
     );
-    expect(walkInSource, contains('_toQuarterHour'));
+    expect(walkInSource, contains('_nextQuarterHour'));
+    expect(walkInSource, contains('picked.minute % 15 != 0'));
     expect(walkInSource, contains('BusinessClock.wallClock'));
   });
 
@@ -173,7 +174,7 @@ void main() {
       'lib/screens/business/owner_dashboard_screen.dart',
     ).readAsStringSync();
 
-    expect(source, contains('booking.startDateTime.isAfter(now)'));
+    expect(source, contains('localStart.isAfter(now)'));
     expect(
       source,
       contains('a.startDateTime.compareTo(b.startDateTime)'),
