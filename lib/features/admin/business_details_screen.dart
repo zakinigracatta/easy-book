@@ -260,7 +260,7 @@ class _AdminBusinessDetailsScreenState
                                                   ))
                                               .toString(),
                                       'subtitle':
-                                          '${s['price'] ?? 0} ${adminText(context, 'AED', 'درهم')} • ${s['duration'] ?? s['duration_minutes'] ?? 30} ${adminText(context, 'min', 'دقيقة')}',
+                                          '${s['price'] ?? 0} ${(s['currency'] ?? 'AED').toString()} • ${s['duration'] ?? s['duration_minutes'] ?? 30} ${adminText(context, 'min', 'دقيقة')}',
                                     },
                                   )
                                   .toList(),
