@@ -55,7 +55,10 @@ void main() {
 
     expect(source, contains('BusinessClock.calendarToday(timeZone)'));
     expect(source, contains('BusinessClock.inTimeZone(b.startDateTime, timeZone)'));
-    expect(source, contains('firstDate: businessToday.subtract'));
+    expect(
+      source,
+      contains("businessToday.subtract(const Duration(days: 90))"),
+    );
     expect(source, contains('lastDate: businessToday.add'));
   });
 
@@ -88,9 +91,19 @@ void main() {
     final dashboardSource =
         File('lib/screens/business/owner_dashboard_screen.dart').readAsStringSync();
 
-    expect(providerSource, contains('final previous = state;'));
-    expect(providerSource, contains('state = previous;'));
-    expect(dashboardSource, contains('Unable to update booking availability. Please try again.'));
+    final repositoryWriteIndex =
+        providerSource.indexOf('await _repo.updateOwnerBusiness(updated);');
+    final committedStateIndex = providerSource.indexOf(
+      'state = AsyncValue.data(updated);',
+      repositoryWriteIndex,
+    );
+
+    expect(repositoryWriteIndex, greaterThanOrEqualTo(0));
+    expect(committedStateIndex, greaterThan(repositoryWriteIndex));
+    expect(
+      dashboardSource,
+      contains('Unable to update booking availability. Please try again.'),
+    );
   });
 
   test('admin shell retains responsive compact navigation', () {
