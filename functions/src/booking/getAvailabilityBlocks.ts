@@ -120,7 +120,7 @@ export const getAvailabilityBlocks = onCall(async (request) => {
 
   const business = businessSnap.data() || {};
   const isVerified =
-    business.is_verified === true || business.isVerified === true;
+    (business.is_verified ?? business.isVerified) === true;
   const isActive = (business.is_active ?? business.isActive) === true;
   const acceptingBookings =
     (business.accepting_bookings ?? business.acceptingBookings) === true;
