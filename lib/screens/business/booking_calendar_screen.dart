@@ -119,9 +119,11 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
               child: bookingsAsync.when(
                 data: (allBookings) {
                   final dateBookings = allBookings.where((b) {
-                    return b.startDateTime.year == _selectedDate.year &&
-                        b.startDateTime.month == _selectedDate.month &&
-                        b.startDateTime.day == _selectedDate.day;
+                    final localStart =
+                        BusinessClock.inTimeZone(b.startDateTime, timeZone);
+                    return localStart.year == effectiveSelectedDate.year &&
+                        localStart.month == effectiveSelectedDate.month &&
+                        localStart.day == effectiveSelectedDate.day;
                   }).toList();
 
                   if (dateBookings.isEmpty) {
@@ -131,7 +133,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                       description:
                           'Schedule is clear for ${DateFormat('MMM d').format(effectiveSelectedDate)}.',
                       actionLabel: 'Create Booking',
-                      onActionTap: () => context.push('/quick-walk-in'),
+                      onActionTap: () => context.push('/quick-walk-in', extra: effectiveSelectedDate),
                     );
                   }
 
