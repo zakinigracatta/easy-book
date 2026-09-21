@@ -127,6 +127,7 @@ class _RescheduleBookingScreenState
         serviceId: booking.serviceId,
         staffId: booking.staffId,
         date: effectiveSelectedDate,
+        bookingId: booking.id,
       )),
     );
 
