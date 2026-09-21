@@ -30,18 +30,61 @@ class _QuickWalkInBookingScreenState
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
 
-  bool _isNewCustomer = true;
   ServiceModel? _selectedService;
   StaffModel? _selectedStaff;
   late DateTime _selectedDate;
-  TimeOfDay _selectedTime = _toQuarterHour(TimeOfDay.now());
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 0, minute: 0);
   bool _isLoading = false;
+  String? _initializedTimeZone;
+  bool _dateWasChanged = false;
+  bool _timeWasChanged = false;
 
   @override
   void initState() {
     super.initState();
     final initial = widget.initialDate ?? DateTime.now();
     _selectedDate = DateTime(initial.year, initial.month, initial.day);
+    _dateWasChanged = widget.initialDate != null;
+  }
+
+  static TimeOfDay _nextQuarterHour(DateTime now) {
+    final roundedMinute = ((now.minute + 14) ~/ 15) * 15;
+    final rounded = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+    ).add(Duration(minutes: roundedMinute));
+    return TimeOfDay(hour: rounded.hour, minute: rounded.minute);
+  }
+
+  void _syncBusinessClock(String timeZone) {
+    if (_initializedTimeZone == timeZone) return;
+    _initializedTimeZone = timeZone;
+    final businessNow = BusinessClock.now(timeZone);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        if (!_dateWasChanged) {
+          _selectedDate = DateTime(
+            businessNow.year,
+            businessNow.month,
+            businessNow.day,
+          );
+        }
+        if (!_timeWasChanged) {
+          _selectedTime = _nextQuarterHour(businessNow);
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,6 +94,8 @@ class _QuickWalkInBookingScreenState
     final businessAsync = ref.watch(ownerBusinessProvider);
 
     final bizName = businessAsync.value?.name ?? 'Business';
+    final bizTimeZone = businessAsync.value?.timeZone ?? 'Asia/Dubai';
+    _syncBusinessClock(bizTimeZone);
 
     return PopScope(
       canPop: context.canPop(),
@@ -119,72 +164,6 @@ class _QuickWalkInBookingScreenState
                 ),
 
                 const SizedBox(height: 20),
-
-                // Customer Segment Toggle (New vs Existing)
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isNewCustomer = true),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _isNewCustomer
-                                ? AppColors.primary
-                                : Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: _isNewCustomer
-                                    ? AppColors.primary
-                                    : Theme.of(context).dividerColor),
-                          ),
-                          child: Text(context.tr('New Customer'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: _isNewCustomer
-                                  ? Colors.white
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isNewCustomer = false),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: !_isNewCustomer
-                                ? AppColors.primary
-                                : Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: !_isNewCustomer
-                                    ? AppColors.primary
-                                    : Theme.of(context).dividerColor),
-                          ),
-                          child: Text(context.tr('Existing Customer'),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: !_isNewCustomer
-                                  ? Colors.white
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
                 GlassCard(
                   padding: const EdgeInsets.all(20),
                   child: Column(
@@ -217,8 +196,17 @@ class _QuickWalkInBookingScreenState
                       // Service Picker Dropdown
                       servicesAsync.when(
                         data: (services) {
-                          if (_selectedService == null && services.isNotEmpty) {
-                            _selectedService = services.first;
+                          final selectableServices = services
+                              .where((service) =>
+                                  service.isActive && service.isBookable)
+                              .toList(growable: false);
+                          if (_selectedService == null ||
+                              !selectableServices.any(
+                                (service) => service.id == _selectedService!.id,
+                              )) {
+                            _selectedService = selectableServices.isEmpty
+                                ? null
+                                : selectableServices.first;
                           }
                           return DropdownButtonFormField<ServiceModel>(
                             initialValue: _selectedService,
@@ -238,19 +226,21 @@ class _QuickWalkInBookingScreenState
                               ),
                             ),
                             dropdownColor: Theme.of(context).colorScheme.surface,
-                            items: services.map((s) {
+                            items: selectableServices.map((s) {
                               return DropdownMenuItem(
                                 value: s,
                                 child: Text(
-                                  '${s.name} (AED ${s.price.toStringAsFixed(0)} • ${s.duration})',
+                                  '${s.name} (AED ${s.effectivePrice.toStringAsFixed(0)} • ${s.duration})',
                                   style: TextStyle(
                                       color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 13),
                                 ),
                               );
                             }).toList(),
-                            onChanged: (val) =>
-                                setState(() => _selectedService = val),
+                            onChanged: (val) => setState(() {
+                              _selectedService = val;
+                              _selectedStaff = null;
+                            }),
                           );
                         },
                         loading: () => const LinearProgressIndicator(
@@ -263,8 +253,22 @@ class _QuickWalkInBookingScreenState
                       // Employee Picker Dropdown
                       employeesAsync.when(
                         data: (staffList) {
-                          if (_selectedStaff == null && staffList.isNotEmpty) {
-                            _selectedStaff = staffList.first;
+                          final selectedServiceId = _selectedService?.id;
+                          final activeStaff = staffList
+                              .where(
+                                (staff) =>
+                                    staff.isActive &&
+                                    (selectedServiceId == null ||
+                                        staff.serviceIds.isEmpty ||
+                                        staff.serviceIds.contains(selectedServiceId)),
+                              )
+                              .toList(growable: false);
+                          if (_selectedStaff == null ||
+                              !activeStaff.any(
+                                (staff) => staff.id == _selectedStaff!.id,
+                              )) {
+                            _selectedStaff =
+                                activeStaff.isEmpty ? null : activeStaff.first;
                           }
                           return DropdownButtonFormField<StaffModel>(
                             initialValue: _selectedStaff,
@@ -283,7 +287,7 @@ class _QuickWalkInBookingScreenState
                               ),
                             ),
                             dropdownColor: Theme.of(context).colorScheme.surface,
-                            items: staffList.map((st) {
+                            items: activeStaff.map((st) {
                               return DropdownMenuItem(
                                 value: st,
                                 child: Text(
@@ -412,8 +416,8 @@ class _QuickWalkInBookingScreenState
       firstDate: today,
       lastDate: today.add(const Duration(days: 90)),
       builder: (ctx, child) => Theme(
-        data: ThemeData.dark().copyWith(
-          colorScheme: ColorScheme.dark(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
             primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Theme.of(context).colorScheme.surface,
@@ -423,7 +427,10 @@ class _QuickWalkInBookingScreenState
       ),
     );
     if (picked != null) {
-      setState(() => _selectedDate = picked);
+      setState(() {
+        _selectedDate = picked;
+        _dateWasChanged = true;
+      });
     }
   }
 
@@ -432,8 +439,8 @@ class _QuickWalkInBookingScreenState
       context: context,
       initialTime: _selectedTime,
       builder: (ctx, child) => Theme(
-        data: ThemeData.dark().copyWith(
-          colorScheme: ColorScheme.dark(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context).colorScheme.copyWith(
             primary: AppColors.primary,
             onPrimary: Colors.white,
             surface: Theme.of(context).colorScheme.surface,
@@ -443,25 +450,23 @@ class _QuickWalkInBookingScreenState
       ),
     );
     if (picked != null) {
-      final normalized = _toQuarterHour(picked);
-      setState(() => _selectedTime = normalized);
-      if (normalized.minute != picked.minute && mounted) {
+      if (picked.minute % 15 != 0) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              context.tr('Walk-in times use 15-minute intervals.'),
+              context.tr('Please choose a time at :00, :15, :30 or :45.'),
             ),
+            backgroundColor: AppColors.warning,
           ),
         );
+        return;
       }
+      setState(() {
+        _selectedTime = picked;
+        _timeWasChanged = true;
+      });
     }
-  }
-
-  static TimeOfDay _toQuarterHour(TimeOfDay value) {
-    return TimeOfDay(
-      hour: value.hour,
-      minute: (value.minute ~/ 15) * 15,
-    );
   }
 
   Future<void> _submitWalkIn(String bizName) async {
@@ -525,8 +530,7 @@ class _QuickWalkInBookingScreenState
         businessName: bizName,
         serviceId: _selectedService!.id,
         serviceName: _selectedService!.name,
-        servicePrice:
-            _selectedService!.discountPrice ?? _selectedService!.price,
+        servicePrice: _selectedService!.effectivePrice,
         staffId: _selectedStaff!.id,
         staffName: _selectedStaff!.name,
         startDateTime: startDt,
