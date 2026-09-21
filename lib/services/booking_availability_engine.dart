@@ -61,7 +61,12 @@ class BookingAvailabilityEngine {
       now.month,
       now.day,
     );
-    final maxDate = today.add(const Duration(days: maxAdvanceBookingDays));
+    final maxDate = TZDateTime(
+      businessLocation,
+      today.year,
+      today.month,
+      today.day + maxAdvanceBookingDays,
+    );
     final targetDateOnly = TZDateTime(
       businessLocation,
       date.year,
