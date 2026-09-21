@@ -211,13 +211,10 @@ void main() {
       'lib/screens/business/employee_schedule_screen.dart',
     ).readAsStringSync();
 
-    expect(
-      source,
-      contains(
-        'final working = staff.workingDays == null ||\n'
-        '          staff.workingDays!.contains(weekday);',
-      ),
-    );
+    expect(source, contains('final hasLegacyShift ='));
+    expect(source, contains('staff.workingDays != null'));
+    expect(source, contains('staff.workingDays!.contains(weekday)'));
+    expect(source, contains(': hasLegacyShift'));
     expect(
       source,
       isNot(contains('staff.workingDays!.isEmpty ||')),
