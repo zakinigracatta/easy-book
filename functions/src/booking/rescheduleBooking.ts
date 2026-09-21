@@ -97,6 +97,16 @@ export const rescheduleBooking = onCall(async (request) => {
       );
     }
 
+    if (
+      actor === 'customer' &&
+      newStartAt.getTime() < Date.now() + 30 * 60 * 1000
+    ) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_TOO_SOON: Customer reschedules require at least 30 minutes lead time.'
+      );
+    }
+
     let targetStaffId = staffId;
     if (requestedNewStaffId && requestedNewStaffId !== staffId) {
       if (actor === 'customer' && !anySpecialist) {
