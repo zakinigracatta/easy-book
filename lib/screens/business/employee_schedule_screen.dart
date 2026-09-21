@@ -189,7 +189,6 @@ class _EmployeeScheduleScreenState
 
       final weekday = i + 1;
       final working = staff.workingDays == null ||
-          staff.workingDays!.isEmpty ||
           staff.workingDays!.contains(weekday);
       _schedule[day] = StaffWorkingHours(
         dayName: day,
