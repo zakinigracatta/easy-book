@@ -251,4 +251,10 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'The selected business is no longer available.': 'Выбранная компания больше недоступна.',
   'Unable to verify the appointment time. Please try again.': 'Не удалось проверить время записи. Попробуйте снова.',
   'Unable to load business details. Please try again.': 'Не удалось загрузить данные компании. Попробуйте снова.',
+  'Services this employee can perform': 'Услуги, которые может выполнять этот сотрудник',
+  'Select specific services, or leave all unchecked to allow all active services.': 'Выберите конкретные услуги или оставьте все флажки снятыми, чтобы разрешить все активные услуги.',
+  'Unable to load services. Please try again.': 'Не удалось загрузить услуги. Попробуйте снова.',
+  'No active services are available yet.': 'Пока нет доступных активных услуг.',
+  'Service disabled': 'Услуга отключена',
+  'Unable to update this service. Please try again.': 'Не удалось обновить эту услугу. Попробуйте снова.',
 };
