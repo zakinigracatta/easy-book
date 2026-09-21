@@ -19,9 +19,9 @@ class StaffWorkingHours {
     if (json == null) {
       return StaffWorkingHours(
         dayName: day,
-        openTime: '09:00 AM',
-        closeTime: '06:00 PM',
-        isWorking: true,
+        openTime: '',
+        closeTime: '',
+        isWorking: false,
       );
     }
 
@@ -30,13 +30,13 @@ class StaffWorkingHours {
       openTime: json['open_time'] as String? ??
           json['openTime'] as String? ??
           json['open'] as String? ??
-          '09:00 AM',
+          '',
       closeTime: json['close_time'] as String? ??
           json['closeTime'] as String? ??
           json['close'] as String? ??
-          '06:00 PM',
+          '',
       isWorking:
-          json['is_working'] as bool? ?? json['isWorking'] as bool? ?? true,
+          json['is_working'] as bool? ?? json['isWorking'] as bool? ?? false,
       breakStart:
           json['break_start'] as String? ?? json['breakStart'] as String?,
       breakEnd: json['break_end'] as String? ?? json['breakEnd'] as String?,
