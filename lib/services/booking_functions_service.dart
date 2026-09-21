@@ -269,7 +269,8 @@ class BookingFunctionsService {
         msg.contains('OUTSIDE_STAFF_SHIFT') ||
         msg.contains('STAFF_ON_BREAK') ||
         msg.contains('STAFF_ON_LEAVE') ||
-        msg.contains('STAFF_INELIGIBLE')) {
+        msg.contains('STAFF_INELIGIBLE') ||
+        msg.contains('STAFF_SCHEDULE_NOT_CONFIGURED')) {
       return EmployeeUnavailableException(
         'The selected specialist is unavailable during this time slot.',
       );
@@ -295,6 +296,11 @@ class BookingFunctionsService {
     if (msg.contains('CANNOT_CANCEL')) {
       return DomainException(
         'This appointment can no longer be cancelled.',
+      );
+    }
+    if (msg.contains('NO_RESCHEDULE_CHANGE')) {
+      return DomainException(
+        'Please select a different date, time, or specialist.',
       );
     }
     if (msg.contains('CANNOT_RESCHEDULE')) {
