@@ -43,16 +43,6 @@ export const cancelBooking = onCall(async (request) => {
     const customerId = bookingData.customerId;
     const currentStatus = bookingData.status;
 
-    if (currentStatus === 'cancelled') {
-      return { success: true, message: 'Booking is already cancelled.' };
-    }
-    if (currentStatus === 'completed' || currentStatus === 'noShow') {
-      throw new HttpsError(
-        'failed-precondition',
-        `CANNOT_CANCEL: A ${currentStatus} booking cannot be cancelled.`
-      );
-    }
-
     let cancelledBy = '';
     if (customerId && customerId === callerUid) {
       cancelledBy = 'customer';
@@ -70,6 +60,16 @@ export const cancelBooking = onCall(async (request) => {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: You are not authorized to cancel this booking.'
+      );
+    }
+
+    if (currentStatus === 'cancelled') {
+      return { success: true, message: 'Booking is already cancelled.' };
+    }
+    if (currentStatus === 'completed' || currentStatus === 'noShow') {
+      throw new HttpsError(
+        'failed-precondition',
+        `CANNOT_CANCEL: A ${currentStatus} booking cannot be cancelled.`
       );
     }
 
