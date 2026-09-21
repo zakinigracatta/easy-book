@@ -1,6 +1,9 @@
 import * as admin from 'firebase-admin';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
-import { normalizeInclusiveTimeOffEndMs } from './bookingValidation';
+import {
+  normalizeInclusiveTimeOffEndMs,
+  resolveTimeZone,
+} from './bookingValidation';
 
 function requiredBusinessId(value: unknown): string {
   if (
@@ -127,10 +130,7 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     (business.accepting_bookings ?? business.acceptingBookings) === true;
   const businessStatus =
     business.business_status ?? business.businessStatus ?? 'closed';
-  const timeZone =
-    typeof (business.timeZone ?? business.timezone) === 'string'
-      ? String(business.timeZone ?? business.timezone)
-      : 'Asia/Dubai';
+  const timeZone = resolveTimeZone(business.timeZone ?? business.timezone);
 
   if (
     !isVerified ||
