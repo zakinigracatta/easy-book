@@ -34,6 +34,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   late final TextEditingController _bioController;
 
   final List<String> _galleryUrls = [];
+  final Set<String> _selectedServiceIds = <String>{};
   bool _isActive = true;
   bool _isLoading = false;
   double? _uploadProgress;
@@ -52,6 +53,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
     _avatarUrlController = TextEditingController(text: staff?.avatarUrl ?? '');
     _bioController = TextEditingController(text: staff?.bio ?? '');
     _galleryUrls.addAll(staff?.galleryUrls ?? const []);
+    _selectedServiceIds.addAll(staff?.serviceIds ?? const []);
     _isActive = staff?.isActive ?? true;
   }
 
@@ -307,6 +309,80 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 14),
+                GlassCard(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr('Services this employee can perform'),
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        context.tr(
+                          'Select specific services, or leave all unchecked to allow all active services.',
+                        ),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ref.watch(ownerServicesProvider).when(
+                        loading: () => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        error: (_, __) => Text(
+                          context.tr('Unable to load services. Please try again.'),
+                          style: const TextStyle(color: AppColors.error),
+                        ),
+                        data: (services) {
+                          final activeServices = services
+                              .where((service) => service.isActive && service.isBookable)
+                              .toList();
+                          if (activeServices.isEmpty) {
+                            return Text(
+                              context.tr('No active services are available yet.'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            );
+                          }
+                          return Column(
+                            children: activeServices.map((service) {
+                              final selected = _selectedServiceIds.contains(service.id);
+                              return CheckboxListTile(
+                                contentPadding: EdgeInsets.zero,
+                                dense: true,
+                                value: selected,
+                                title: Text(service.name),
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      _selectedServiceIds.add(service.id);
+                                    } else {
+                                      _selectedServiceIds.remove(service.id);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
                 if (isEditing) ...[
                   const SizedBox(height: 14),
                   GlassCard(
@@ -334,7 +410,10 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                         ),
                       ),
                       trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => context.push('/employee-schedule'),
+                      onTap: () => context.push(
+                        '/employee-schedule',
+                        extra: _staffId,
+                      ),
                     ),
                   ),
                 ],
@@ -472,6 +551,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
               rating: 0,
               reviewCount: 0,
               experienceYears: expYears,
+              serviceIds: _selectedServiceIds.toList(growable: false),
               isActive: _isActive,
               bio: _bioController.text.trim(),
               galleryUrls: List.of(_galleryUrls),
@@ -481,6 +561,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
               roleTitle: _roleController.text.trim(),
               avatarUrl: _avatarUrlController.text.trim(),
               experienceYears: expYears,
+              serviceIds: _selectedServiceIds.toList(growable: false),
               isActive: _isActive,
               bio: _bioController.text.trim(),
               galleryUrls: List.of(_galleryUrls),
