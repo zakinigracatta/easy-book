@@ -136,8 +136,16 @@ export const updateBookingStatus = onCall(async (request) => {
         startAt,
         endAt
       );
+      const ownedLockRefs: admin.firestore.DocumentReference[] = [];
       for (const lock of lockObjects) {
-        transaction.delete(db.collection('booking_slots').doc(lock.lockId));
+        const lockRef = db.collection('booking_slots').doc(lock.lockId);
+        const lockSnap = await transaction.get(lockRef);
+        if (lockSnap.exists && lockSnap.data()?.bookingId === bookingId) {
+          ownedLockRefs.push(lockRef);
+        }
+      }
+      for (const lockRef of ownedLockRefs) {
+        transaction.delete(lockRef);
       }
     }
 
