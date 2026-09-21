@@ -24,19 +24,22 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Future<_AdminStats> _loadStats() async {
     final db = FirebaseFirestore.instance;
     final users = await db.collection('users').count().get();
-    final businesses = await db.collection('businesses').count().get();
-    final pending = await db
-        .collection('businesses')
-        .where('is_verified', isEqualTo: false)
-        .where('is_active', isEqualTo: true)
-        .count()
-        .get();
+    final businessDocs = await db.collection('businesses').get();
     final bookings = await db.collection('bookings').count().get();
+
+    final pendingApprovals = businessDocs.docs.where((doc) {
+      final data = doc.data();
+      final isVerified =
+          data['is_verified'] == true || data['isVerified'] == true;
+      final isActive =
+          data['is_active'] == true || data['isActive'] == true;
+      return !isVerified && isActive;
+    }).length;
 
     return _AdminStats(
       users: users.count ?? 0,
-      businesses: businesses.count ?? 0,
-      pendingApprovals: pending.count ?? 0,
+      businesses: businessDocs.size,
+      pendingApprovals: pendingApprovals,
       bookings: bookings.count ?? 0,
     );
   }
