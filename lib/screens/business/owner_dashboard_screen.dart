@@ -58,11 +58,14 @@ class OwnerDashboardScreen extends ConsumerWidget {
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(ownerBusinessProvider);
-              ref.invalidate(ownerBookingsProvider);
               ref.invalidate(ownerNotificationsProvider);
               ref.invalidate(ownerTodayProfitAndLossProvider);
-              await Future<void>.delayed(Duration.zero);
+              await Future.wait<void>([
+                ref.read(ownerBusinessProvider.notifier).loadBusiness(),
+                ref.read(ownerBookingsProvider.notifier).loadBookings(),
+                ref.read(ownerNotificationsProvider.future).then((_) {}),
+                ref.read(ownerTodayProfitAndLossProvider.future).then((_) {}),
+              ]);
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -555,13 +558,14 @@ class OwnerDashboardScreen extends ConsumerWidget {
       data: (bookings) {
         final now = BusinessClock.now(timeZone);
         final upcoming = bookings
-            .where(
-              (booking) =>
-                  booking.startDateTime.isAfter(now) &&
+            .where((booking) {
+              final localStart =
+                  BusinessClock.inTimeZone(booking.startDateTime, timeZone);
+              return localStart.isAfter(now) &&
                   booking.status != BookingStatus.cancelled &&
                   booking.status != BookingStatus.completed &&
-                  booking.status != BookingStatus.noShow,
-            )
+                  booking.status != BookingStatus.noShow;
+            })
             .toList()
           ..sort(
             (a, b) => a.startDateTime.compareTo(b.startDateTime),
@@ -571,9 +575,9 @@ class OwnerDashboardScreen extends ConsumerWidget {
         if (nextBookings.isEmpty) {
           return OwnerEmptyStateWidget(
             icon: Icons.event_available_rounded,
-            title: 'No Bookings Today',
+            title: 'No Upcoming Bookings',
             description:
-                "You're all clear for now. New bookings will appear here.",
+                'Future customer bookings will appear here.',
             actionLabel: 'Create Walk-in',
             onActionTap: () => context.push('/quick-walk-in'),
           );
