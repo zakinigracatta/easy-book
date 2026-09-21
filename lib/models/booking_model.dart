@@ -20,6 +20,8 @@ class BookingModel {
   final String serviceId;
   final String serviceName;
   final double servicePrice;
+  final String currency;
+  final String timeZone;
   final String staffId;
   final String staffName;
   final DateTime startDateTime;
@@ -43,6 +45,8 @@ class BookingModel {
     required this.serviceId,
     required this.serviceName,
     required this.servicePrice,
+    this.currency = 'AED',
+    this.timeZone = 'Asia/Dubai',
     required this.staffId,
     required this.staffName,
     required this.startDateTime,
@@ -110,6 +114,8 @@ class BookingModel {
       servicePrice: (json['servicePrice'] as num?)?.toDouble() ??
           (json['service_price'] as num?)?.toDouble() ??
           0.0,
+      currency: (json['currency'] ?? 'AED').toString(),
+      timeZone: (json['timeZone'] ?? json['timezone'] ?? 'Asia/Dubai').toString(),
       staffId:
           json['staffId'] as String? ?? json['staff_id'] as String? ?? '',
       staffName: json['staffName'] as String? ??
@@ -149,6 +155,8 @@ class BookingModel {
       'serviceId': serviceId,
       'serviceName': serviceName,
       'servicePrice': servicePrice,
+      'currency': currency,
+      'timeZone': timeZone,
       'staffId': staffId,
       'staffName': staffName,
       'startDateTime': startDateTime.toIso8601String(),
@@ -175,6 +183,8 @@ class BookingModel {
       'serviceId': serviceId,
       'serviceName': serviceName,
       'servicePrice': servicePrice,
+      'currency': currency,
+      'timeZone': timeZone,
       'staffId': staffId,
       'staffName': staffName,
       'startDateTime': Timestamp.fromDate(startDateTime),
@@ -204,6 +214,8 @@ class BookingModel {
     String? serviceId,
     String? serviceName,
     double? servicePrice,
+    String? currency,
+    String? timeZone,
     String? staffId,
     String? staffName,
     DateTime? startDateTime,
@@ -227,6 +239,8 @@ class BookingModel {
       serviceId: serviceId ?? this.serviceId,
       serviceName: serviceName ?? this.serviceName,
       servicePrice: servicePrice ?? this.servicePrice,
+      currency: currency ?? this.currency,
+      timeZone: timeZone ?? this.timeZone,
       staffId: staffId ?? this.staffId,
       staffName: staffName ?? this.staffName,
       startDateTime: startDateTime ?? this.startDateTime,
