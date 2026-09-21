@@ -220,7 +220,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               selectedServices: [selectedService],
                               resetStaffSelection:
                                   currentDraft.businessId != business.id ||
-                                      currentDraft.serviceId != selectedService.id,
+                                      (currentDraft.serviceId?.isNotEmpty == true &&
+                                          currentDraft.serviceId != selectedService.id),
                               resetAppointmentSelection: true,
                             );
                           } else {
@@ -301,7 +302,8 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   selectedServices: [service],
                   resetStaffSelection:
                       currentDraft.businessId != business.id ||
-                          currentDraft.serviceId != service.id,
+                          (currentDraft.serviceId?.isNotEmpty == true &&
+                              currentDraft.serviceId != service.id),
                   resetAppointmentSelection: true,
                 );
               } else {
