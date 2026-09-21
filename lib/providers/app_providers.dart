@@ -78,7 +78,6 @@ final availableSlotsEngineProvider = FutureProvider.family<
     specialistId: arg.specialistId,
     anySpecialist: arg.anySpecialist,
     date: arg.date,
-    employeeTimeOffs: snapshot.timeOffs,
     occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
   );
 });
@@ -141,7 +140,6 @@ final rescheduleSlotsProvider = FutureProvider.family<
     specialistId: arg.anySpecialist ? null : arg.staffId,
     anySpecialist: arg.anySpecialist,
     date: arg.date,
-    employeeTimeOffs: snapshot.timeOffs,
     occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
   );
 });
