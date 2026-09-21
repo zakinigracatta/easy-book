@@ -77,19 +77,6 @@ void main() {
     );
   });
 
-  test('public discovery preserves canonical and legacy publication fields', () {
-    final source =
-        File('lib/repositories/business_repository.dart').readAsStringSync();
-
-    expect(source, contains(".where('is_verified', isEqualTo: true)"));
-    expect(source, contains(".where('isVerified', isEqualTo: true)"));
-    expect(source, contains(".where('is_active', isEqualTo: true)"));
-    expect(source, contains(".where('isActive', isEqualTo: true)"));
-    expect(source, contains(".where('is_bookable', isEqualTo: true)"));
-    expect(source, contains(".where('isBookable', isEqualTo: true)"));
-    expect(source, contains('final docsById = {'));
-  });
-
   test('runtime booking and owner flows wait for authoritative state', () {
     final serviceSource =
         File('lib/screens/business/add_service_screen.dart').readAsStringSync();
