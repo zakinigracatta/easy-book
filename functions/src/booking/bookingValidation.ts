@@ -130,6 +130,15 @@ function nextLocalMidnightMs(date: Date, timeZone: string): number {
   return guess;
 }
 
+export function normalizeInclusiveTimeOffEndMs(
+  endDate: Date,
+  timeZone: string
+): number {
+  return zonedParts(endDate, timeZone).minuteOfDay === 0
+    ? nextLocalMidnightMs(endDate, timeZone)
+    : endDate.getTime();
+}
+
 export function validateMaximumAdvanceDate(
   requestedAt: Date,
   timeZone: string,
@@ -573,19 +582,11 @@ export async function validateBookingRequirements(
 
     if (timeOff.endDate && typeof timeOff.endDate.toMillis === 'function') {
       const endDate = timeOff.endDate.toDate();
-      if (zonedParts(endDate, timeZone).minuteOfDay === 0) {
-        timeOffEndMs = nextLocalMidnightMs(endDate, timeZone);
-      } else {
-        timeOffEndMs = endDate.getTime();
-      }
+      timeOffEndMs = normalizeInclusiveTimeOffEndMs(endDate, timeZone);
     } else if (typeof timeOff.endDate === 'string') {
       const endDate = new Date(timeOff.endDate);
       if (!Number.isNaN(endDate.getTime())) {
-        if (zonedParts(endDate, timeZone).minuteOfDay === 0) {
-          timeOffEndMs = nextLocalMidnightMs(endDate, timeZone);
-        } else {
-          timeOffEndMs = endDate.getTime();
-        }
+        timeOffEndMs = normalizeInclusiveTimeOffEndMs(endDate, timeZone);
       }
     }
 
