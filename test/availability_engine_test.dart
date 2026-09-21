@@ -309,5 +309,46 @@ void main() {
       expect(slots, isEmpty);
     });
 
+    test('14. Invalid staff schedule times fail closed', () async {
+      final invalidScheduleStaff = StaffModel(
+        id: 'st_invalid_schedule',
+        businessId: 'biz_1',
+        name: 'Invalid Schedule Specialist',
+        roleTitle: 'Barber',
+        avatarUrl: '',
+        rating: 5.0,
+        isActive: true,
+        weeklySchedule: const {
+          'Monday': StaffWorkingHours(
+            dayName: 'Monday',
+            openTime: 'not-a-time',
+            closeTime: '06:00 PM',
+            isWorking: true,
+          ),
+        },
+      );
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness,
+        selectedServices: [testService],
+        allStaff: [invalidScheduleStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots, isEmpty);
+    });
+
+    test('15. Partial weekly schedule parsing fails closed', () {
+      final parsed = StaffWorkingHours.fromJson(
+        'Monday',
+        <String, dynamic>{'is_working': true},
+      );
+
+      expect(parsed.isWorking, isTrue);
+      expect(parsed.openTime, isEmpty);
+      expect(parsed.closeTime, isEmpty);
+    });
+
   });
 }
