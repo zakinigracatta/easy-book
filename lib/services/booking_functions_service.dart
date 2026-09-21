@@ -311,13 +311,16 @@ class BookingFunctionsService {
     if (msg.contains('INVALID_CANONICAL_ALIGNMENT') ||
         msg.contains('START_TIME_IN_PAST') ||
         msg.contains('START_TIME_TOO_SOON') ||
+        msg.contains('START_TIME_TOO_FAR') ||
         msg.contains('INVALID_BOOKING_INTERVAL')) {
       return InvalidBookingTimeException(
         msg.contains('START_TIME_TOO_SOON')
             ? 'Please select an appointment at least 30 minutes from now.'
-            : msg.contains('START_TIME_IN_PAST')
-                ? 'Please select a future appointment time.'
-                : 'Appointment start time must be aligned to 15-minute intervals.',
+            : msg.contains('START_TIME_TOO_FAR')
+                ? 'Please select an appointment within the next 60 days.'
+                : msg.contains('START_TIME_IN_PAST')
+                    ? 'Please select a future appointment time.'
+                    : 'Appointment start time must be aligned to 15-minute intervals.',
       );
     }
 
