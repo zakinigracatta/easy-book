@@ -57,6 +57,9 @@ class _BookingConfirmationScreenState
     }
 
     final draft = ref.read(bookingDraftProvider);
+    final totalCurrency = draft.selectedServices.isNotEmpty
+        ? draft.selectedServices.first.currency
+        : 'AED';
     if (!draft.isComplete || draft.date == null || draft.timeSlot == null) {
       _showMessage('Please complete all booking details before confirming.');
       return;
@@ -138,6 +141,7 @@ class _BookingConfirmationScreenState
       serviceId: serviceId,
       serviceName: serviceName.isEmpty ? 'Service' : serviceName,
       servicePrice: draft.totalPrice,
+      currency: totalCurrency,
       staffId: staffId,
       staffName: staffName,
       startDateTime: startDateTime,
@@ -229,6 +233,9 @@ class _BookingConfirmationScreenState
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(bookingDraftProvider);
+    final totalCurrency = draft.selectedServices.isNotEmpty
+        ? draft.selectedServices.first.currency
+        : 'AED';
     final dateStr = draft.date == null
         ? context.tr('Not selected')
         : MaterialLocalizations.of(context).formatFullDate(draft.date!);
@@ -282,7 +289,10 @@ class _BookingConfirmationScreenState
                     const Divider(height: 24),
                     _row(
                       'Total Price',
-                      CurrencyFormatter.format(draft.totalPrice),
+                      CurrencyFormatter.format(
+                        draft.totalPrice,
+                        currency: totalCurrency,
+                      ),
                       isBold: true,
                       forceLtr: true,
                     ),
