@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain_exceptions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/staff_model.dart';
 import '../../providers/owner_providers.dart';
@@ -540,6 +541,20 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       final businessId = await _businessId();
       final expYears = int.tryParse(_experienceController.text.trim()) ?? 0;
       final existing = widget.initialStaff;
+      final servicesState = ref.read(ownerServicesProvider);
+      final loadedServices = servicesState.value;
+      final serviceIdsToSave = loadedServices == null
+          ? _selectedServiceIds.toList(growable: false)
+          : _selectedServiceIds
+              .where(
+                (id) => loadedServices.any(
+                  (service) =>
+                      service.id == id &&
+                      service.isActive &&
+                      service.isBookable,
+                ),
+              )
+              .toList(growable: false);
 
       final staff = existing == null
           ? StaffModel(
@@ -551,7 +566,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
               rating: 0,
               reviewCount: 0,
               experienceYears: expYears,
-              serviceIds: _selectedServiceIds.toList(growable: false),
+              serviceIds: serviceIdsToSave,
               isActive: _isActive,
               bio: _bioController.text.trim(),
               galleryUrls: List.of(_galleryUrls),
@@ -561,7 +576,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
               roleTitle: _roleController.text.trim(),
               avatarUrl: _avatarUrlController.text.trim(),
               experienceYears: expYears,
-              serviceIds: _selectedServiceIds.toList(growable: false),
+              serviceIds: serviceIdsToSave,
               isActive: _isActive,
               bio: _bioController.text.trim(),
               galleryUrls: List.of(_galleryUrls),
@@ -584,6 +599,15 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       context.canPop()
           ? context.pop()
           : context.go('/employee-management');
+    } on DomainException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr(e.message)),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
