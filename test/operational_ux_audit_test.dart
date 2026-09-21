@@ -224,6 +224,45 @@ void main() {
     );
   });
 
+
+  test('admin business details honors canonical publication fields first', () {
+    final source = File(
+      'lib/features/admin/business_details_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains("business['is_verified'] is bool"));
+    expect(source, contains("business['is_active'] is bool"));
+    expect(
+      source,
+      isNot(contains(
+        "business['is_verified'] == true || business['isVerified'] == true",
+      )),
+    );
+  });
+
+  test('booking horizon error has specific customer feedback', () {
+    final source = File(
+      'lib/services/booking_functions_service.dart',
+    ).readAsStringSync();
+
+    expect(source, contains("msg.contains('START_TIME_TOO_FAR')"));
+    expect(
+      source,
+      contains('Please select an appointment within the next 60 days.'),
+    );
+  });
+
+  test('slot lock cleanup verifies booking ownership before deleting', () {
+    for (final path in [
+      'functions/src/booking/cancelBooking.ts',
+      'functions/src/booking/updateBookingStatus.ts',
+      'functions/src/booking/rescheduleBooking.ts',
+    ]) {
+      final source = File(path).readAsStringSync();
+      expect(source, contains("lockSnap.data()?.bookingId === bookingId"));
+    }
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
