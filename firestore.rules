@@ -57,10 +57,13 @@ service cloud.firestore {
     }
 
     function isPublishedBusiness(businessId) {
-      let biz = get(/databases/$(database)/documents/businesses/$(businessId)).data;
       return exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-        hasVerifiedPublicationState(biz) &&
-        hasActivePublicationState(biz);
+        hasVerifiedPublicationState(
+          get(/databases/$(database)/documents/businesses/$(businessId)).data
+        ) &&
+        hasActivePublicationState(
+          get(/databases/$(database)/documents/businesses/$(businessId)).data
+        );
     }
 
     function validExpenseCategory(category) {
