@@ -43,7 +43,21 @@ class BookingService {
         return BookingModel.fromJson(data);
       }).toList();
 
-      list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
+      final now = DateTime.now();
+      int bookingGroup(BookingModel booking) {
+        final isUpcoming = booking.startDateTime.isAfter(now) &&
+            (booking.status == BookingStatus.pending ||
+                booking.status == BookingStatus.confirmed);
+        return isUpcoming ? 0 : 1;
+      }
+
+      list.sort((a, b) {
+        final groupCompare = bookingGroup(a).compareTo(bookingGroup(b));
+        if (groupCompare != 0) return groupCompare;
+        return bookingGroup(a) == 0
+            ? a.startDateTime.compareTo(b.startDateTime)
+            : b.startDateTime.compareTo(a.startDateTime);
+      });
       return list;
     } catch (e) {
       debugPrint('getBookings error: $e');
