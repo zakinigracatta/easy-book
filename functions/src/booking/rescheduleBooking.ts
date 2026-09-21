@@ -186,24 +186,29 @@ export const rescheduleBooking = onCall(async (request) => {
 
     const oldLockIds = new Set(oldLockObjects.map((lock) => lock.lockId));
     const newLockIds = new Set(newLockObjects.map((lock) => lock.lockId));
-    const locksToKeep = new Set(
-      [...oldLockIds].filter((lockId) => newLockIds.has(lockId))
-    );
     const locksToDelete = [...oldLockIds].filter(
       (lockId) => !newLockIds.has(lockId)
     );
-    const locksToCreate = newLockObjects.filter(
-      (lock) => !locksToKeep.has(lock.lockId)
-    );
 
-    for (const lock of locksToCreate) {
+    const missingNewLocks: Array<{
+      ref: admin.firestore.DocumentReference;
+      lock: (typeof newLockObjects)[number];
+    }> = [];
+
+    // Every target lock is authoritative. Do not assume an overlapping old
+    // lock still exists just because its deterministic ID is unchanged.
+    for (const lock of newLockObjects) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
       const lockSnap = await transaction.get(lockRef);
-      if (lockSnap.exists && lockSnap.data()?.bookingId !== bookingId) {
-        throw new HttpsError(
-          'already-exists',
-          'SLOT_CONFLICT: The target time slot is already booked by another customer.'
-        );
+      if (lockSnap.exists) {
+        if (lockSnap.data()?.bookingId !== bookingId) {
+          throw new HttpsError(
+            'already-exists',
+            'SLOT_CONFLICT: The target time slot is already booked by another customer.'
+          );
+        }
+      } else {
+        missingNewLocks.push({ ref: lockRef, lock });
       }
     }
 
@@ -215,19 +220,19 @@ export const rescheduleBooking = onCall(async (request) => {
         ownedOldLockRefs.push(lockRef);
       }
     }
+
     for (const lockRef of ownedOldLockRefs) {
       transaction.delete(lockRef);
     }
 
-    for (const lock of locksToCreate) {
-      const lockRef = db.collection('booking_slots').doc(lock.lockId);
-      transaction.set(lockRef, {
-        slotId: lock.lockId,
+    for (const item of missingNewLocks) {
+      transaction.set(item.ref, {
+        slotId: item.lock.lockId,
         bookingId,
         businessId,
         staffId: targetStaffId,
-        startDateTime: admin.firestore.Timestamp.fromDate(lock.startDateTime),
-        startTimestamp: lock.startTimestamp,
+        startDateTime: admin.firestore.Timestamp.fromDate(item.lock.startDateTime),
+        startTimestamp: item.lock.startTimestamp,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
