@@ -263,6 +263,17 @@ void main() {
     }
   });
 
+
+  test('partial owner weekly schedules keep missing days off', () {
+    final source = File(
+      'lib/screens/business/employee_schedule_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('final hasWeeklySchedule = staff.weeklySchedule.isNotEmpty;'));
+    expect(source, contains('final working = hasWeeklySchedule'));
+    expect(source, contains('? false'));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
