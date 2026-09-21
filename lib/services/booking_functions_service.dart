@@ -20,6 +20,7 @@ class BookingFunctionsService {
     required String customerName,
     required String customerPhone,
     bool anySpecialist = false,
+    String? clientRequestId,
     String notes = '',
   }) async {
     try {
@@ -32,6 +33,8 @@ class BookingFunctionsService {
         'customerName': customerName,
         'customerPhone': customerPhone,
         'anySpecialist': anySpecialist,
+        if (clientRequestId != null && clientRequestId.trim().isNotEmpty)
+          'clientRequestId': clientRequestId.trim(),
         'notes': notes,
       });
 
@@ -42,6 +45,8 @@ class BookingFunctionsService {
       final timeZone = (resData['timeZone'] ?? 'Asia/Dubai').toString();
       final endDateTime =
           DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final resolvedStaffId = (resData['staffId'] ?? staffId).toString();
+      final resolvedStaffName = (resData['staffName'] ?? '').toString();
 
       return BookingModel(
         id: bookingId,
@@ -55,15 +60,16 @@ class BookingFunctionsService {
         servicePrice: servicePrice,
         currency: currency,
         timeZone: timeZone,
-        staffId: staffId,
-        staffName: '',
+        staffId: resolvedStaffId,
+        staffName: resolvedStaffName,
         startDateTime: requestedStartAt,
         endDateTime: endDateTime,
         status: BookingStatus.pending,
         bookingSource: 'app',
         notes: notes,
         slotLockId:
-            '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+            '${businessId}_${resolvedStaffId}_${requestedStartAt.millisecondsSinceEpoch}',
+        clientRequestId: clientRequestId,
         anySpecialist: anySpecialist,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
