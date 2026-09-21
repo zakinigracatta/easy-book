@@ -151,7 +151,7 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     const bookingSnap = await db.collection('bookings').doc(excludeBookingId).get();
     if (bookingSnap.exists) {
       const booking = bookingSnap.data() || {};
-      const ownerId = business.ownerId || business.owner_id;
+      const ownerId = business.owner_id ?? business.ownerId;
       const ownsBooking = booking.customerId === request.auth.uid;
       const ownsBusiness = ownerId === request.auth.uid;
       if (
