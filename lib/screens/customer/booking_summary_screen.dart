@@ -289,6 +289,9 @@ class BookingSummaryScreen extends ConsumerWidget {
   }
 
   static String _resolvedStaffName(BuildContext context, BookingDraft draft) {
+    if (draft.anySpecialist) {
+      return context.tr('Any Available Specialist');
+    }
     final resolved = draft.resolvedStaffName?.trim() ?? '';
     if (resolved.isNotEmpty) return resolved;
     final selected = draft.staffName?.trim() ?? '';
