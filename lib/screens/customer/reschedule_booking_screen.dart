@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain_exceptions.dart';
 import '../../core/utils/business_clock.dart';
 import '../../core/utils/formatters.dart';
 import '../../l10n/app_localizations.dart';
@@ -43,8 +44,25 @@ class _RescheduleBookingScreenState
     if (booking == null || slot == null) return;
 
     final newStartDateTime = slot.startAt;
+    final newStaffId = booking.anySpecialist
+        ? (slot.availableStaffIds.isNotEmpty
+            ? slot.availableStaffIds.first
+            : '')
+        : booking.staffId;
+    if (newStaffId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('No available specialist was resolved for this time slot.'),
+          ),
+        ),
+      );
+      return;
+    }
+
     if (booking.startDateTime.millisecondsSinceEpoch ==
-        newStartDateTime.millisecondsSinceEpoch) {
+            newStartDateTime.millisecondsSinceEpoch &&
+        booking.staffId == newStaffId) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -60,6 +78,7 @@ class _RescheduleBookingScreenState
       await ref.read(appointmentsProvider.notifier).rescheduleAppointment(
             bookingId: booking.id,
             newStartDateTime: newStartDateTime,
+            newStaffId: newStaffId,
           );
 
       if (!mounted) return;
@@ -72,6 +91,14 @@ class _RescheduleBookingScreenState
         ),
       );
       context.go('/my-bookings');
+    } on DomainException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr(e.message)),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -126,6 +153,7 @@ class _RescheduleBookingScreenState
         businessId: booking.businessId,
         serviceId: booking.serviceId,
         staffId: booking.staffId,
+        anySpecialist: booking.anySpecialist,
         date: effectiveSelectedDate,
       )),
     );
@@ -152,7 +180,9 @@ class _RescheduleBookingScreenState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${booking.serviceName} • ${context.tr('Specialist')}: ${booking.staffName}',
+                      booking.anySpecialist
+                          ? '${booking.serviceName} • ${context.tr('Specialist')}: ${context.tr('Any Available Specialist')}'
+                          : '${booking.serviceName} • ${context.tr('Specialist')}: ${booking.staffName}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 13,

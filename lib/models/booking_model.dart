@@ -26,6 +26,7 @@ class BookingModel {
   final DateTime endDateTime;
   final BookingStatus status;
   final String bookingSource; // 'app' or 'walkIn'
+  final bool anySpecialist;
   final String? notes;
   final String? ownerNotes;
   final String? slotLockId;
@@ -48,6 +49,7 @@ class BookingModel {
     required this.endDateTime,
     required this.status,
     this.bookingSource = 'app',
+    this.anySpecialist = false,
     this.notes,
     this.ownerNotes,
     this.slotLockId,
@@ -123,6 +125,9 @@ class BookingModel {
       bookingSource: json['bookingSource'] as String? ??
           json['booking_source'] as String? ??
           'app',
+      anySpecialist: json['anySpecialist'] as bool? ??
+          json['any_specialist'] as bool? ??
+          false,
       notes: json['notes'] as String?,
       ownerNotes:
           json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
@@ -153,6 +158,7 @@ class BookingModel {
       'startTimestamp': startTimestamp,
       'status': status.name,
       'bookingSource': bookingSource,
+      'anySpecialist': anySpecialist,
       if (notes != null) 'notes': notes,
       'slotLockId': computedSlotLockId,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
@@ -178,6 +184,7 @@ class BookingModel {
       'startTimestamp': startTimestamp,
       'status': status.name,
       'bookingSource': bookingSource,
+      'anySpecialist': anySpecialist,
       if (notes != null) 'notes': notes,
       'slotLockId': computedSlotLockId,
       'createdAt': createdAt != null
@@ -205,6 +212,7 @@ class BookingModel {
     DateTime? endDateTime,
     BookingStatus? status,
     String? bookingSource,
+    bool? anySpecialist,
     String? notes,
     String? ownerNotes,
     String? slotLockId,
@@ -227,6 +235,7 @@ class BookingModel {
       endDateTime: endDateTime ?? this.endDateTime,
       status: status ?? this.status,
       bookingSource: bookingSource ?? this.bookingSource,
+      anySpecialist: anySpecialist ?? this.anySpecialist,
       notes: notes ?? this.notes,
       ownerNotes: ownerNotes ?? this.ownerNotes,
       slotLockId: slotLockId ?? this.slotLockId,

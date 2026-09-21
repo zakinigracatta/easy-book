@@ -43,7 +43,21 @@ class BookingService {
         return BookingModel.fromJson(data);
       }).toList();
 
-      list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
+      final now = DateTime.now();
+      int bookingGroup(BookingModel booking) {
+        final isUpcoming = booking.startDateTime.isAfter(now) &&
+            (booking.status == BookingStatus.pending ||
+                booking.status == BookingStatus.confirmed);
+        return isUpcoming ? 0 : 1;
+      }
+
+      list.sort((a, b) {
+        final groupCompare = bookingGroup(a).compareTo(bookingGroup(b));
+        if (groupCompare != 0) return groupCompare;
+        return bookingGroup(a) == 0
+            ? a.startDateTime.compareTo(b.startDateTime)
+            : b.startDateTime.compareTo(a.startDateTime);
+      });
       return list;
     } catch (e) {
       debugPrint('getBookings error: $e');
@@ -94,6 +108,7 @@ class BookingService {
       requestedStartAt: booking.startDateTime,
       customerName: booking.customerName,
       customerPhone: booking.customerPhone ?? '',
+      anySpecialist: booking.anySpecialist,
       notes: booking.notes ?? '',
     );
   }
@@ -114,11 +129,13 @@ class BookingService {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newStartDateTime,
+    String? newStaffId,
   }) async {
     validateCanonical15MinAlignment(newStartDateTime);
     return _functionsService.rescheduleBooking(
       bookingId: bookingId,
       newRequestedStartAt: newStartDateTime,
+      newStaffId: newStaffId,
     );
   }
 

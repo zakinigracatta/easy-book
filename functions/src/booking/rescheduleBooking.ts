@@ -19,6 +19,8 @@ export const rescheduleBooking = onCall(async (request) => {
   const bookingId =
     typeof data.bookingId === 'string' ? data.bookingId.trim() : '';
   const newRequestedStartRaw = data.newRequestedStartAt;
+  const requestedNewStaffId =
+    typeof data.newStaffId === 'string' ? data.newStaffId.trim() : '';
 
   if (
     !bookingId ||
@@ -63,6 +65,8 @@ export const rescheduleBooking = onCall(async (request) => {
     const businessId = bookingData.businessId;
     const serviceId = bookingData.serviceId;
     const staffId = bookingData.staffId;
+    const anySpecialist =
+      bookingData.anySpecialist === true || bookingData.any_specialist === true;
     const customerId = bookingData.customerId;
     const currentStatus = bookingData.status;
 
@@ -91,6 +95,17 @@ export const rescheduleBooking = onCall(async (request) => {
         'permission-denied',
         'PERMISSION_DENIED: You are not authorized to reschedule this booking.'
       );
+    }
+
+    let targetStaffId = staffId;
+    if (requestedNewStaffId && requestedNewStaffId !== staffId) {
+      if (actor === 'customer' && !anySpecialist) {
+        throw new HttpsError(
+          'permission-denied',
+          'STAFF_CHANGE_NOT_ALLOWED: This booking was made with a specific specialist.'
+        );
+      }
+      targetStaffId = requestedNewStaffId;
     }
 
     let oldStartAt: Date;
@@ -126,7 +141,7 @@ export const rescheduleBooking = onCall(async (request) => {
       transaction,
       businessId,
       serviceId,
-      staffId,
+      targetStaffId,
       newStartAt
     );
 
@@ -138,7 +153,7 @@ export const rescheduleBooking = onCall(async (request) => {
     );
     const newLockObjects = generateIntervalSlotLockIds(
       businessId,
-      staffId,
+      targetStaffId,
       newStartAt,
       context.calculatedEndAt
     );
@@ -176,7 +191,7 @@ export const rescheduleBooking = onCall(async (request) => {
         slotId: lock.lockId,
         bookingId,
         businessId,
-        staffId,
+        staffId: targetStaffId,
         startDateTime: admin.firestore.Timestamp.fromDate(lock.startDateTime),
         startTimestamp: lock.startTimestamp,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -190,6 +205,8 @@ export const rescheduleBooking = onCall(async (request) => {
       endDateTime: admin.firestore.Timestamp.fromDate(context.calculatedEndAt),
       startTimestamp: newStartAt.getTime(),
       slotLockId: primarySlotLockId,
+      staffId: targetStaffId,
+      staffName: context.staffName,
       status: nextStatus,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
@@ -199,6 +216,8 @@ export const rescheduleBooking = onCall(async (request) => {
       bookingId,
       startDateTime: newStartAt.toISOString(),
       endDateTime: context.calculatedEndAt.toISOString(),
+      staffId: targetStaffId,
+      staffName: context.staffName,
       status: nextStatus,
     };
   });

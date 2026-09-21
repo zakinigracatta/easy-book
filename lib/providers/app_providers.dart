@@ -89,9 +89,12 @@ final rescheduleSlotsProvider = FutureProvider.family<
       String businessId,
       String serviceId,
       String staffId,
+      bool anySpecialist,
       DateTime date,
     })>((ref, arg) async {
-  if (arg.businessId.isEmpty || arg.serviceId.isEmpty || arg.staffId.isEmpty) {
+  if (arg.businessId.isEmpty ||
+      arg.serviceId.isEmpty ||
+      (!arg.anySpecialist && arg.staffId.isEmpty)) {
     return [];
   }
 
@@ -110,24 +113,31 @@ final rescheduleSlotsProvider = FutureProvider.family<
   if (selectedServices.isEmpty) return [];
 
   final staff = await repo.fetchStaff(arg.businessId);
-  final selectedStaff =
-      staff.where((employee) => employee.id == arg.staffId).toList();
-  if (selectedStaff.isEmpty) return [];
+  final eligibleStaff = BookingAvailabilityEngine.filterEligibleStaff(
+    staff,
+    selectedServices,
+  );
+  final targetStaff = arg.anySpecialist
+      ? eligibleStaff
+      : eligibleStaff
+          .where((employee) => employee.id == arg.staffId)
+          .toList();
+  if (targetStaff.isEmpty) return [];
 
   final availabilityService = ref.watch(availabilityServiceProvider);
   final snapshot = await availabilityService.getAvailabilitySnapshot(
     business: business,
     date: arg.date,
-    staffIds: [arg.staffId],
+    staffIds: targetStaff.map((employee) => employee.id).toList(),
   );
 
   final engine = ref.watch(availabilityEngineProvider);
   return engine.computeAvailableSlots(
     business: business,
     selectedServices: selectedServices,
-    allStaff: selectedStaff,
-    specialistId: arg.staffId,
-    anySpecialist: false,
+    allStaff: targetStaff,
+    specialistId: arg.anySpecialist ? null : arg.staffId,
+    anySpecialist: arg.anySpecialist,
     date: arg.date,
     employeeTimeOffs: snapshot.timeOffs,
     occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
@@ -407,10 +417,12 @@ class AppointmentsNotifier
   Future<BookingModel> rescheduleAppointment({
     required String bookingId,
     required DateTime newStartDateTime,
+    String? newStaffId,
   }) async {
     final updated = await _repository.rescheduleBooking(
       bookingId: bookingId,
       newStartDateTime: newStartDateTime,
+      newStaffId: newStaffId,
     );
     await loadAppointments();
     return updated;
