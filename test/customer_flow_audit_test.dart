@@ -39,7 +39,11 @@ void main() {
 
     expect(
       serviceScreen,
-      contains('resetStaffSelection: currentDraft.serviceId != selected.id'),
+      contains('currentDraft.serviceId?.isNotEmpty == true'),
+    );
+    expect(
+      serviceScreen,
+      contains('currentDraft.serviceId != selected.id'),
     );
     expect(
       salonDetails,
