@@ -233,4 +233,5 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Unable to update booking availability. Please try again.': 'تعذر تحديث حالة توفر الحجز. حاول مرة أخرى.',
   'Please select a time in 15-minute increments.': 'يرجى اختيار وقت بفواصل 15 دقيقة.',
   'Business details are still loading. Please try again.': 'تفاصيل النشاط ما زالت قيد التحميل. حاول مرة أخرى.',
+  'The selected specialist is no longer available for this service.': 'المختص المحدد لم يعد متاحًا لهذه الخدمة.',
 };
