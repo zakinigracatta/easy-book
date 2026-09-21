@@ -3,15 +3,12 @@ import 'package:timezone/timezone.dart' show TZDateTime;
 
 import '../core/utils/business_clock.dart';
 import '../models/business_model.dart';
-import '../models/employee_time_off_model.dart';
 
 class AvailabilitySnapshot {
   const AvailabilitySnapshot({
-    required this.timeOffs,
     required this.occupiedSlotsByStaff,
   });
 
-  final List<EmployeeTimeOffModel> timeOffs;
   final Map<String, Set<int>> occupiedSlotsByStaff;
 }
 
@@ -36,7 +33,6 @@ class AvailabilityService {
 
     if (normalizedBusinessId.isEmpty || normalizedStaffIds.isEmpty) {
       return const AvailabilitySnapshot(
-        timeOffs: [],
         occupiedSlotsByStaff: {},
       );
     }
@@ -70,53 +66,18 @@ class AvailabilityService {
     }
 
     final payload = Map<String, dynamic>.from(response.data as Map);
-    if (payload['blocks'] is! List || payload['occupiedSlots'] is! List) {
+    if (payload['unavailableSlots'] is! List) {
       throw StateError('Availability service returned incomplete scheduling data.');
     }
 
-    final timeOffs = _parseTimeOffs(
-      payload['blocks'],
-      businessId: normalizedBusinessId,
-    );
-    final occupied = _parseOccupiedSlots(payload['occupiedSlots']);
+    final occupied = _parseUnavailableSlots(payload['unavailableSlots']);
 
     return AvailabilitySnapshot(
-      timeOffs: timeOffs,
       occupiedSlotsByStaff: occupied,
     );
   }
 
-  List<EmployeeTimeOffModel> _parseTimeOffs(
-    dynamic rawBlocks, {
-    required String businessId,
-  }) {
-    if (rawBlocks is! List) return const [];
-
-    final result = <EmployeeTimeOffModel>[];
-    for (final item in rawBlocks) {
-      if (item is! Map) continue;
-      final data = Map<String, dynamic>.from(item);
-      final employeeId = (data['employeeId'] ?? '').toString().trim();
-      final start = DateTime.tryParse((data['startDate'] ?? '').toString());
-      final end = DateTime.tryParse((data['endDate'] ?? '').toString());
-      if (employeeId.isEmpty || start == null || end == null) continue;
-
-      result.add(
-        EmployeeTimeOffModel(
-          id: (data['id'] ?? '').toString(),
-          businessId: businessId,
-          employeeId: employeeId,
-          employeeName: '',
-          startDate: start,
-          endDate: end,
-          reason: '',
-        ),
-      );
-    }
-    return result;
-  }
-
-  Map<String, Set<int>> _parseOccupiedSlots(dynamic rawSlots) {
+  Map<String, Set<int>> _parseUnavailableSlots(dynamic rawSlots) {
     if (rawSlots is! List) return const {};
 
     final result = <String, Set<int>>{};
