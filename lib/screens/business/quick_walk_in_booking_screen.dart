@@ -230,7 +230,7 @@ class _QuickWalkInBookingScreenState
                               return DropdownMenuItem(
                                 value: s,
                                 child: Text(
-                                  '${s.name} (AED ${s.effectivePrice.toStringAsFixed(0)} • ${s.duration})',
+                                  '${s.name} (${s.currency} ${s.effectivePrice.toStringAsFixed(0)} • ${s.duration})',
                                   style: TextStyle(
                                       color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 13),
