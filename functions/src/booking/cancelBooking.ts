@@ -51,7 +51,7 @@ export const cancelBooking = onCall(async (request) => {
       const bizSnap = await transaction.get(bizRef);
       if (bizSnap.exists) {
         const bizData = bizSnap.data() || {};
-        const ownerId = bizData.ownerId || bizData.owner_id;
+        const ownerId = bizData.owner_id ?? bizData.ownerId;
         if (ownerId === callerUid) cancelledBy = 'owner';
       }
     }
