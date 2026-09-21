@@ -6,6 +6,17 @@ import '../../core/constants/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import 'admin_localization.dart';
 
+bool _canonicalPublicationBool(
+  Map<String, dynamic> data,
+  String canonicalField,
+  String legacyField,
+) {
+  final canonical = data[canonicalField];
+  if (canonical is bool) return canonical;
+  final legacy = data[legacyField];
+  return legacy is bool ? legacy : false;
+}
+
 class BusinessManagementScreen extends StatefulWidget {
   const BusinessManagementScreen({super.key});
 
@@ -142,8 +153,11 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
 
                   final filtered = allDocs.where((doc) {
                     final data = doc.data();
-                    final isVerified = data['is_verified'] == true ||
-                        data['isVerified'] == true;
+                    final isVerified = _canonicalPublicationBool(
+                        data,
+                        'is_verified',
+                        'isVerified',
+                      );
 
                     if (_verifiedFilter != null &&
                         isVerified != _verifiedFilter) {
@@ -203,10 +217,16 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                       final name = (data['name'] ?? 'نشاط تجاري').toString();
                       final category = (data['category'] ?? '').toString();
                       final address = (data['address'] ?? '').toString();
-                      final isVerified = data['is_verified'] == true ||
-                          data['isVerified'] == true;
-                      final isActive = data['is_active'] == true ||
-                          data['isActive'] == true;
+                      final isVerified = _canonicalPublicationBool(
+                        data,
+                        'is_verified',
+                        'isVerified',
+                      );
+                      final isActive = _canonicalPublicationBool(
+                        data,
+                        'is_active',
+                        'isActive',
+                      );
                       final statusLabel = isVerified
                           ? adminText(context, 'Approved', 'معتمد')
                           : isActive
