@@ -143,6 +143,7 @@ class _BookingConfirmationScreenState
       startDateTime: startDateTime,
       endDateTime: endDateTime,
       status: BookingStatus.pending,
+      anySpecialist: draft.anySpecialist,
       slotLockId: slotLockId,
     );
 
