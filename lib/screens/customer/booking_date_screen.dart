@@ -42,19 +42,6 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
     final draft = ref.watch(bookingDraftProvider);
     final businessState =
         ref.watch(businessDetailProvider(draft.businessId ?? ''));
-    final business = businessState.maybeWhen(
-      data: (value) => value,
-      orElse: () => null,
-    );
-    final businessToday =
-        BusinessClock.calendarToday(business?.timeZone ?? 'Asia/Dubai');
-    final effectiveSelectedDate =
-        !_hasUserSelectedDate && draft.date == null
-            ? businessToday
-            : (_selectedDate.isBefore(businessToday)
-                ? businessToday
-                : _selectedDate);
-
     return PopScope(
       canPop: context.canPop(),
       onPopInvokedWithResult: (didPop, result) {
@@ -71,29 +58,51 @@ class _BookingDateScreenState extends ConsumerState<BookingDateScreen> {
           ),
           title: Text(context.tr('Select Appointment Date')),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const BookingProgressHeader(currentStep: 2),
-              const SizedBox(height: 20),
-              BookingDateSelector(
-                selectedDate: effectiveSelectedDate,
-                today: businessToday,
-                onDateSelected: (date) => setState(() {
-                  _selectedDate = date;
-                  _hasUserSelectedDate = true;
-                }),
-              ),
-              const SizedBox(height: 24),
-              const Spacer(),
-              CustomButton(
-                text: 'Next: Select Time Slot',
-                onPressed: () => _onNext(effectiveSelectedDate),
-              ),
-            ],
+        body: businessState.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => Center(
+            child: Text(
+              context.tr('Unable to load the business details. Please try again.'),
+              textAlign: TextAlign.center,
+            ),
           ),
+          data: (business) {
+            if (business == null) {
+              return Center(child: Text(context.tr('Salon not found.')));
+            }
+            final businessToday = BusinessClock.calendarToday(business.timeZone);
+            final effectiveSelectedDate =
+                !_hasUserSelectedDate && draft.date == null
+                    ? businessToday
+                    : (_selectedDate.isBefore(businessToday)
+                        ? businessToday
+                        : _selectedDate);
+
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const BookingProgressHeader(currentStep: 2),
+                  const SizedBox(height: 20),
+                  BookingDateSelector(
+                    selectedDate: effectiveSelectedDate,
+                    today: businessToday,
+                    onDateSelected: (date) => setState(() {
+                      _selectedDate = date;
+                      _hasUserSelectedDate = true;
+                    }),
+                  ),
+                  const SizedBox(height: 24),
+                  const Spacer(),
+                  CustomButton(
+                    text: 'Next: Select Time Slot',
+                    onPressed: () => _onNext(effectiveSelectedDate),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
