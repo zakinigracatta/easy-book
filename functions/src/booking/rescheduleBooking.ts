@@ -8,6 +8,7 @@ import {
   validateBookingRequirements,
   validateMaximumAdvanceDate,
 } from './bookingValidation';
+import { resolveAnyAvailableStaff } from './staffResolution';
 
 export const rescheduleBooking = onCall(async (request) => {
   if (!request.auth) {
@@ -119,7 +120,9 @@ export const rescheduleBooking = onCall(async (request) => {
       );
     }
 
+    const customerUsesAnySpecialist = actor === 'customer' && anySpecialist;
     let targetStaffId = staffId;
+
     if (requestedNewStaffId && requestedNewStaffId !== staffId) {
       if (actor === 'customer' && !anySpecialist) {
         throw new HttpsError(
@@ -127,7 +130,9 @@ export const rescheduleBooking = onCall(async (request) => {
           'STAFF_CHANGE_NOT_ALLOWED: This booking was made with a specific specialist.'
         );
       }
-      targetStaffId = requestedNewStaffId;
+      if (!customerUsesAnySpecialist) {
+        targetStaffId = requestedNewStaffId;
+      }
     }
 
     let oldStartAt: Date;
@@ -150,7 +155,7 @@ export const rescheduleBooking = onCall(async (request) => {
 
     if (
       oldStartAt.getTime() === newStartAt.getTime() &&
-      targetStaffId === staffId
+      (customerUsesAnySpecialist || targetStaffId === staffId)
     ) {
       throw new HttpsError(
         'failed-precondition',
@@ -168,14 +173,37 @@ export const rescheduleBooking = onCall(async (request) => {
       oldEndAt = new Date(oldStartAt.getTime() + duration * 60 * 1000);
     }
 
-    const context = await validateBookingRequirements(
-      db,
-      transaction,
-      businessId,
-      serviceId,
-      targetStaffId,
-      newStartAt
-    );
+    let context: Awaited<ReturnType<typeof validateBookingRequirements>>;
+    let newLockObjects: ReturnType<typeof generateIntervalSlotLockIds>;
+
+    if (customerUsesAnySpecialist) {
+      const resolved = await resolveAnyAvailableStaff(db, transaction, {
+        businessId,
+        serviceId,
+        requestedStartAt: newStartAt,
+        seed: `${bookingId}:${newStartAt.toISOString()}`,
+        existingBookingId: bookingId,
+      });
+      targetStaffId = resolved.staffId;
+      context = resolved.context;
+      newLockObjects = resolved.lockObjects;
+    } else {
+      context = await validateBookingRequirements(
+        db,
+        transaction,
+        businessId,
+        serviceId,
+        targetStaffId,
+        newStartAt
+      );
+      newLockObjects = generateIntervalSlotLockIds(
+        businessId,
+        targetStaffId,
+        newStartAt,
+        context.calculatedEndAt
+      );
+    }
+
     if (actor === 'customer') {
       validateMaximumAdvanceDate(newStartAt, context.timeZone);
     }
@@ -185,12 +213,6 @@ export const rescheduleBooking = onCall(async (request) => {
       staffId,
       oldStartAt,
       oldEndAt
-    );
-    const newLockObjects = generateIntervalSlotLockIds(
-      businessId,
-      targetStaffId,
-      newStartAt,
-      context.calculatedEndAt
     );
 
     const oldLockIds = new Set(oldLockObjects.map((lock) => lock.lockId));
