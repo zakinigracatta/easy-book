@@ -166,4 +166,24 @@ void main() {
     expect(client, contains("msg.contains('START_TIME_TOO_SOON')"));
   });
 
+  test('any-specialist legacy flag cannot override current explicit false', () {
+    final model = File('lib/models/booking_model.dart').readAsStringSync();
+    final backend = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(model, contains("json['anySpecialist'] is bool"));
+    expect(
+      backend,
+      contains("typeof bookingData.anySpecialist === 'boolean'"),
+    );
+    expect(
+      backend,
+      isNot(contains(
+        "bookingData.anySpecialist === true || bookingData.any_specialist === true",
+      )),
+    );
+  });
+
+
 }
