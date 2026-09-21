@@ -85,9 +85,13 @@ class BookingAvailabilityEngine {
     final dailyHours = business.workingHours.schedule[dayName];
     if (dailyHours == null || dailyHours.isClosed) return [];
 
-    final bOpenMinutes = _parseTimeStringToMinutes(dailyHours.openTime);
-    final bCloseMinutes = _parseTimeStringToMinutes(dailyHours.closeTime);
-    if (bCloseMinutes <= bOpenMinutes) return [];
+    final bOpenMinutes = _tryParseTimeStringToMinutes(dailyHours.openTime);
+    final bCloseMinutes = _tryParseTimeStringToMinutes(dailyHours.closeTime);
+    if (bOpenMinutes == null ||
+        bCloseMinutes == null ||
+        bCloseMinutes <= bOpenMinutes) {
+      return [];
+    }
 
     final eligibleStaff = filterEligibleStaff(allStaff, selectedServices);
     if (eligibleStaff.isEmpty) return [];
@@ -209,25 +213,35 @@ class BookingAvailabilityEngine {
     }
 
     final staffShiftStartMin = perDaySchedule != null
-        ? _parseTimeStringToMinutes(perDaySchedule.openTime)
+        ? _tryParseTimeStringToMinutes(perDaySchedule.openTime)
         : (staff.shiftStart?.trim().isNotEmpty == true
-            ? _parseTimeStringToMinutes(staff.shiftStart!)
+            ? _tryParseTimeStringToMinutes(staff.shiftStart!)
             : bOpenMinutes);
     final staffShiftEndMin = perDaySchedule != null
-        ? _parseTimeStringToMinutes(perDaySchedule.closeTime)
+        ? _tryParseTimeStringToMinutes(perDaySchedule.closeTime)
         : (staff.shiftEnd?.trim().isNotEmpty == true
-            ? _parseTimeStringToMinutes(staff.shiftEnd!)
+            ? _tryParseTimeStringToMinutes(staff.shiftEnd!)
             : bCloseMinutes);
 
-    if (candStartMin < staffShiftStartMin || candEndMin > staffShiftEndMin) {
+    if (staffShiftStartMin == null ||
+        staffShiftEndMin == null ||
+        staffShiftEndMin <= staffShiftStartMin ||
+        candStartMin < staffShiftStartMin ||
+        candEndMin > staffShiftEndMin) {
       return false;
     }
 
     if (perDaySchedule?.breakStart != null &&
         perDaySchedule?.breakEnd != null) {
       final breakStartMin =
-          _parseTimeStringToMinutes(perDaySchedule!.breakStart!);
-      final breakEndMin = _parseTimeStringToMinutes(perDaySchedule.breakEnd!);
+          _tryParseTimeStringToMinutes(perDaySchedule!.breakStart!);
+      final breakEndMin =
+          _tryParseTimeStringToMinutes(perDaySchedule.breakEnd!);
+      if (breakStartMin == null ||
+          breakEndMin == null ||
+          breakEndMin <= breakStartMin) {
+        return false;
+      }
       if (candStartMin < breakEndMin && candEndMin > breakStartMin) {
         return false;
       }
@@ -267,8 +281,15 @@ class BookingAvailabilityEngine {
 
     for (final staffBreak in staffBreaks) {
       if (staffBreak.staffId != staff.id) continue;
-      final breakStartMin = _parseTimeStringToMinutes(staffBreak.startTime);
-      final breakEndMin = _parseTimeStringToMinutes(staffBreak.endTime);
+      final breakStartMin =
+          _tryParseTimeStringToMinutes(staffBreak.startTime);
+      final breakEndMin =
+          _tryParseTimeStringToMinutes(staffBreak.endTime);
+      if (breakStartMin == null ||
+          breakEndMin == null ||
+          breakEndMin <= breakStartMin) {
+        return false;
+      }
       if (candStartMin < breakEndMin && candEndMin > breakStartMin) {
         return false;
       }
@@ -277,7 +298,7 @@ class BookingAvailabilityEngine {
     return true;
   }
 
-  static int _parseTimeStringToMinutes(String raw) {
+  static int? _tryParseTimeStringToMinutes(String raw) {
     try {
       final clean = raw.trim();
       final isPm = clean.toUpperCase().contains('PM');
@@ -286,11 +307,13 @@ class BookingAvailabilityEngine {
       final parts = numbersStr.split(':');
       var hour = int.parse(parts[0]);
       final minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+      if (minute < 0 || minute > 59 || hour < 0 || hour > 23) return null;
+      if ((isAm || isPm) && hour > 12) return null;
       if (isPm && hour < 12) hour += 12;
       if (isAm && hour == 12) hour = 0;
       return hour * 60 + minute;
     } catch (_) {
-      return 9 * 60;
+      return null;
     }
   }
 }
