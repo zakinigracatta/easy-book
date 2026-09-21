@@ -193,7 +193,12 @@ class OwnerRepositoryImpl implements OwnerRepository {
           .doc(businessId)
           .collection('services')
           .doc(serviceId)
-          .update({'isActive': false, 'is_active': false});
+          .update({
+            'isActive': false,
+            'is_active': false,
+            'isBookable': false,
+            'is_bookable': false,
+          });
     } on FirebaseException catch (e) {
       throw DomainException(
           'Failed to deactivate service: ${e.message ?? e.code}');
