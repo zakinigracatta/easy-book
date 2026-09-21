@@ -88,7 +88,7 @@ export const createWalkInBooking = onCall(async (request) => {
       );
     }
     const bizData = bizSnap.data() || {};
-    const ownerId = bizData.ownerId || bizData.owner_id;
+    const ownerId = bizData.owner_id ?? bizData.ownerId;
     if (ownerId !== ownerUid) {
       throw new HttpsError(
         'permission-denied',
