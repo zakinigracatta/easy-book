@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/business_clock.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/expense_model.dart';
 import '../../providers/owner_finance_providers.dart';
+import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 
@@ -276,11 +278,16 @@ class OwnerExpensesScreen extends ConsumerWidget {
     WidgetRef ref, {
     ExpenseModel? existing,
   }) async {
+    final timeZone =
+        ref.read(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
     final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => _ExpenseEditor(existing: existing),
+      builder: (context) => _ExpenseEditor(
+        existing: existing,
+        timeZone: timeZone,
+      ),
     );
 
     if (saved == true) {
@@ -292,8 +299,12 @@ class OwnerExpensesScreen extends ConsumerWidget {
 
 class _ExpenseEditor extends ConsumerStatefulWidget {
   final ExpenseModel? existing;
+  final String timeZone;
 
-  const _ExpenseEditor({this.existing});
+  const _ExpenseEditor({
+    this.existing,
+    required this.timeZone,
+  });
 
   @override
   ConsumerState<_ExpenseEditor> createState() => _ExpenseEditorState();
@@ -331,7 +342,13 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
     _notes = TextEditingController(text: item?.notes ?? '');
     _category = item?.category ?? ExpenseCategory.other;
     _frequency = item?.frequency ?? ExpenseFrequency.oneTime;
-    _date = item?.expenseDate ?? DateTime.now();
+    if (item == null) {
+      _date = BusinessClock.calendarToday(widget.timeZone);
+    } else {
+      final localDate =
+          BusinessClock.inTimeZone(item.expenseDate, widget.timeZone);
+      _date = DateTime(localDate.year, localDate.month, localDate.day);
+    }
     _paymentMethod = item?.paymentMethod ?? _paymentMethods.first;
     if (!_paymentMethods.contains(_paymentMethod)) _paymentMethod = 'Other';
   }
@@ -508,7 +525,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
       context: context,
       initialDate: _date,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: BusinessClock.calendarToday(widget.timeZone),
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -523,7 +540,10 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             category: _category,
             description: _description.text.trim(),
             amount: double.parse(_amount.text.trim()),
-            expenseDate: _date,
+            expenseDate: BusinessClock.wallClock(
+              _date,
+              widget.timeZone,
+            ),
             paymentMethod: _paymentMethod,
             supplier: _supplier.text.trim(),
             notes: _notes.text.trim(),
