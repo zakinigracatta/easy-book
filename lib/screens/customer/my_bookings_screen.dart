@@ -37,6 +37,15 @@ class MyBookingsScreen extends ConsumerWidget {
     };
   }
 
+  Color _statusColor(BookingStatus status) {
+    return switch (status) {
+      BookingStatus.confirmed || BookingStatus.completed => AppColors.success,
+      BookingStatus.cancelled || BookingStatus.noShow => AppColors.error,
+      BookingStatus.pending => AppColors.warning,
+      BookingStatus.arrived || BookingStatus.inProgress => AppColors.primary,
+    };
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appointmentsState = ref.watch(appointmentsProvider);
@@ -134,11 +143,7 @@ class MyBookingsScreen extends ConsumerWidget {
               final canModify = (isPending || isConfirmed) &&
                   booking.startDateTime.isAfter(DateTime.now());
 
-              final statusColor = isCancelled
-                  ? AppColors.error
-                  : (isConfirmed
-                      ? AppColors.success
-                      : (isPending ? AppColors.warning : Colors.blue));
+              final statusColor = _statusColor(booking.status);
               final statusKey = _statusKey(booking.status);
 
               return Padding(
