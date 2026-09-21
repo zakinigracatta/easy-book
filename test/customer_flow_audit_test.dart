@@ -151,4 +151,19 @@ void main() {
     expect(rescheduleFunction, contains('NO_RESCHEDULE_CHANGE'));
     expect(client, contains("msg.contains('NO_RESCHEDULE_CHANGE')"));
   });
+  test('customer minimum lead time is enforced on trusted backend', () {
+    final createFunction =
+        File('functions/src/booking/createBooking.ts').readAsStringSync();
+    final rescheduleFunction =
+        File('functions/src/booking/rescheduleBooking.ts').readAsStringSync();
+    final client =
+        File('lib/services/booking_functions_service.dart').readAsStringSync();
+
+    expect(createFunction, contains('START_TIME_TOO_SOON'));
+    expect(createFunction, contains('30 * 60 * 1000'));
+    expect(rescheduleFunction, contains("actor === 'customer'"));
+    expect(rescheduleFunction, contains('START_TIME_TOO_SOON'));
+    expect(client, contains("msg.contains('START_TIME_TOO_SOON')"));
+  });
+
 }
