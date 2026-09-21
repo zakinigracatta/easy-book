@@ -35,6 +35,8 @@ void main() {
       source,
       contains('(staffData.is_active ?? staffData.isActive) !== true'),
     );
+    expect(source, contains('STAFF_SCHEDULE_NOT_CONFIGURED'));
+    expect(source, contains('Object.keys(weeklySchedule'));
   });
 
   test('user wallet balance remains server-owned in Firestore rules', () {
