@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import { normalizeInclusiveTimeOffEndMs } from './bookingValidation';
 
 function requiredBusinessId(value: unknown): string {
   if (
@@ -48,24 +49,6 @@ function asDate(value: unknown): Date | null {
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
   return null;
-}
-
-function localMinuteOfDay(date: Date, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(date);
-  const values: Record<string, string> = {};
-  for (const part of parts) {
-    if (part.type !== 'literal') values[part.type] = part.value;
-  }
-  const hour = Number.parseInt(values.hour, 10);
-  const minute = Number.parseInt(values.minute, 10);
-  return Number.isInteger(hour) && Number.isInteger(minute)
-    ? hour * 60 + minute
-    : -1;
 }
 
 function requestedRange(data: Record<string, unknown>): {
@@ -226,10 +209,9 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     if (!employeeId || !startDate || !endDate) continue;
     if (!activeStaffIdSet.has(employeeId)) continue;
 
-    let effectiveEnd = endDate;
-    if (localMinuteOfDay(endDate, timeZone) === 0) {
-      effectiveEnd = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
-    }
+    const effectiveEnd = new Date(
+      normalizeInclusiveTimeOffEndMs(endDate, timeZone)
+    );
 
     if (effectiveEnd.getTime() < startDate.getTime()) continue;
     if (
