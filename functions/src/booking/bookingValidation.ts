@@ -57,7 +57,7 @@ export function parseTimeStringToMinutes(raw: string): number {
   return hour * 60 + minute;
 }
 
-function resolveTimeZone(raw: unknown): string {
+export function resolveTimeZone(raw: unknown): string {
   const candidate =
     typeof raw === 'string' && raw.trim().length > 0
       ? raw.trim()
