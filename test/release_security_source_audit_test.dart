@@ -37,6 +37,7 @@ void main() {
     );
     expect(source, contains('STAFF_SCHEDULE_NOT_CONFIGURED'));
     expect(source, contains('Object.keys(weeklySchedule'));
+    expect(source, contains('endDate.setUTCDate(endDate.getUTCDate() + 1)'));
   });
 
   test('user wallet balance remains server-owned in Firestore rules', () {
