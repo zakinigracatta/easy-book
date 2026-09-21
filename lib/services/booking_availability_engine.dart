@@ -152,6 +152,7 @@ class BookingAvailabilityEngine {
           bCloseMinutes: bCloseMinutes,
           targetDateWeekday: targetDateOnly.weekday,
           targetDayName: dayName,
+          businessTimeZone: business.timeZone,
         )) {
           availableStaffForThisSlot.add(staff.id);
         }
@@ -186,6 +187,7 @@ class BookingAvailabilityEngine {
     required int bCloseMinutes,
     required int targetDateWeekday,
     required String targetDayName,
+    required String businessTimeZone,
   }) {
     final candStartMs = candStart.millisecondsSinceEpoch;
     final candEndMs = candEnd.millisecondsSinceEpoch;
@@ -257,13 +259,22 @@ class BookingAvailabilityEngine {
 
       final timeOffStartMs = timeOff.startDate.millisecondsSinceEpoch;
       var normalizedEnd = timeOff.endDate;
-      // The owner UI selects leave by calendar date. A stored midnight end date
-      // therefore represents an inclusive end day, not an empty interval.
-      if (normalizedEnd.hour == 0 &&
-          normalizedEnd.minute == 0 &&
-          normalizedEnd.second == 0 &&
-          normalizedEnd.millisecond == 0) {
-        normalizedEnd = normalizedEnd.add(const Duration(days: 1));
+      // Interpret legacy midnight values in the business timezone, not the
+      // device/UTC timezone carried by the parsed ISO instant.
+      final endLocal = BusinessClock.inTimeZone(
+        normalizedEnd,
+        businessTimeZone,
+      );
+      if (endLocal.hour == 0 &&
+          endLocal.minute == 0 &&
+          endLocal.second == 0 &&
+          endLocal.millisecond == 0) {
+        normalizedEnd = TZDateTime(
+          BusinessClock.locationFor(businessTimeZone),
+          endLocal.year,
+          endLocal.month,
+          endLocal.day + 1,
+        );
       }
       final timeOffEndMs = normalizedEnd.millisecondsSinceEpoch;
 
