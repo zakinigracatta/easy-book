@@ -28,25 +28,25 @@ final currentBusinessIdProvider = FutureProvider<String>((ref) async {
   // rules for legacy owners whose business document uses a different ID.
   // Querying by the ownership field works for both deterministic and legacy
   // document IDs without broadening read permissions.
-  final snap = await FirebaseFirestore.instance
-      .collection('businesses')
-      .where('ownerId', isEqualTo: user.uid)
-      .limit(1)
-      .get();
-
-  if (snap.docs.isNotEmpty) {
-    return snap.docs.first.id;
-  }
-
-  // Keep compatibility with legacy records that used snake_case owner_id.
-  final snapLegacy = await FirebaseFirestore.instance
+  final canonicalSnap = await FirebaseFirestore.instance
       .collection('businesses')
       .where('owner_id', isEqualTo: user.uid)
       .limit(1)
       .get();
 
-  if (snapLegacy.docs.isNotEmpty) {
-    return snapLegacy.docs.first.id;
+  if (canonicalSnap.docs.isNotEmpty) {
+    return canonicalSnap.docs.first.id;
+  }
+
+  // Legacy fallback is used only when canonical owner_id records are absent.
+  final legacySnap = await FirebaseFirestore.instance
+      .collection('businesses')
+      .where('ownerId', isEqualTo: user.uid)
+      .limit(1)
+      .get();
+
+  if (legacySnap.docs.isNotEmpty) {
+    return legacySnap.docs.first.id;
   }
 
   return '';
