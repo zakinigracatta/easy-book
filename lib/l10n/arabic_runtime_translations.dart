@@ -232,4 +232,6 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Please correct shift and break times before saving.': 'يرجى تصحيح أوقات المناوبة والاستراحة قبل الحفظ.',
   'Enter a discount percentage between 1 and 100.': 'أدخل نسبة خصم بين 1 و100.',
   'Unable to publish offer. Please try again.': 'تعذر نشر العرض. حاول مرة أخرى.',
+  'Booking Submitted!': 'تم إرسال طلب الحجز!',
+  'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.': 'تم إرسال طلب الحجز بنجاح وهو بانتظار التأكيد. يمكنك متابعة حالته من حجوزاتي.',
 };
