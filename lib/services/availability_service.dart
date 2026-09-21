@@ -66,13 +66,14 @@ class AvailabilityService {
     });
 
     if (response.data is! Map) {
-      return const AvailabilitySnapshot(
-        timeOffs: [],
-        occupiedSlotsByStaff: {},
-      );
+      throw StateError('Availability service returned an invalid response.');
     }
 
     final payload = Map<String, dynamic>.from(response.data as Map);
+    if (payload['blocks'] is! List || payload['occupiedSlots'] is! List) {
+      throw StateError('Availability service returned incomplete scheduling data.');
+    }
+
     final timeOffs = _parseTimeOffs(
       payload['blocks'],
       businessId: normalizedBusinessId,
