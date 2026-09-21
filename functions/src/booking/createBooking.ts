@@ -4,7 +4,10 @@ import {
   generateIntervalSlotLockIds,
   validateCanonical15MinAlignment,
 } from './bookingLocks';
-import { validateBookingRequirements } from './bookingValidation';
+import {
+  validateBookingRequirements,
+  validateMaximumAdvanceDate,
+} from './bookingValidation';
 
 function requiredId(value: unknown, name: string): string {
   if (typeof value !== 'string' || value.trim().length === 0 || value.length > 200) {
@@ -110,6 +113,7 @@ export const createBooking = onCall(async (request) => {
       staffId,
       requestedStartAt
     );
+    validateMaximumAdvanceDate(requestedStartAt, context.timeZone);
 
     const lockObjects = generateIntervalSlotLockIds(
       businessId,
