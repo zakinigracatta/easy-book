@@ -698,3 +698,48 @@ test('37. Legacy publication flags remain valid when canonical flags are absent 
     publicDb.collection('businesses').doc('biz_legacy_public').get()
   );
 });
+
+
+test('38. Canonical owner_id overrides conflicting legacy ownerId', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_owner_conflict').set({
+      id: 'biz_owner_conflict',
+      owner_id: 'canonical_owner',
+      ownerId: 'legacy_owner',
+      is_verified: false,
+      is_active: true,
+    });
+  });
+
+  const canonicalDb = testEnv.authenticatedContext('canonical_owner').firestore();
+  const legacyDb = testEnv.authenticatedContext('legacy_owner').firestore();
+
+  await assertSucceeds(
+    canonicalDb.collection('businesses').doc('biz_owner_conflict').get()
+  );
+  await assertFails(
+    legacyDb.collection('businesses').doc('biz_owner_conflict').get()
+  );
+});
+
+test('39. Business create rejects conflicting owner aliases', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('users').doc('owner_creator').set({
+      id: 'owner_creator',
+      role: 'owner',
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('owner_creator').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('biz_bad_owner_aliases').set({
+      id: 'biz_bad_owner_aliases',
+      owner_id: 'owner_creator',
+      ownerId: 'someone_else',
+      is_verified: false,
+      is_active: true,
+      rating: 0,
+      review_count: 0,
+    })
+  );
+});
