@@ -120,6 +120,20 @@ void main() {
     expect(dateSource, isNot(contains("business?.timeZone ?? 'Asia/Dubai'")));
   });
 
+  test('customer cancel and reschedule preserve safe domain errors', () {
+    final cancelSource =
+        File('lib/screens/customer/cancel_booking_screen.dart')
+            .readAsStringSync();
+    final rescheduleSource =
+        File('lib/screens/customer/reschedule_booking_screen.dart')
+            .readAsStringSync();
+
+    expect(cancelSource, contains('on DomainException catch (e)'));
+    expect(cancelSource, contains('context.tr(e.message)'));
+    expect(rescheduleSource, contains('on DomainException catch (e)'));
+    expect(rescheduleSource, contains('context.tr(e.message)'));
+  });
+
   test('reschedule availability excludes only the current authorized booking', () {
     final screenSource =
         File('lib/screens/customer/reschedule_booking_screen.dart')
