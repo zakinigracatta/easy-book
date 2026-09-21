@@ -106,6 +106,20 @@ void main() {
     );
   });
 
+  test('customer booking recovers stale services and waits for business timezone', () {
+    final serviceSource =
+        File('lib/screens/customer/booking_service_screen.dart')
+            .readAsStringSync();
+    final dateSource =
+        File('lib/screens/customer/booking_date_screen.dart').readAsStringSync();
+
+    expect(serviceSource, contains('final selectionIsValid ='));
+    expect(serviceSource, contains('_selectedServiceId = services.first.id'));
+    expect(dateSource, contains('body: businessState.when('));
+    expect(dateSource, contains('BusinessClock.calendarToday(business.timeZone)'));
+    expect(dateSource, isNot(contains("business?.timeZone ?? 'Asia/Dubai'")));
+  });
+
   test('reschedule availability excludes only the current authorized booking', () {
     final screenSource =
         File('lib/screens/customer/reschedule_booking_screen.dart')
