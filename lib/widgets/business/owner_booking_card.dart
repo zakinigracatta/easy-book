@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/business_clock.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../../models/booking_model.dart';
 import '../../theme/app_colors.dart';
 import '../glass_card.dart';
@@ -20,8 +22,10 @@ class OwnerBookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timeStr = DateFormat('hh:mm a').format(booking.startDateTime);
-    final dateStr = DateFormat('EEE, MMM d').format(booking.startDateTime);
+    final localStart =
+        BusinessClock.inTimeZone(booking.startDateTime, booking.timeZone);
+    final timeStr = DateFormat('hh:mm a').format(localStart);
+    final dateStr = DateFormat('EEE, MMM d').format(localStart);
     final isWalkIn = booking.bookingSource == 'walkIn';
 
     return GlassCard(
@@ -150,7 +154,10 @@ class OwnerBookingCard extends StatelessWidget {
                 ),
               ),
               Text(
-                'AED ${booking.servicePrice.toStringAsFixed(0)}',
+                CurrencyFormatter.format(
+                  booking.servicePrice,
+                  currency: booking.currency,
+                ),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
