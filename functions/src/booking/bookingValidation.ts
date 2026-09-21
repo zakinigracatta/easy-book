@@ -534,9 +534,27 @@ export async function validateBookingRequirements(
     }
 
     if (timeOff.endDate && typeof timeOff.endDate.toMillis === 'function') {
-      timeOffEndMs = timeOff.endDate.toMillis();
+      const endDate = timeOff.endDate.toDate();
+      if (
+        endDate.getUTCHours() === 0 &&
+        endDate.getUTCMinutes() === 0 &&
+        endDate.getUTCSeconds() === 0 &&
+        endDate.getUTCMilliseconds() === 0
+      ) {
+        endDate.setUTCDate(endDate.getUTCDate() + 1);
+      }
+      timeOffEndMs = endDate.getTime();
     } else if (typeof timeOff.endDate === 'string') {
-      timeOffEndMs = new Date(timeOff.endDate).getTime();
+      const endDate = new Date(timeOff.endDate);
+      if (
+        endDate.getUTCHours() === 0 &&
+        endDate.getUTCMinutes() === 0 &&
+        endDate.getUTCSeconds() === 0 &&
+        endDate.getUTCMilliseconds() === 0
+      ) {
+        endDate.setUTCDate(endDate.getUTCDate() + 1);
+      }
+      timeOffEndMs = endDate.getTime();
     }
 
     if (
