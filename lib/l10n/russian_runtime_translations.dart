@@ -246,4 +246,6 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Please correct shift and break times before saving.': 'Исправьте время смены и перерыва перед сохранением.',
   'Enter a discount percentage between 1 and 100.': 'Введите процент скидки от 1 до 100.',
   'Unable to publish offer. Please try again.': 'Не удалось опубликовать предложение. Попробуйте снова.',
+  'Booking Submitted!': 'Запрос на бронирование отправлен!',
+  'Your booking request was submitted successfully and is pending confirmation. You can track its status in My Bookings.': 'Ваш запрос на бронирование успешно отправлен и ожидает подтверждения. Статус можно отслеживать в разделе «Мои бронирования».',
 };
