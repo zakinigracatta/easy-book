@@ -247,4 +247,5 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Unable to update booking availability. Please try again.': 'Не удалось обновить доступность для записи. Попробуйте снова.',
   'Please select a time in 15-minute increments.': 'Выберите время с шагом 15 минут.',
   'Business details are still loading. Please try again.': 'Данные бизнеса ещё загружаются. Попробуйте снова.',
+  'The selected specialist is no longer available for this service.': 'Выбранный специалист больше недоступен для этой услуги.',
 };
