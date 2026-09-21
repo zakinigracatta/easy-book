@@ -350,5 +350,30 @@ void main() {
       expect(parsed.closeTime, isEmpty);
     });
 
+    test('16. Legacy leave midnight is interpreted in business timezone', () async {
+      final targetDate = DateTime(2026, 8, 17);
+      final legacyMidnightEnd = DateTime.utc(2026, 8, 16, 20, 0); // 00:00 Aug 17 Dubai
+      final timeOff = EmployeeTimeOffModel(
+        id: 'toff_legacy_midnight',
+        employeeId: 'st_1',
+        employeeName: 'Ahmed Specialist',
+        startDate: DateTime.utc(2026, 8, 16, 20, 0),
+        endDate: legacyMidnightEnd,
+        reason: 'Legacy day off',
+      );
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness.copyWith(timeZone: 'Asia/Dubai'),
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: targetDate,
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+        employeeTimeOffs: [timeOff],
+      );
+
+      expect(slots, isEmpty);
+    });
+
+
   });
 }
