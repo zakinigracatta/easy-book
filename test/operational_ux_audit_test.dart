@@ -222,17 +222,23 @@ void main() {
   });
 
 
-  test('admin business details honors canonical publication fields first', () {
-    final source = File(
+  test('admin business screens honor canonical publication fields first', () {
+    final details = File(
       'lib/features/admin/business_details_screen.dart',
     ).readAsStringSync();
+    final management = File(
+      'lib/features/admin/business_management_screen.dart',
+    ).readAsStringSync();
 
-    expect(source, contains("business['is_verified'] is bool"));
-    expect(source, contains("business['is_active'] is bool"));
+    expect(details, contains("business['is_verified'] is bool"));
+    expect(details, contains("business['is_active'] is bool"));
+    expect(management, contains('_canonicalPublicationBool'));
+    expect(management, contains("'is_verified'"));
+    expect(management, contains("'is_active'"));
     expect(
-      source,
+      management,
       isNot(contains(
-        "business['is_verified'] == true || business['isVerified'] == true",
+        "data['is_verified'] == true || data['isVerified'] == true",
       )),
     );
   });
@@ -313,13 +319,20 @@ void main() {
     expect(source, contains('missingNewLocks.push'));
   });
 
-  test('public availability uses canonical timezone fallback', () {
-    final source = File(
+  test('public availability hides exact employee leave metadata', () {
+    final backend = File(
       'functions/src/booking/getAvailabilityBlocks.ts',
     ).readAsStringSync();
+    final client = File(
+      'lib/services/availability_service.dart',
+    ).readAsStringSync();
 
-    expect(source, contains('resolveTimeZone(business.timeZone ?? business.timezone)'));
-    expect(source, contains('normalizeInclusiveTimeOffEndMs'));
+    expect(backend, contains('resolveTimeZone(business.timeZone ?? business.timezone)'));
+    expect(backend, contains('normalizeInclusiveTimeOffEndMs'));
+    expect(backend, contains('return { unavailableSlots };'));
+    expect(backend, isNot(contains('return { blocks, occupiedSlots };')));
+    expect(client, contains("payload['unavailableSlots']"));
+    expect(client, isNot(contains('_parseTimeOffs')));
   });
 
 
