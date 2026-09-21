@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/utils/business_clock.dart';
 import '../models/expense_model.dart';
 import '../models/profit_and_loss_summary.dart';
 import '../repositories/owner_finance_repository.dart';
@@ -124,10 +125,12 @@ class FinanceReportRange {
 }
 
 final ownerFinanceReportRangeProvider = StateProvider<FinanceReportRange>((ref) {
-  final now = DateTime.now();
+  final timeZone =
+      ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
+  final today = BusinessClock.calendarToday(timeZone);
   return FinanceReportRange(
-    from: DateTime(now.year, now.month, 1),
-    to: DateTime(now.year, now.month, now.day),
+    from: DateTime(today.year, today.month, 1),
+    to: today,
   );
 });
 
@@ -153,8 +156,9 @@ final ownerTodayProfitAndLossProvider =
     throw StateError('No business is linked to this owner account.');
   }
 
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
+  final timeZone =
+      ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
+  final today = BusinessClock.calendarToday(timeZone);
   final repository = ref.watch(ownerFinanceRepositoryProvider);
   return repository.buildProfitAndLoss(
     businessId: businessId,
