@@ -375,5 +375,21 @@ void main() {
     });
 
 
+    test('17. Sixty-day horizon uses calendar days across DST', () async {
+      final business = testBusiness.copyWith(timeZone: 'America/New_York');
+      final boundaryDate = DateTime(2026, 11, 4); // 60 calendar days after Sep 5
+
+      final slots = await engine.computeAvailableSlots(
+        business: business,
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: boundaryDate,
+        nowOverride: DateTime(2026, 9, 5, 9, 0),
+      );
+
+      expect(slots, isNotEmpty);
+    });
+
+
   });
 }
