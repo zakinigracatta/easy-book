@@ -79,9 +79,14 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         return;
       }
 
-      // Verify email is verified
+      // Refresh Firebase state so email verification completed in
+      // another tab/device is not rejected because of a stale local user.
       final firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null && !firebaseUser.emailVerified) {
+      if (firebaseUser != null) {
+        await firebaseUser.reload();
+      }
+      final refreshedUser = FirebaseAuth.instance.currentUser;
+      if (refreshedUser != null && !refreshedUser.emailVerified) {
         await ref.read(authProvider.notifier).logout();
         if (mounted) {
           _showError(_t('Admin email address must be verified.', 'يجب التحقق من البريد الإلكتروني للمسؤول.'));
