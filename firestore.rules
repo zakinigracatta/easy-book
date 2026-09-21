@@ -25,12 +25,23 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
+    function hasOwnerIdentity(data, userId) {
+      return (
+        ('owner_id' in data) &&
+        data.owner_id == userId
+      ) || (
+        !('owner_id' in data) &&
+        ('ownerId' in data) &&
+        data.ownerId == userId
+      );
+    }
+
     function isBusinessOwner(businessId) {
       return isAuthenticated() &&
         exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-        (
-          ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
-          ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+        hasOwnerIdentity(
+          get(/databases/$(database)/documents/businesses/$(businessId)).data,
+          request.auth.uid
         );
     }
 
@@ -238,10 +249,7 @@ service cloud.firestore {
       allow list: if isAdminAccount()
                   || (
                     isAuthenticated()
-                    && (
-                      (('ownerId' in resource.data) && resource.data.ownerId == request.auth.uid)
-                      || (('owner_id' in resource.data) && resource.data.owner_id == request.auth.uid)
-                    )
+                    && hasOwnerIdentity(resource.data, request.auth.uid)
                   )
                   || (
                     hasVerifiedPublicationState(resource.data)
@@ -249,9 +257,11 @@ service cloud.firestore {
                   );
 
       allow create: if isOwnerAccount()
+                    && hasOwnerIdentity(request.resource.data, request.auth.uid)
                     && (
-                      (('ownerId' in request.resource.data) && request.resource.data.ownerId == request.auth.uid)
-                      || (('owner_id' in request.resource.data) && request.resource.data.owner_id == request.auth.uid)
+                      !('ownerId' in request.resource.data)
+                      || !('owner_id' in request.resource.data)
+                      || request.resource.data.ownerId == request.resource.data.owner_id
                     )
                     && (!('is_verified' in request.resource.data) || request.resource.data.is_verified == false)
                     && (!('isVerified' in request.resource.data) || request.resource.data.isVerified == false)
