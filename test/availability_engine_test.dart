@@ -49,6 +49,7 @@ void main() {
       avatarUrl: '',
       rating: 4.9,
       isActive: true,
+      workingDays: const [1, 2, 3, 4, 5, 6, 7],
     );
   });
 
@@ -286,5 +287,27 @@ void main() {
         isFalse,
       );
     });
+    test('13. Active staff without any schedule fails closed', () async {
+      final unscheduledStaff = StaffModel(
+        id: 'st_unscheduled',
+        businessId: 'biz_1',
+        name: 'Unscheduled Specialist',
+        roleTitle: 'Barber',
+        avatarUrl: '',
+        rating: 5.0,
+        isActive: true,
+      );
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness,
+        selectedServices: [testService],
+        allStaff: [unscheduledStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots, isEmpty);
+    });
+
   });
 }
