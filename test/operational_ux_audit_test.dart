@@ -169,7 +169,11 @@ void main() {
     expect(listSource, contains('extra: st.id'));
     expect(scheduleSource, contains('final routeStaffId = GoRouterState.of(context).extra'));
     expect(editorSource, contains('_selectedServiceIds'));
-    expect(editorSource, contains('serviceIds: _selectedServiceIds.toList'));
+    expect(editorSource, contains('final serviceIdsToSave = loadedServices == null'));
+    expect(editorSource, contains('service.isActive &&'));
+    expect(editorSource, contains('service.isBookable'));
+    expect(editorSource, contains('serviceIds: serviceIdsToSave'));
+    expect(editorSource, contains('on DomainException catch (e)'));
     expect(editorSource, contains('extra: _staffId'));
   });
 
