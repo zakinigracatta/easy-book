@@ -44,12 +44,10 @@ class _RescheduleBookingScreenState
     if (booking == null || slot == null) return;
 
     final newStartDateTime = slot.startAt;
-    final newStaffId = booking.anySpecialist
-        ? (slot.availableStaffIds.isNotEmpty
-            ? slot.availableStaffIds.first
-            : '')
-        : booking.staffId;
-    if (newStaffId.isEmpty) {
+    final String? newStaffId =
+        booking.anySpecialist ? null : booking.staffId;
+
+    if (newStaffId != null && newStaffId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -62,7 +60,7 @@ class _RescheduleBookingScreenState
 
     if (booking.startDateTime.millisecondsSinceEpoch ==
             newStartDateTime.millisecondsSinceEpoch &&
-        booking.staffId == newStaffId) {
+        (booking.anySpecialist || booking.staffId == newStaffId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
