@@ -111,7 +111,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                                           vertical: 3,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: (service.isActive
+                                          color: (service.isActive && service.isBookable
                                                   ? AppColors.success
                                                   : AppColors.error)
                                               .withValues(alpha: 0.15),
@@ -119,12 +119,12 @@ class ServicesManagementScreen extends ConsumerWidget {
                                         ),
                                         child: Text(
                                           context.tr(
-                                            service.isActive
+                                            service.isActive && service.isBookable
                                                 ? 'Available'
                                                 : 'Disabled',
                                           ),
                                           style: TextStyle(
-                                            color: service.isActive
+                                            color: service.isActive && service.isBookable
                                                 ? AppColors.success
                                                 : AppColors.error,
                                             fontSize: 10,
@@ -214,7 +214,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Switch(
-                                  value: service.isActive,
+                                  value: service.isActive && service.isBookable,
                                   activeThumbColor: AppColors.primary,
                                   onChanged: (_) =>
                                       _toggleService(context, ref, service),
