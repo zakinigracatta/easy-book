@@ -391,5 +391,18 @@ void main() {
     });
 
 
+    test('18. Malformed business hours fail closed instead of normalizing', () {
+      final hours = WorkingHoursModel.fromJson({
+        'monday': {
+          'open': '99:00',
+          'close': '18:00',
+          'is_closed': false,
+        },
+      });
+
+      expect(hours.schedule['Monday']!.isClosed, isTrue);
+    });
+
+
   });
 }
