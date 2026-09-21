@@ -207,8 +207,16 @@ export const rescheduleBooking = onCall(async (request) => {
       }
     }
 
+    const ownedOldLockRefs: admin.firestore.DocumentReference[] = [];
     for (const lockId of locksToDelete) {
-      transaction.delete(db.collection('booking_slots').doc(lockId));
+      const lockRef = db.collection('booking_slots').doc(lockId);
+      const lockSnap = await transaction.get(lockRef);
+      if (lockSnap.exists && lockSnap.data()?.bookingId === bookingId) {
+        ownedOldLockRefs.push(lockRef);
+      }
+    }
+    for (const lockRef of ownedOldLockRefs) {
+      transaction.delete(lockRef);
     }
 
     for (const lock of locksToCreate) {
