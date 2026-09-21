@@ -663,3 +663,38 @@ test('35. Customer cannot query all bookings for a finance report -> DENY', asyn
       .get()
   );
 });
+
+
+test('36. Canonical publication flags override conflicting legacy flags -> DENY', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_conflict').set({
+      id: 'biz_conflict',
+      is_verified: false,
+      isVerified: true,
+      is_active: false,
+      isActive: true,
+      ownerId: 'owner_conflict',
+    });
+  });
+
+  const publicDb = testEnv.unauthenticatedContext().firestore();
+  await assertFails(
+    publicDb.collection('businesses').doc('biz_conflict').get()
+  );
+});
+
+test('37. Legacy publication flags remain valid when canonical flags are absent -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_legacy_public').set({
+      id: 'biz_legacy_public',
+      isVerified: true,
+      isActive: true,
+      ownerId: 'owner_legacy_public',
+    });
+  });
+
+  const publicDb = testEnv.unauthenticatedContext().firestore();
+  await assertSucceeds(
+    publicDb.collection('businesses').doc('biz_legacy_public').get()
+  );
+});
