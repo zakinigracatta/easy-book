@@ -66,7 +66,7 @@ export const updateBookingStatus = onCall(async (request) => {
     }
 
     const bizData = bizSnap.data() || {};
-    const ownerId = bizData.ownerId || bizData.owner_id;
+    const ownerId = bizData.owner_id ?? bizData.ownerId;
     if (ownerId !== callerUid) {
       throw new HttpsError(
         'permission-denied',
