@@ -359,87 +359,100 @@ export async function validateBookingRequirements(
     'Requested appointment is outside business operating hours.'
   );
 
-  // Mirror the Flutter availability engine: a per-day weekly schedule takes
-  // precedence over the legacy workingDays + global shift fields.
-  let usedWeeklySchedule = false;
+  // Mirror the Flutter availability engine. A configured weekly schedule is
+  // authoritative and must include the requested day. Legacy workingDays/shift
+  // fields remain supported, but completely missing schedule data fails closed.
   const weeklySchedule = staffData.weekly_schedule ?? staffData.weeklySchedule;
-  if (weeklySchedule && typeof weeklySchedule === 'object') {
+  const hasWeeklySchedule =
+    weeklySchedule &&
+    typeof weeklySchedule === 'object' &&
+    Object.keys(weeklySchedule as Record<string, unknown>).length > 0;
+
+  if (hasWeeklySchedule) {
     const rawDaySchedule =
       weeklySchedule[localStart.dayName] ??
       weeklySchedule[localStart.dayName.toLowerCase()];
-    if (rawDaySchedule && typeof rawDaySchedule === 'object') {
-      usedWeeklySchedule = true;
-      const daySchedule = rawDaySchedule as Record<string, unknown>;
-      if ((daySchedule.is_working ?? daySchedule.isWorking) === false) {
-        throw new HttpsError(
-          'failed-precondition',
-          'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
-        );
-      }
 
-      const dayOpen = readString(
-        daySchedule,
-        'open_time',
-        'openTime',
-        'open'
-      );
-      const dayClose = readString(
-        daySchedule,
-        'close_time',
-        'closeTime',
-        'close'
-      );
-      if (dayOpen && dayClose) {
-        validateWithinInterval(
-          localStart.minuteOfDay,
-          localEnd.minuteOfDay,
-          parseTimeStringToMinutes(dayOpen),
-          parseTimeStringToMinutes(dayClose),
-          'OUTSIDE_STAFF_SHIFT',
-          'Requested appointment is outside the employee shift.'
-        );
-      }
-
-      const breakStart = readString(
-        daySchedule,
-        'break_start',
-        'breakStart'
-      );
-      const breakEnd = readString(daySchedule, 'break_end', 'breakEnd');
-      if (breakStart && breakEnd) {
-        const breakStartMinute = parseTimeStringToMinutes(breakStart);
-        const breakEndMinute = parseTimeStringToMinutes(breakEnd);
-        if (breakEndMinute <= breakStartMinute) {
-          throw new HttpsError(
-            'failed-precondition',
-            'INVALID_WORKING_HOURS: Employee break end must be after break start.'
-          );
-        }
-        if (
-          localStart.minuteOfDay < breakEndMinute &&
-          localEnd.minuteOfDay > breakStartMinute
-        ) {
-          throw new HttpsError(
-            'failed-precondition',
-            'STAFF_ON_BREAK: Specialist is on a scheduled break during this interval.'
-          );
-        }
-      }
-    }
-  }
-
-  if (!usedWeeklySchedule) {
-    const workingDays: number[] | null = Array.isArray(staffData.working_days)
-      ? staffData.working_days.map(Number)
-      : Array.isArray(staffData.workingDays)
-        ? staffData.workingDays.map(Number)
-        : null;
-    if (workingDays && !workingDays.includes(localStart.dayNumber)) {
+    if (!rawDaySchedule || typeof rawDaySchedule !== 'object') {
       throw new HttpsError(
         'failed-precondition',
         'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
       );
     }
+
+    const daySchedule = rawDaySchedule as Record<string, unknown>;
+    if ((daySchedule.is_working ?? daySchedule.isWorking) !== true) {
+      throw new HttpsError(
+        'failed-precondition',
+        'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
+      );
+    }
+
+    const dayOpen = readString(
+      daySchedule,
+      'open_time',
+      'openTime',
+      'open'
+    );
+    const dayClose = readString(
+      daySchedule,
+      'close_time',
+      'closeTime',
+      'close'
+    );
+    if (!dayOpen || !dayClose) {
+      throw new HttpsError(
+        'failed-precondition',
+        'STAFF_SCHEDULE_NOT_CONFIGURED: Specialist working hours are incomplete.'
+      );
+    }
+
+    validateWithinInterval(
+      localStart.minuteOfDay,
+      localEnd.minuteOfDay,
+      parseTimeStringToMinutes(dayOpen),
+      parseTimeStringToMinutes(dayClose),
+      'OUTSIDE_STAFF_SHIFT',
+      'Requested appointment is outside the employee shift.'
+    );
+
+    const breakStart = readString(
+      daySchedule,
+      'break_start',
+      'breakStart'
+    );
+    const breakEnd = readString(daySchedule, 'break_end', 'breakEnd');
+    if ((breakStart && !breakEnd) || (!breakStart && breakEnd)) {
+      throw new HttpsError(
+        'failed-precondition',
+        'STAFF_SCHEDULE_NOT_CONFIGURED: Specialist break hours are incomplete.'
+      );
+    }
+    if (breakStart && breakEnd) {
+      const breakStartMinute = parseTimeStringToMinutes(breakStart);
+      const breakEndMinute = parseTimeStringToMinutes(breakEnd);
+      if (breakEndMinute <= breakStartMinute) {
+        throw new HttpsError(
+          'failed-precondition',
+          'INVALID_WORKING_HOURS: Employee break end must be after break start.'
+        );
+      }
+      if (
+        localStart.minuteOfDay < breakEndMinute &&
+        localEnd.minuteOfDay > breakStartMinute
+      ) {
+        throw new HttpsError(
+          'failed-precondition',
+          'STAFF_ON_BREAK: Specialist is on a scheduled break during this interval.'
+        );
+      }
+    }
+  } else {
+    const workingDays: number[] | null = Array.isArray(staffData.working_days)
+      ? staffData.working_days.map(Number)
+      : Array.isArray(staffData.workingDays)
+        ? staffData.workingDays.map(Number)
+        : null;
 
     const shiftStartStr =
       typeof staffData.shift_start === 'string'
@@ -454,6 +467,30 @@ export async function validateBookingRequirements(
           ? staffData.shiftEnd
           : null;
 
+    if (workingDays === null && !shiftStartStr && !shiftEndStr) {
+      throw new HttpsError(
+        'failed-precondition',
+        'STAFF_SCHEDULE_NOT_CONFIGURED: Specialist working hours must be configured before booking.'
+      );
+    }
+
+    if (
+      workingDays !== null &&
+      (workingDays.length === 0 || !workingDays.includes(localStart.dayNumber))
+    ) {
+      throw new HttpsError(
+        'failed-precondition',
+        'STAFF_NOT_WORKING_DAY: Specialist does not work on this day of the week.'
+      );
+    }
+
+    if ((shiftStartStr && !shiftEndStr) || (!shiftStartStr && shiftEndStr)) {
+      throw new HttpsError(
+        'failed-precondition',
+        'STAFF_SCHEDULE_NOT_CONFIGURED: Specialist shift hours are incomplete.'
+      );
+    }
+
     if (shiftStartStr && shiftEndStr) {
       validateWithinInterval(
         localStart.minuteOfDay,
@@ -463,25 +500,6 @@ export async function validateBookingRequirements(
         'OUTSIDE_STAFF_SHIFT',
         'Requested appointment is outside the employee shift.'
       );
-    } else {
-      if (
-        shiftStartStr &&
-        localStart.minuteOfDay < parseTimeStringToMinutes(shiftStartStr)
-      ) {
-        throw new HttpsError(
-          'failed-precondition',
-          'OUTSIDE_STAFF_SHIFT: Requested time is before employee shift start.'
-        );
-      }
-      if (
-        shiftEndStr &&
-        localEnd.minuteOfDay > parseTimeStringToMinutes(shiftEndStr)
-      ) {
-        throw new HttpsError(
-          'failed-precondition',
-          'OUTSIDE_STAFF_SHIFT: Requested appointment exceeds employee shift end.'
-        );
-      }
     }
   }
 
