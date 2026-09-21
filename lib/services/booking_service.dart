@@ -109,6 +109,7 @@ class BookingService {
       customerName: booking.customerName,
       customerPhone: booking.customerPhone ?? '',
       anySpecialist: booking.anySpecialist,
+      clientRequestId: booking.clientRequestId,
       notes: booking.notes ?? '',
     );
   }
