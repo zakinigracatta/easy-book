@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/utils/business_clock.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
@@ -134,9 +135,13 @@ class MyBookingsScreen extends ConsumerWidget {
             itemCount: bookings.length,
             itemBuilder: (context, index) {
               final booking = bookings[index];
+              final bookingLocalStart = BusinessClock.inTimeZone(
+                booking.startDateTime,
+                booking.timeZone,
+              );
               final dateStr =
-                  '${booking.startDateTime.day}/${booking.startDateTime.month}/${booking.startDateTime.year} '
-                  '${booking.startDateTime.hour}:${booking.startDateTime.minute.toString().padLeft(2, '0')}';
+                  '${bookingLocalStart.day}/${bookingLocalStart.month}/${bookingLocalStart.year} '
+                  '${bookingLocalStart.hour}:${bookingLocalStart.minute.toString().padLeft(2, '0')}';
               final isConfirmed = booking.status == BookingStatus.confirmed;
               final isPending = booking.status == BookingStatus.pending;
               final canModify = (isPending || isConfirmed) &&
@@ -212,7 +217,10 @@ class MyBookingsScreen extends ConsumerWidget {
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
-                              CurrencyFormatter.format(booking.servicePrice),
+                              CurrencyFormatter.format(
+                                booking.servicePrice,
+                                currency: booking.currency,
+                              ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
