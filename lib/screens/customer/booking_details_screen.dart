@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/utils/business_clock.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
@@ -73,8 +74,10 @@ class _BookingDetailsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final dateText = DateFormat('EEE, MMM d, yyyy • h:mm a', locale)
-        .format(booking.startDateTime);
+    final localStart =
+        BusinessClock.inTimeZone(booking.startDateTime, booking.timeZone);
+    final dateText =
+        DateFormat('EEE, MMM d, yyyy • h:mm a', locale).format(localStart);
     final statusText = context.tr(_statusKey(booking.status));
     final notes = booking.notes?.trim() ?? '';
 
@@ -155,7 +158,10 @@ class _BookingDetailsBody extends StatelessWidget {
                 _detailRow(
                   context,
                   context.tr('Price'),
-                  CurrencyFormatter.format(booking.servicePrice),
+                  CurrencyFormatter.format(
+                    booking.servicePrice,
+                    currency: booking.currency,
+                  ),
                   forceLtr: true,
                 ),
                 if (notes.isNotEmpty) ...[
