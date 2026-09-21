@@ -94,6 +94,7 @@ class BookingService {
       requestedStartAt: booking.startDateTime,
       customerName: booking.customerName,
       customerPhone: booking.customerPhone ?? '',
+      anySpecialist: booking.anySpecialist,
       notes: booking.notes ?? '',
     );
   }
@@ -114,11 +115,13 @@ class BookingService {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newStartDateTime,
+    String? newStaffId,
   }) async {
     validateCanonical15MinAlignment(newStartDateTime);
     return _functionsService.rescheduleBooking(
       bookingId: bookingId,
       newRequestedStartAt: newStartDateTime,
+      newStaffId: newStaffId,
     );
   }
 
