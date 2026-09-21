@@ -127,6 +127,16 @@ export const rescheduleBooking = onCall(async (request) => {
     }
 
     if (
+      oldStartAt.getTime() === newStartAt.getTime() &&
+      targetStaffId === staffId
+    ) {
+      throw new HttpsError(
+        'failed-precondition',
+        'NO_RESCHEDULE_CHANGE: Select a different appointment time or specialist.'
+      );
+    }
+
+    if (
       bookingData.endDateTime &&
       typeof bookingData.endDateTime.toDate === 'function'
     ) {
