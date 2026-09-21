@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/business_clock.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
@@ -309,15 +310,30 @@ class PromotionManagementScreen extends ConsumerWidget {
                     );
                   }
 
+                  var business = ref.read(ownerBusinessProvider).value;
+                  if (business == null) {
+                    await ref
+                        .read(ownerBusinessProvider.notifier)
+                        .loadBusiness();
+                    business = ref.read(ownerBusinessProvider).value;
+                  }
+                  if (business == null || business.id != bizId) {
+                    throw StateError(
+                      'Unable to resolve the owner business timezone.',
+                    );
+                  }
+
+                  final businessNow =
+                      BusinessClock.now(business.timeZone);
                   final newOffer = OfferModel(
-                    id: 'off_${DateTime.now().millisecondsSinceEpoch}',
+                    id: 'off_${businessNow.millisecondsSinceEpoch}',
                     businessId: bizId,
                     title: titleController.text.trim(),
                     description: descController.text.trim(),
                     discountType: DiscountType.percentage,
                     discountValue: discount,
-                    startDate: DateTime.now(),
-                    endDate: DateTime.now().add(const Duration(days: 30)),
+                    startDate: businessNow,
+                    endDate: businessNow.add(const Duration(days: 30)),
                   );
 
                   await ref.read(ownerRepositoryProvider).saveOffer(newOffer);
