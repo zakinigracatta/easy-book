@@ -111,6 +111,25 @@ function zonedParts(date: Date, timeZone: string): {
   };
 }
 
+function nextLocalMidnightMs(date: Date, timeZone: string): number {
+  const parts = zonedParts(date, timeZone);
+  const [year, month, day] = parts.dateKey.split('-').map(Number);
+  const targetWallClockMs = Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0);
+
+  // Resolve the UTC instant for the next local midnight. Iterating accounts
+  // for zones whose offset changes around the target date (DST).
+  let guess = targetWallClockMs;
+  for (let i = 0; i < 3; i += 1) {
+    const guessParts = zonedParts(new Date(guess), timeZone);
+    const representedLocalMs =
+      Date.parse(`${guessParts.dateKey}T00:00:00Z`) +
+      guessParts.minuteOfDay * 60 * 1000;
+    const offsetMs = representedLocalMs - guess;
+    guess = targetWallClockMs - offsetMs;
+  }
+  return guess;
+}
+
 export function validateMaximumAdvanceDate(
   requestedAt: Date,
   timeZone: string,
@@ -555,7 +574,7 @@ export async function validateBookingRequirements(
     if (timeOff.endDate && typeof timeOff.endDate.toMillis === 'function') {
       const endDate = timeOff.endDate.toDate();
       if (zonedParts(endDate, timeZone).minuteOfDay === 0) {
-        timeOffEndMs = endDate.getTime() + 24 * 60 * 60 * 1000;
+        timeOffEndMs = nextLocalMidnightMs(endDate, timeZone);
       } else {
         timeOffEndMs = endDate.getTime();
       }
@@ -563,7 +582,7 @@ export async function validateBookingRequirements(
       const endDate = new Date(timeOff.endDate);
       if (!Number.isNaN(endDate.getTime())) {
         if (zonedParts(endDate, timeZone).minuteOfDay === 0) {
-          timeOffEndMs = endDate.getTime() + 24 * 60 * 60 * 1000;
+          timeOffEndMs = nextLocalMidnightMs(endDate, timeZone);
         } else {
           timeOffEndMs = endDate.getTime();
         }
