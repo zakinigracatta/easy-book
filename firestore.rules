@@ -67,6 +67,17 @@ service cloud.firestore {
       );
     }
 
+    function hasBookablePublicationState(data) {
+      return (
+        ('is_bookable' in data) &&
+        data.is_bookable == true
+      ) || (
+        !('is_bookable' in data) &&
+        ('isBookable' in data) &&
+        data.isBookable == true
+      );
+    }
+
     function isPublishedBusiness(businessId) {
       return exists(/databases/$(database)/documents/businesses/$(businessId)) &&
         hasVerifiedPublicationState(
@@ -315,16 +326,23 @@ service cloud.firestore {
       allow delete: if isAdminAccount();
 
       match /services/{serviceId} {
-        allow read: if isPublishedBusiness(businessId)
-                    || isBusinessOwner(businessId)
-                    || isAdminAccount();
+        allow read: if isBusinessOwner(businessId)
+                    || isAdminAccount()
+                    || (
+                      isPublishedBusiness(businessId)
+                      && hasActivePublicationState(resource.data)
+                      && hasBookablePublicationState(resource.data)
+                    );
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
       match /staff/{staffId} {
-        allow read: if isPublishedBusiness(businessId)
-                    || isBusinessOwner(businessId)
-                    || isAdminAccount();
+        allow read: if isBusinessOwner(businessId)
+                    || isAdminAccount()
+                    || (
+                      isPublishedBusiness(businessId)
+                      && hasActivePublicationState(resource.data)
+                    );
         allow create, update, delete: if isBusinessOwner(businessId);
       }
 
