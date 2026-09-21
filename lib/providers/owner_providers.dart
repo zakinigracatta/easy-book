@@ -269,6 +269,7 @@ class OwnerServicesNotifier
   }
 
   Future<void> toggleServiceActive(ServiceModel service) async {
+    final nextAvailable = !(service.isActive && service.isBookable);
     final updated = ServiceModel(
       id: service.id,
       salonId: service.salonId,
@@ -281,8 +282,8 @@ class OwnerServicesNotifier
       description: service.description,
       categoryId: service.categoryId,
       categoryName: service.categoryName,
-      isActive: !service.isActive,
-      isBookable: !service.isActive,
+      isActive: nextAvailable,
+      isBookable: nextAvailable,
       currency: service.currency,
     );
     await saveService(updated);
