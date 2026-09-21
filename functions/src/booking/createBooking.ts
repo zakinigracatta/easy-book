@@ -84,9 +84,9 @@ export const createBooking = onCall(async (request) => {
 
     const businessData = businessSnap.data() || {};
     const isVerified =
-      businessData.is_verified === true || businessData.isVerified === true;
+      (businessData.is_verified ?? businessData.isVerified) === true;
     const isActive =
-      (businessData.is_active ?? businessData.isActive) !== false;
+      (businessData.is_active ?? businessData.isActive) === true;
 
     if (!isVerified || !isActive) {
       throw new HttpsError(
