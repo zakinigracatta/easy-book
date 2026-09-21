@@ -27,6 +27,24 @@ void main() {
     expect(source, isNot(contains('id: doc.id')));
   });
 
+  test('any-specialist selection is server-owned and atomic', () {
+    final create = File(
+      'functions/src/booking/createBooking.ts',
+    ).readAsStringSync();
+    final reschedule = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+    final resolver = File(
+      'functions/src/booking/staffResolution.ts',
+    ).readAsStringSync();
+
+    expect(create, contains('resolveAnyAvailableStaff'));
+    expect(reschedule, contains('resolveAnyAvailableStaff'));
+    expect(resolver, contains('transaction.get(staffQuery)'));
+    expect(resolver, contains("db.collection('booking_slots').doc(lock.lockId)"));
+    expect(resolver, contains('NO_SPECIALIST_AVAILABLE'));
+  });
+
   test('booking backend requires explicit active staff', () {
     final source =
         File('functions/src/booking/bookingValidation.ts').readAsStringSync();
@@ -219,5 +237,17 @@ void main() {
       contains('{ requireAcceptingBookings: false }'),
     );
   });
+  test('legacy canonical migration never overwrites existing canonical fields', () {
+    final migration = File(
+      'functions/src/admin/migrateCanonicalFields.ts',
+    ).readAsStringSync();
+
+    expect(migration, contains('!hasCanonical && hasLegacy'));
+    expect(migration, contains("['is_verified', 'isVerified']"));
+    expect(migration, contains("['is_active', 'isActive']"));
+    expect(migration, contains("['is_bookable', 'isBookable']"));
+    expect(migration, contains("process.argv.includes('--dry-run')"));
+  });
+
 
 }
