@@ -137,7 +137,6 @@ class MyBookingsScreen extends ConsumerWidget {
               final dateStr =
                   '${booking.startDateTime.day}/${booking.startDateTime.month}/${booking.startDateTime.year} '
                   '${booking.startDateTime.hour}:${booking.startDateTime.minute.toString().padLeft(2, '0')}';
-              final isCancelled = booking.status == BookingStatus.cancelled;
               final isConfirmed = booking.status == BookingStatus.confirmed;
               final isPending = booking.status == BookingStatus.pending;
               final canModify = (isPending || isConfirmed) &&
