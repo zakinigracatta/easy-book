@@ -136,6 +136,8 @@ class BusinessRepositoryImpl implements BusinessRepository {
         .collection('businesses')
         .doc(normalizedId)
         .collection('services')
+        .where('is_active', isEqualTo: true)
+        .where('is_bookable', isEqualTo: true)
         .get();
 
     return snapshot.docs
@@ -157,6 +159,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
         .collection('businesses')
         .doc(normalizedId)
         .collection('staff')
+        .where('is_active', isEqualTo: true)
         .get();
 
     return snapshot.docs
