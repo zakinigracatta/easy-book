@@ -122,7 +122,8 @@ class ServiceDetailsScreen extends ConsumerWidget {
                                               item.durationMinutes,
                                           selectedServices: [item],
                                           resetStaffSelection:
-                                              draft.serviceId != item.id,
+                                              draft.serviceId?.isNotEmpty == true &&
+                                                  draft.serviceId != item.id,
                                           resetAppointmentSelection: true,
                                         )
                                       : BookingDraft(
