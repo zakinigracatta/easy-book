@@ -45,6 +45,7 @@ export const createBooking = onCall(async (request) => {
   const customerName = cleanText(data.customerName, 120) || 'Valued Customer';
   const customerPhone = cleanText(data.customerPhone, 40);
   const notes = cleanText(data.notes, 1000);
+  const anySpecialist = data.anySpecialist === true;
 
   if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
     throw new HttpsError(
@@ -156,6 +157,7 @@ export const createBooking = onCall(async (request) => {
       startTimestamp: requestedStartAt.getTime(),
       status: 'pending',
       bookingSource: 'app',
+      anySpecialist,
       notes,
       slotLockId: primarySlotLockId,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
