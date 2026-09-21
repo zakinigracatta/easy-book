@@ -17,6 +17,13 @@ export const rescheduleBooking = onCall(async (request) => {
     );
   }
 
+  if (request.auth.token.email && request.auth.token.email_verified !== true) {
+    throw new HttpsError(
+      'failed-precondition',
+      'EMAIL_NOT_VERIFIED: Verify your email address before managing bookings.'
+    );
+  }
+
   const callerUid = request.auth.uid;
   const data = request.data || {};
   const bookingId =
