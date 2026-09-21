@@ -345,10 +345,12 @@ class _BusinessHeaderCard extends StatelessWidget {
     final rating =
         (business['rating'] as num?)?.toDouble().toStringAsFixed(1) ?? '—';
 
-    final isVerified =
-        business['is_verified'] == true || business['isVerified'] == true;
-    final isActive =
-        business['is_active'] == true || business['isActive'] == true;
+    final isVerified = business['is_verified'] is bool
+        ? business['is_verified'] == true
+        : business['isVerified'] == true;
+    final isActive = business['is_active'] is bool
+        ? business['is_active'] == true
+        : business['isActive'] == true;
 
     final phone =
         (business['phone'] ??
