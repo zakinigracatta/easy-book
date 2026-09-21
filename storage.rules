@@ -26,15 +26,32 @@ service firebase.storage {
       );
     }
 
+    function hasVerifiedPublicationState(data) {
+      return (
+        ('is_verified' in data) &&
+        data.is_verified == true
+      ) || (
+        !('is_verified' in data) &&
+        ('isVerified' in data) &&
+        data.isVerified == true
+      );
+    }
+
+    function hasActivePublicationState(data) {
+      return (
+        ('is_active' in data) &&
+        data.is_active == true
+      ) || (
+        !('is_active' in data) &&
+        ('isActive' in data) &&
+        data.isActive == true
+      );
+    }
+
     function isPublishedBusiness(businessId) {
       let biz = firestore.get(/databases/(default)/documents/businesses/$(businessId)).data;
-      return (
-          (('is_verified' in biz) && biz.is_verified == true) ||
-          (('isVerified' in biz) && biz.isVerified == true)
-        ) && (
-          (('is_active' in biz) && biz.is_active == true) ||
-          (('isActive' in biz) && biz.isActive == true)
-        );
+      return hasVerifiedPublicationState(biz)
+          && hasActivePublicationState(biz);
     }
 
     function canReadBusinessAsset(businessId) {
