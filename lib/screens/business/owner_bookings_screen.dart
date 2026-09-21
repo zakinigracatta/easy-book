@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/domain_exceptions.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
@@ -187,6 +188,14 @@ class OwnerBookingsScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          } on DomainException catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(context.tr(e.message)),
+                                backgroundColor: AppColors.error,
                               ),
                             );
                           } catch (_) {
