@@ -38,6 +38,8 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
+      final currency = (resData['currency'] ?? 'AED').toString();
+      final timeZone = (resData['timeZone'] ?? 'Asia/Dubai').toString();
       final endDateTime =
           DateTime.parse(resData['endDateTime'] as String).toLocal();
 
@@ -51,6 +53,8 @@ class BookingFunctionsService {
         serviceId: serviceId,
         serviceName: '',
         servicePrice: servicePrice,
+        currency: currency,
+        timeZone: timeZone,
         staffId: staffId,
         staffName: '',
         startDateTime: requestedStartAt,
@@ -100,6 +104,8 @@ class BookingFunctionsService {
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
+      final currency = (resData['currency'] ?? 'AED').toString();
+      final timeZone = (resData['timeZone'] ?? 'Asia/Dubai').toString();
       final endDateTime =
           DateTime.parse(resData['endDateTime'] as String).toLocal();
 
@@ -113,6 +119,8 @@ class BookingFunctionsService {
         serviceId: serviceId,
         serviceName: '',
         servicePrice: servicePrice,
+        currency: currency,
+        timeZone: timeZone,
         staffId: staffId,
         staffName: '',
         startDateTime: requestedStartAt,
