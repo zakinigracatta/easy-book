@@ -25,6 +25,27 @@ class MyBookingsScreen extends ConsumerWidget {
         : AppColors.textSecondaryLight;
   }
 
+  String _statusKey(BookingStatus status) {
+    return switch (status) {
+      BookingStatus.pending => 'Pending',
+      BookingStatus.confirmed => 'Confirmed',
+      BookingStatus.arrived => 'Arrived',
+      BookingStatus.inProgress => 'In Progress',
+      BookingStatus.completed => 'Completed',
+      BookingStatus.cancelled => 'Cancelled',
+      BookingStatus.noShow => 'No Show',
+    };
+  }
+
+  Color _statusColor(BookingStatus status) {
+    return switch (status) {
+      BookingStatus.confirmed || BookingStatus.completed => AppColors.success,
+      BookingStatus.cancelled || BookingStatus.noShow => AppColors.error,
+      BookingStatus.pending => AppColors.warning,
+      BookingStatus.arrived || BookingStatus.inProgress => AppColors.primary,
+    };
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appointmentsState = ref.watch(appointmentsProvider);
@@ -116,19 +137,13 @@ class MyBookingsScreen extends ConsumerWidget {
               final dateStr =
                   '${booking.startDateTime.day}/${booking.startDateTime.month}/${booking.startDateTime.year} '
                   '${booking.startDateTime.hour}:${booking.startDateTime.minute.toString().padLeft(2, '0')}';
-              final isCancelled = booking.status == BookingStatus.cancelled;
               final isConfirmed = booking.status == BookingStatus.confirmed;
               final isPending = booking.status == BookingStatus.pending;
               final canModify = (isPending || isConfirmed) &&
                   booking.startDateTime.isAfter(DateTime.now());
 
-              final statusColor = isCancelled
-                  ? AppColors.error
-                  : (isConfirmed
-                      ? AppColors.success
-                      : (isPending ? AppColors.warning : Colors.blue));
-              final statusKey = booking.status.name[0].toUpperCase() +
-                  booking.status.name.substring(1);
+              final statusColor = _statusColor(booking.status);
+              final statusKey = _statusKey(booking.status);
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
