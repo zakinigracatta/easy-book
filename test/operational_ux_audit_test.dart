@@ -270,8 +270,9 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('final hasWeeklySchedule = staff.weeklySchedule.isNotEmpty;'));
+    expect(source, contains('final hasLegacyShift ='));
     expect(source, contains('final working = hasWeeklySchedule'));
-    expect(source, contains('? false'));
+    expect(source, contains(': hasLegacyShift'));
   });
 
 
