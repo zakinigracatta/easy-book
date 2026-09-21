@@ -44,8 +44,25 @@ class _RescheduleBookingScreenState
     if (booking == null || slot == null) return;
 
     final newStartDateTime = slot.startAt;
+    final newStaffId = booking.anySpecialist
+        ? (slot.availableStaffIds.isNotEmpty
+            ? slot.availableStaffIds.first
+            : '')
+        : booking.staffId;
+    if (newStaffId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('No available specialist was resolved for this time slot.'),
+          ),
+        ),
+      );
+      return;
+    }
+
     if (booking.startDateTime.millisecondsSinceEpoch ==
-        newStartDateTime.millisecondsSinceEpoch) {
+            newStartDateTime.millisecondsSinceEpoch &&
+        booking.staffId == newStaffId) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -61,6 +78,7 @@ class _RescheduleBookingScreenState
       await ref.read(appointmentsProvider.notifier).rescheduleAppointment(
             bookingId: booking.id,
             newStartDateTime: newStartDateTime,
+            newStaffId: newStaffId,
           );
 
       if (!mounted) return;
@@ -135,6 +153,7 @@ class _RescheduleBookingScreenState
         businessId: booking.businessId,
         serviceId: booking.serviceId,
         staffId: booking.staffId,
+        anySpecialist: booking.anySpecialist,
         date: effectiveSelectedDate,
         bookingId: booking.id,
       )),
@@ -162,7 +181,9 @@ class _RescheduleBookingScreenState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${booking.serviceName} • ${context.tr('Specialist')}: ${booking.staffName}',
+                      booking.anySpecialist
+                          ? '${booking.serviceName} • ${context.tr('Specialist')}: ${context.tr('Any Available Specialist')}'
+                          : '${booking.serviceName} • ${context.tr('Specialist')}: ${booking.staffName}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontSize: 13,
