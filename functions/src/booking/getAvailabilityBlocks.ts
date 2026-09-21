@@ -50,6 +50,24 @@ function asDate(value: unknown): Date | null {
   return null;
 }
 
+function localMinuteOfDay(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date);
+  const values: Record<string, string> = {};
+  for (const part of parts) {
+    if (part.type !== 'literal') values[part.type] = part.value;
+  }
+  const hour = Number.parseInt(values.hour, 10);
+  const minute = Number.parseInt(values.minute, 10);
+  return Number.isInteger(hour) && Number.isInteger(minute)
+    ? hour * 60 + minute
+    : -1;
+}
+
 function requestedRange(data: Record<string, unknown>): {
   start: Date;
   end: Date;
@@ -126,6 +144,10 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     (business.accepting_bookings ?? business.acceptingBookings) === true;
   const businessStatus =
     business.business_status ?? business.businessStatus ?? 'closed';
+  const timeZone =
+    typeof (business.timeZone ?? business.timezone) === 'string'
+      ? String(business.timeZone ?? business.timezone)
+      : 'Asia/Dubai';
 
   if (
     !isVerified ||
@@ -203,10 +225,16 @@ export const getAvailabilityBlocks = onCall(async (request) => {
 
     if (!employeeId || !startDate || !endDate) continue;
     if (!activeStaffIdSet.has(employeeId)) continue;
-    if (endDate.getTime() < startDate.getTime()) continue;
+
+    let effectiveEnd = endDate;
+    if (localMinuteOfDay(endDate, timeZone) === 0) {
+      effectiveEnd = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    if (effectiveEnd.getTime() < startDate.getTime()) continue;
     if (
       startDate.getTime() >= range.end.getTime() ||
-      endDate.getTime() <= range.start.getTime()
+      effectiveEnd.getTime() <= range.start.getTime()
     ) {
       continue;
     }
@@ -214,7 +242,7 @@ export const getAvailabilityBlocks = onCall(async (request) => {
     blocks.push({
       employeeId,
       startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      endDate: effectiveEnd.toISOString(),
     });
   }
 
