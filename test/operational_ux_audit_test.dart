@@ -286,6 +286,44 @@ void main() {
     expect(source, isNot(contains('if (role == UserRole.admin)')));
   });
 
+
+  test('staff-first customer flow keeps specialist on first service choice', () {
+    final bookingService = File(
+      'lib/screens/customer/booking_service_screen.dart',
+    ).readAsStringSync();
+    final serviceDetails = File(
+      'lib/screens/customer/service_details_screen.dart',
+    ).readAsStringSync();
+
+    expect(
+      bookingService,
+      contains('currentDraft.serviceId?.isNotEmpty == true'),
+    );
+    expect(
+      serviceDetails,
+      contains('draft.serviceId?.isNotEmpty == true'),
+    );
+  });
+
+  test('reschedule repairs missing overlapping deterministic locks', () {
+    final source = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('const missingNewLocks'));
+    expect(source, contains('for (const lock of newLockObjects)'));
+    expect(source, contains('missingNewLocks.push'));
+  });
+
+  test('public availability uses canonical timezone fallback', () {
+    final source = File(
+      'functions/src/booking/getAvailabilityBlocks.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('resolveTimeZone(business.timeZone ?? business.timezone)'));
+    expect(source, contains('normalizeInclusiveTimeOffEndMs'));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
