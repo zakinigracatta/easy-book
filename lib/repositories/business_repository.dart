@@ -32,13 +32,25 @@ class BusinessRepositoryImpl implements BusinessRepository {
     // Public discovery must only query records that Firestore can prove are
     // published. Security rules are not filters, so querying the whole
     // collection would fail as soon as one pending business exists.
-    final snapshot = await _firestore
-        .collection('businesses')
-        .where('is_verified', isEqualTo: true)
-        .where('is_active', isEqualTo: true)
-        .get();
+    final snapshots = await Future.wait([
+      _firestore
+          .collection('businesses')
+          .where('is_verified', isEqualTo: true)
+          .where('is_active', isEqualTo: true)
+          .get(),
+      _firestore
+          .collection('businesses')
+          .where('isVerified', isEqualTo: true)
+          .where('isActive', isEqualTo: true)
+          .get(),
+    ]);
 
-    final businesses = snapshot.docs
+    final docsById = {
+      for (final snapshot in snapshots)
+        for (final doc in snapshot.docs) doc.id: doc,
+    };
+
+    final businesses = docsById.values
         .map((doc) {
           final data = Map<String, dynamic>.from(doc.data());
           data['id'] = doc.id;
@@ -132,15 +144,29 @@ class BusinessRepositoryImpl implements BusinessRepository {
     final normalizedId = businessId.trim();
     if (normalizedId.isEmpty) return [];
 
-    final snapshot = await _firestore
-        .collection('businesses')
-        .doc(normalizedId)
-        .collection('services')
-        .where('is_active', isEqualTo: true)
-        .where('is_bookable', isEqualTo: true)
-        .get();
+    final snapshots = await Future.wait([
+      _firestore
+          .collection('businesses')
+          .doc(normalizedId)
+          .collection('services')
+          .where('is_active', isEqualTo: true)
+          .where('is_bookable', isEqualTo: true)
+          .get(),
+      _firestore
+          .collection('businesses')
+          .doc(normalizedId)
+          .collection('services')
+          .where('isActive', isEqualTo: true)
+          .where('isBookable', isEqualTo: true)
+          .get(),
+    ]);
 
-    return snapshot.docs
+    final docsById = {
+      for (final snapshot in snapshots)
+        for (final doc in snapshot.docs) doc.id: doc,
+    };
+
+    return docsById.values
         .map((doc) {
           final data = Map<String, dynamic>.from(doc.data());
           data['id'] = doc.id;
@@ -155,14 +181,27 @@ class BusinessRepositoryImpl implements BusinessRepository {
     final normalizedId = businessId.trim();
     if (normalizedId.isEmpty) return [];
 
-    final snapshot = await _firestore
-        .collection('businesses')
-        .doc(normalizedId)
-        .collection('staff')
-        .where('is_active', isEqualTo: true)
-        .get();
+    final snapshots = await Future.wait([
+      _firestore
+          .collection('businesses')
+          .doc(normalizedId)
+          .collection('staff')
+          .where('is_active', isEqualTo: true)
+          .get(),
+      _firestore
+          .collection('businesses')
+          .doc(normalizedId)
+          .collection('staff')
+          .where('isActive', isEqualTo: true)
+          .get(),
+    ]);
 
-    return snapshot.docs
+    final docsById = {
+      for (final snapshot in snapshots)
+        for (final doc in snapshot.docs) doc.id: doc,
+    };
+
+    return docsById.values
         .map((doc) {
           final data = Map<String, dynamic>.from(doc.data());
           data['id'] = doc.id;
