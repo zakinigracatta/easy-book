@@ -50,10 +50,13 @@ class _BookingSpecialistScreenState
         );
         return;
       }
+      final selectionChanged =
+          !draft.anySpecialist || (draft.staffId?.isNotEmpty ?? false);
       ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
         anySpecialist: true,
         staffId: '',
         staffName: 'Any Available Specialist',
+        clearSchedule: selectionChanged,
       );
     } else {
       if (_selectedStaffId == null || _selectedStaffId!.isEmpty) {
@@ -68,11 +71,28 @@ class _BookingSpecialistScreenState
         );
         return;
       }
-      final staff = eligibleStaff.firstWhere((s) => s.id == _selectedStaffId);
+      final matches =
+          eligibleStaff.where((staff) => staff.id == _selectedStaffId).toList();
+      if (matches.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.tr(
+                'The selected specialist is no longer available for this service.',
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      final staff = matches.first;
+      final selectionChanged =
+          draft.anySpecialist || draft.staffId != staff.id;
       ref.read(bookingDraftProvider.notifier).state = draft.copyWith(
         anySpecialist: false,
         staffId: staff.id,
         staffName: staff.name,
+        clearSchedule: selectionChanged,
       );
     }
     context.push('/booking-date');
