@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../core/utils/business_clock.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/employee_time_off_model.dart';
 import '../../models/staff_model.dart';
@@ -37,6 +38,8 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
   @override
   Widget build(BuildContext context) {
     final timeOffsAsync = ref.watch(ownerTimeOffsProvider);
+    final businessTimeZone =
+        ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
 
     return PopScope(
       canPop: context.canPop(),
@@ -159,7 +162,9 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                   final sorted = [...timeOffs]
                     ..sort((a, b) => a.startDate.compareTo(b.startDate));
                   return Column(
-                    children: sorted.map(_leaveCard).toList(growable: false),
+                    children: sorted
+                        .map((timeOff) => _leaveCard(timeOff, businessTimeZone))
+                        .toList(growable: false),
                   );
                 },
               ),
@@ -170,10 +175,12 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
     );
   }
 
-  Widget _leaveCard(EmployeeTimeOffModel timeOff) {
+  Widget _leaveCard(EmployeeTimeOffModel timeOff, String timeZone) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final start = DateFormat('MMM d, yyyy', locale).format(timeOff.startDate);
-    final end = DateFormat('MMM d, yyyy', locale).format(timeOff.endDate);
+    final localStart = BusinessClock.inTimeZone(timeOff.startDate, timeZone);
+    final localEnd = BusinessClock.inTimeZone(timeOff.endDate, timeZone);
+    final start = DateFormat('MMM d, yyyy', locale).format(localStart);
+    final end = DateFormat('MMM d, yyyy', locale).format(localEnd);
 
     return GlassCard(
       padding: const EdgeInsets.all(14),
@@ -253,6 +260,29 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
     }
 
     if (!mounted) return;
+
+    var business = ref.read(ownerBusinessProvider).value;
+    if (business == null) {
+      await ref.read(ownerBusinessProvider.notifier).loadBusiness();
+      business = ref.read(ownerBusinessProvider).value;
+    }
+    if (!mounted) return;
+    if (business == null) {
+      _showMessage(
+        context.tr('Unable to load business details. Please try again.'),
+        isError: true,
+      );
+      return;
+    }
+    final timeZone = business.timeZone;
+    final today = BusinessClock.calendarToday(timeZone);
+    if (_startDate.isBefore(today)) {
+      _startDate = today.add(const Duration(days: 3));
+    }
+    if (_endDate.isBefore(_startDate)) {
+      _endDate = _startDate.add(const Duration(days: 4));
+    }
+
     if (activeStaff.isEmpty) {
       _showMessage(
         context.tr('Add an active employee before scheduling leave.'),
@@ -333,9 +363,8 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                             final picked = await showDatePicker(
                               context: sheetContext,
                               initialDate: _startDate,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now()
-                                  .add(const Duration(days: 365)),
+                              firstDate: today,
+                              lastDate: today.add(const Duration(days: 365)),
                             );
                             if (picked == null || !sheetContext.mounted) return;
                             setModalState(() {
@@ -360,8 +389,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                               context: sheetContext,
                               initialDate: initial,
                               firstDate: _startDate,
-                              lastDate: DateTime.now()
-                                  .add(const Duration(days: 365)),
+                              lastDate: today.add(const Duration(days: 365)),
                             );
                             if (picked == null || !sheetContext.mounted) return;
                             setModalState(() => _endDate = picked);
@@ -376,7 +404,11 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
                     isLoading: _isLoading,
                     onPressed: _isLoading
                         ? null
-                        : () => _saveLeave(sheetContext, setModalState),
+                        : () => _saveLeave(
+                              sheetContext,
+                              setModalState,
+                              timeZone,
+                            ),
                   ),
                 ],
               ),
@@ -405,6 +437,7 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
   Future<void> _saveLeave(
     BuildContext sheetContext,
     StateSetter setModalState,
+    String timeZone,
   ) async {
     final selectedStaff = _selectedStaff;
     if (selectedStaff == null) {
@@ -428,19 +461,25 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
         throw StateError('No business is linked to this owner account.');
       }
 
-      final start = DateTime(
-        _startDate.year,
-        _startDate.month,
-        _startDate.day,
+      final start = BusinessClock.wallClock(
+        DateTime(
+          _startDate.year,
+          _startDate.month,
+          _startDate.day,
+        ),
+        timeZone,
       );
-      final end = DateTime(
-        _endDate.year,
-        _endDate.month,
-        _endDate.day,
-        23,
-        59,
-        59,
-        999,
+      final end = BusinessClock.wallClock(
+        DateTime(
+          _endDate.year,
+          _endDate.month,
+          _endDate.day,
+          23,
+          59,
+          59,
+          999,
+        ),
+        timeZone,
       );
 
       final newOff = EmployeeTimeOffModel(
