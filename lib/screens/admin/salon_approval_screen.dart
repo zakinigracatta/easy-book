@@ -52,10 +52,12 @@ class SalonApprovalScreen extends StatelessWidget {
 
             final docs = snapshot.data!.docs.where((doc) {
               final data = doc.data();
-              final isVerified =
-                  data['is_verified'] == true || data['isVerified'] == true;
-              final isActive =
-                  data['is_active'] == true || data['isActive'] == true;
+              final isVerified = data['is_verified'] is bool
+                  ? data['is_verified'] == true
+                  : data['isVerified'] == true;
+              final isActive = data['is_active'] is bool
+                  ? data['is_active'] == true
+                  : data['isActive'] == true;
               return !isVerified && isActive;
             }).toList(growable: false);
             if (docs.isEmpty) {
