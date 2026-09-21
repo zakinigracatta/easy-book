@@ -189,21 +189,33 @@ class BookingAvailabilityEngine {
     final candEndMin = candStartMin + totalDurationMinutes;
 
     final perDaySchedule = staff.weeklySchedule[targetDayName];
-    if (perDaySchedule != null) {
-      if (!perDaySchedule.isWorking) return false;
-    } else if (staff.workingDays != null &&
-        !staff.workingDays!.contains(targetDateWeekday)) {
-      return false;
+    if (staff.weeklySchedule.isNotEmpty) {
+      if (perDaySchedule == null || !perDaySchedule.isWorking) return false;
+    } else {
+      final workingDays = staff.workingDays;
+      final hasShiftStart = staff.shiftStart?.trim().isNotEmpty == true;
+      final hasShiftEnd = staff.shiftEnd?.trim().isNotEmpty == true;
+
+      // Completely missing scheduling data must not make an active employee
+      // bookable across the full business day.
+      if (workingDays == null && !hasShiftStart && !hasShiftEnd) {
+        return false;
+      }
+      if (workingDays != null &&
+          (workingDays.isEmpty || !workingDays.contains(targetDateWeekday))) {
+        return false;
+      }
+      if (hasShiftStart != hasShiftEnd) return false;
     }
 
     final staffShiftStartMin = perDaySchedule != null
         ? _parseTimeStringToMinutes(perDaySchedule.openTime)
-        : (staff.shiftStart != null
+        : (staff.shiftStart?.trim().isNotEmpty == true
             ? _parseTimeStringToMinutes(staff.shiftStart!)
             : bOpenMinutes);
     final staffShiftEndMin = perDaySchedule != null
         ? _parseTimeStringToMinutes(perDaySchedule.closeTime)
-        : (staff.shiftEnd != null
+        : (staff.shiftEnd?.trim().isNotEmpty == true
             ? _parseTimeStringToMinutes(staff.shiftEnd!)
             : bCloseMinutes);
 
