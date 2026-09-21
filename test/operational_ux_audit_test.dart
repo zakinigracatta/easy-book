@@ -324,6 +324,22 @@ void main() {
     expect(source, contains('normalizeInclusiveTimeOffEndMs'));
   });
 
+
+  test('owner service availability requires active and bookable flags', () {
+    final screen = File(
+      'lib/screens/business/services_management_screen.dart',
+    ).readAsStringSync();
+    final provider =
+        File('lib/providers/owner_providers.dart').readAsStringSync();
+    final repository =
+        File('lib/repositories/owner_repository.dart').readAsStringSync();
+
+    expect(screen, contains('service.isActive && service.isBookable'));
+    expect(provider, contains('final nextAvailable ='));
+    expect(provider, contains('isBookable: nextAvailable'));
+    expect(repository, contains("'is_bookable': false"));
+  });
+
   test('admin shell retains responsive compact navigation', () {
     final source =
         File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
