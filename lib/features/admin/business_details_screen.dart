@@ -251,7 +251,8 @@ class _AdminBusinessDetailsScreenState
                                   .map(
                                     (s) {
                                       final durationMinutes =
-                                          s['duration_minutes'];
+                                          s['duration_minutes'] ??
+                                              s['durationMinutes'];
                                       final durationText =
                                           durationMinutes != null
                                               ? '${durationMinutes.toString()} ${adminText(context, 'min', 'دقيقة')}'
@@ -291,7 +292,9 @@ class _AdminBusinessDetailsScreenState
                                                   ))
                                               .toString(),
                                       'subtitle':
-                                          (st['role'] ??
+                                          (st['role_title'] ??
+                                                  st['roleTitle'] ??
+                                                  st['role'] ??
                                                   st['specialty'] ??
                                                   adminText(
                                                     context,
