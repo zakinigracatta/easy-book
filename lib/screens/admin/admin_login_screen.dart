@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
+import '../../services/navigation_service.dart';
 import '../../features/admin/admin_locale_provider.dart';
 import '../../features/admin/admin_localization.dart';
 
@@ -95,7 +96,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       }
 
       if (mounted) {
-        context.go('/admin/dashboard');
+        final pendingRoute = NavigationService().consumePendingRoute();
+        context.go(
+          pendingRoute != null && pendingRoute.startsWith('/admin')
+              ? pendingRoute
+              : '/admin/dashboard',
+        );
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
