@@ -102,4 +102,15 @@ void main() {
     );
   });
 
+  test('pending auth navigation survives a process or browser restart', () {
+    final navigation =
+        File('lib/services/navigation_service.dart').readAsStringSync();
+
+    expect(navigation, contains('pending_navigation_route'));
+    expect(navigation, contains('Hive.isBoxOpen(AppConstants.hiveSettingsBox)'));
+    expect(navigation, contains('_storedPendingRoute()'));
+    expect(navigation, contains('_persistPendingRoute(normalized)'));
+    expect(navigation, contains('_persistPendingRoute(null)'));
+  });
+
 }
