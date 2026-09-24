@@ -112,8 +112,10 @@ void main() {
     expect(repositorySource, contains("'startDateTime',"));
     expect(repositorySource, contains('isGreaterThan: Timestamp.fromDate(after)'));
     expect(repositorySource, contains(".orderBy('startDateTime')"));
-    expect(repositorySource, contains("'noShow'"), reason:
-        'Upcoming query must stay constrained to active statuses, excluding no-show/completed/cancelled records.');
+    expect(repositorySource, contains("'pending'"));
+    expect(repositorySource, contains("'confirmed'"));
+    expect(repositorySource, contains("'arrived'"));
+    expect(repositorySource, contains("'inProgress'"));
   });
 
   test('owner calendar groups bookings by business timezone', () {
