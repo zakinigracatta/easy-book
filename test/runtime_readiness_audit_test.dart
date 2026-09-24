@@ -169,4 +169,17 @@ void main() {
     expect(more, isNot(contains("'/owner-notifications'")));
   });
 
+  test('logout clears persisted post-auth navigation state', () {
+    final source =
+        File('lib/providers/auth_provider.dart').readAsStringSync();
+
+    expect(source, contains('Future<void> logout() async'));
+    expect(source, contains('await _repository.logout();'));
+    expect(source, contains('NavigationService().clearPendingRoute();'));
+    expect(
+      source.indexOf('NavigationService().clearPendingRoute();'),
+      greaterThan(source.indexOf('await _repository.logout();')),
+    );
+  });
+
 }
