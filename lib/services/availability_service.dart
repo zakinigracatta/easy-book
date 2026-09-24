@@ -51,26 +51,43 @@ class AvailabilityService {
       date.day + 1,
     );
 
+    const maxStaffPerRequest = 50;
     final callable = _functions.httpsCallable('getAvailabilityBlocks');
-    final response = await callable.call({
-      'businessId': normalizedBusinessId,
-      'staffIds': normalizedStaffIds,
-      'startAt': start.toUtc().toIso8601String(),
-      'endAt': end.toUtc().toIso8601String(),
-      if (excludeBookingId != null && excludeBookingId.trim().isNotEmpty)
-        'excludeBookingId': excludeBookingId.trim(),
-    });
+    final occupied = <String, Set<int>>{};
 
-    if (response.data is! Map) {
-      throw StateError('Availability service returned an invalid response.');
+    for (var offset = 0;
+        offset < normalizedStaffIds.length;
+        offset += maxStaffPerRequest) {
+      final endOffset =
+          (offset + maxStaffPerRequest).clamp(0, normalizedStaffIds.length);
+      final batch = normalizedStaffIds.sublist(offset, endOffset);
+
+      final response = await callable.call({
+        'businessId': normalizedBusinessId,
+        'staffIds': batch,
+        'startAt': start.toUtc().toIso8601String(),
+        'endAt': end.toUtc().toIso8601String(),
+        if (excludeBookingId != null && excludeBookingId.trim().isNotEmpty)
+          'excludeBookingId': excludeBookingId.trim(),
+      });
+
+      if (response.data is! Map) {
+        throw StateError('Availability service returned an invalid response.');
+      }
+
+      final payload = Map<String, dynamic>.from(response.data as Map);
+      if (payload['unavailableSlots'] is! List) {
+        throw StateError(
+          'Availability service returned incomplete scheduling data.',
+        );
+      }
+
+      final batchOccupied =
+          _parseUnavailableSlots(payload['unavailableSlots']);
+      for (final entry in batchOccupied.entries) {
+        occupied.putIfAbsent(entry.key, () => <int>{}).addAll(entry.value);
+      }
     }
-
-    final payload = Map<String, dynamic>.from(response.data as Map);
-    if (payload['unavailableSlots'] is! List) {
-      throw StateError('Availability service returned incomplete scheduling data.');
-    }
-
-    final occupied = _parseUnavailableSlots(payload['unavailableSlots']);
 
     return AvailabilitySnapshot(
       occupiedSlotsByStaff: occupied,
