@@ -171,6 +171,15 @@ void main() {
     expect(source, contains("redirectTarget == '/login'"));
   });
 
+  test('owner finance authorization prioritizes canonical owner identity', () {
+    final source = File(
+      'lib/repositories/owner_finance_repository.dart',
+    ).readAsStringSync();
+
+    expect(source, contains("data['owner_id'] ?? data['ownerId']"));
+    expect(source, isNot(contains("data['ownerId'] ?? data['owner_id']")));
+  });
+
   test('owner profile updates avoid protected business fields', () {
     final source =
         File('lib/repositories/owner_repository.dart').readAsStringSync();
