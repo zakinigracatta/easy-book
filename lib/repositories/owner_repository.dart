@@ -165,7 +165,7 @@ class OwnerRepositoryImpl implements OwnerRepository {
       );
     }
 
-    final safePageSize = pageSize.clamp(1, 100);
+    final safePageSize = pageSize.clamp(1, 100).toInt();
     try {
       Query<Map<String, dynamic>> query = _firestore
           .collection('bookings')
@@ -251,33 +251,33 @@ class OwnerRepositoryImpl implements OwnerRepository {
     int limit = 3,
   }) async {
     if (businessId.isEmpty) return const <BookingModel>[];
-    final safeLimit = limit.clamp(1, 20);
+    final safeLimit = limit.clamp(1, 20).toInt();
     try {
       final snap = await _firestore
           .collection('bookings')
           .where('businessId', isEqualTo: businessId)
           .where(
+            'status',
+            whereIn: const [
+              'pending',
+              'confirmed',
+              'arrived',
+              'inProgress',
+            ],
+          )
+          .where(
             'startDateTime',
             isGreaterThan: Timestamp.fromDate(after),
           )
           .orderBy('startDateTime')
-          .limit(safeLimit * 4)
+          .limit(safeLimit)
           .get();
 
-      final result = <BookingModel>[];
-      for (final doc in snap.docs) {
+      return snap.docs.map((doc) {
         final data = Map<String, dynamic>.from(doc.data());
         data['id'] = doc.id;
-        final booking = BookingModel.fromJson(data);
-        if (booking.status == BookingStatus.cancelled ||
-            booking.status == BookingStatus.completed ||
-            booking.status == BookingStatus.noShow) {
-          continue;
-        }
-        result.add(booking);
-        if (result.length == safeLimit) break;
-      }
-      return result;
+        return BookingModel.fromJson(data);
+      }).toList(growable: false);
     } on FirebaseException catch (e) {
       throw DomainException(
         'Failed to fetch upcoming bookings: ${e.message ?? e.code}',
