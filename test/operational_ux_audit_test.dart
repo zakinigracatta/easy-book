@@ -55,6 +55,18 @@ void main() {
     );
   });
 
+  test('unfinished admin modules stay out of primary navigation', () {
+    final shell =
+        File('lib/features/admin/admin_portal_shell.dart').readAsStringSync();
+    final dashboard =
+        File('lib/screens/admin/admin_dashboard_screen.dart').readAsStringSync();
+
+    expect(shell, isNot(contains("'/admin/payments'")));
+    expect(shell, isNot(contains("'/admin/reports'")));
+    expect(dashboard, isNot(contains("'/admin/payments'")));
+    expect(dashboard, isNot(contains("'/admin/reports'")));
+  });
+
   test('admin business details use canonical staff role and duration aliases', () {
     final source = File(
       'lib/features/admin/business_details_screen.dart',
