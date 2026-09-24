@@ -278,7 +278,10 @@ void main() {
       'functions/src/admin/migrateCanonicalFields.ts',
     ).readAsStringSync();
 
-    expect(migration, contains('!hasCanonical && hasLegacy'));
+    expect(
+      migration,
+      contains('!hasCanonical && !hasQueuedCanonical && hasLegacy'),
+    );
     expect(migration, contains("['is_verified', 'isVerified']"));
     expect(migration, contains("['is_active', 'isActive']"));
     expect(migration, contains("['is_bookable', 'isBookable']"));
