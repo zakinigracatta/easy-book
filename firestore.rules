@@ -114,6 +114,41 @@ service cloud.firestore {
       return frequency in ['oneTime', 'monthly', 'yearly'];
     }
 
+    function staffBelongsToBusiness(data, businessId) {
+      return (!('business_id' in data) || data.business_id == businessId) &&
+        (!('businessId' in data) || data.businessId == businessId);
+    }
+
+    function validNewStaffTrustFields(data) {
+      return (!('rating' in data) || data.rating == 0) &&
+        (!('review_count' in data) || data.review_count == 0) &&
+        (!('reviewCount' in data) || data.reviewCount == 0);
+    }
+
+    function preservesStaffTrustFields() {
+      return (
+          (!('rating' in resource.data) &&
+            (!('rating' in request.resource.data) || request.resource.data.rating == 0)) ||
+          (('rating' in resource.data) &&
+            ('rating' in request.resource.data) &&
+            request.resource.data.rating == resource.data.rating)
+        ) &&
+        (
+          (!('review_count' in resource.data) &&
+            (!('review_count' in request.resource.data) || request.resource.data.review_count == 0)) ||
+          (('review_count' in resource.data) &&
+            ('review_count' in request.resource.data) &&
+            request.resource.data.review_count == resource.data.review_count)
+        ) &&
+        (
+          (!('reviewCount' in resource.data) &&
+            (!('reviewCount' in request.resource.data) || request.resource.data.reviewCount == 0)) ||
+          (('reviewCount' in resource.data) &&
+            ('reviewCount' in request.resource.data) &&
+            request.resource.data.reviewCount == resource.data.reviewCount)
+        );
+    }
+
     function validExpenseData(businessId) {
       return request.resource.data.keys().hasOnly([
           'businessId',
@@ -343,7 +378,13 @@ service cloud.firestore {
                       isPublishedBusiness(businessId)
                       && hasActivePublicationState(resource.data)
                     );
-        allow create, update, delete: if isBusinessOwner(businessId);
+        allow create: if isBusinessOwner(businessId)
+                      && staffBelongsToBusiness(request.resource.data, businessId)
+                      && validNewStaffTrustFields(request.resource.data);
+        allow update: if isBusinessOwner(businessId)
+                      && staffBelongsToBusiness(request.resource.data, businessId)
+                      && preservesStaffTrustFields();
+        allow delete: if isBusinessOwner(businessId);
       }
 
       // PRIVATE OWNER FINANCE: employees and customers have no read/write access.
