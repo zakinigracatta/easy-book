@@ -276,8 +276,12 @@ class BookingDraft {
   }
 }
 
-final bookingDraftProvider =
-    StateProvider<BookingDraft>((ref) => BookingDraft());
+final bookingDraftProvider = StateProvider<BookingDraft>((ref) {
+  // Recreate the draft on every auth-session change so a signed-out user's
+  // selections can never bleed into the next account.
+  ref.watch(authProvider.select((user) => user?.id ?? ''));
+  return BookingDraft();
+});
 
 // Category Filter State
 final selectedCategoryProvider = StateProvider<String>((ref) => 'all');
@@ -452,4 +456,7 @@ final appointmentsProvider =
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 // Legacy in-memory favorites state. New customer UI uses savedFavoritesProvider.
-final favoritesProvider = StateProvider<Set<String>>((ref) => <String>{});
+final favoritesProvider = StateProvider<Set<String>>((ref) {
+  ref.watch(authProvider.select((user) => user?.id ?? ''));
+  return <String>{};
+});
