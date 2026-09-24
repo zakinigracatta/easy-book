@@ -52,6 +52,10 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
       'Проверьте подключение и попробуйте снова.',
   'Booking status updated to {status}': 'Статус записи изменён на {status}',
 
+  'Load more': 'Загрузить ещё',
+  'Load older bookings': 'Загрузить более старые записи',
+  'No matches in this page yet.': 'На этой странице пока нет совпадений.',
+  'Search more results': 'Искать в следующих результатах',
   // Active routed UI coverage.
   '142 Luxury Blvd, Downtown NYC': '142 Luxury Blvd, Downtown NYC',
   'About Business': 'О бизнесе',
