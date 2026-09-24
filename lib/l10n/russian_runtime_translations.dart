@@ -256,5 +256,6 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Unable to load services. Please try again.': 'Не удалось загрузить услуги. Попробуйте снова.',
   'No active services are available yet.': 'Пока нет доступных активных услуг.',
   'Service disabled': 'Услуга отключена',
+  'No specialists are available for this time slot.': 'На это время нет доступных специалистов.',
   'Unable to update this service. Please try again.': 'Не удалось обновить эту услугу. Попробуйте снова.',
 };
