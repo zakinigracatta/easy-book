@@ -125,6 +125,8 @@ class BookingFunctionsService {
       final timeZone = (resData['timeZone'] ?? 'Asia/Dubai').toString();
       final endDateTime =
           DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final resolvedStaffId = (resData['staffId'] ?? staffId).toString();
+      final resolvedStaffName = (resData['staffName'] ?? '').toString();
 
       return BookingModel(
         id: bookingId,
@@ -138,15 +140,16 @@ class BookingFunctionsService {
         servicePrice: servicePrice,
         currency: currency,
         timeZone: timeZone,
-        staffId: staffId,
-        staffName: '',
+        staffId: resolvedStaffId,
+        staffName: resolvedStaffName,
         startDateTime: requestedStartAt,
         endDateTime: endDateTime,
         status: BookingStatus.confirmed,
         bookingSource: 'walkIn',
+        clientRequestId: clientRequestId,
         notes: notes,
         slotLockId:
-            '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+            '${businessId}_${resolvedStaffId}_${requestedStartAt.millisecondsSinceEpoch}',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
