@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,6 +35,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   late final TextEditingController _experienceController;
   late final TextEditingController _avatarUrlController;
   late final TextEditingController _bioController;
+  late final String _persistedAvatarUrl;
+  late final Set<String> _persistedGalleryUrls;
+  final Set<String> _stagedMediaUrls = <String>{};
 
   final List<String> _galleryUrls = [];
   final Set<String> _selectedServiceIds = <String>{};
@@ -51,15 +56,22 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
     _experienceController = TextEditingController(
       text: staff != null ? '${staff.experienceYears}' : '',
     );
-    _avatarUrlController = TextEditingController(text: staff?.avatarUrl ?? '');
+    _persistedAvatarUrl = (staff?.avatarUrl ?? '').trim();
+    _persistedGalleryUrls = <String>{
+      ...?staff?.galleryUrls.map((url) => url.trim()),
+    }..removeWhere((url) => url.isEmpty);
+    _avatarUrlController = TextEditingController(text: _persistedAvatarUrl);
     _bioController = TextEditingController(text: staff?.bio ?? '');
-    _galleryUrls.addAll(staff?.galleryUrls ?? const []);
+    _galleryUrls.addAll(_persistedGalleryUrls);
     _selectedServiceIds.addAll(staff?.serviceIds ?? const []);
     _isActive = staff?.isActive ?? true;
   }
 
   @override
   void dispose() {
+    for (final url in _stagedMediaUrls) {
+      unawaited(_media.deleteByUrl(url));
+    }
     _nameController.dispose();
     _roleController.dispose();
     _experienceController.dispose();
@@ -454,9 +466,12 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       );
       if (url == null || !mounted) return;
 
-      final oldUrl = _avatarUrlController.text;
+      final oldUrl = _avatarUrlController.text.trim();
+      _stagedMediaUrls.add(url);
       setState(() => _avatarUrlController.text = url);
-      if (oldUrl.isNotEmpty && oldUrl != url) {
+      if (oldUrl.isNotEmpty &&
+          oldUrl != url &&
+          _stagedMediaUrls.remove(oldUrl)) {
         await _media.deleteByUrl(oldUrl);
       }
     } catch (_) {
@@ -493,6 +508,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
         },
       );
       if (urls.isNotEmpty && mounted) {
+        _stagedMediaUrls.addAll(urls);
         setState(() => _galleryUrls.addAll(urls));
       }
     } catch (_) {
@@ -507,10 +523,12 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   }
 
   Future<void> _deleteAvatar() async {
-    final url = _avatarUrlController.text;
+    final url = _avatarUrlController.text.trim();
     setState(() => _avatarUrlController.clear());
     try {
-      await _media.deleteByUrl(url);
+      if (_stagedMediaUrls.remove(url)) {
+        await _media.deleteByUrl(url);
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -523,7 +541,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   Future<void> _removeGalleryPhoto(String url) async {
     setState(() => _galleryUrls.remove(url));
     try {
-      await _media.deleteByUrl(url);
+      if (_stagedMediaUrls.remove(url)) {
+        await _media.deleteByUrl(url);
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -583,6 +603,32 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
             );
 
       await ref.read(ownerEmployeesProvider.notifier).saveEmployee(staff);
+
+      final savedMediaUrls = <String>{
+        if (staff.avatarUrl.trim().isNotEmpty) staff.avatarUrl.trim(),
+        ...staff.galleryUrls.map((url) => url.trim()).where((url) => url.isNotEmpty),
+      };
+      final previousMediaUrls = <String>{
+        if (_persistedAvatarUrl.isNotEmpty) _persistedAvatarUrl,
+        ..._persistedGalleryUrls,
+      };
+      for (final obsolete in previousMediaUrls.difference(savedMediaUrls)) {
+        try {
+          await _media.deleteByUrl(obsolete);
+        } catch (_) {
+          // Keep a successful Firestore save successful even if Storage
+          // cleanup needs to be retried later.
+        }
+      }
+      _stagedMediaUrls.removeAll(savedMediaUrls);
+      for (final orphan in List<String>.of(_stagedMediaUrls)) {
+        try {
+          await _media.deleteByUrl(orphan);
+        } finally {
+          _stagedMediaUrls.remove(orphan);
+        }
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
