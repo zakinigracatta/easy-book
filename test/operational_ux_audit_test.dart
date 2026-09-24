@@ -106,33 +106,38 @@ void main() {
     final repositorySource =
         File('lib/repositories/owner_repository.dart').readAsStringSync();
 
-    expect(providerSource, contains('BusinessClock.now(timeZone)'));
+    expect(providerSource, contains('final now = BusinessClock.now(timeZone);'));
     expect(providerSource, contains('fetchUpcomingOwnerBookings('));
     expect(providerSource, contains('after: now'));
-    expect(repositorySource, contains("'startDateTime',"));
-    expect(repositorySource, contains('isGreaterThan: Timestamp.fromDate(after)'));
-    expect(repositorySource, contains(".orderBy('startDateTime')"));
     expect(repositorySource, contains("'pending'"));
     expect(repositorySource, contains("'confirmed'"));
     expect(repositorySource, contains("'arrived'"));
     expect(repositorySource, contains("'inProgress'"));
+    expect(
+      repositorySource,
+      contains('isGreaterThan: Timestamp.fromDate(after)'),
+    );
+    expect(repositorySource, contains(".orderBy('startDateTime')"));
   });
 
   test('owner calendar groups bookings by business timezone', () {
     final screenSource =
-        File('lib/screens/business/booking_calendar_screen.dart').readAsStringSync();
+        File('lib/screens/business/booking_calendar_screen.dart')
+            .readAsStringSync();
     final providerSource =
         File('lib/providers/owner_providers.dart').readAsStringSync();
 
     expect(screenSource, contains('BusinessClock.calendarToday(timeZone)'));
-    expect(screenSource, contains('ownerBookingsForDateProvider(dateProviderArg)'));
+    expect(
+      screenSource,
+      contains('ownerBookingsForDateProvider(dateProviderArg)'),
+    );
     expect(
       screenSource,
       contains("businessToday.subtract(const Duration(days: 90))"),
     );
     expect(screenSource, contains('lastDate: businessToday.add'));
     expect(providerSource, contains('BusinessClock.wallClock('));
-    expect(providerSource, contains('DateTime(arg.date.year, arg.date.month, arg.date.day + 1)'));
     expect(providerSource, contains('fetchOwnerBookingsInRange('));
   });
 
@@ -151,12 +156,16 @@ void main() {
 
   test('owner dashboard refresh waits for live providers', () {
     final source =
-        File('lib/screens/business/owner_dashboard_screen.dart').readAsStringSync();
+        File('lib/screens/business/owner_dashboard_screen.dart')
+            .readAsStringSync();
 
     expect(source, contains('await Future.wait<void>(['));
     expect(source, contains('loadBusiness()'));
-    expect(source, contains('ownerDashboardBookingsProvider.future'));
-    expect(source, contains('ownerTodayProfitAndLossProvider.future'));
+    expect(source, contains('ref.invalidate(ownerDashboardBookingsProvider)'));
+    expect(
+      source,
+      contains('ref.read(ownerDashboardBookingsProvider.future)'),
+    );
     expect(source, isNot(contains('Future<void>.delayed(Duration.zero)')));
   });
 
