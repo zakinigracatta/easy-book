@@ -117,8 +117,12 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       );
 
       if (profile?.isOwnerRole == true) {
-        NavigationService().clearPendingRoute();
-        context.go('/owner-dashboard');
+        final pendingRoute = NavigationService().consumePendingRoute();
+        context.go(
+          pendingRoute != null && pendingRoute.isNotEmpty
+              ? pendingRoute
+              : '/owner-dashboard',
+        );
         return;
       }
 
