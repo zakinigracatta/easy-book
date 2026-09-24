@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain_exceptions.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/staff_model.dart';
 import '../../providers/owner_providers.dart';
@@ -32,8 +35,12 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   late final TextEditingController _experienceController;
   late final TextEditingController _avatarUrlController;
   late final TextEditingController _bioController;
+  late final String _persistedAvatarUrl;
+  late final Set<String> _persistedGalleryUrls;
+  final Set<String> _stagedMediaUrls = <String>{};
 
   final List<String> _galleryUrls = [];
+  final Set<String> _selectedServiceIds = <String>{};
   bool _isActive = true;
   bool _isLoading = false;
   double? _uploadProgress;
@@ -49,14 +56,22 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
     _experienceController = TextEditingController(
       text: staff != null ? '${staff.experienceYears}' : '',
     );
-    _avatarUrlController = TextEditingController(text: staff?.avatarUrl ?? '');
+    _persistedAvatarUrl = (staff?.avatarUrl ?? '').trim();
+    _persistedGalleryUrls = <String>{
+      ...?staff?.galleryUrls.map((url) => url.trim()),
+    }..removeWhere((url) => url.isEmpty);
+    _avatarUrlController = TextEditingController(text: _persistedAvatarUrl);
     _bioController = TextEditingController(text: staff?.bio ?? '');
-    _galleryUrls.addAll(staff?.galleryUrls ?? const []);
+    _galleryUrls.addAll(_persistedGalleryUrls);
+    _selectedServiceIds.addAll(staff?.serviceIds ?? const []);
     _isActive = staff?.isActive ?? true;
   }
 
   @override
   void dispose() {
+    for (final url in _stagedMediaUrls) {
+      unawaited(_media.deleteByUrl(url));
+    }
     _nameController.dispose();
     _roleController.dispose();
     _experienceController.dispose();
@@ -307,6 +322,80 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 14),
+                GlassCard(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr('Services this employee can perform'),
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        context.tr(
+                          'Select specific services, or leave all unchecked to allow all active services.',
+                        ),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ref.watch(ownerServicesProvider).when(
+                        loading: () => const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        error: (_, __) => Text(
+                          context.tr('Unable to load services. Please try again.'),
+                          style: const TextStyle(color: AppColors.error),
+                        ),
+                        data: (services) {
+                          final activeServices = services
+                              .where((service) => service.isActive && service.isBookable)
+                              .toList();
+                          if (activeServices.isEmpty) {
+                            return Text(
+                              context.tr('No active services are available yet.'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            );
+                          }
+                          return Column(
+                            children: activeServices.map((service) {
+                              final selected = _selectedServiceIds.contains(service.id);
+                              return CheckboxListTile(
+                                contentPadding: EdgeInsets.zero,
+                                dense: true,
+                                value: selected,
+                                title: Text(service.name),
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      _selectedServiceIds.add(service.id);
+                                    } else {
+                                      _selectedServiceIds.remove(service.id);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
                 if (isEditing) ...[
                   const SizedBox(height: 14),
                   GlassCard(
@@ -334,7 +423,10 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
                         ),
                       ),
                       trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => context.push('/employee-schedule'),
+                      onTap: () => context.push(
+                        '/employee-schedule',
+                        extra: _staffId,
+                      ),
                     ),
                   ),
                 ],
@@ -374,9 +466,12 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       );
       if (url == null || !mounted) return;
 
-      final oldUrl = _avatarUrlController.text;
+      final oldUrl = _avatarUrlController.text.trim();
+      _stagedMediaUrls.add(url);
       setState(() => _avatarUrlController.text = url);
-      if (oldUrl.isNotEmpty && oldUrl != url) {
+      if (oldUrl.isNotEmpty &&
+          oldUrl != url &&
+          _stagedMediaUrls.remove(oldUrl)) {
         await _media.deleteByUrl(oldUrl);
       }
     } catch (_) {
@@ -413,6 +508,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
         },
       );
       if (urls.isNotEmpty && mounted) {
+        _stagedMediaUrls.addAll(urls);
         setState(() => _galleryUrls.addAll(urls));
       }
     } catch (_) {
@@ -427,10 +523,12 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   }
 
   Future<void> _deleteAvatar() async {
-    final url = _avatarUrlController.text;
+    final url = _avatarUrlController.text.trim();
     setState(() => _avatarUrlController.clear());
     try {
-      await _media.deleteByUrl(url);
+      if (_stagedMediaUrls.remove(url)) {
+        await _media.deleteByUrl(url);
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -443,7 +541,9 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
   Future<void> _removeGalleryPhoto(String url) async {
     setState(() => _galleryUrls.remove(url));
     try {
-      await _media.deleteByUrl(url);
+      if (_stagedMediaUrls.remove(url)) {
+        await _media.deleteByUrl(url);
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -461,6 +561,20 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       final businessId = await _businessId();
       final expYears = int.tryParse(_experienceController.text.trim()) ?? 0;
       final existing = widget.initialStaff;
+      final servicesState = ref.read(ownerServicesProvider);
+      final loadedServices = servicesState.value;
+      final serviceIdsToSave = loadedServices == null
+          ? _selectedServiceIds.toList(growable: false)
+          : _selectedServiceIds
+              .where(
+                (id) => loadedServices.any(
+                  (service) =>
+                      service.id == id &&
+                      service.isActive &&
+                      service.isBookable,
+                ),
+              )
+              .toList(growable: false);
 
       final staff = existing == null
           ? StaffModel(
@@ -472,6 +586,7 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
               rating: 0,
               reviewCount: 0,
               experienceYears: expYears,
+              serviceIds: serviceIdsToSave,
               isActive: _isActive,
               bio: _bioController.text.trim(),
               galleryUrls: List.of(_galleryUrls),
@@ -481,12 +596,39 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
               roleTitle: _roleController.text.trim(),
               avatarUrl: _avatarUrlController.text.trim(),
               experienceYears: expYears,
+              serviceIds: serviceIdsToSave,
               isActive: _isActive,
               bio: _bioController.text.trim(),
               galleryUrls: List.of(_galleryUrls),
             );
 
       await ref.read(ownerEmployeesProvider.notifier).saveEmployee(staff);
+
+      final savedMediaUrls = <String>{
+        if (staff.avatarUrl.trim().isNotEmpty) staff.avatarUrl.trim(),
+        ...staff.galleryUrls.map((url) => url.trim()).where((url) => url.isNotEmpty),
+      };
+      final previousMediaUrls = <String>{
+        if (_persistedAvatarUrl.isNotEmpty) _persistedAvatarUrl,
+        ..._persistedGalleryUrls,
+      };
+      for (final obsolete in previousMediaUrls.difference(savedMediaUrls)) {
+        try {
+          await _media.deleteByUrl(obsolete);
+        } catch (_) {
+          // Keep a successful Firestore save successful even if Storage
+          // cleanup needs to be retried later.
+        }
+      }
+      _stagedMediaUrls.removeAll(savedMediaUrls);
+      for (final orphan in List<String>.of(_stagedMediaUrls)) {
+        try {
+          await _media.deleteByUrl(orphan);
+        } finally {
+          _stagedMediaUrls.remove(orphan);
+        }
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -503,6 +645,15 @@ class _AddEditEmployeeScreenState extends ConsumerState<AddEditEmployeeScreen> {
       context.canPop()
           ? context.pop()
           : context.go('/employee-management');
+    } on DomainException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.tr(e.message)),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

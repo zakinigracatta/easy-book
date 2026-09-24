@@ -12,10 +12,45 @@ import '../models/employee_time_off_model.dart';
 import '../services/booking_service.dart';
 import '../core/domain_exceptions.dart';
 
+class OwnerBookingsPage {
+  const OwnerBookingsPage({
+    required this.items,
+    required this.cursorStartDateTime,
+    required this.cursorBookingId,
+    required this.hasMore,
+  });
+
+  final List<BookingModel> items;
+  final DateTime? cursorStartDateTime;
+  final String? cursorBookingId;
+  final bool hasMore;
+}
+
 abstract class OwnerRepository {
   Future<BusinessModel> fetchOwnerBusiness(String businessId);
   Future<void> updateOwnerBusiness(BusinessModel business);
   Future<List<BookingModel>> fetchOwnerBookings(String businessId);
+  Future<OwnerBookingsPage> fetchOwnerBookingsPage(
+    String businessId, {
+    DateTime? afterStartDateTime,
+    String? afterBookingId,
+    int pageSize = 75,
+  });
+  Future<List<BookingModel>> fetchOwnerBookingsInRange(
+    String businessId, {
+    required DateTime start,
+    required DateTime end,
+    String? staffId,
+  });
+  Future<List<BookingModel>> fetchUpcomingOwnerBookings(
+    String businessId, {
+    required DateTime after,
+    int limit = 3,
+  });
+  Future<int> countOwnerBookingsByStatus(
+    String businessId,
+    BookingStatus status,
+  );
   Future<BookingModel> createWalkInBooking(BookingModel booking);
   Future<void> updateBookingStatus(String bookingId, BookingStatus newStatus);
   Future<List<ServiceModel>> fetchOwnerServices(String businessId);
@@ -110,22 +145,164 @@ class OwnerRepositoryImpl implements OwnerRepository {
 
   @override
   Future<List<BookingModel>> fetchOwnerBookings(String businessId) async {
-    if (businessId.isEmpty) return [];
+    final page = await fetchOwnerBookingsPage(businessId);
+    return page.items;
+  }
+
+  @override
+  Future<OwnerBookingsPage> fetchOwnerBookingsPage(
+    String businessId, {
+    DateTime? afterStartDateTime,
+    String? afterBookingId,
+    int pageSize = 75,
+  }) async {
+    if (businessId.isEmpty) {
+      return const OwnerBookingsPage(
+        items: <BookingModel>[],
+        cursorStartDateTime: null,
+        cursorBookingId: null,
+        hasMore: false,
+      );
+    }
+
+    final safePageSize = pageSize.clamp(1, 100).toInt();
+    try {
+      Query<Map<String, dynamic>> query = _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId)
+          .orderBy('startDateTime', descending: true)
+          .orderBy(FieldPath.documentId, descending: true)
+          .limit(safePageSize);
+
+      final cursorId = afterBookingId?.trim() ?? '';
+      if (afterStartDateTime != null && cursorId.isNotEmpty) {
+        query = query.startAfter([
+          Timestamp.fromDate(afterStartDateTime),
+          cursorId,
+        ]);
+      }
+
+      final snap = await query.get();
+      final list = snap.docs.map((d) {
+        final m = Map<String, dynamic>.from(d.data());
+        m['id'] = d.id;
+        return BookingModel.fromJson(m);
+      }).toList(growable: false);
+
+      final last = list.isEmpty ? null : list.last;
+      return OwnerBookingsPage(
+        items: list,
+        cursorStartDateTime: last?.startDateTime,
+        cursorBookingId: last?.id,
+        hasMore: snap.docs.length == safePageSize,
+      );
+    } on FirebaseException catch (e) {
+      throw DomainException('Failed to fetch bookings: ${e.message ?? e.code}');
+    }
+  }
+
+  @override
+  Future<List<BookingModel>> fetchOwnerBookingsInRange(
+    String businessId, {
+    required DateTime start,
+    required DateTime end,
+    String? staffId,
+  }) async {
+    if (businessId.isEmpty || !end.isAfter(start)) return [];
+
+    try {
+      Query<Map<String, dynamic>> query = _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId);
+
+      final normalizedStaffId = staffId?.trim() ?? '';
+      if (normalizedStaffId.isNotEmpty) {
+        query = query.where('staffId', isEqualTo: normalizedStaffId);
+      }
+
+      final snap = await query
+          .where(
+            'startDateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+          )
+          .where(
+            'startDateTime',
+            isLessThan: Timestamp.fromDate(end),
+          )
+          .orderBy('startDateTime')
+          .get();
+
+      return snap.docs.map((d) {
+        final m = Map<String, dynamic>.from(d.data());
+        m['id'] = d.id;
+        return BookingModel.fromJson(m);
+      }).toList(growable: false);
+    } on FirebaseException catch (e) {
+      throw DomainException(
+        'Failed to fetch booking range: ${e.message ?? e.code}',
+      );
+    }
+  }
+
+  @override
+  Future<List<BookingModel>> fetchUpcomingOwnerBookings(
+    String businessId, {
+    required DateTime after,
+    int limit = 3,
+  }) async {
+    if (businessId.isEmpty) return const <BookingModel>[];
+    final safeLimit = limit.clamp(1, 20).toInt();
     try {
       final snap = await _firestore
           .collection('bookings')
           .where('businessId', isEqualTo: businessId)
+          .where(
+            'status',
+            whereIn: const [
+              'pending',
+              'confirmed',
+              'arrived',
+              'inProgress',
+            ],
+          )
+          .where(
+            'startDateTime',
+            isGreaterThan: Timestamp.fromDate(after),
+          )
+          .orderBy('startDateTime')
+          .limit(safeLimit)
           .get();
 
-      final list = snap.docs.map((d) {
-        final m = d.data();
-        m['id'] = d.id;
-        return BookingModel.fromJson(m);
-      }).toList();
-      list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
-      return list;
+      return snap.docs.map((doc) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+        return BookingModel.fromJson(data);
+      }).toList(growable: false);
     } on FirebaseException catch (e) {
-      throw DomainException('Failed to fetch bookings: ${e.message ?? e.code}');
+      throw DomainException(
+        'Failed to fetch upcoming bookings: ${e.message ?? e.code}',
+      );
+    }
+  }
+
+  @override
+  Future<int> countOwnerBookingsByStatus(
+    String businessId,
+    BookingStatus status,
+  ) async {
+    if (businessId.isEmpty) return 0;
+    try {
+      final aggregate = await _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId)
+          .where('status', isEqualTo: status.name)
+          .count()
+          .get();
+      return aggregate.count ?? 0;
+    } on FirebaseException catch (e) {
+      throw DomainException(
+        'Failed to count bookings: ${e.message ?? e.code}',
+      );
     }
   }
 
@@ -193,7 +370,12 @@ class OwnerRepositoryImpl implements OwnerRepository {
           .doc(businessId)
           .collection('services')
           .doc(serviceId)
-          .update({'isActive': false, 'is_active': false});
+          .update({
+            'isActive': false,
+            'is_active': false,
+            'isBookable': false,
+            'is_bookable': false,
+          });
     } on FirebaseException catch (e) {
       throw DomainException(
           'Failed to deactivate service: ${e.message ?? e.code}');
@@ -280,13 +462,44 @@ class OwnerRepositoryImpl implements OwnerRepository {
     if (bizId == null || bizId.isEmpty) {
       throw DomainException('Business ID is required for employee time off.');
     }
+    if (!timeOff.endDate.isAfter(timeOff.startDate)) {
+      throw DomainException('Leave end time must be after its start time.');
+    }
+
     try {
+      // Do not silently create an operational contradiction where an employee
+      // is marked on leave while they still have a live appointment.
+      final bookings = await fetchOwnerBookingsInRange(
+        bizId,
+        start: timeOff.startDate.subtract(const Duration(days: 1)),
+        end: timeOff.endDate,
+        staffId: timeOff.employeeId,
+      );
+      final conflicts = bookings.where((booking) {
+        final blocksLeave = booking.status == BookingStatus.pending ||
+            booking.status == BookingStatus.confirmed ||
+            booking.status == BookingStatus.arrived ||
+            booking.status == BookingStatus.inProgress;
+        if (!blocksLeave || booking.staffId != timeOff.employeeId) return false;
+        return booking.startDateTime.isBefore(timeOff.endDate) &&
+            booking.endDateTime.isAfter(timeOff.startDate);
+      }).toList(growable: false);
+
+      if (conflicts.isNotEmpty) {
+        throw DomainException(
+          'Employee leave conflicts with ${conflicts.length} existing appointment(s). '
+          'Reschedule or cancel those bookings before scheduling leave.',
+        );
+      }
+
       await _firestore
           .collection('businesses')
           .doc(bizId)
           .collection('timeOffs')
           .doc(timeOff.id)
           .set(timeOff.toJson(), SetOptions(merge: true));
+    } on DomainException {
+      rethrow;
     } on FirebaseException catch (e) {
       throw DomainException(
           'Failed to save time off record: ${e.message ?? e.code}');
@@ -449,30 +662,53 @@ class OwnerRepositoryImpl implements OwnerRepository {
         if (note != null) notesMap[doc.id] = note;
       }
 
-      final bookings = await fetchOwnerBookings(businessId);
       final customerMap = <String, CustomerProfileModel>{};
+      DateTime? cursorStartDateTime;
+      String? cursorBookingId;
+      var hasMoreBookings = true;
 
-      for (final b in bookings) {
-        if (!customerMap.containsKey(b.customerId)) {
-          customerMap[b.customerId] = CustomerProfileModel(
-            id: b.customerId,
-            name: b.customerName,
-            phone: b.customerPhone ?? '',
+      while (hasMoreBookings) {
+        final page = await fetchOwnerBookingsPage(
+          businessId,
+          afterStartDateTime: cursorStartDateTime,
+          afterBookingId: cursorBookingId,
+          pageSize: 100,
+        );
+
+        for (final b in page.items) {
+        final rawCustomerId = b.customerId.trim();
+        final phone = (b.customerPhone ?? '').trim();
+        final phoneDigits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+        final customerKey = rawCustomerId.isNotEmpty
+            ? rawCustomerId
+            : phoneDigits.isNotEmpty
+                ? 'walkin_phone_$phoneDigits'
+                : 'walkin_booking_${b.id}';
+        final displayName = b.customerName.trim().isNotEmpty
+            ? b.customerName.trim()
+            : 'Walk-in Customer';
+
+        if (!customerMap.containsKey(customerKey)) {
+          customerMap[customerKey] = CustomerProfileModel(
+            id: customerKey,
+            name: displayName,
+            phone: phone,
             totalBookings: 1,
             completedVisits: b.status == BookingStatus.completed ? 1 : 0,
             noShowCount: b.status == BookingStatus.noShow ? 1 : 0,
             totalSpent:
                 b.status == BookingStatus.completed ? b.servicePrice : 0.0,
-            lastVisit: b.startDateTime,
+            lastVisit:
+                b.status == BookingStatus.completed ? b.startDateTime : null,
             favoriteServices: [b.serviceName],
-            ownerNotes: notesMap[b.customerId],
+            ownerNotes: notesMap[customerKey],
           );
         } else {
-          final old = customerMap[b.customerId]!;
-          customerMap[b.customerId] = CustomerProfileModel(
+          final old = customerMap[customerKey]!;
+          customerMap[customerKey] = CustomerProfileModel(
             id: old.id,
             name: old.name,
-            phone: old.phone.isNotEmpty ? old.phone : (b.customerPhone ?? ''),
+            phone: old.phone.isNotEmpty ? old.phone : phone,
             totalBookings: old.totalBookings + 1,
             completedVisits: old.completedVisits +
                 (b.status == BookingStatus.completed ? 1 : 0),
@@ -480,14 +716,22 @@ class OwnerRepositoryImpl implements OwnerRepository {
                 old.noShowCount + (b.status == BookingStatus.noShow ? 1 : 0),
             totalSpent: old.totalSpent +
                 (b.status == BookingStatus.completed ? b.servicePrice : 0.0),
-            lastVisit: (old.lastVisit != null &&
-                    b.startDateTime.isAfter(old.lastVisit!))
-                ? b.startDateTime
-                : (old.lastVisit ?? b.startDateTime),
+            lastVisit: b.status == BookingStatus.completed
+                ? (old.lastVisit == null ||
+                        b.startDateTime.isAfter(old.lastVisit!)
+                    ? b.startDateTime
+                    : old.lastVisit)
+                : old.lastVisit,
             favoriteServices: {...old.favoriteServices, b.serviceName}.toList(),
-            ownerNotes: notesMap[b.customerId] ?? old.ownerNotes,
+            ownerNotes: notesMap[customerKey] ?? old.ownerNotes,
           );
         }
+        }
+
+        hasMoreBookings = page.hasMore;
+        cursorStartDateTime = page.cursorStartDateTime;
+        cursorBookingId = page.cursorBookingId;
+        if (page.items.isEmpty) break;
       }
 
       return customerMap.values.toList();

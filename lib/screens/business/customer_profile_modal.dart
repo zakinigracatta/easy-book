@@ -65,7 +65,8 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                           : null,
                   child: (c.avatarUrl == null || c.avatarUrl!.isEmpty)
                       ? Text(
-                          c.name[0].toUpperCase(),
+                          (c.name.trim().isNotEmpty ? c.name.trim()[0] : '?')
+                              .toUpperCase(),
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -212,26 +213,51 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
             CustomButton(
               text: 'Save Private Notes',
               isLoading: _isSaving,
-              onPressed: () async {
-                setState(() => _isSaving = true);
-                final bizId = ref.read(currentBusinessIdProvider).value ?? '';
-                await ref.read(ownerRepositoryProvider).saveCustomerNotes(
-                      bizId,
-                      c.id,
-                      _notesController.text.trim(),
-                    );
-                ref.invalidate(ownerCustomersProvider);
-                if (!context.mounted) return;
-                final messenger = ScaffoldMessenger.of(context);
-                final msg = context.tr('Private customer notes saved!');
-                Navigator.pop(context);
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(msg),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              },
+              onPressed: _isSaving
+                  ? null
+                  : () async {
+                      setState(() => _isSaving = true);
+                      try {
+                        final bizId =
+                            await ref.read(currentBusinessIdProvider.future);
+                        if (bizId.isEmpty) {
+                          throw StateError(
+                            'No business is linked to this owner account.',
+                          );
+                        }
+                        await ref.read(ownerRepositoryProvider).saveCustomerNotes(
+                              bizId,
+                              c.id,
+                              _notesController.text.trim(),
+                            );
+                        ref.invalidate(ownerCustomersProvider);
+                        if (!context.mounted) return;
+                        final messenger = ScaffoldMessenger.of(context);
+                        final msg =
+                            context.tr('Private customer notes saved!');
+                        Navigator.pop(context);
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(msg),
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              context.tr(
+                                'Unable to save private customer notes. Please try again.',
+                              ),
+                            ),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      } finally {
+                        if (mounted) setState(() => _isSaving = false);
+                      }
+                    },
             ),
           ],
         ),

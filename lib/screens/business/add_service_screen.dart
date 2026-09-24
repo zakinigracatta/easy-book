@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +36,8 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   bool _isLoading = false;
   bool _isUploadingImage = false;
   late final String _serviceId;
+  late final String _persistedImageUrl;
+  final Set<String> _stagedImageUrls = <String>{};
   final _media = MediaUploadService();
 
   final List<int> _durationOptions = [15, 20, 30, 45, 60, 90, 120];
@@ -52,10 +56,25 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
         TextEditingController(text: s != null ? '${s.price}' : '');
     _discountController = TextEditingController(
         text: s?.discountPrice != null ? '${s!.discountPrice}' : '');
-    _imageUrlController = TextEditingController(text: s?.imageUrl ?? '');
+    _persistedImageUrl = (s?.imageUrl ?? '').trim();
+    _imageUrlController = TextEditingController(text: _persistedImageUrl);
 
     _selectedDurationMinutes = s?.durationMinutes ?? 30;
     _isActive = s?.isActive ?? true;
+  }
+
+  @override
+  void dispose() {
+    for (final url in _stagedImageUrls) {
+      unawaited(_media.deleteByUrl(url));
+    }
+    _nameController.dispose();
+    _categoryController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _discountController.dispose();
+    _imageUrlController.dispose();
+    super.dispose();
   }
 
   @override
@@ -274,10 +293,13 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       if (url == null || !mounted) return;
 
       final previous = _imageUrlController.text.trim();
+      _stagedImageUrls.add(url);
       _imageUrlController.text = url;
       setState(() {});
 
-      if (previous.isNotEmpty && previous != url) {
+      if (previous.isNotEmpty &&
+          previous != url &&
+          _stagedImageUrls.remove(previous)) {
         await _media.deleteByUrl(previous);
       }
     } catch (_) {
@@ -298,10 +320,14 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
   Future<void> _deleteServiceImage() async {
     final current = _imageUrlController.text.trim();
     if (current.isEmpty) return;
-    setState(() => _isUploadingImage = true);
-    try {
-      await _media.deleteByUrl(current);
+    setState(() {
+      _isUploadingImage = true;
       _imageUrlController.clear();
+    });
+    try {
+      if (_stagedImageUrls.remove(current)) {
+        await _media.deleteByUrl(current);
+      }
     } finally {
       if (mounted) setState(() => _isUploadingImage = false);
     }
@@ -341,6 +367,25 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
       );
 
       await ref.read(ownerServicesProvider.notifier).saveService(service);
+
+      final savedImageUrl = service.imageUrl?.trim() ?? '';
+      _stagedImageUrls.remove(savedImageUrl);
+      if (_persistedImageUrl.isNotEmpty &&
+          _persistedImageUrl != savedImageUrl) {
+        try {
+          await _media.deleteByUrl(_persistedImageUrl);
+        } catch (_) {
+          // The database already points at the new image. Old-file cleanup is
+          // best-effort and must not turn a successful save into a failure.
+        }
+      }
+      for (final orphan in List<String>.of(_stagedImageUrls)) {
+        try {
+          await _media.deleteByUrl(orphan);
+        } finally {
+          _stagedImageUrls.remove(orphan);
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

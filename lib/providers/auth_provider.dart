@@ -103,8 +103,15 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     return user;
   }
 
+  Future<UserModel?> refreshCurrentProfile() async {
+    final user = await _repository.refreshCurrentProfile();
+    state = user;
+    return user;
+  }
+
   Future<void> logout() async {
     await _repository.logout();
+    NavigationService().clearPendingRoute();
     state = null;
   }
 

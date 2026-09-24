@@ -29,10 +29,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
     final pendingApprovals = businessDocs.docs.where((doc) {
       final data = doc.data();
-      final isVerified =
-          data['is_verified'] == true || data['isVerified'] == true;
-      final isActive =
-          data['is_active'] == true || data['isActive'] == true;
+      final isVerified = data.containsKey('is_verified')
+          ? data['is_verified'] == true
+          : data['isVerified'] == true;
+      final isActive = data.containsKey('is_active')
+          ? data['is_active'] == true
+          : data['isActive'] == true;
       return !isVerified && isActive;
     }).length;
 

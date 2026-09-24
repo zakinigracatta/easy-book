@@ -25,36 +25,75 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
+    // Write-only helper for atomic owner registration. getAfter() sees the
+    // owner profile created in the same batch without weakening normal reads.
+    function isOwnerAccountAfterWrite() {
+      return isAuthenticated() &&
+        getAfter(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        ).data.role == 'owner';
+    }
+
+    function hasOwnerIdentity(data, userId) {
+      return (
+        ('owner_id' in data) &&
+        data.owner_id == userId
+      ) || (
+        !('owner_id' in data) &&
+        ('ownerId' in data) &&
+        data.ownerId == userId
+      );
+    }
+
     function isBusinessOwner(businessId) {
       return isAuthenticated() &&
         exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-        (
-          ('owner_id' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.owner_id == request.auth.uid) ||
-          ('ownerId' in get(/databases/$(database)/documents/businesses/$(businessId)).data && get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid)
+        hasOwnerIdentity(
+          get(/databases/$(database)/documents/businesses/$(businessId)).data,
+          request.auth.uid
         );
+    }
+
+    function hasVerifiedPublicationState(data) {
+      return (
+        ('is_verified' in data) &&
+        data.is_verified == true
+      ) || (
+        !('is_verified' in data) &&
+        ('isVerified' in data) &&
+        data.isVerified == true
+      );
+    }
+
+    function hasActivePublicationState(data) {
+      return (
+        ('is_active' in data) &&
+        data.is_active == true
+      ) || (
+        !('is_active' in data) &&
+        ('isActive' in data) &&
+        data.isActive == true
+      );
+    }
+
+    function hasBookablePublicationState(data) {
+      return (
+        ('is_bookable' in data) &&
+        data.is_bookable == true
+      ) || (
+        !('is_bookable' in data) &&
+        ('isBookable' in data) &&
+        data.isBookable == true
+      );
     }
 
     function isPublishedBusiness(businessId) {
       return exists(/databases/$(database)/documents/businesses/$(businessId)) &&
-        (
-          (
-            ('is_verified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.is_verified == true
-          ) ||
-          (
-            ('isVerified' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.isVerified == true
-          )
+        hasVerifiedPublicationState(
+          get(/databases/$(database)/documents/businesses/$(businessId)).data
         ) &&
-        (
-          (
-            ('is_active' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.is_active == true
-          ) ||
-          (
-            ('isActive' in get(/databases/$(database)/documents/businesses/$(businessId)).data) &&
-            get(/databases/$(database)/documents/businesses/$(businessId)).data.isActive == true
-          )
+        hasActivePublicationState(
+          get(/databases/$(database)/documents/businesses/$(businessId)).data
         );
     }
 
@@ -82,6 +121,120 @@ service cloud.firestore {
 
     function validExpenseFrequency(frequency) {
       return frequency in ['oneTime', 'monthly', 'yearly'];
+    }
+
+    function serviceBelongsToBusiness(data, businessId) {
+      return (!('business_id' in data) || data.business_id == businessId) &&
+        (!('businessId' in data) || data.businessId == businessId) &&
+        (!('salon_id' in data) || data.salon_id == businessId);
+    }
+
+    function serviceIdentityMatches(data, serviceId) {
+      return !('id' in data) || data.id == serviceId;
+    }
+
+    function staffBelongsToBusiness(data, businessId) {
+      return (!('business_id' in data) || data.business_id == businessId) &&
+        (!('businessId' in data) || data.businessId == businessId);
+    }
+
+    function validNewStaffTrustFields(data) {
+      return (!('rating' in data) || data.rating == 0) &&
+        (!('review_count' in data) || data.review_count == 0) &&
+        (!('reviewCount' in data) || data.reviewCount == 0);
+    }
+
+    function preservesStaffTrustFields() {
+      return (
+          (!('rating' in resource.data) &&
+            (!('rating' in request.resource.data) || request.resource.data.rating == 0)) ||
+          (('rating' in resource.data) &&
+            ('rating' in request.resource.data) &&
+            request.resource.data.rating == resource.data.rating)
+        ) &&
+        (
+          (!('review_count' in resource.data) &&
+            (
+              (!('reviewCount' in resource.data) &&
+                (!('review_count' in request.resource.data) || request.resource.data.review_count == 0)) ||
+              (('reviewCount' in resource.data) &&
+                ('review_count' in request.resource.data) &&
+                request.resource.data.review_count == resource.data.reviewCount)
+            )) ||
+          (('review_count' in resource.data) &&
+            ('review_count' in request.resource.data) &&
+            request.resource.data.review_count == resource.data.review_count)
+        ) &&
+        (
+          (!('reviewCount' in resource.data) &&
+            (!('reviewCount' in request.resource.data) || request.resource.data.reviewCount == 0)) ||
+          (('reviewCount' in resource.data) &&
+            ('reviewCount' in request.resource.data) &&
+            request.resource.data.reviewCount == resource.data.reviewCount)
+        );
+    }
+
+    function validOfferData(businessId, offerId) {
+      return request.resource.data.keys().hasOnly([
+          'id',
+          'businessId',
+          'business_id',
+          'title',
+          'description',
+          'discountType',
+          'discount_type',
+          'discountValue',
+          'discount_value',
+          'startDate',
+          'start_date',
+          'endDate',
+          'end_date',
+          'serviceIds',
+          'service_ids',
+          'isActive',
+          'is_active',
+          'createdAt',
+          'created_at'
+        ]) &&
+        request.resource.data.keys().hasAll([
+          'id',
+          'businessId',
+          'title',
+          'description',
+          'discountType',
+          'discountValue',
+          'startDate',
+          'endDate',
+          'serviceIds',
+          'isActive'
+        ]) &&
+        request.resource.data.id == offerId &&
+        request.resource.data.businessId == businessId &&
+        (!('business_id' in request.resource.data) ||
+          request.resource.data.business_id == businessId) &&
+        request.resource.data.title is string &&
+        request.resource.data.title.size() > 0 &&
+        request.resource.data.title.size() <= 120 &&
+        request.resource.data.description is string &&
+        request.resource.data.description.size() <= 1000 &&
+        request.resource.data.discountType in ['percentage', 'fixed'] &&
+        request.resource.data.discountValue is number &&
+        request.resource.data.discountValue > 0 &&
+        (
+          request.resource.data.discountType != 'percentage' ||
+          request.resource.data.discountValue <= 100
+        ) &&
+        request.resource.data.startDate is string &&
+        request.resource.data.startDate.size() > 0 &&
+        request.resource.data.startDate.size() <= 80 &&
+        request.resource.data.endDate is string &&
+        request.resource.data.endDate.size() > 0 &&
+        request.resource.data.endDate.size() <= 80 &&
+        request.resource.data.serviceIds is list &&
+        request.resource.data.serviceIds.size() <= 100 &&
+        request.resource.data.isActive is bool &&
+        (!('createdAt' in request.resource.data) ||
+          request.resource.data.createdAt is string);
     }
 
     function validExpenseData(businessId) {
@@ -223,39 +376,26 @@ service cloud.firestore {
       allow get: if isBusinessOwner(businessId)
                  || isAdminAccount()
                  || (
-                   (
-                     (('is_verified' in resource.data) && resource.data.is_verified == true)
-                     || (('isVerified' in resource.data) && resource.data.isVerified == true)
-                   )
-                   && (
-                     (('is_active' in resource.data) && resource.data.is_active == true)
-                     || (('isActive' in resource.data) && resource.data.isActive == true)
-                   )
+                   hasVerifiedPublicationState(resource.data)
+                   && hasActivePublicationState(resource.data)
                  );
 
       allow list: if isAdminAccount()
                   || (
                     isAuthenticated()
-                    && (
-                      (('ownerId' in resource.data) && resource.data.ownerId == request.auth.uid)
-                      || (('owner_id' in resource.data) && resource.data.owner_id == request.auth.uid)
-                    )
+                    && hasOwnerIdentity(resource.data, request.auth.uid)
                   )
                   || (
-                    (
-                      (('is_verified' in resource.data) && resource.data.is_verified == true)
-                      || (('isVerified' in resource.data) && resource.data.isVerified == true)
-                    )
-                    && (
-                      (('is_active' in resource.data) && resource.data.is_active == true)
-                      || (('isActive' in resource.data) && resource.data.isActive == true)
-                    )
+                    hasVerifiedPublicationState(resource.data)
+                    && hasActivePublicationState(resource.data)
                   );
 
-      allow create: if isOwnerAccount()
+      allow create: if (isOwnerAccount() || isOwnerAccountAfterWrite())
+                    && hasOwnerIdentity(request.resource.data, request.auth.uid)
                     && (
-                      (('ownerId' in request.resource.data) && request.resource.data.ownerId == request.auth.uid)
-                      || (('owner_id' in request.resource.data) && request.resource.data.owner_id == request.auth.uid)
+                      !('ownerId' in request.resource.data)
+                      || !('owner_id' in request.resource.data)
+                      || request.resource.data.ownerId == request.resource.data.owner_id
                     )
                     && (!('is_verified' in request.resource.data) || request.resource.data.is_verified == false)
                     && (!('isVerified' in request.resource.data) || request.resource.data.isVerified == false)
@@ -309,17 +449,43 @@ service cloud.firestore {
       allow delete: if isAdminAccount();
 
       match /services/{serviceId} {
-        allow read: if isPublishedBusiness(businessId)
-                    || isBusinessOwner(businessId)
-                    || isAdminAccount();
-        allow create, update, delete: if isBusinessOwner(businessId);
+        allow read: if isBusinessOwner(businessId)
+                    || isAdminAccount()
+                    || (
+                      isPublishedBusiness(businessId)
+                      && hasActivePublicationState(resource.data)
+                      && hasBookablePublicationState(resource.data)
+                    );
+        allow create, update: if isBusinessOwner(businessId)
+                              && serviceBelongsToBusiness(
+                                request.resource.data,
+                                businessId
+                              )
+                              && serviceIdentityMatches(
+                                request.resource.data,
+                                serviceId
+                              );
+        // Preserve historical booking references; owners deactivate services
+        // through the repository instead of deleting the document.
+        allow delete: if false;
       }
 
       match /staff/{staffId} {
-        allow read: if isPublishedBusiness(businessId)
-                    || isBusinessOwner(businessId)
-                    || isAdminAccount();
-        allow create, update, delete: if isBusinessOwner(businessId);
+        allow read: if isBusinessOwner(businessId)
+                    || isAdminAccount()
+                    || (
+                      isPublishedBusiness(businessId)
+                      && hasActivePublicationState(resource.data)
+                    );
+        allow create: if isBusinessOwner(businessId)
+                      && staffBelongsToBusiness(request.resource.data, businessId)
+                      && validNewStaffTrustFields(request.resource.data);
+        allow update: if isBusinessOwner(businessId)
+                      && staffBelongsToBusiness(request.resource.data, businessId)
+                      && preservesStaffTrustFields();
+        // Preserve historical booking references; owners deactivate staff
+        // through the repository instead of deleting the document.
+        allow delete: if false;
       }
 
       // PRIVATE OWNER FINANCE: employees and customers have no read/write access.
@@ -347,7 +513,9 @@ service cloud.firestore {
         allow read: if isPublishedBusiness(businessId)
                     || isBusinessOwner(businessId)
                     || isAdminAccount();
-        allow create, update, delete: if isBusinessOwner(businessId);
+        allow create, update: if isBusinessOwner(businessId)
+                              && validOfferData(businessId, offerId);
+        allow delete: if isBusinessOwner(businessId);
       }
 
       match /gallery/{imageId} {
@@ -365,7 +533,10 @@ service cloud.firestore {
         allow update: if isBusinessOwner(businessId)
                       && resource != null
                       && request.resource.data.diff(resource.data).affectedKeys()
-                          .hasOnly(['businessReply', 'businessReplyAt']);
+                          .hasOnly(['businessReply', 'businessReplyAt'])
+                      && request.resource.data.businessReply is string
+                      && request.resource.data.businessReply.size() <= 500
+                      && request.resource.data.businessReplyAt == request.time;
       }
 
       match /notifications/{notificationId} {

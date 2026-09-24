@@ -2,6 +2,7 @@ import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { serverTimestamp } from 'firebase/firestore';
 import {
   initializeTestEnvironment,
   assertFails,
@@ -663,3 +664,686 @@ test('35. Customer cannot query all bookings for a finance report -> DENY', asyn
       .get()
   );
 });
+
+
+test('36. Canonical publication flags override conflicting legacy flags -> DENY', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_conflict').set({
+      id: 'biz_conflict',
+      is_verified: false,
+      isVerified: true,
+      is_active: false,
+      isActive: true,
+      ownerId: 'owner_conflict',
+    });
+  });
+
+  const publicDb = testEnv.unauthenticatedContext().firestore();
+  await assertFails(
+    publicDb.collection('businesses').doc('biz_conflict').get()
+  );
+});
+
+test('37. Legacy publication flags remain valid when canonical flags are absent -> ALLOW', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_legacy_public').set({
+      id: 'biz_legacy_public',
+      isVerified: true,
+      isActive: true,
+      ownerId: 'owner_legacy_public',
+    });
+  });
+
+  const publicDb = testEnv.unauthenticatedContext().firestore();
+  await assertSucceeds(
+    publicDb.collection('businesses').doc('biz_legacy_public').get()
+  );
+});
+
+
+test('38. Canonical owner_id overrides conflicting legacy ownerId', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('businesses').doc('biz_owner_conflict').set({
+      id: 'biz_owner_conflict',
+      owner_id: 'canonical_owner',
+      ownerId: 'legacy_owner',
+      is_verified: false,
+      is_active: true,
+    });
+  });
+
+  const canonicalDb = testEnv.authenticatedContext('canonical_owner').firestore();
+  const legacyDb = testEnv.authenticatedContext('legacy_owner').firestore();
+
+  await assertSucceeds(
+    canonicalDb.collection('businesses').doc('biz_owner_conflict').get()
+  );
+  await assertFails(
+    legacyDb.collection('businesses').doc('biz_owner_conflict').get()
+  );
+});
+
+test('39. Business create rejects conflicting owner aliases', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await context.firestore().collection('users').doc('owner_creator').set({
+      id: 'owner_creator',
+      role: 'owner',
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('owner_creator').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('biz_bad_owner_aliases').set({
+      id: 'biz_bad_owner_aliases',
+      owner_id: 'owner_creator',
+      ownerId: 'someone_else',
+      is_verified: false,
+      is_active: true,
+      rating: 0,
+      review_count: 0,
+    })
+  );
+});
+
+
+test('40. Owner cannot forge staff rating or review count', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('staff_owner').set({
+      id: 'staff_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('staff_biz').set({
+      id: 'staff_biz',
+      ownerId: 'staff_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('staff_owner').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('staff_biz')
+      .collection('staff').doc('staff_forged').set({
+        id: 'staff_forged',
+        business_id: 'staff_biz',
+        businessId: 'staff_biz',
+        name: 'Forged Specialist',
+        is_active: true,
+        isActive: true,
+        rating: 5,
+        review_count: 999,
+      })
+  );
+});
+
+test('41. Owner can create staff with zero trust counters', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('staff_owner_zero').set({
+      id: 'staff_owner_zero',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('staff_biz_zero').set({
+      id: 'staff_biz_zero',
+      ownerId: 'staff_owner_zero',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('staff_owner_zero').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('staff_biz_zero')
+      .collection('staff').doc('staff_ok').set({
+        id: 'staff_ok',
+        business_id: 'staff_biz_zero',
+        businessId: 'staff_biz_zero',
+        name: 'New Specialist',
+        is_active: true,
+        isActive: true,
+        rating: 0,
+        review_count: 0,
+      })
+  );
+});
+
+test('42. Owner cannot move a staff record to another business identity', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('staff_owner_identity').set({
+      id: 'staff_owner_identity',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('staff_biz_identity').set({
+      id: 'staff_biz_identity',
+      ownerId: 'staff_owner_identity',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('staff_owner_identity').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('staff_biz_identity')
+      .collection('staff').doc('staff_bad_identity').set({
+        id: 'staff_bad_identity',
+        business_id: 'another_business',
+        businessId: 'another_business',
+        name: 'Wrong Business',
+        is_active: true,
+        isActive: true,
+        rating: 0,
+        review_count: 0,
+      })
+  );
+});
+
+
+test('43. Owner may backfill canonical staff review_count from identical legacy reviewCount', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('legacy_staff_owner').set({
+      id: 'legacy_staff_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('legacy_staff_biz').set({
+      id: 'legacy_staff_biz',
+      ownerId: 'legacy_staff_owner',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('legacy_staff_biz')
+      .collection('staff').doc('legacy_staff').set({
+        id: 'legacy_staff',
+        businessId: 'legacy_staff_biz',
+        name: 'Legacy Specialist',
+        isActive: true,
+        rating: 4.5,
+        reviewCount: 12,
+      });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('legacy_staff_owner').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('legacy_staff_biz')
+      .collection('staff').doc('legacy_staff').update({
+        business_id: 'legacy_staff_biz',
+        is_active: true,
+        review_count: 12,
+      })
+  );
+
+  await assertFails(
+    ownerDb.collection('businesses').doc('legacy_staff_biz')
+      .collection('staff').doc('legacy_staff').update({
+        review_count: 13,
+      })
+  );
+});
+
+
+test('43. Owner can create a valid offer for own business', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner').set({
+      id: 'offer_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz').set({
+      id: 'offer_biz',
+      ownerId: 'offer_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('offer_owner').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('offer_biz')
+      .collection('offers').doc('offer_ok').set({
+        id: 'offer_ok',
+        businessId: 'offer_biz',
+        title: 'Weekend offer',
+        description: 'Valid promotion',
+        discountType: 'percentage',
+        discountValue: 20,
+        startDate: '2026-09-25T00:00:00.000Z',
+        endDate: '2026-10-25T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      })
+  );
+});
+
+test('44. Owner cannot publish an invalid percentage offer', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner_bad').set({
+      id: 'offer_owner_bad',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz_bad').set({
+      id: 'offer_biz_bad',
+      ownerId: 'offer_owner_bad',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('offer_owner_bad').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('offer_biz_bad')
+      .collection('offers').doc('offer_bad').set({
+        id: 'offer_bad',
+        businessId: 'offer_biz_bad',
+        title: 'Impossible offer',
+        description: '',
+        discountType: 'percentage',
+        discountValue: 150,
+        startDate: '2026-09-25T00:00:00.000Z',
+        endDate: '2026-10-25T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      })
+  );
+});
+
+test('45. Owner cannot write an offer for another business identity', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner_identity').set({
+      id: 'offer_owner_identity',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz_identity').set({
+      id: 'offer_biz_identity',
+      ownerId: 'offer_owner_identity',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('offer_owner_identity').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('offer_biz_identity')
+      .collection('offers').doc('offer_wrong_biz').set({
+        id: 'offer_wrong_biz',
+        businessId: 'another_business',
+        title: 'Wrong identity',
+        description: '',
+        discountType: 'percentage',
+        discountValue: 10,
+        startDate: '2026-09-25T00:00:00.000Z',
+        endDate: '2026-10-25T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      })
+  );
+});
+
+
+test('46. Owner cannot hard-delete a service', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('soft_owner_service').set({
+      id: 'soft_owner_service',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('soft_biz_service').set({
+      id: 'soft_biz_service',
+      ownerId: 'soft_owner_service',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('soft_biz_service')
+      .collection('services').doc('service_1').set({
+        id: 'service_1',
+        business_id: 'soft_biz_service',
+        name: 'Haircut',
+        is_active: true,
+        is_bookable: true,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('soft_owner_service').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('soft_biz_service')
+      .collection('services').doc('service_1').delete()
+  );
+});
+
+test('47. Owner cannot hard-delete a staff record', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('soft_owner_staff').set({
+      id: 'soft_owner_staff',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('soft_biz_staff').set({
+      id: 'soft_biz_staff',
+      ownerId: 'soft_owner_staff',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('soft_biz_staff')
+      .collection('staff').doc('staff_1').set({
+        id: 'staff_1',
+        business_id: 'soft_biz_staff',
+        name: 'Specialist',
+        is_active: true,
+        rating: 0,
+        review_count: 0,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('soft_owner_staff').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('soft_biz_staff')
+      .collection('staff').doc('staff_1').delete()
+  );
+});
+
+
+test('48. Owner can update a legacy offer without deleting legacy aliases', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner_legacy').set({
+      id: 'offer_owner_legacy',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz_legacy').set({
+      id: 'offer_biz_legacy',
+      ownerId: 'offer_owner_legacy',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('offer_biz_legacy')
+      .collection('offers').doc('legacy_offer').set({
+        id: 'legacy_offer',
+        business_id: 'offer_biz_legacy',
+        title: 'Legacy offer',
+        description: '',
+        discount_type: 'percentage',
+        discount_value: 10,
+        start_date: '2026-09-01T00:00:00.000Z',
+        end_date: '2026-10-01T00:00:00.000Z',
+        service_ids: [],
+        is_active: true,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('offer_owner_legacy').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('offer_biz_legacy')
+      .collection('offers').doc('legacy_offer').set({
+        id: 'legacy_offer',
+        businessId: 'offer_biz_legacy',
+        title: 'Legacy offer updated',
+        description: '',
+        discountType: 'percentage',
+        discountValue: 15,
+        startDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-10-01T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      }, { merge: true })
+  );
+});
+
+
+test('49. Owner cannot write a service with another business identity', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('service_identity_owner').set({
+      id: 'service_identity_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('service_identity_biz').set({
+      id: 'service_identity_biz',
+      ownerId: 'service_identity_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('service_identity_owner').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('service_identity_biz')
+      .collection('services').doc('service_1').set({
+        id: 'service_1',
+        business_id: 'another_business',
+        salon_id: 'another_business',
+        name: 'Wrong business service',
+        price: 50,
+        duration_minutes: 30,
+        is_active: true,
+        is_bookable: true,
+      })
+  );
+});
+
+test('50. Owner cannot write a service with a mismatched document id', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('service_doc_owner').set({
+      id: 'service_doc_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('service_doc_biz').set({
+      id: 'service_doc_biz',
+      ownerId: 'service_doc_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('service_doc_owner').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('service_doc_biz')
+      .collection('services').doc('service_1').set({
+        id: 'service_2',
+        business_id: 'service_doc_biz',
+        salon_id: 'service_doc_biz',
+        name: 'Wrong document id',
+        price: 50,
+        duration_minutes: 30,
+        is_active: true,
+        is_bookable: true,
+      })
+  );
+});
+
+test('51. Legacy service without identity aliases can still be deactivated', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('service_legacy_owner').set({
+      id: 'service_legacy_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('service_legacy_biz').set({
+      id: 'service_legacy_biz',
+      ownerId: 'service_legacy_owner',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('service_legacy_biz')
+      .collection('services').doc('legacy_service').set({
+        name: 'Legacy service',
+        price: 50,
+        duration: '30 mins',
+        isActive: true,
+        isBookable: true,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('service_legacy_owner').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('service_legacy_biz')
+      .collection('services').doc('legacy_service').update({
+        isActive: false,
+        isBookable: false,
+      })
+  );
+});
+
+
+test('52. Owner review reply requires bounded text and server timestamp', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('review_reply_owner').set({
+      id: 'review_reply_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz').set({
+      id: 'review_reply_biz',
+      ownerId: 'review_reply_owner',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz')
+      .collection('reviews').doc('review_1').set({
+        id: 'review_1',
+        userName: 'Customer',
+        rating: 5,
+        comment: 'Great service',
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('review_reply_owner').firestore();
+
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('review_reply_biz')
+      .collection('reviews').doc('review_1').update({
+        businessReply: 'Thank you!',
+        businessReplyAt: serverTimestamp(),
+      })
+  );
+});
+
+test('53. Owner cannot forge review reply timestamp', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('review_reply_owner_bad').set({
+      id: 'review_reply_owner_bad',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_bad').set({
+      id: 'review_reply_biz_bad',
+      ownerId: 'review_reply_owner_bad',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_bad')
+      .collection('reviews').doc('review_bad').set({
+        id: 'review_bad',
+        userName: 'Customer',
+        rating: 5,
+        comment: 'Great service',
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('review_reply_owner_bad').firestore();
+
+  await assertFails(
+    ownerDb.collection('businesses').doc('review_reply_biz_bad')
+      .collection('reviews').doc('review_bad').update({
+        businessReply: 'Thank you!',
+        businessReplyAt: new Date('2020-01-01T00:00:00Z'),
+      })
+  );
+});
+
+test('54. Owner cannot publish an oversized review reply', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('review_reply_owner_long').set({
+      id: 'review_reply_owner_long',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_long').set({
+      id: 'review_reply_biz_long',
+      ownerId: 'review_reply_owner_long',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_long')
+      .collection('reviews').doc('review_long').set({
+        id: 'review_long',
+        userName: 'Customer',
+        rating: 5,
+        comment: 'Great service',
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('review_reply_owner_long').firestore();
+
+  await assertFails(
+    ownerDb.collection('businesses').doc('review_reply_biz_long')
+      .collection('reviews').doc('review_long').update({
+        businessReply: 'x'.repeat(501),
+        businessReplyAt: serverTimestamp(),
+      })
+  );
+});
+
+test('55. Atomic owner registration can create profile and business together', async () => {
+  const ownerDb = testEnv.authenticatedContext('atomic_owner', {
+    email: 'atomic.owner@example.com',
+  }).firestore();
+
+  const batch = ownerDb.batch();
+  batch.set(ownerDb.collection('users').doc('atomic_owner'), {
+    id: 'atomic_owner',
+    email: 'atomic.owner@example.com',
+    role: 'owner',
+    wallet_balance: 0,
+  });
+  batch.set(ownerDb.collection('businesses').doc('atomic_owner'), {
+    id: 'atomic_owner',
+    ownerId: 'atomic_owner',
+    owner_id: 'atomic_owner',
+    is_verified: false,
+    is_active: true,
+    rating: 0,
+    review_count: 0,
+  });
+
+  await assertSucceeds(batch.commit());
+});
+
+test('56. Atomic customer registration cannot create an owner business', async () => {
+  const customerDb = testEnv.authenticatedContext('atomic_customer', {
+    email: 'atomic.customer@example.com',
+  }).firestore();
+
+  const batch = customerDb.batch();
+  batch.set(customerDb.collection('users').doc('atomic_customer'), {
+    id: 'atomic_customer',
+    email: 'atomic.customer@example.com',
+    role: 'customer',
+    wallet_balance: 0,
+  });
+  batch.set(customerDb.collection('businesses').doc('atomic_customer'), {
+    id: 'atomic_customer',
+    ownerId: 'atomic_customer',
+    owner_id: 'atomic_customer',
+    is_verified: false,
+    is_active: true,
+    rating: 0,
+    review_count: 0,
+  });
+
+  await assertFails(batch.commit());
+});
+

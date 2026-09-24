@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/domain_exceptions.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/business_bottom_nav.dart';
 import '../../widgets/business/owner_booking_card.dart';
@@ -150,6 +151,27 @@ class OwnerBookingsScreen extends ConsumerWidget {
               child: bookingsAsync.when(
                 data: (_) {
                   if (filteredBookings.isEmpty) {
+                    final notifier =
+                        ref.read(ownerBookingsProvider.notifier);
+                    if (notifier.hasMore) {
+                      return Center(
+                        child: OutlinedButton.icon(
+                          onPressed: notifier.isLoadingMore
+                              ? null
+                              : notifier.loadMore,
+                          icon: notifier.isLoadingMore
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.expand_more_rounded),
+                          label: Text(context.tr('Load older bookings')),
+                        ),
+                      );
+                    }
                     return OwnerEmptyStateWidget(
                       icon: Icons.calendar_today_rounded,
                       title: 'No Bookings Found',
@@ -160,11 +182,35 @@ class OwnerBookingsScreen extends ConsumerWidget {
                     );
                   }
 
+                  final notifier = ref.read(ownerBookingsProvider.notifier);
                   return ListView.builder(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: filteredBookings.length,
+                    itemCount:
+                        filteredBookings.length + (notifier.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (index == filteredBookings.length) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
+                            child: OutlinedButton.icon(
+                              onPressed: notifier.isLoadingMore
+                                  ? null
+                                  : notifier.loadMore,
+                              icon: notifier.isLoadingMore
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.expand_more_rounded),
+                              label: Text(context.tr('Load older bookings')),
+                            ),
+                          ),
+                        );
+                      }
                       final booking = filteredBookings[index];
                       return OwnerBookingCard(
                         booking: booking,
@@ -187,6 +233,14 @@ class OwnerBookingsScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 backgroundColor: AppColors.primary,
+                              ),
+                            );
+                          } on DomainException catch (e) {
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(context.tr(e.message)),
+                                backgroundColor: AppColors.error,
                               ),
                             );
                           } catch (_) {

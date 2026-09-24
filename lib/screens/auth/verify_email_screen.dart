@@ -116,16 +116,23 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         SnackBar(content: Text(context.tr('Email verified successfully!'))),
       );
 
-      final role = profile?.role ?? UserRole.customer;
-      if (role == UserRole.owner || role == UserRole.businessOwner) {
-        NavigationService().clearPendingRoute();
-        context.go('/owner-dashboard');
+      if (profile?.isOwnerRole == true) {
+        final pendingRoute = NavigationService().consumePendingRoute();
+        context.go(
+          pendingRoute != null && pendingRoute.isNotEmpty
+              ? pendingRoute
+              : '/owner-dashboard',
+        );
         return;
       }
 
-      if (role == UserRole.admin) {
-        NavigationService().clearPendingRoute();
-        context.go('/admin-dashboard');
+      if (profile?.isAdmin == true) {
+        final pendingRoute = NavigationService().consumePendingRoute();
+        context.go(
+          pendingRoute != null && pendingRoute.startsWith('/admin')
+              ? pendingRoute
+              : '/admin/dashboard',
+        );
         return;
       }
 

@@ -96,18 +96,15 @@ class AuthService {
     try {
       await firebaseUser.updateDisplayName(name.trim());
       await _saveProfile(user);
-
-      if (!firebaseUser.emailVerified) {
-        await firebaseUser.sendEmailVerification();
-      }
-
-      return user;
     } catch (_) {
       try {
         await firebaseUser.delete();
       } catch (_) {}
       rethrow;
     }
+
+    await _sendVerificationBestEffort(firebaseUser);
+    return user;
   }
 
   Future<UserModel> registerBusinessOwner({
@@ -148,20 +145,22 @@ class AuthService {
 
     try {
       await firebaseUser.updateDisplayName(businessName.trim());
-      await _saveProfile(user);
-      await _ensureOwnerBusiness(user);
-
-      if (!firebaseUser.emailVerified) {
-        await firebaseUser.sendEmailVerification();
-      }
-
-      return user;
+      await _createOwnerRegistrationRecords(user);
     } catch (_) {
       try {
         await firebaseUser.delete();
       } catch (_) {}
       rethrow;
     }
+
+    await _sendVerificationBestEffort(firebaseUser);
+    return user;
+  }
+
+  Future<UserModel?> refreshCurrentProfile() async {
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser == null) return null;
+    return _loadOrCreateProfile(firebaseUser);
   }
 
   Future<void> logout() => _auth.signOut();
@@ -212,61 +211,33 @@ class AuthService {
         try {
           await _ensureOwnerBusiness(user);
         } catch (e) {
-          debugPrint(
-              'Unable to repair owner business link for uid=${user.id}: $e');
+          if (kDebugMode) {
+            debugPrint('Unable to repair owner business link: ${e.runtimeType}');
+          }
         }
       }
 
       return user;
     }
 
-    return UserModel(
-      id: firebaseUser.uid,
-      email: (firebaseUser.email ?? '').trim().toLowerCase(),
-      fullName: firebaseUser.displayName?.trim().isNotEmpty == true
-          ? firebaseUser.displayName!.trim()
-          : 'Easy Book User',
-      phone: firebaseUser.phoneNumber ?? '',
-      role: UserRole.customer,
-      walletBalance: 0.0,
+    throw FirebaseException(
+      plugin: 'cloud_firestore',
+      code: 'user-profile-missing',
+      message:
+          'The authenticated account does not have an Easy Book profile document.',
     );
   }
 
-  Future<void> _saveProfile(UserModel user) async {
+  Map<String, dynamic> _profileWriteData(UserModel user) {
     final data = user.toJson()..removeWhere((key, value) => value == null);
-
-    debugPrint('Creating Firestore profile for uid=${user.id}');
-    debugPrint('Profile keys: ${data.keys.toList()}');
-    debugPrint('Profile role: ${data['role']}');
-    debugPrint('Profile email: ${data['email']}');
-    debugPrint('Wallet initial value: ${data['wallet_balance']}');
-
-    await _users.doc(user.id).set({
+    return {
       ...data,
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
   }
 
-  Future<void> _ensureOwnerBusiness(UserModel user) async {
-    if (!_isOwner(user.role) || user.id.isEmpty) return;
-
-    final deterministicRef = _businesses.doc(user.id);
-
-    // Query ownership first. A direct read of businesses/{uid} may be denied
-    // for legacy owners whose business document uses a different document ID.
-    final modernMatch = await _businesses
-        .where('ownerId', isEqualTo: user.id)
-        .limit(1)
-        .get();
-    if (modernMatch.docs.isNotEmpty) return;
-
-    final legacyMatch = await _businesses
-        .where('owner_id', isEqualTo: user.id)
-        .limit(1)
-        .get();
-    if (legacyMatch.docs.isNotEmpty) return;
-
+  Map<String, dynamic> _newOwnerBusinessWriteData(UserModel user) {
     final rawBusinessName = user.businessName?.trim() ?? '';
     final rawFullName = user.fullName.trim();
     final businessName = rawBusinessName.isNotEmpty
@@ -276,9 +247,7 @@ class AuthService {
     final location = user.location?.trim() ?? '';
     final imageUrl = user.businessImageUrl?.trim() ?? '';
 
-    debugPrint('Creating missing business record for owner uid=${user.id}');
-
-    await deterministicRef.set({
+    return {
       'id': user.id,
       'name': businessName,
       'category': category.isNotEmpty ? category : 'Salon',
@@ -304,7 +273,73 @@ class AuthService {
       'timeZone': 'Asia/Dubai',
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
-    });
+    };
+  }
+
+  Future<void> _saveProfile(UserModel user) async {
+    final data = _profileWriteData(user);
+    await _users.doc(user.id).set(data, SetOptions(merge: true));
+  }
+
+  Future<void> _createOwnerRegistrationRecords(UserModel user) async {
+    final batch = _firestore.batch();
+    batch.set(
+      _users.doc(user.id),
+      _profileWriteData(user),
+      SetOptions(merge: true),
+    );
+    batch.set(
+      _businesses.doc(user.id),
+      _newOwnerBusinessWriteData(user),
+      SetOptions(merge: true),
+    );
+    await batch.commit();
+  }
+
+  Future<void> _sendVerificationBestEffort(User firebaseUser) async {
+    if (firebaseUser.emailVerified) return;
+    try {
+      await firebaseUser.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        debugPrint('Verification email could not be sent: ${e.code}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+          'Verification email could not be sent: ${e.runtimeType}',
+        );
+      }
+    }
+  }
+
+  Future<void> _ensureOwnerBusiness(UserModel user) async {
+    if (!_isOwner(user.role) || user.id.isEmpty) return;
+
+    final deterministicRef = _businesses.doc(user.id);
+
+    // Query ownership first. A direct read of businesses/{uid} may be denied
+    // for legacy owners whose business document uses a different document ID.
+    final canonicalMatch = await _businesses
+        .where('owner_id', isEqualTo: user.id)
+        .limit(1)
+        .get();
+    if (canonicalMatch.docs.isNotEmpty) return;
+
+    final legacyMatch = await _businesses
+        .where('ownerId', isEqualTo: user.id)
+        .limit(1)
+        .get();
+    if (legacyMatch.docs.isNotEmpty) return;
+
+    if (kDebugMode) {
+      debugPrint('Creating a missing owner business record.');
+    }
+
+    await deterministicRef.set(
+      _newOwnerBusinessWriteData(user),
+      SetOptions(merge: true),
+    );
   }
 
   bool _isOwner(UserRole role) {

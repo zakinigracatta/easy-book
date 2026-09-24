@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../core/domain_exceptions.dart';
 import '../../core/utils/business_clock.dart';
@@ -25,6 +26,7 @@ class BookingConfirmationScreen extends ConsumerStatefulWidget {
 class _BookingConfirmationScreenState
     extends ConsumerState<BookingConfirmationScreen> {
   bool _isCreating = false;
+  final String _clientRequestId = const Uuid().v4();
 
   Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
       ? Theme.of(context).colorScheme.onSurfaceVariant
@@ -41,7 +43,25 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    await currentUser.reload();
+    try {
+      await currentUser.reload();
+    } on FirebaseAuthException {
+      if (mounted) {
+        _showMessage(
+          'Unable to refresh your sign-in session. Check your connection and try again.',
+          isError: true,
+        );
+      }
+      return;
+    } catch (_) {
+      if (mounted) {
+        _showMessage(
+          'Unable to verify your sign-in session. Please try again.',
+          isError: true,
+        );
+      }
+      return;
+    }
     if (!mounted) return;
     final refreshedUser = FirebaseAuth.instance.currentUser;
     if (refreshedUser == null) {
@@ -57,6 +77,9 @@ class _BookingConfirmationScreenState
     }
 
     final draft = ref.read(bookingDraftProvider);
+    final totalCurrency = draft.selectedServices.isNotEmpty
+        ? draft.selectedServices.first.currency
+        : 'AED';
     if (!draft.isComplete || draft.date == null || draft.timeSlot == null) {
       _showMessage('Please complete all booking details before confirming.');
       return;
@@ -64,7 +87,7 @@ class _BookingConfirmationScreenState
 
     final staffId = _resolvedStaffId(draft);
     final staffName = _resolvedStaffName(draft);
-    if (staffId.isEmpty) {
+    if (!draft.anySpecialist && staffId.isEmpty) {
       _showMessage('No available specialist was resolved for this time slot.');
       return;
     }
@@ -75,6 +98,20 @@ class _BookingConfirmationScreenState
     final businessName = draft.businessName?.trim() ?? '';
     if (serviceId.isEmpty || businessId.isEmpty) {
       _showMessage('The selected service or business is no longer valid.');
+      return;
+    }
+
+    // The trusted booking backend is intentionally single-service today.
+    // Fail closed if future UI/state changes accidentally carry multiple or
+    // mismatched services rather than showing one total and booking another.
+    if (draft.selectedServices.length > 1 ||
+        (draft.selectedServices.isNotEmpty &&
+            (draft.selectedServices.single.id != serviceId ||
+                draft.selectedServices.single.salonId != businessId))) {
+      _showMessage(
+        'The selected service changed. Please select the service again.',
+        isError: true,
+      );
       return;
     }
 
@@ -110,8 +147,16 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    if (!startDateTime.isAfter(DateTime.now())) {
+    final now = DateTime.now();
+    if (!startDateTime.isAfter(now)) {
       _showMessage('Please select a future appointment time.');
+      return;
+    }
+    if (startDateTime.difference(now) <= const Duration(minutes: 30)) {
+      _showMessage(
+        'Please select an appointment at least 30 minutes from now.',
+        isError: true,
+      );
       return;
     }
 
@@ -127,9 +172,11 @@ class _BookingConfirmationScreenState
     final booking = BookingModel(
       id: '',
       customerId: refreshedUser.uid,
-      customerName: refreshedUser.displayName?.trim().isNotEmpty == true
-          ? refreshedUser.displayName!.trim()
-          : refreshedUser.email ?? 'Valued Customer',
+      customerName: profile?.fullName.trim().isNotEmpty == true
+          ? profile!.fullName.trim()
+          : refreshedUser.displayName?.trim().isNotEmpty == true
+              ? refreshedUser.displayName!.trim()
+              : refreshedUser.email ?? 'Valued Customer',
       customerPhone: profilePhone.isNotEmpty
           ? profilePhone
           : (firebasePhone.isNotEmpty ? firebasePhone : null),
@@ -138,11 +185,14 @@ class _BookingConfirmationScreenState
       serviceId: serviceId,
       serviceName: serviceName.isEmpty ? 'Service' : serviceName,
       servicePrice: draft.totalPrice,
+      currency: totalCurrency,
       staffId: staffId,
       staffName: staffName,
       startDateTime: startDateTime,
       endDateTime: endDateTime,
       status: BookingStatus.pending,
+      anySpecialist: draft.anySpecialist,
+      clientRequestId: _clientRequestId,
       slotLockId: slotLockId,
     );
 
@@ -209,6 +259,9 @@ class _BookingConfirmationScreenState
   }
 
   String _resolvedStaffName(BookingDraft draft) {
+    if (draft.anySpecialist) {
+      return context.tr('Any Available Specialist');
+    }
     final resolved = draft.resolvedStaffName?.trim() ?? '';
     if (resolved.isNotEmpty) return resolved;
     final selected = draft.staffName?.trim() ?? '';
@@ -228,6 +281,9 @@ class _BookingConfirmationScreenState
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(bookingDraftProvider);
+    final totalCurrency = draft.selectedServices.isNotEmpty
+        ? draft.selectedServices.first.currency
+        : 'AED';
     final dateStr = draft.date == null
         ? context.tr('Not selected')
         : MaterialLocalizations.of(context).formatFullDate(draft.date!);
@@ -281,7 +337,10 @@ class _BookingConfirmationScreenState
                     const Divider(height: 24),
                     _row(
                       'Total Price',
-                      CurrencyFormatter.format(draft.totalPrice),
+                      CurrencyFormatter.format(
+                        draft.totalPrice,
+                        currency: totalCurrency,
+                      ),
                       isBold: true,
                       forceLtr: true,
                     ),

@@ -14,6 +14,7 @@ import '../repositories/business_repository.dart';
 import '../services/auth_service.dart';
 import '../services/availability_service.dart';
 import '../services/booking_availability_engine.dart';
+import 'auth_provider.dart';
 
 export 'auth_provider.dart';
 
@@ -78,7 +79,6 @@ final availableSlotsEngineProvider = FutureProvider.family<
     specialistId: arg.specialistId,
     anySpecialist: arg.anySpecialist,
     date: arg.date,
-    employeeTimeOffs: snapshot.timeOffs,
     occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
   );
 });
@@ -89,10 +89,13 @@ final rescheduleSlotsProvider = FutureProvider.family<
       String businessId,
       String serviceId,
       String staffId,
+      bool anySpecialist,
       DateTime date,
       String bookingId,
     })>((ref, arg) async {
-  if (arg.businessId.isEmpty || arg.serviceId.isEmpty || arg.staffId.isEmpty) {
+  if (arg.businessId.isEmpty ||
+      arg.serviceId.isEmpty ||
+      (!arg.anySpecialist && arg.staffId.isEmpty)) {
     return [];
   }
 
@@ -111,15 +114,22 @@ final rescheduleSlotsProvider = FutureProvider.family<
   if (selectedServices.isEmpty) return [];
 
   final staff = await repo.fetchStaff(arg.businessId);
-  final selectedStaff =
-      staff.where((employee) => employee.id == arg.staffId).toList();
-  if (selectedStaff.isEmpty) return [];
+  final eligibleStaff = BookingAvailabilityEngine.filterEligibleStaff(
+    staff,
+    selectedServices,
+  );
+  final targetStaff = arg.anySpecialist
+      ? eligibleStaff
+      : eligibleStaff
+          .where((employee) => employee.id == arg.staffId)
+          .toList();
+  if (targetStaff.isEmpty) return [];
 
   final availabilityService = ref.watch(availabilityServiceProvider);
   final snapshot = await availabilityService.getAvailabilitySnapshot(
     business: business,
     date: arg.date,
-    staffIds: [arg.staffId],
+    staffIds: targetStaff.map((employee) => employee.id).toList(),
     excludeBookingId: arg.bookingId,
   );
 
@@ -127,11 +137,10 @@ final rescheduleSlotsProvider = FutureProvider.family<
   return engine.computeAvailableSlots(
     business: business,
     selectedServices: selectedServices,
-    allStaff: selectedStaff,
-    specialistId: arg.staffId,
-    anySpecialist: false,
+    allStaff: targetStaff,
+    specialistId: arg.anySpecialist ? null : arg.staffId,
+    anySpecialist: arg.anySpecialist,
     date: arg.date,
-    employeeTimeOffs: snapshot.timeOffs,
     occupiedSlotsByStaff: snapshot.occupiedSlotsByStaff,
   );
 });
@@ -267,8 +276,12 @@ class BookingDraft {
   }
 }
 
-final bookingDraftProvider =
-    StateProvider<BookingDraft>((ref) => BookingDraft());
+final bookingDraftProvider = StateProvider<BookingDraft>((ref) {
+  // Recreate the draft on every auth-session change so a signed-out user's
+  // selections can never bleed into the next account.
+  ref.watch(authProvider.select((user) => user?.id ?? ''));
+  return BookingDraft();
+});
 
 // Category Filter State
 final selectedCategoryProvider = StateProvider<String>((ref) => 'all');
@@ -331,29 +344,105 @@ final reviewsProvider =
 class AppointmentsNotifier
     extends StateNotifier<AsyncValue<List<BookingModel>>> {
   final BookingRepository _repository;
+  final String _customerId;
+  DateTime? _cursorStartDateTime;
+  String? _cursorBookingId;
+  bool _hasMore = false;
+  bool _isLoadingMore = false;
 
-  AppointmentsNotifier(this._repository) : super(const AsyncValue.loading()) {
-    loadAppointments();
+  bool get hasMore => _hasMore;
+  bool get isLoadingMore => _isLoadingMore;
+
+  AppointmentsNotifier(this._repository, this._customerId)
+      : super(
+          _customerId.isEmpty
+              ? const AsyncValue.data(<BookingModel>[])
+              : const AsyncValue.loading(),
+        ) {
+    if (_customerId.isNotEmpty) {
+      loadAppointments();
+    }
+  }
+
+  List<BookingModel> _sortBookings(Iterable<BookingModel> bookings) {
+    final list = bookings.toList(growable: false);
+    final now = DateTime.now();
+
+    int bookingGroup(BookingModel booking) {
+      final isUpcoming = booking.startDateTime.isAfter(now) &&
+          (booking.status == BookingStatus.pending ||
+              booking.status == BookingStatus.confirmed);
+      return isUpcoming ? 0 : 1;
+    }
+
+    list.sort((a, b) {
+      final groupCompare = bookingGroup(a).compareTo(bookingGroup(b));
+      if (groupCompare != 0) return groupCompare;
+      return bookingGroup(a) == 0
+          ? a.startDateTime.compareTo(b.startDateTime)
+          : b.startDateTime.compareTo(a.startDateTime);
+    });
+    return list;
   }
 
   Future<void> loadAppointments() async {
-    state = const AsyncValue.loading();
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || uid.isEmpty) {
-      state = const AsyncValue.data([]);
+    if (_customerId.isEmpty) {
+      _cursorStartDateTime = null;
+      _cursorBookingId = null;
+      _hasMore = false;
+      state = const AsyncValue.data(<BookingModel>[]);
       return;
     }
+
+    state = const AsyncValue.loading();
+    _cursorStartDateTime = null;
+    _cursorBookingId = null;
+    _hasMore = false;
+    _isLoadingMore = false;
+
     try {
-      final list = await _repository.fetchCustomerBookings(uid);
-      state = AsyncValue.data(list);
+      final page =
+          await _repository.fetchCustomerBookingsPage(_customerId);
+      _cursorStartDateTime = page.cursorStartDateTime;
+      _cursorBookingId = page.cursorBookingId;
+      _hasMore = page.hasMore;
+      state = AsyncValue.data(page.items);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
 
+  Future<bool> loadMore() async {
+    if (_customerId.isEmpty || !_hasMore || _isLoadingMore) {
+      return true;
+    }
+
+    final current = state.value ?? const <BookingModel>[];
+    _isLoadingMore = true;
+    try {
+      final page = await _repository.fetchCustomerBookingsPage(
+        _customerId,
+        afterStartDateTime: _cursorStartDateTime,
+        afterBookingId: _cursorBookingId,
+      );
+      final merged = <String, BookingModel>{
+        for (final booking in current) booking.id: booking,
+        for (final booking in page.items) booking.id: booking,
+      };
+      _cursorStartDateTime = page.cursorStartDateTime;
+      _cursorBookingId = page.cursorBookingId;
+      _hasMore = page.hasMore;
+      state = AsyncValue.data(_sortBookings(merged.values));
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      _isLoadingMore = false;
+    }
+  }
+
   Future<BookingModel> createBooking(BookingModel booking) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || uid.isEmpty) {
+    if (_customerId.isEmpty) {
       throw Exception('User must be logged in to create a booking.');
     }
     final saved = await _repository.createBooking(booking);
@@ -373,7 +462,7 @@ class AppointmentsNotifier
     int durationMinutes = 45,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.uid.isEmpty) {
+    if (_customerId.isEmpty || user == null || user.uid != _customerId) {
       throw Exception('User must be logged in to create a booking.');
     }
     final startDateTime = dateTime;
@@ -409,10 +498,12 @@ class AppointmentsNotifier
   Future<BookingModel> rescheduleAppointment({
     required String bookingId,
     required DateTime newStartDateTime,
+    String? newStaffId,
   }) async {
     final updated = await _repository.rescheduleBooking(
       bookingId: bookingId,
       newStartDateTime: newStartDateTime,
+      newStaffId: newStaffId,
     );
     await loadAppointments();
     return updated;
@@ -422,11 +513,50 @@ class AppointmentsNotifier
 final appointmentsProvider =
     StateNotifierProvider<AppointmentsNotifier, AsyncValue<List<BookingModel>>>(
         (ref) {
-  return AppointmentsNotifier(ref.read(bookingRepositoryProvider));
+  final customerId = ref.watch(
+    authProvider.select((user) => user?.id ?? ''),
+  );
+  return AppointmentsNotifier(
+    ref.read(bookingRepositoryProvider),
+    customerId,
+  );
 });
+
+final customerBookingByIdProvider =
+    FutureProvider.autoDispose.family<BookingModel?, String>(
+  (ref, bookingId) async {
+    final normalizedBookingId = bookingId.trim();
+    if (normalizedBookingId.isEmpty) return null;
+
+    final appointmentsState = ref.watch(appointmentsProvider);
+    final loadedBookings =
+        appointmentsState.value ?? const <BookingModel>[];
+    for (final booking in loadedBookings) {
+      if (booking.id == normalizedBookingId) return booking;
+    }
+
+    // Let the first page settle before adding a direct read. If the booking is
+    // older than the current page, this provider automatically recomputes when
+    // appointmentsProvider publishes its loaded state.
+    if (appointmentsState.isLoading) return null;
+
+    final customerId = ref.watch(
+      authProvider.select((user) => user?.id ?? ''),
+    );
+    if (customerId.isEmpty) return null;
+
+    return ref.read(bookingRepositoryProvider).fetchCustomerBookingById(
+          bookingId: normalizedBookingId,
+          customerId: customerId,
+        );
+  },
+);
 
 // Theme Mode Provider
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
 
 // Legacy in-memory favorites state. New customer UI uses savedFavoritesProvider.
-final favoritesProvider = StateProvider<Set<String>>((ref) => <String>{});
+final favoritesProvider = StateProvider<Set<String>>((ref) {
+  ref.watch(authProvider.select((user) => user?.id ?? ''));
+  return <String>{};
+});

@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../models/booking_model.dart';
 import '../../models/profit_and_loss_summary.dart';
 import '../../providers/owner_finance_providers.dart';
-import '../../core/utils/business_clock.dart';
 import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_drawer.dart';
@@ -35,17 +33,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final businessAsync = ref.watch(ownerBusinessProvider);
-    final bookingsAsync = ref.watch(ownerBookingsProvider);
-    final notificationsAsync = ref.watch(ownerNotificationsProvider);
+    final dashboardBookingsAsync = ref.watch(ownerDashboardBookingsProvider);
     final todayFinanceAsync = ref.watch(ownerTodayProfitAndLossProvider);
-    final businessTimeZone =
-        businessAsync.value?.timeZone ?? 'Asia/Dubai';
-
-    final unreadNotificationsCount = notificationsAsync.maybeWhen(
-      data: (notifications) =>
-          notifications.where((notification) => !notification.isRead).length,
-      orElse: () => 0,
-    );
 
     return PopScope(
       canPop: context.canPop(),
@@ -58,13 +47,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(ownerNotificationsProvider);
               ref.invalidate(ownerTodayProfitAndLossProvider);
+              ref.invalidate(ownerDashboardBookingsProvider);
               await Future.wait<void>([
                 ref.read(ownerBusinessProvider.notifier).loadBusiness(),
-                ref.read(ownerBookingsProvider.notifier).loadBookings(),
-                ref.read(ownerNotificationsProvider.future).then((_) {}),
                 ref.read(ownerTodayProfitAndLossProvider.future).then((_) {}),
+                ref.read(ownerDashboardBookingsProvider.future).then((_) {}),
               ]);
             },
             child: SingleChildScrollView(
@@ -78,7 +66,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       context,
                       ref,
                       business,
-                      unreadNotificationsCount,
                     ),
                     loading: () => _buildHeaderSkeleton(context),
                     error: (_, __) => _buildHeaderSkeleton(context),
@@ -86,9 +73,8 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
                   _buildMetricsSection(
                     context,
-                    bookingsAsync,
+                    dashboardBookingsAsync,
                     todayFinanceAsync,
-                    businessTimeZone,
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -129,8 +115,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   _buildUpcomingBookingsList(
                     context,
                     ref,
-                    bookingsAsync,
-                    businessTimeZone,
+                    dashboardBookingsAsync,
                   ),
                 ],
               ),
@@ -146,7 +131,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     dynamic business,
-    int unreadNotificationsCount,
   ) {
     final acceptingBookings = business.acceptingBookings == true;
 
@@ -306,15 +290,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
             ),
           ),
           IconButton(
-            tooltip: context.tr('Notifications'),
-            icon: Badge(
-              isLabelVisible: unreadNotificationsCount > 0,
-              label: Text('$unreadNotificationsCount'),
-              child: const Icon(Icons.notifications_outlined),
-            ),
-            onPressed: () => context.push('/owner-notifications'),
-          ),
-          IconButton(
             tooltip: context.tr('Settings'),
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push('/salon-management'),
@@ -363,25 +338,20 @@ class OwnerDashboardScreen extends ConsumerWidget {
 
   Widget _buildMetricsSection(
     BuildContext context,
-    AsyncValue<List<BookingModel>> bookingsAsync,
+    AsyncValue<OwnerDashboardBookingsData> bookingsAsync,
     AsyncValue<ProfitAndLossSummary> financeAsync,
-    String timeZone,
   ) {
-    final now = BusinessClock.now(timeZone);
-
     return bookingsAsync.when(
-      data: (bookings) {
-        final todayBookings = bookings.where((booking) {
-          final localStart =
-              BusinessClock.inTimeZone(booking.startDateTime, timeZone);
-          return localStart.year == now.year &&
-              localStart.month == now.month &&
-              localStart.day == now.day;
-        }).toList();
-        final pendingCount =
-            bookings.where((booking) => booking.status == BookingStatus.pending).length;
-        final customerIdsToday =
-            todayBookings.map((booking) => booking.customerId).toSet().length;
+      data: (dashboard) {
+        final todayBookings = dashboard.todayBookings;
+        final pendingCount = dashboard.pendingCount;
+        final customerIdsToday = todayBookings.map((booking) {
+          final customerId = booking.customerId.trim();
+          if (customerId.isNotEmpty) return customerId;
+          final phone = (booking.customerPhone ?? '').trim();
+          if (phone.isNotEmpty) return 'walkin:$phone';
+          return 'booking:${booking.id}';
+        }).toSet().length;
 
         final revenueText = financeAsync.when(
           data: (finance) =>
@@ -551,26 +521,11 @@ class OwnerDashboardScreen extends ConsumerWidget {
   Widget _buildUpcomingBookingsList(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<List<BookingModel>> bookingsAsync,
-    String timeZone,
+    AsyncValue<OwnerDashboardBookingsData> bookingsAsync,
   ) {
     return bookingsAsync.when(
-      data: (bookings) {
-        final now = BusinessClock.now(timeZone);
-        final upcoming = bookings
-            .where((booking) {
-              final localStart =
-                  BusinessClock.inTimeZone(booking.startDateTime, timeZone);
-              return localStart.isAfter(now) &&
-                  booking.status != BookingStatus.cancelled &&
-                  booking.status != BookingStatus.completed &&
-                  booking.status != BookingStatus.noShow;
-            })
-            .toList()
-          ..sort(
-            (a, b) => a.startDateTime.compareTo(b.startDateTime),
-          );
-        final nextBookings = upcoming.take(3).toList();
+      data: (dashboard) {
+        final nextBookings = dashboard.upcomingBookings;
 
         if (nextBookings.isEmpty) {
           return OwnerEmptyStateWidget(
@@ -594,6 +549,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       .updateStatus(booking.id, newStatus);
                   ref.invalidate(ownerTodayProfitAndLossProvider);
                   ref.invalidate(ownerProfitAndLossProvider);
+                  ref.invalidate(ownerDashboardBookingsProvider);
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

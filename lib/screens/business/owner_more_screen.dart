@@ -109,7 +109,6 @@ class OwnerMoreScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               _sectionHeader(context, 'ACCOUNT'),
-              _menuTile(context, 'Notifications', Icons.notifications_rounded, '/owner-notifications'),
               _menuTile(context, 'System Settings', Icons.settings_rounded, '/settings'),
             ],
           ),

@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/navigation_service.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -23,6 +25,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Timer? _minSplashTimer;
   Timer? _profileTimeoutTimer;
   bool _navigationExecuted = false;
+  bool _profileRecoveryRequired = false;
 
   @override
   void initState() {
@@ -65,6 +68,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     });
 
     String destination = '/home';
+    var needsProfileRecovery = false;
 
     try {
       final firebaseUser = FirebaseAuth.instance.currentUser;
@@ -98,13 +102,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             debugPrint('[SPLASH] authProvider state: loading');
           }
 
-          // Bounded timeout failsafe (3 seconds max for profile resolution)
+          // Explicitly reload the profile so Retry still works after an
+          // authStateChanges stream error. Bound the network wait so startup
+          // can surface a recovery UI instead of hanging indefinitely.
           try {
-            await _waitForProfile();
-            userModel = ref.read(authProvider);
+            userModel = await ref
+                .read(authProvider.notifier)
+                .refreshCurrentProfile()
+                .timeout(const Duration(seconds: 8));
           } catch (_) {
             if (kDebugMode) {
-              debugPrint('[SPLASH] profile resolution failed');
+              debugPrint('[SPLASH] explicit profile refresh failed');
+            }
+          }
+
+          if (userModel == null) {
+            try {
+              await _waitForProfile();
+              userModel = ref.read(authProvider);
+            } catch (_) {
+              if (kDebugMode) {
+                debugPrint('[SPLASH] profile resolution failed');
+              }
             }
           }
         }
@@ -115,7 +134,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             debugPrint('[SPLASH] profile resolution completed');
           }
 
-          if (userModel.role == UserRole.owner ||
+          final pendingRoute = NavigationService().consumePendingRoute();
+          if (pendingRoute != null && pendingRoute.isNotEmpty) {
+            if (kDebugMode) {
+              debugPrint('[SPLASH] destination resolved: pending route');
+            }
+            destination = pendingRoute;
+          } else if (userModel.role == UserRole.owner ||
               userModel.role == UserRole.businessOwner) {
             if (kDebugMode) {
               debugPrint('[SPLASH] destination resolved: owner');
@@ -123,8 +148,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             destination = '/owner-dashboard';
           } else if (userModel.isAdmin) {
             if (kDebugMode) {
-              debugPrint(
-                  '[SPLASH] destination resolved: admin');
+              debugPrint('[SPLASH] destination resolved: admin');
             }
             destination = kIsWeb ? '/admin/dashboard' : '/admin-web-only';
           } else {
@@ -134,21 +158,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             destination = '/home';
           }
         } else {
-          // Profile failed/timed out: fallback safely to customer home
+          // A Firebase session exists, but its role/profile is unresolved.
+          // Do not silently classify the account as a customer: that can send
+          // owner/admin sessions to the wrong portal on a slow network.
           if (kDebugMode) {
             debugPrint('[SPLASH] profile resolution completed/failed');
-            debugPrint(
-                '[SPLASH] destination resolved: guest/customer fallback');
+            debugPrint('[SPLASH] destination resolved: auth recovery');
           }
-          destination = '/home';
+          needsProfileRecovery = true;
         }
       }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[SPLASH] profile resolution completed/failed');
-        debugPrint('[SPLASH] destination resolved: guest fallback on error');
+        debugPrint('[SPLASH] startup resolution error: $e');
       }
-      destination = '/home';
+      if (FirebaseAuth.instance.currentUser == null) {
+        destination = '/home';
+      } else {
+        needsProfileRecovery = true;
+      }
     }
 
     // Await the remainder of the minimum 2-second branding splash delay
@@ -159,6 +188,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     }
 
     if (!mounted || _navigationExecuted) return;
+
+    if (needsProfileRecovery) {
+      setState(() => _profileRecoveryRequired = true);
+      return;
+    }
+
     _navigationExecuted = true;
 
     if (kDebugMode) {
@@ -205,6 +240,90 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_profileRecoveryRequired) {
+      return Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF12002B),
+                Color(0xFF3A0CA3),
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Card(
+                  margin: const EdgeInsets.all(24),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.cloud_off_rounded,
+                          size: 52,
+                          color: Color(0xFF4F46E5),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          context.tr('Unable to restore your account profile.'),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          context.tr(
+                            'Check your connection and retry. Your account has not been signed out.',
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: () {
+                              setState(() {
+                                _profileRecoveryRequired = false;
+                                _navigationExecuted = false;
+                              });
+                              _runStartupSequence();
+                            },
+                            child: Text(context.tr('Retry')),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () async {
+                              await FirebaseAuth.instance.signOut();
+                              if (!context.mounted) return;
+                              context.go('/home');
+                            },
+                            child: Text(context.tr('Sign out')),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Container(
         width: double.infinity,

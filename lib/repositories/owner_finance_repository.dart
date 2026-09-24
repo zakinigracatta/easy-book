@@ -45,7 +45,7 @@ class OwnerFinanceRepositoryImpl implements OwnerFinanceRepository {
       throw DomainException('Business record not found.');
     }
 
-    final ownerId = (data['ownerId'] ?? data['owner_id'])?.toString() ?? '';
+    final ownerId = (data['owner_id'] ?? data['ownerId'])?.toString() ?? '';
     if (ownerId != user.uid) {
       throw DomainException('Only the business owner can access finance data.');
     }

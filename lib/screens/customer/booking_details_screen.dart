@@ -1,21 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../core/utils/business_clock.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
+import '../../providers/app_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 
-class BookingDetailsScreen extends StatelessWidget {
+class BookingDetailsScreen extends ConsumerWidget {
+  final String? bookingId;
   final BookingModel? booking;
 
-  const BookingDetailsScreen({super.key, this.booking});
+  const BookingDetailsScreen({super.key, this.bookingId, this.booking});
+
+  BookingModel? _resolveBooking(WidgetRef ref) {
+    if (booking != null) return booking;
+    final targetId = bookingId?.trim() ?? '';
+    if (targetId.isEmpty) return null;
+    final bookings = ref.watch(appointmentsProvider).value ?? const <BookingModel>[];
+    for (final item in bookings) {
+      if (item.id == targetId) return item;
+    }
+    return null;
+  }
 
   @override
-  Widget build(BuildContext context) {
-    final currentBooking = booking;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appointmentsState = ref.watch(appointmentsProvider);
+    final targetId = bookingId?.trim() ?? '';
+    final directBookingAsync = booking == null && targetId.isNotEmpty
+        ? ref.watch(customerBookingByIdProvider(targetId))
+        : null;
+    final currentBooking =
+        booking ?? _resolveBooking(ref) ?? directBookingAsync?.value;
+    final isResolvingBooking = currentBooking == null &&
+        (appointmentsState.isLoading ||
+            (directBookingAsync?.isLoading ?? false));
 
     return PopScope(
       canPop: context.canPop(),
@@ -33,7 +57,9 @@ class BookingDetailsScreen extends StatelessWidget {
           ),
           title: Text(context.tr('Booking Details & QR')),
         ),
-        body: currentBooking == null
+        body: isResolvingBooking
+            ? const Center(child: CircularProgressIndicator())
+            : currentBooking == null
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
@@ -73,8 +99,10 @@ class _BookingDetailsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final dateText = DateFormat('EEE, MMM d, yyyy • h:mm a', locale)
-        .format(booking.startDateTime);
+    final localStart =
+        BusinessClock.inTimeZone(booking.startDateTime, booking.timeZone);
+    final dateText =
+        DateFormat('EEE, MMM d, yyyy • h:mm a', locale).format(localStart);
     final statusText = context.tr(_statusKey(booking.status));
     final notes = booking.notes?.trim() ?? '';
 
@@ -155,7 +183,10 @@ class _BookingDetailsBody extends StatelessWidget {
                 _detailRow(
                   context,
                   context.tr('Price'),
-                  CurrencyFormatter.format(booking.servicePrice),
+                  CurrencyFormatter.format(
+                    booking.servicePrice,
+                    currency: booking.currency,
+                  ),
                   forceLtr: true,
                 ),
                 if (notes.isNotEmpty) ...[

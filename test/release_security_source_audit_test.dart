@@ -7,11 +7,11 @@ void main() {
     final source =
         File('lib/providers/owner_providers.dart').readAsStringSync();
 
-    expect(source, contains(".where('ownerId', isEqualTo: user.uid)"));
-    expect(source, contains(".where('owner_id', isEqualTo: user.uid)"));
+    expect(source, contains(".where('ownerId', isEqualTo: uid)"));
+    expect(source, contains(".where('owner_id', isEqualTo: uid)"));
     expect(
       source,
-      isNot(contains(".collection('businesses')\n      .doc(user.uid)\n      .get()")),
+      isNot(contains(".collection('businesses')\n      .doc(uid)\n      .get()")),
     );
   });
 
@@ -27,14 +27,35 @@ void main() {
     expect(source, isNot(contains('id: doc.id')));
   });
 
+  test('any-specialist selection is server-owned and atomic', () {
+    final create = File(
+      'functions/src/booking/createBooking.ts',
+    ).readAsStringSync();
+    final reschedule = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+    final resolver = File(
+      'functions/src/booking/staffResolution.ts',
+    ).readAsStringSync();
+
+    expect(create, contains('resolveAnyAvailableStaff'));
+    expect(reschedule, contains('resolveAnyAvailableStaff'));
+    expect(resolver, contains('transaction.get(staffQuery)'));
+    expect(resolver, contains("db.collection('booking_slots').doc(lock.lockId)"));
+    expect(resolver, contains('NO_SPECIALIST_AVAILABLE'));
+  });
+
   test('booking backend requires explicit active staff', () {
     final source =
         File('functions/src/booking/bookingValidation.ts').readAsStringSync();
 
     expect(
       source,
-      contains('(staffData.isActive ?? staffData.is_active) !== true'),
+      contains('(staffData.is_active ?? staffData.isActive) !== true'),
     );
+    expect(source, contains('STAFF_SCHEDULE_NOT_CONFIGURED'));
+    expect(source, contains('Object.keys(weeklySchedule'));
+    expect(source, contains('nextLocalMidnightMs(endDate, timeZone)'));
   });
 
   test('user wallet balance remains server-owned in Firestore rules', () {
@@ -73,6 +94,7 @@ void main() {
       isTrue,
     );
   });
+
   test('runtime booking and owner flows wait for authoritative state', () {
     final serviceSource =
         File('lib/screens/business/add_service_screen.dart').readAsStringSync();
@@ -144,9 +166,47 @@ void main() {
 
     expect(
       source,
-      contains('NavigationService().setPendingRoute(state.matchedLocation)'),
+      contains('NavigationService().setPendingRoute(state.uri.toString())'),
     );
     expect(source, contains("redirectTarget == '/login'"));
+  });
+
+  test('android Firebase metadata targets the production package app', () {
+    final firebaseJson = File('firebase.json').readAsStringSync();
+    final options =
+        File('lib/firebase_options.dart').readAsStringSync();
+    final services =
+        File('android/app/google-services.json').readAsStringSync();
+    final gradle =
+        File('android/app/build.gradle.kts').readAsStringSync();
+
+    const appId = '1:669700001010:android:a47c10c1fe440d6a47946b';
+    expect(firebaseJson, contains('"android": "$appId"'));
+    expect(options, contains("appId: '$appId'"));
+    expect(services, contains('"mobilesdk_app_id": "$appId"'));
+    expect(services, contains('"package_name": "ae.easybook.app"'));
+    expect(gradle, contains('applicationId = "ae.easybook.app"'));
+  });
+
+  test('android release signing secrets stay out of source control', () {
+    final ignore = File('.gitignore').readAsStringSync();
+    final gradle =
+        File('android/app/build.gradle.kts').readAsStringSync();
+
+    expect(ignore, contains('android/key.properties'));
+    expect(ignore, contains('android/*.jks'));
+    expect(ignore, contains('android/*.keystore'));
+    expect(gradle, contains('if (releaseTaskRequested && !hasReleaseKeystore)'));
+    expect(gradle, contains('Release signing is not configured.'));
+  });
+
+  test('owner finance authorization prioritizes canonical owner identity', () {
+    final source = File(
+      'lib/repositories/owner_finance_repository.dart',
+    ).readAsStringSync();
+
+    expect(source, contains("data['owner_id'] ?? data['ownerId']"));
+    expect(source, isNot(contains("data['ownerId'] ?? data['owner_id']")));
   });
 
   test('owner profile updates avoid protected business fields', () {
@@ -170,16 +230,19 @@ void main() {
   });
 
   test('owner dashboard only shows future bookings as upcoming', () {
-    final source = File(
-      'lib/screens/business/owner_dashboard_screen.dart',
-    ).readAsStringSync();
+    final providerSource =
+        File('lib/providers/owner_providers.dart').readAsStringSync();
+    final repositorySource =
+        File('lib/repositories/owner_repository.dart').readAsStringSync();
 
-    expect(source, contains('localStart.isAfter(now)'));
+    expect(providerSource, contains('final now = BusinessClock.now(timeZone);'));
+    expect(providerSource, contains('fetchUpcomingOwnerBookings('));
+    expect(providerSource, contains('after: now'));
     expect(
-      source,
-      contains('a.startDateTime.compareTo(b.startDateTime)'),
+      repositorySource,
+      contains('isGreaterThan: Timestamp.fromDate(after)'),
     );
-    expect(source, contains('BusinessClock.inTimeZone'));
+    expect(repositorySource, contains(".orderBy('startDateTime')"));
   });
 
   test('owner calendar passes selected date into walk-in booking', () {
@@ -212,8 +275,118 @@ void main() {
     );
     expect(
       walkInSource,
-      contains('{ requireAcceptingBookings: false }'),
+      contains('requireAcceptingBookings: false'),
+    );
+    expect(
+      walkInSource,
+      contains('requireVerifiedBusiness: false'),
     );
   });
+
+  test('customer booking prefers authoritative Firestore profile identity', () {
+    final source = File(
+      'functions/src/booking/createBooking.ts',
+    ).readAsStringSync();
+
+    expect(source, contains("db.collection('users').doc(customerId)"));
+    expect(source, contains('userData.full_name ?? userData.name'));
+    expect(source, contains("cleanText(userData.phone, 40)"));
+  });
+
+  test('booking cancellation fails closed on unknown statuses', () {
+    final source = File(
+      'functions/src/booking/cancelBooking.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('const cancellableStatuses = new Set(['));
+    expect(source, contains('if (!cancellableStatuses.has(currentStatus))'));
+  });
+
+  test('owner booking status retries are idempotent', () {
+    final source = File(
+      'functions/src/booking/updateBookingStatus.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('if (currentStatus === newStatus)'));
+    expect(source, contains('idempotentReplay: true'));
+    expect(source, contains('idempotentReplay: false'));
+  });
+
+  test('reschedule retries return idempotent success instead of false failure', () {
+    final source = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('idempotentReplay: true'));
+    expect(source, contains('idempotentReplay: false'));
+    expect(source, isNot(contains('NO_RESCHEDULE_CHANGE')));
+  });
+
+  test('owner reschedules are not blocked by the public booking toggle', () {
+    final source = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains("requireAcceptingBookings: actor === 'customer'"),
+    );
+    expect(
+      source,
+      contains("requireVerifiedBusiness: actor === 'customer'"),
+    );
+  });
+
+  test('customer reschedules fail closed when business approval is withdrawn', () {
+    final validationSource = File(
+      'functions/src/booking/bookingValidation.ts',
+    ).readAsStringSync();
+    final rescheduleSource = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(
+      validationSource,
+      contains('requireVerifiedBusiness?: boolean'),
+    );
+    expect(
+      validationSource,
+      contains('BUSINESS_NOT_VERIFIED'),
+    );
+    expect(
+      rescheduleSource,
+      contains("requireVerifiedBusiness: actor === 'customer'"),
+    );
+  });
+  test('canonical migration is pinned to the Easy Book Firebase project', () {
+    final migration = File(
+      'functions/src/admin/migrateCanonicalFields.ts',
+    ).readAsStringSync();
+    final packageJson = File('functions/package.json').readAsStringSync();
+
+    expect(migration, contains("EXPECTED_PROJECT_ID = 'easy-book-zaki'"));
+    expect(migration, contains("process.argv.indexOf('--project')"));
+    expect(migration, contains('Refusing canonical migration for project'));
+    expect(packageJson, contains('--project easy-book-zaki'));
+  });
+
+  test('legacy canonical migration never overwrites existing canonical fields', () {
+    final migration = File(
+      'functions/src/admin/migrateCanonicalFields.ts',
+    ).readAsStringSync();
+
+    expect(
+      migration,
+      contains('!hasCanonical && !hasQueuedCanonical && hasLegacy'),
+    );
+    expect(migration, contains("['is_verified', 'isVerified']"));
+    expect(migration, contains("['is_active', 'isActive']"));
+    expect(migration, contains("['is_bookable', 'isBookable']"));
+    expect(migration, contains("['business_id', 'businessId']"));
+    expect(migration, contains("['review_count', 'reviewCount']"));
+    expect(migration, contains('hasQueuedCanonical'));
+    expect(migration, contains("process.argv.includes('--dry-run')"));
+  });
+
 
 }

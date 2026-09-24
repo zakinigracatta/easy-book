@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/custom_text_field.dart';
@@ -29,6 +30,7 @@ class _QuickWalkInBookingScreenState
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
+  final String _clientRequestId = const Uuid().v4();
 
   ServiceModel? _selectedService;
   StaffModel? _selectedStaff;
@@ -230,7 +232,7 @@ class _QuickWalkInBookingScreenState
                               return DropdownMenuItem(
                                 value: s,
                                 child: Text(
-                                  '${s.name} (AED ${s.effectivePrice.toStringAsFixed(0)} • ${s.duration})',
+                                  '${s.name} (${s.currency} ${s.effectivePrice.toStringAsFixed(0)} • ${s.duration})',
                                   style: TextStyle(
                                       color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 13),
@@ -537,6 +539,7 @@ class _QuickWalkInBookingScreenState
         endDateTime: endDt,
         status: BookingStatus.confirmed,
         bookingSource: 'walkIn',
+        clientRequestId: _clientRequestId,
         notes: _notesController.text.trim(),
       );
 

@@ -219,7 +219,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                                   selectedService.durationMinutes,
                               selectedServices: [selectedService],
                               resetStaffSelection:
-                                  currentDraft.businessId != business.id,
+                                  currentDraft.businessId != business.id ||
+                                      (currentDraft.serviceId?.isNotEmpty == true &&
+                                          currentDraft.serviceId != selectedService.id),
                               resetAppointmentSelection: true,
                             );
                           } else {
@@ -230,8 +232,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                               selectedServices: const [],
                               serviceId: '',
                               serviceName: '',
-                              resetStaffSelection:
-                                  currentDraft.businessId != business.id,
+                              resetStaffSelection: true,
                               resetAppointmentSelection: true,
                             );
                           }
@@ -300,7 +301,9 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   serviceDurationMinutes: service.durationMinutes,
                   selectedServices: [service],
                   resetStaffSelection:
-                      currentDraft.businessId != business.id,
+                      currentDraft.businessId != business.id ||
+                          (currentDraft.serviceId?.isNotEmpty == true &&
+                              currentDraft.serviceId != service.id),
                   resetAppointmentSelection: true,
                 );
               } else {
@@ -311,8 +314,7 @@ class _SalonDetailsScreenState extends ConsumerState<SalonDetailsScreen> {
                   selectedServices: const [],
                   serviceId: '',
                   serviceName: '',
-                  resetStaffSelection:
-                      currentDraft.businessId != business.id,
+                  resetStaffSelection: true,
                   resetAppointmentSelection: true,
                 );
               }

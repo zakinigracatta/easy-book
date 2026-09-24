@@ -61,7 +61,12 @@ class BookingAvailabilityEngine {
       now.month,
       now.day,
     );
-    final maxDate = today.add(const Duration(days: maxAdvanceBookingDays));
+    final maxDate = TZDateTime(
+      businessLocation,
+      today.year,
+      today.month,
+      today.day + maxAdvanceBookingDays,
+    );
     final targetDateOnly = TZDateTime(
       businessLocation,
       date.year,
@@ -85,9 +90,13 @@ class BookingAvailabilityEngine {
     final dailyHours = business.workingHours.schedule[dayName];
     if (dailyHours == null || dailyHours.isClosed) return [];
 
-    final bOpenMinutes = _parseTimeStringToMinutes(dailyHours.openTime);
-    final bCloseMinutes = _parseTimeStringToMinutes(dailyHours.closeTime);
-    if (bCloseMinutes <= bOpenMinutes) return [];
+    final bOpenMinutes = _tryParseTimeStringToMinutes(dailyHours.openTime);
+    final bCloseMinutes = _tryParseTimeStringToMinutes(dailyHours.closeTime);
+    if (bOpenMinutes == null ||
+        bCloseMinutes == null ||
+        bCloseMinutes <= bOpenMinutes) {
+      return [];
+    }
 
     final eligibleStaff = filterEligibleStaff(allStaff, selectedServices);
     if (eligibleStaff.isEmpty) return [];
@@ -148,6 +157,7 @@ class BookingAvailabilityEngine {
           bCloseMinutes: bCloseMinutes,
           targetDateWeekday: targetDateOnly.weekday,
           targetDayName: dayName,
+          businessTimeZone: business.timeZone,
         )) {
           availableStaffForThisSlot.add(staff.id);
         }
@@ -182,6 +192,7 @@ class BookingAvailabilityEngine {
     required int bCloseMinutes,
     required int targetDateWeekday,
     required String targetDayName,
+    required String businessTimeZone,
   }) {
     final candStartMs = candStart.millisecondsSinceEpoch;
     final candEndMs = candEnd.millisecondsSinceEpoch;
@@ -189,33 +200,55 @@ class BookingAvailabilityEngine {
     final candEndMin = candStartMin + totalDurationMinutes;
 
     final perDaySchedule = staff.weeklySchedule[targetDayName];
-    if (perDaySchedule != null) {
-      if (!perDaySchedule.isWorking) return false;
-    } else if (staff.workingDays != null &&
-        !staff.workingDays!.contains(targetDateWeekday)) {
-      return false;
+    if (staff.weeklySchedule.isNotEmpty) {
+      if (perDaySchedule == null || !perDaySchedule.isWorking) return false;
+    } else {
+      final workingDays = staff.workingDays;
+      final hasShiftStart = staff.shiftStart?.trim().isNotEmpty == true;
+      final hasShiftEnd = staff.shiftEnd?.trim().isNotEmpty == true;
+
+      // Completely missing scheduling data must not make an active employee
+      // bookable across the full business day.
+      if (workingDays == null && !hasShiftStart && !hasShiftEnd) {
+        return false;
+      }
+      if (workingDays != null &&
+          (workingDays.isEmpty || !workingDays.contains(targetDateWeekday))) {
+        return false;
+      }
+      if (hasShiftStart != hasShiftEnd) return false;
     }
 
     final staffShiftStartMin = perDaySchedule != null
-        ? _parseTimeStringToMinutes(perDaySchedule.openTime)
-        : (staff.shiftStart != null
-            ? _parseTimeStringToMinutes(staff.shiftStart!)
+        ? _tryParseTimeStringToMinutes(perDaySchedule.openTime)
+        : (staff.shiftStart?.trim().isNotEmpty == true
+            ? _tryParseTimeStringToMinutes(staff.shiftStart!)
             : bOpenMinutes);
     final staffShiftEndMin = perDaySchedule != null
-        ? _parseTimeStringToMinutes(perDaySchedule.closeTime)
-        : (staff.shiftEnd != null
-            ? _parseTimeStringToMinutes(staff.shiftEnd!)
+        ? _tryParseTimeStringToMinutes(perDaySchedule.closeTime)
+        : (staff.shiftEnd?.trim().isNotEmpty == true
+            ? _tryParseTimeStringToMinutes(staff.shiftEnd!)
             : bCloseMinutes);
 
-    if (candStartMin < staffShiftStartMin || candEndMin > staffShiftEndMin) {
+    if (staffShiftStartMin == null ||
+        staffShiftEndMin == null ||
+        staffShiftEndMin <= staffShiftStartMin ||
+        candStartMin < staffShiftStartMin ||
+        candEndMin > staffShiftEndMin) {
       return false;
     }
 
     if (perDaySchedule?.breakStart != null &&
         perDaySchedule?.breakEnd != null) {
       final breakStartMin =
-          _parseTimeStringToMinutes(perDaySchedule!.breakStart!);
-      final breakEndMin = _parseTimeStringToMinutes(perDaySchedule.breakEnd!);
+          _tryParseTimeStringToMinutes(perDaySchedule!.breakStart!);
+      final breakEndMin =
+          _tryParseTimeStringToMinutes(perDaySchedule.breakEnd!);
+      if (breakStartMin == null ||
+          breakEndMin == null ||
+          breakEndMin <= breakStartMin) {
+        return false;
+      }
       if (candStartMin < breakEndMin && candEndMin > breakStartMin) {
         return false;
       }
@@ -231,13 +264,22 @@ class BookingAvailabilityEngine {
 
       final timeOffStartMs = timeOff.startDate.millisecondsSinceEpoch;
       var normalizedEnd = timeOff.endDate;
-      // The owner UI selects leave by calendar date. A stored midnight end date
-      // therefore represents an inclusive end day, not an empty interval.
-      if (normalizedEnd.hour == 0 &&
-          normalizedEnd.minute == 0 &&
-          normalizedEnd.second == 0 &&
-          normalizedEnd.millisecond == 0) {
-        normalizedEnd = normalizedEnd.add(const Duration(days: 1));
+      // Interpret legacy midnight values in the business timezone, not the
+      // device/UTC timezone carried by the parsed ISO instant.
+      final endLocal = BusinessClock.inTimeZone(
+        normalizedEnd,
+        businessTimeZone,
+      );
+      if (endLocal.hour == 0 &&
+          endLocal.minute == 0 &&
+          endLocal.second == 0 &&
+          endLocal.millisecond == 0) {
+        normalizedEnd = TZDateTime(
+          BusinessClock.locationFor(businessTimeZone),
+          endLocal.year,
+          endLocal.month,
+          endLocal.day + 1,
+        );
       }
       final timeOffEndMs = normalizedEnd.millisecondsSinceEpoch;
 
@@ -255,8 +297,15 @@ class BookingAvailabilityEngine {
 
     for (final staffBreak in staffBreaks) {
       if (staffBreak.staffId != staff.id) continue;
-      final breakStartMin = _parseTimeStringToMinutes(staffBreak.startTime);
-      final breakEndMin = _parseTimeStringToMinutes(staffBreak.endTime);
+      final breakStartMin =
+          _tryParseTimeStringToMinutes(staffBreak.startTime);
+      final breakEndMin =
+          _tryParseTimeStringToMinutes(staffBreak.endTime);
+      if (breakStartMin == null ||
+          breakEndMin == null ||
+          breakEndMin <= breakStartMin) {
+        return false;
+      }
       if (candStartMin < breakEndMin && candEndMin > breakStartMin) {
         return false;
       }
@@ -265,7 +314,7 @@ class BookingAvailabilityEngine {
     return true;
   }
 
-  static int _parseTimeStringToMinutes(String raw) {
+  static int? _tryParseTimeStringToMinutes(String raw) {
     try {
       final clean = raw.trim();
       final isPm = clean.toUpperCase().contains('PM');
@@ -274,11 +323,13 @@ class BookingAvailabilityEngine {
       final parts = numbersStr.split(':');
       var hour = int.parse(parts[0]);
       final minute = parts.length > 1 ? int.parse(parts[1]) : 0;
+      if (minute < 0 || minute > 59 || hour < 0 || hour > 23) return null;
+      if ((isAm || isPm) && hour > 12) return null;
       if (isPm && hour < 12) hour += 12;
       if (isAm && hour == 12) hour = 0;
       return hour * 60 + minute;
     } catch (_) {
-      return 9 * 60;
+      return null;
     }
   }
 }

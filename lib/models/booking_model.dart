@@ -20,6 +20,8 @@ class BookingModel {
   final String serviceId;
   final String serviceName;
   final double servicePrice;
+  final String currency;
+  final String timeZone;
   final String staffId;
   final String staffName;
   final DateTime startDateTime;
@@ -29,6 +31,8 @@ class BookingModel {
   final String? notes;
   final String? ownerNotes;
   final String? slotLockId;
+  final String? clientRequestId;
+  final bool anySpecialist;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -42,6 +46,8 @@ class BookingModel {
     required this.serviceId,
     required this.serviceName,
     required this.servicePrice,
+    this.currency = 'AED',
+    this.timeZone = 'Asia/Dubai',
     required this.staffId,
     required this.staffName,
     required this.startDateTime,
@@ -51,6 +57,8 @@ class BookingModel {
     this.notes,
     this.ownerNotes,
     this.slotLockId,
+    this.clientRequestId,
+    this.anySpecialist = false,
     this.createdAt,
     this.updatedAt,
   });
@@ -108,6 +116,8 @@ class BookingModel {
       servicePrice: (json['servicePrice'] as num?)?.toDouble() ??
           (json['service_price'] as num?)?.toDouble() ??
           0.0,
+      currency: (json['currency'] ?? 'AED').toString(),
+      timeZone: (json['timeZone'] ?? json['timezone'] ?? 'Asia/Dubai').toString(),
       staffId:
           json['staffId'] as String? ?? json['staff_id'] as String? ?? '',
       staffName: json['staffName'] as String? ??
@@ -128,6 +138,11 @@ class BookingModel {
           json['ownerNotes'] as String? ?? json['owner_notes'] as String?,
       slotLockId:
           json['slotLockId'] as String? ?? json['slot_lock_id'] as String?,
+      clientRequestId: json['clientRequestId'] as String? ??
+          json['client_request_id'] as String?,
+      anySpecialist: json['anySpecialist'] is bool
+          ? json['anySpecialist'] == true
+          : json['any_specialist'] == true,
       createdAt:
           json['createdAt'] != null ? parseDate(json['createdAt']) : null,
       updatedAt:
@@ -146,6 +161,8 @@ class BookingModel {
       'serviceId': serviceId,
       'serviceName': serviceName,
       'servicePrice': servicePrice,
+      'currency': currency,
+      'timeZone': timeZone,
       'staffId': staffId,
       'staffName': staffName,
       'startDateTime': startDateTime.toIso8601String(),
@@ -155,6 +172,8 @@ class BookingModel {
       'bookingSource': bookingSource,
       if (notes != null) 'notes': notes,
       'slotLockId': computedSlotLockId,
+      if (clientRequestId != null) 'clientRequestId': clientRequestId,
+      'anySpecialist': anySpecialist,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (updatedAt != null) 'updatedAt': updatedAt!.toIso8601String(),
     };
@@ -171,6 +190,8 @@ class BookingModel {
       'serviceId': serviceId,
       'serviceName': serviceName,
       'servicePrice': servicePrice,
+      'currency': currency,
+      'timeZone': timeZone,
       'staffId': staffId,
       'staffName': staffName,
       'startDateTime': Timestamp.fromDate(startDateTime),
@@ -180,6 +201,8 @@ class BookingModel {
       'bookingSource': bookingSource,
       if (notes != null) 'notes': notes,
       'slotLockId': computedSlotLockId,
+      if (clientRequestId != null) 'clientRequestId': clientRequestId,
+      'anySpecialist': anySpecialist,
       'createdAt': createdAt != null
           ? Timestamp.fromDate(createdAt!)
           : FieldValue.serverTimestamp(),
@@ -199,6 +222,8 @@ class BookingModel {
     String? serviceId,
     String? serviceName,
     double? servicePrice,
+    String? currency,
+    String? timeZone,
     String? staffId,
     String? staffName,
     DateTime? startDateTime,
@@ -208,6 +233,8 @@ class BookingModel {
     String? notes,
     String? ownerNotes,
     String? slotLockId,
+    String? clientRequestId,
+    bool? anySpecialist,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -221,6 +248,8 @@ class BookingModel {
       serviceId: serviceId ?? this.serviceId,
       serviceName: serviceName ?? this.serviceName,
       servicePrice: servicePrice ?? this.servicePrice,
+      currency: currency ?? this.currency,
+      timeZone: timeZone ?? this.timeZone,
       staffId: staffId ?? this.staffId,
       staffName: staffName ?? this.staffName,
       startDateTime: startDateTime ?? this.startDateTime,
@@ -230,6 +259,8 @@ class BookingModel {
       notes: notes ?? this.notes,
       ownerNotes: ownerNotes ?? this.ownerNotes,
       slotLockId: slotLockId ?? this.slotLockId,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
+      anySpecialist: anySpecialist ?? this.anySpecialist,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

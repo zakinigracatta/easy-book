@@ -33,6 +33,8 @@ class BookingSummaryScreen extends ConsumerWidget {
     final staffName = _resolvedStaffName(context, draft);
     final services = draft.selectedServices;
     final totalPrice = draft.totalPrice;
+    final totalCurrency =
+        services.isNotEmpty ? services.first.currency : 'AED';
     final totalDuration = draft.totalDurationMinutes;
 
     return PopScope(
@@ -175,7 +177,10 @@ class BookingSummaryScreen extends ConsumerWidget {
                           _summaryRow(
                             context,
                             draft.serviceName ?? 'Service',
-                            CurrencyFormatter.format(totalPrice),
+                            CurrencyFormatter.format(
+                              totalPrice,
+                              currency: totalCurrency,
+                            ),
                           ),
                         const Divider(height: 22),
                         _summaryRow(
@@ -243,7 +248,10 @@ class BookingSummaryScreen extends ConsumerWidget {
                             Directionality(
                               textDirection: TextDirection.ltr,
                               child: Text(
-                                CurrencyFormatter.format(totalPrice),
+                                CurrencyFormatter.format(
+                                  totalPrice,
+                                  currency: totalCurrency,
+                                ),
                                 style: const TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.bold,
@@ -281,6 +289,9 @@ class BookingSummaryScreen extends ConsumerWidget {
   }
 
   static String _resolvedStaffName(BuildContext context, BookingDraft draft) {
+    if (draft.anySpecialist) {
+      return context.tr('Any Available Specialist');
+    }
     final resolved = draft.resolvedStaffName?.trim() ?? '';
     if (resolved.isNotEmpty) return resolved;
     final selected = draft.staffName?.trim() ?? '';

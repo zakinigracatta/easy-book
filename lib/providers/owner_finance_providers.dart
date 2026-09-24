@@ -15,17 +15,30 @@ class OwnerExpensesNotifier
     extends StateNotifier<AsyncValue<List<ExpenseModel>>> {
   final OwnerFinanceRepository _repository;
   final String _businessId;
+  final bool _resolvingBusinessId;
 
-  OwnerExpensesNotifier(this._repository, this._businessId)
-      : super(_businessId.isEmpty
-            ? const AsyncValue.data(<ExpenseModel>[])
-            : const AsyncValue.loading()) {
-    if (_businessId.isNotEmpty) {
+  OwnerExpensesNotifier(
+    this._repository,
+    this._businessId, {
+    bool resolvingBusinessId = false,
+  })  : _resolvingBusinessId = resolvingBusinessId,
+        super(
+          resolvingBusinessId
+              ? const AsyncValue.loading()
+              : _businessId.isEmpty
+                  ? const AsyncValue.data(<ExpenseModel>[])
+                  : const AsyncValue.loading(),
+        ) {
+    if (!resolvingBusinessId && _businessId.isNotEmpty) {
       load();
     }
   }
 
   Future<void> load() async {
+    if (_resolvingBusinessId) {
+      state = const AsyncValue.loading();
+      return;
+    }
     if (_businessId.isEmpty) {
       state = const AsyncValue.data(<ExpenseModel>[]);
       return;
@@ -106,8 +119,13 @@ class OwnerExpensesNotifier
 final ownerExpensesProvider = StateNotifierProvider<OwnerExpensesNotifier,
     AsyncValue<List<ExpenseModel>>>((ref) {
   final repository = ref.watch(ownerFinanceRepositoryProvider);
-  final businessId = ref.watch(currentBusinessIdProvider).value ?? '';
-  return OwnerExpensesNotifier(repository, businessId);
+  final businessIdAsync = ref.watch(currentBusinessIdProvider);
+  final businessId = businessIdAsync.value ?? '';
+  return OwnerExpensesNotifier(
+    repository,
+    businessId,
+    resolvingBusinessId: businessIdAsync.isLoading,
+  );
 });
 
 class FinanceReportRange {

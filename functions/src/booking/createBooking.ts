@@ -1,10 +1,15 @@
+import { createHash } from 'crypto';
 import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import {
   generateIntervalSlotLockIds,
   validateCanonical15MinAlignment,
 } from './bookingLocks';
-import { validateBookingRequirements } from './bookingValidation';
+import {
+  validateBookingRequirements,
+  validateMaximumAdvanceDate,
+} from './bookingValidation';
+import { resolveAnyAvailableStaff } from './staffResolution';
 
 function requiredId(value: unknown, name: string): string {
   if (typeof value !== 'string' || value.trim().length === 0 || value.length > 200) {
@@ -19,6 +24,92 @@ function requiredId(value: unknown, name: string): string {
 function cleanText(value: unknown, maxLength: number): string {
   if (typeof value !== 'string') return '';
   return value.trim().slice(0, maxLength);
+}
+
+function requiredFiniteNumber(
+  value: unknown,
+  name: string,
+  { min = 0 }: { min?: number } = {}
+): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < min) {
+    throw new HttpsError(
+      'invalid-argument',
+      `INVALID_${name.toUpperCase()}: ${name} must be a finite number.`
+    );
+  }
+  return value;
+}
+
+function requiredPositiveInteger(value: unknown, name: string): number {
+  if (
+    typeof value !== 'number' ||
+    !Number.isInteger(value) ||
+    value <= 0 ||
+    value > 24 * 60
+  ) {
+    throw new HttpsError(
+      'invalid-argument',
+      `INVALID_${name.toUpperCase()}: ${name} must be a positive integer.`
+    );
+  }
+  return value;
+}
+
+function optionalRequestId(value: unknown): string {
+  if (value == null) return '';
+  if (typeof value !== 'string') {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_CLIENT_REQUEST_ID: clientRequestId must be a string.'
+    );
+  }
+  const normalized = value.trim();
+  if (normalized.length === 0 || normalized.length > 200) {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_CLIENT_REQUEST_ID: clientRequestId must contain 1 to 200 characters.'
+    );
+  }
+  return normalized;
+}
+
+function storedDate(value: unknown): Date | null {
+  if (value instanceof admin.firestore.Timestamp) return value.toDate();
+  if (value instanceof Date) return value;
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+function idempotentResponse(
+  bookingId: string,
+  data: Record<string, unknown>
+): Record<string, unknown> {
+  const endDateTime = storedDate(data.endDateTime);
+  if (!endDateTime) {
+    throw new HttpsError(
+      'internal',
+      'IDEMPOTENCY_RECORD_INVALID: Existing booking is missing its end time.'
+    );
+  }
+
+  return {
+    success: true,
+    bookingId,
+    servicePrice:
+      typeof data.servicePrice === 'number' ? data.servicePrice : 0,
+    currency: typeof data.currency === 'string' ? data.currency : 'AED',
+    timeZone: typeof data.timeZone === 'string' ? data.timeZone : 'Asia/Dubai',
+    durationMinutes:
+      typeof data.durationMinutes === 'number' ? data.durationMinutes : 0,
+    endDateTime: endDateTime.toISOString(),
+    staffId: typeof data.staffId === 'string' ? data.staffId : '',
+    staffName: typeof data.staffName === 'string' ? data.staffName : 'Specialist',
+    status: typeof data.status === 'string' ? data.status : 'pending',
+    idempotentReplay: true,
+  };
 }
 
 export const createBooking = onCall(async (request) => {
@@ -40,10 +131,25 @@ export const createBooking = onCall(async (request) => {
   const data = request.data || {};
   const businessId = requiredId(data.businessId, 'businessId');
   const serviceId = requiredId(data.serviceId, 'serviceId');
-  const staffId = requiredId(data.staffId, 'staffId');
+  const anySpecialist = data.anySpecialist === true;
+  const staffId = anySpecialist
+    ? cleanText(data.staffId, 200)
+    : requiredId(data.staffId, 'staffId');
+  const clientRequestId = optionalRequestId(data.clientRequestId);
   const requestedStartRaw = data.requestedStartAt;
-  const customerName = cleanText(data.customerName, 120) || 'Valued Customer';
-  const customerPhone = cleanText(data.customerPhone, 40);
+  const requestedCustomerName =
+    cleanText(data.customerName, 120) || 'Valued Customer';
+  const requestedCustomerPhone = cleanText(data.customerPhone, 40);
+  const expectedServicePrice = requiredFiniteNumber(
+    data.expectedServicePrice,
+    'expectedServicePrice'
+  );
+  const expectedDurationMinutes = requiredPositiveInteger(
+    data.expectedDurationMinutes,
+    'expectedDurationMinutes'
+  );
+  const expectedCurrency =
+    cleanText(data.expectedCurrency, 12).toUpperCase() || 'AED';
   const notes = cleanText(data.notes, 1000);
 
   if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
@@ -62,16 +168,64 @@ export const createBooking = onCall(async (request) => {
   }
 
   validateCanonical15MinAlignment(requestedStartAt);
-  if (requestedStartAt.getTime() <= Date.now()) {
-    throw new HttpsError(
-      'failed-precondition',
-      'START_TIME_IN_PAST: A customer booking must start in the future.'
-    );
-  }
 
   const db = admin.firestore();
+  const deterministicId = clientRequestId
+    ? createHash('sha256')
+        .update(`${customerId}:${clientRequestId}`)
+        .digest('hex')
+        .slice(0, 40)
+    : '';
+  const bookingDocRef = deterministicId
+    ? db.collection('bookings').doc(`cb_${deterministicId}`)
+    : db.collection('bookings').doc();
 
   return db.runTransaction(async (transaction) => {
+    if (clientRequestId) {
+      const existingSnap = await transaction.get(bookingDocRef);
+      if (existingSnap.exists) {
+        const existing = existingSnap.data() || {};
+        const sameRequest =
+          existing.customerId === customerId &&
+          existing.businessId === businessId &&
+          existing.serviceId === serviceId &&
+          Number(existing.startTimestamp) === requestedStartAt.getTime() &&
+          existing.anySpecialist === anySpecialist &&
+          (anySpecialist || existing.staffId === staffId);
+
+        if (!sameRequest) {
+          throw new HttpsError(
+            'invalid-argument',
+            'IDEMPOTENCY_KEY_REUSED: This clientRequestId was already used for a different booking request.'
+          );
+        }
+        return idempotentResponse(bookingDocRef.id, existing);
+      }
+    }
+
+    const minimumLeadTimeMs = 30 * 60 * 1000;
+    if (requestedStartAt.getTime() <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_IN_PAST: A customer booking must start in the future.'
+      );
+    }
+    if (requestedStartAt.getTime() < Date.now() + minimumLeadTimeMs) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_TOO_SOON: Customer bookings require at least 30 minutes lead time.'
+      );
+    }
+
+    const userRef = db.collection('users').doc(customerId);
+    const userSnap = await transaction.get(userRef);
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const customerName =
+      cleanText(userData.full_name ?? userData.name, 120) ||
+      requestedCustomerName;
+    const customerPhone =
+      cleanText(userData.phone, 40) || requestedCustomerPhone;
+
     const businessRef = db.collection('businesses').doc(businessId);
     const businessSnap = await transaction.get(businessRef);
     if (!businessSnap.exists) {
@@ -83,9 +237,9 @@ export const createBooking = onCall(async (request) => {
 
     const businessData = businessSnap.data() || {};
     const isVerified =
-      businessData.is_verified === true || businessData.isVerified === true;
+      (businessData.is_verified ?? businessData.isVerified) === true;
     const isActive =
-      (businessData.is_active ?? businessData.isActive) !== false;
+      (businessData.is_active ?? businessData.isActive) === true;
 
     if (!isVerified || !isActive) {
       throw new HttpsError(
@@ -94,21 +248,52 @@ export const createBooking = onCall(async (request) => {
       );
     }
 
-    const context = await validateBookingRequirements(
-      db,
-      transaction,
-      businessId,
-      serviceId,
-      staffId,
-      requestedStartAt
-    );
+    let resolvedStaffId = staffId;
+    let context: Awaited<ReturnType<typeof validateBookingRequirements>>;
+    let lockObjects: ReturnType<typeof generateIntervalSlotLockIds>;
 
-    const lockObjects = generateIntervalSlotLockIds(
-      businessId,
-      staffId,
-      requestedStartAt,
-      context.calculatedEndAt
-    );
+    if (anySpecialist) {
+      const resolved = await resolveAnyAvailableStaff(db, transaction, {
+        businessId,
+        serviceId,
+        requestedStartAt,
+        seed: `${customerId}:${clientRequestId || requestedStartAt.toISOString()}`,
+      });
+      resolvedStaffId = resolved.staffId;
+      context = resolved.context;
+      lockObjects = resolved.lockObjects;
+    } else {
+      context = await validateBookingRequirements(
+        db,
+        transaction,
+        businessId,
+        serviceId,
+        resolvedStaffId,
+        requestedStartAt
+      );
+      lockObjects = generateIntervalSlotLockIds(
+        businessId,
+        resolvedStaffId,
+        requestedStartAt,
+        context.calculatedEndAt
+      );
+    }
+
+    validateMaximumAdvanceDate(requestedStartAt, context.timeZone);
+
+    const priceChanged =
+      Math.abs(context.servicePrice - expectedServicePrice) > 0.005;
+    const durationChanged =
+      context.durationMinutes !== expectedDurationMinutes;
+    const currencyChanged =
+      context.currency.trim().toUpperCase() !== expectedCurrency;
+
+    if (priceChanged || durationChanged || currencyChanged) {
+      throw new HttpsError(
+        'failed-precondition',
+        'BOOKING_TERMS_CHANGED: Service price, duration, or currency changed after the customer reviewed the booking.'
+      );
+    }
 
     for (const lock of lockObjects) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
@@ -121,7 +306,6 @@ export const createBooking = onCall(async (request) => {
       }
     }
 
-    const bookingDocRef = db.collection('bookings').doc();
     const primarySlotLockId = lockObjects[0].lockId;
 
     for (const lock of lockObjects) {
@@ -130,7 +314,7 @@ export const createBooking = onCall(async (request) => {
         slotId: lock.lockId,
         bookingId: bookingDocRef.id,
         businessId,
-        staffId,
+        staffId: resolvedStaffId,
         startDateTime: admin.firestore.Timestamp.fromDate(lock.startDateTime),
         startTimestamp: lock.startTimestamp,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -148,16 +332,19 @@ export const createBooking = onCall(async (request) => {
       serviceName: context.serviceName,
       servicePrice: context.servicePrice,
       currency: context.currency,
+      timeZone: context.timeZone,
       durationMinutes: context.durationMinutes,
-      staffId,
+      staffId: resolvedStaffId,
       staffName: context.staffName,
       startDateTime: admin.firestore.Timestamp.fromDate(requestedStartAt),
       endDateTime: admin.firestore.Timestamp.fromDate(context.calculatedEndAt),
       startTimestamp: requestedStartAt.getTime(),
       status: 'pending',
       bookingSource: 'app',
+      anySpecialist,
       notes,
       slotLockId: primarySlotLockId,
+      ...(clientRequestId ? { clientRequestId } : {}),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };
@@ -168,9 +355,14 @@ export const createBooking = onCall(async (request) => {
       success: true,
       bookingId: bookingDocRef.id,
       servicePrice: context.servicePrice,
+      currency: context.currency,
+      timeZone: context.timeZone,
       durationMinutes: context.durationMinutes,
       endDateTime: context.calculatedEndAt.toISOString(),
+      staffId: resolvedStaffId,
+      staffName: context.staffName,
       status: 'pending',
+      idempotentReplay: false,
     };
   });
 });

@@ -52,6 +52,10 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
       'Проверьте подключение и попробуйте снова.',
   'Booking status updated to {status}': 'Статус записи изменён на {status}',
 
+  'Load more': 'Загрузить ещё',
+  'Load older bookings': 'Загрузить более старые записи',
+  'No matches in this page yet.': 'На этой странице пока нет совпадений.',
+  'Search more results': 'Искать в следующих результатах',
   // Active routed UI coverage.
   '142 Luxury Blvd, Downtown NYC': '142 Luxury Blvd, Downtown NYC',
   'About Business': 'О бизнесе',
@@ -210,6 +214,7 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Valid: {start} – {end}': 'Действует: {start} – {end}',
   'Sharing {business}...': 'Отправка {business}...',
   'Staff: {name}': 'Сотрудник: {name}',
+  'Unable to save private customer notes. Please try again.': 'Не удалось сохранить личные заметки о клиенте. Попробуйте еще раз.',
   'Unable to save service. Please try again.': 'Не удалось сохранить услугу. Попробуйте снова.',
   'Unable to load working hours. Please try again.':
       'Не удалось загрузить часы работы. Попробуйте снова.',
@@ -251,4 +256,15 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'The selected business is no longer available.': 'Выбранная компания больше недоступна.',
   'Unable to verify the appointment time. Please try again.': 'Не удалось проверить время записи. Попробуйте снова.',
   'Unable to load business details. Please try again.': 'Не удалось загрузить данные компании. Попробуйте снова.',
+  'Services this employee can perform': 'Услуги, которые может выполнять этот сотрудник',
+  'Select specific services, or leave all unchecked to allow all active services.': 'Выберите конкретные услуги или оставьте все флажки снятыми, чтобы разрешить все активные услуги.',
+  'Unable to load services. Please try again.': 'Не удалось загрузить услуги. Попробуйте снова.',
+  'No active services are available yet.': 'Пока нет доступных активных услуг.',
+  'Service disabled': 'Услуга отключена',
+  'No specialists are available for this time slot.': 'На это время нет доступных специалистов.',
+  'Unable to update this service. Please try again.': 'Не удалось обновить эту услугу. Попробуйте снова.',
+  'Unable to restore your account profile.': 'Не удалось восстановить профиль вашей учетной записи.',
+  'Check your connection and retry. Your account has not been signed out.': 'Проверьте подключение и повторите попытку. Вы не вышли из учетной записи.',
+  'Retry': 'Повторить',
+  'Sign out': 'Выйти',
 };

@@ -253,6 +253,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
     try {
       await ref.read(ownerExpensesProvider.notifier).archive(expense.id);
       ref.invalidate(ownerProfitAndLossProvider);
+      ref.invalidate(ownerTodayProfitAndLossProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.tr('Expense archived.'))),
@@ -293,6 +294,7 @@ class OwnerExpensesScreen extends ConsumerWidget {
     if (saved == true) {
       await ref.read(ownerExpensesProvider.notifier).load();
       ref.invalidate(ownerProfitAndLossProvider);
+      ref.invalidate(ownerTodayProfitAndLossProvider);
     }
   }
 }
@@ -550,6 +552,7 @@ class _ExpenseEditorState extends ConsumerState<_ExpenseEditor> {
             frequency: _frequency,
           );
       ref.invalidate(ownerProfitAndLossProvider);
+      ref.invalidate(ownerTodayProfitAndLossProvider);
       if (mounted) Navigator.pop(context, true);
     } catch (_) {
       if (mounted) {

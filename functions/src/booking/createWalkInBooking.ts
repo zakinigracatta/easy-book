@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import {
@@ -25,6 +26,62 @@ function cleanText(value: unknown, maxLength: number): string {
   return value.trim().slice(0, maxLength);
 }
 
+function optionalRequestId(value: unknown): string {
+  if (value == null) return '';
+  if (typeof value !== 'string') {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_CLIENT_REQUEST_ID: clientRequestId must be a string.'
+    );
+  }
+  const normalized = value.trim();
+  if (normalized.length === 0 || normalized.length > 200) {
+    throw new HttpsError(
+      'invalid-argument',
+      'INVALID_CLIENT_REQUEST_ID: clientRequestId must contain 1 to 200 characters.'
+    );
+  }
+  return normalized;
+}
+
+function storedDate(value: unknown): Date | null {
+  if (value instanceof admin.firestore.Timestamp) return value.toDate();
+  if (value instanceof Date) return value;
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
+function idempotentResponse(
+  bookingId: string,
+  data: Record<string, unknown>
+): Record<string, unknown> {
+  const endDateTime = storedDate(data.endDateTime);
+  if (!endDateTime) {
+    throw new HttpsError(
+      'internal',
+      'IDEMPOTENCY_RECORD_INVALID: Existing walk-in booking is missing its end time.'
+    );
+  }
+  return {
+    success: true,
+    bookingId,
+    servicePrice:
+      typeof data.servicePrice === 'number' ? data.servicePrice : 0,
+    currency: typeof data.currency === 'string' ? data.currency : 'AED',
+    timeZone: typeof data.timeZone === 'string' ? data.timeZone : 'Asia/Dubai',
+    durationMinutes:
+      typeof data.durationMinutes === 'number' ? data.durationMinutes : 0,
+    endDateTime: endDateTime.toISOString(),
+    staffId: typeof data.staffId === 'string' ? data.staffId : '',
+    staffName: typeof data.staffName === 'string' ? data.staffName : 'Specialist',
+    status: typeof data.status === 'string' ? data.status : 'confirmed',
+    idempotentReplay: true,
+  };
+}
+
 export const createWalkInBooking = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError(
@@ -48,6 +105,7 @@ export const createWalkInBooking = onCall(async (request) => {
   const requestedStartRaw = data.requestedStartAt;
   const customerName = cleanText(data.customerName, 120) || 'Walk-in Customer';
   const customerPhone = cleanText(data.customerPhone, 40);
+  const clientRequestId = optionalRequestId(data.clientRequestId);
   const notes = cleanText(data.notes, 1000);
 
   if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
@@ -67,16 +125,16 @@ export const createWalkInBooking = onCall(async (request) => {
 
   validateCanonical15MinAlignment(requestedStartAt);
 
-  // Walk-ins may be entered at the current quarter-hour, but never as old
-  // historical appointments through this live booking endpoint.
-  if (requestedStartAt.getTime() < Date.now() - 15 * 60 * 1000) {
-    throw new HttpsError(
-      'failed-precondition',
-      'START_TIME_IN_PAST: Walk-in booking time is too far in the past.'
-    );
-  }
-
   const db = admin.firestore();
+  const deterministicId = clientRequestId
+    ? createHash('sha256')
+        .update(`${ownerUid}:${clientRequestId}`)
+        .digest('hex')
+        .slice(0, 40)
+    : '';
+  const bookingDocRef = deterministicId
+    ? db.collection('bookings').doc(`wb_${deterministicId}`)
+    : db.collection('bookings').doc();
 
   return db.runTransaction(async (transaction) => {
     const bizRef = db.collection('businesses').doc(businessId);
@@ -88,11 +146,43 @@ export const createWalkInBooking = onCall(async (request) => {
       );
     }
     const bizData = bizSnap.data() || {};
-    const ownerId = bizData.ownerId || bizData.owner_id;
+    const ownerId = bizData.owner_id ?? bizData.ownerId;
     if (ownerId !== ownerUid) {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: Caller is not the owner of this business.'
+      );
+    }
+
+    if (clientRequestId) {
+      const existingSnap = await transaction.get(bookingDocRef);
+      if (existingSnap.exists) {
+        const existing = existingSnap.data() || {};
+        const sameRequest =
+          existing.businessId === businessId &&
+          existing.serviceId === serviceId &&
+          existing.staffId === staffId &&
+          Number(existing.startTimestamp) === requestedStartAt.getTime() &&
+          existing.bookingSource === 'walkIn';
+
+        if (!sameRequest) {
+          throw new HttpsError(
+            'invalid-argument',
+            'IDEMPOTENCY_KEY_REUSED: This clientRequestId was already used for a different walk-in booking.'
+          );
+        }
+        return idempotentResponse(bookingDocRef.id, existing);
+      }
+    }
+
+    // New walk-ins may be entered at the current quarter-hour, but never as
+    // old historical appointments. This check intentionally runs after the
+    // idempotency replay lookup so a delayed retry can still return the
+    // already-committed booking instead of a false START_TIME_IN_PAST error.
+    if (requestedStartAt.getTime() < Date.now() - 15 * 60 * 1000) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_IN_PAST: Walk-in booking time is too far in the past.'
       );
     }
 
@@ -103,7 +193,10 @@ export const createWalkInBooking = onCall(async (request) => {
       serviceId,
       staffId,
       requestedStartAt,
-      { requireAcceptingBookings: false }
+      {
+        requireAcceptingBookings: false,
+        requireVerifiedBusiness: false,
+      }
     );
 
     const lockObjects = generateIntervalSlotLockIds(
@@ -124,7 +217,6 @@ export const createWalkInBooking = onCall(async (request) => {
       }
     }
 
-    const bookingDocRef = db.collection('bookings').doc();
     const primarySlotLockId = lockObjects[0].lockId;
 
     for (const lock of lockObjects) {
@@ -151,6 +243,7 @@ export const createWalkInBooking = onCall(async (request) => {
       serviceName: context.serviceName,
       servicePrice: context.servicePrice,
       currency: context.currency,
+      timeZone: context.timeZone,
       durationMinutes: context.durationMinutes,
       staffId,
       staffName: context.staffName,
@@ -160,7 +253,9 @@ export const createWalkInBooking = onCall(async (request) => {
       status: 'confirmed',
       bookingSource: 'walkIn',
       notes,
+      createdByOwnerId: ownerUid,
       slotLockId: primarySlotLockId,
+      ...(clientRequestId ? { clientRequestId } : {}),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
@@ -169,9 +264,14 @@ export const createWalkInBooking = onCall(async (request) => {
       success: true,
       bookingId: bookingDocRef.id,
       servicePrice: context.servicePrice,
+      currency: context.currency,
+      timeZone: context.timeZone,
       durationMinutes: context.durationMinutes,
       endDateTime: context.calculatedEndAt.toISOString(),
+      staffId,
+      staffName: context.staffName,
       status: 'confirmed',
+      idempotentReplay: false,
     };
   });
 });

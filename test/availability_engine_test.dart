@@ -49,6 +49,7 @@ void main() {
       avatarUrl: '',
       rating: 4.9,
       isActive: true,
+      workingDays: const [1, 2, 3, 4, 5, 6, 7],
     );
   });
 
@@ -286,5 +287,122 @@ void main() {
         isFalse,
       );
     });
+    test('13. Active staff without any schedule fails closed', () async {
+      final unscheduledStaff = StaffModel(
+        id: 'st_unscheduled',
+        businessId: 'biz_1',
+        name: 'Unscheduled Specialist',
+        roleTitle: 'Barber',
+        avatarUrl: '',
+        rating: 5.0,
+        isActive: true,
+      );
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness,
+        selectedServices: [testService],
+        allStaff: [unscheduledStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots, isEmpty);
+    });
+
+    test('14. Invalid staff schedule times fail closed', () async {
+      final invalidScheduleStaff = StaffModel(
+        id: 'st_invalid_schedule',
+        businessId: 'biz_1',
+        name: 'Invalid Schedule Specialist',
+        roleTitle: 'Barber',
+        avatarUrl: '',
+        rating: 5.0,
+        isActive: true,
+        weeklySchedule: const {
+          'Monday': StaffWorkingHours(
+            dayName: 'Monday',
+            openTime: 'not-a-time',
+            closeTime: '06:00 PM',
+            isWorking: true,
+          ),
+        },
+      );
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness,
+        selectedServices: [testService],
+        allStaff: [invalidScheduleStaff],
+        date: DateTime(2026, 8, 17),
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+      );
+
+      expect(slots, isEmpty);
+    });
+
+    test('15. Partial weekly schedule parsing fails closed', () {
+      final parsed = StaffWorkingHours.fromJson(
+        'Monday',
+        <String, dynamic>{'is_working': true},
+      );
+
+      expect(parsed.isWorking, isTrue);
+      expect(parsed.openTime, isEmpty);
+      expect(parsed.closeTime, isEmpty);
+    });
+
+    test('16. Legacy leave midnight is interpreted in business timezone', () async {
+      final targetDate = DateTime(2026, 8, 17);
+      final legacyMidnightEnd = DateTime.utc(2026, 8, 16, 20, 0); // 00:00 Aug 17 Dubai
+      final timeOff = EmployeeTimeOffModel(
+        id: 'toff_legacy_midnight',
+        employeeId: 'st_1',
+        employeeName: 'Ahmed Specialist',
+        startDate: DateTime.utc(2026, 8, 16, 20, 0),
+        endDate: legacyMidnightEnd,
+        reason: 'Legacy day off',
+      );
+
+      final slots = await engine.computeAvailableSlots(
+        business: testBusiness.copyWith(timeZone: 'Asia/Dubai'),
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: targetDate,
+        nowOverride: DateTime(2026, 8, 1, 9, 0),
+        employeeTimeOffs: [timeOff],
+      );
+
+      expect(slots, isEmpty);
+    });
+
+
+    test('17. Sixty-day horizon uses calendar days across DST', () async {
+      final business = testBusiness.copyWith(timeZone: 'America/New_York');
+      final boundaryDate = DateTime(2026, 11, 4); // 60 calendar days after Sep 5
+
+      final slots = await engine.computeAvailableSlots(
+        business: business,
+        selectedServices: [testService],
+        allStaff: [testStaff],
+        date: boundaryDate,
+        nowOverride: DateTime(2026, 9, 5, 9, 0),
+      );
+
+      expect(slots, isNotEmpty);
+    });
+
+
+    test('18. Malformed business hours fail closed instead of normalizing', () {
+      final hours = WorkingHoursModel.fromJson({
+        'monday': {
+          'open': '99:00',
+          'close': '18:00',
+          'is_closed': false,
+        },
+      });
+
+      expect(hours.schedule['Monday']!.isClosed, isTrue);
+    });
+
+
   });
 }

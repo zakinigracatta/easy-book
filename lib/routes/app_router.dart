@@ -153,6 +153,13 @@ const customerProtectedRoutes = [
   '/customer-profile',
 ];
 
+bool isCustomerProtectedRoute(String location) {
+  return customerProtectedRoutes.contains(location) ||
+      location.startsWith('/booking-details/') ||
+      location.startsWith('/reschedule-booking/') ||
+      location.startsWith('/cancel-booking/');
+}
+
 /// Pure, testable authorization decision function for route guarding.
 ///
 /// Accepts [location], [isWeb], [hasFirebaseUser], [isEmailVerified], and [userModel].
@@ -230,7 +237,7 @@ String? evaluateRouteGuard({
   }
 
   // Customer route protection
-  if (!hasFirebaseUser && customerProtectedRoutes.contains(location)) {
+  if (!hasFirebaseUser && isCustomerProtectedRoute(location)) {
     return '/login';
   }
 
@@ -262,8 +269,44 @@ final appRouter = GoRouter(
 
     if (user == null &&
         redirectTarget == '/login' &&
-        customerProtectedRoutes.contains(state.matchedLocation)) {
-      NavigationService().setPendingRoute(state.matchedLocation);
+        isCustomerProtectedRoute(state.matchedLocation)) {
+      NavigationService().setPendingRoute(state.uri.toString());
+    }
+
+    if (user != null &&
+        redirectTarget == '/verify-email' &&
+        state.matchedLocation != '/verify-email' &&
+        (isCustomerProtectedRoute(state.matchedLocation) ||
+            ownerProtectedRoutes.contains(state.matchedLocation) ||
+            adminProtectedRoutes.contains(state.matchedLocation) ||
+            state.matchedLocation.startsWith('/admin/'))) {
+      NavigationService().setPendingRoute(state.uri.toString());
+    }
+
+    if (user == null &&
+        redirectTarget == '/owner-login' &&
+        ownerProtectedRoutes.contains(state.matchedLocation)) {
+      NavigationService().setPendingRoute(state.uri.toString());
+    }
+
+    if (user == null &&
+        redirectTarget == adminLoginRoute &&
+        (adminProtectedRoutes.contains(state.matchedLocation) ||
+            state.matchedLocation.startsWith('/admin/'))) {
+      NavigationService().setPendingRoute(state.uri.toString());
+    }
+
+    // An authenticated Owner/Admin can hit a protected deep link before the
+    // Firestore role profile has resolved. Preserve the exact URI while the
+    // fail-closed guard routes through Splash, then restore it after profile
+    // resolution. The destination is still re-evaluated by this guard.
+    if (user != null &&
+        redirectTarget == '/splash' &&
+        state.matchedLocation != '/splash' &&
+        (ownerProtectedRoutes.contains(state.matchedLocation) ||
+            adminProtectedRoutes.contains(state.matchedLocation) ||
+            state.matchedLocation.startsWith('/admin/'))) {
+      NavigationService().setPendingRoute(state.uri.toString());
     }
 
     return redirectTarget;
@@ -393,24 +436,31 @@ final appRouter = GoRouter(
       builder: (context, state) => const MyBookingsScreen(),
     ),
     GoRoute(
-      path: '/booking-details',
+      path: '/booking-details/:bookingId',
       builder: (context, state) {
         final booking = state.extra as BookingModel?;
-        return BookingDetailsScreen(booking: booking);
+        return BookingDetailsScreen(
+          bookingId: state.pathParameters['bookingId'],
+          booking: booking,
+        );
       },
     ),
     GoRoute(
-      path: '/cancel-booking',
+      path: '/cancel-booking/:bookingId',
       builder: (context, state) {
-        final bookingId = state.extra as String?;
-        return CancelBookingScreen(bookingId: bookingId);
+        return CancelBookingScreen(
+          bookingId: state.pathParameters['bookingId'],
+        );
       },
     ),
     GoRoute(
-      path: '/reschedule-booking',
+      path: '/reschedule-booking/:bookingId',
       builder: (context, state) {
         final booking = state.extra as BookingModel?;
-        return RescheduleBookingScreen(booking: booking);
+        return RescheduleBookingScreen(
+          bookingId: state.pathParameters['bookingId'],
+          booking: booking,
+        );
       },
     ),
     GoRoute(

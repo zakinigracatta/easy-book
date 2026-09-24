@@ -249,18 +249,28 @@ class _AdminBusinessDetailsScreenState
                               items: services
                                   .take(6)
                                   .map(
-                                    (s) => {
-                                      'title':
-                                          (s['name'] ??
-                                                  s['service_name'] ??
-                                                  adminText(
-                                                    context,
-                                                    'Service',
-                                                    'خدمة',
-                                                  ))
-                                              .toString(),
-                                      'subtitle':
-                                          '${s['price'] ?? 0} ${adminText(context, 'AED', 'درهم')} • ${s['duration'] ?? s['duration_minutes'] ?? 30} ${adminText(context, 'min', 'دقيقة')}',
+                                    (s) {
+                                      final durationMinutes =
+                                          s['duration_minutes'] ??
+                                              s['durationMinutes'];
+                                      final durationText =
+                                          durationMinutes != null
+                                              ? '${durationMinutes.toString()} ${adminText(context, 'min', 'دقيقة')}'
+                                              : (s['duration'] ?? '30 min')
+                                                  .toString();
+                                      return {
+                                        'title':
+                                            (s['name'] ??
+                                                    s['service_name'] ??
+                                                    adminText(
+                                                      context,
+                                                      'Service',
+                                                      'خدمة',
+                                                    ))
+                                                .toString(),
+                                        'subtitle':
+                                            '${s['price'] ?? 0} ${(s['currency'] ?? 'AED').toString()} • $durationText',
+                                      };
                                     },
                                   )
                                   .toList(),
@@ -282,7 +292,9 @@ class _AdminBusinessDetailsScreenState
                                                   ))
                                               .toString(),
                                       'subtitle':
-                                          (st['role'] ??
+                                          (st['role_title'] ??
+                                                  st['roleTitle'] ??
+                                                  st['role'] ??
                                                   st['specialty'] ??
                                                   adminText(
                                                     context,
@@ -336,10 +348,12 @@ class _BusinessHeaderCard extends StatelessWidget {
     final rating =
         (business['rating'] as num?)?.toDouble().toStringAsFixed(1) ?? '—';
 
-    final isVerified =
-        business['is_verified'] == true || business['isVerified'] == true;
-    final isActive =
-        business['is_active'] == true || business['isActive'] == true;
+    final isVerified = business['is_verified'] is bool
+        ? business['is_verified'] == true
+        : business['isVerified'] == true;
+    final isActive = business['is_active'] is bool
+        ? business['is_active'] == true
+        : business['isActive'] == true;
 
     final phone =
         (business['phone'] ??

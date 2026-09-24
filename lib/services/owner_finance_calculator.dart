@@ -1,3 +1,5 @@
+import 'package:timezone/timezone.dart' as tz;
+
 import '../models/booking_model.dart';
 import '../models/expense_model.dart';
 import '../models/profit_and_loss_summary.dart';
@@ -11,12 +13,12 @@ class OwnerFinanceCalculator {
     required DateTime from,
     required DateTime to,
   }) {
-    final start = DateTime(from.year, from.month, from.day);
-    final end = DateTime(to.year, to.month, to.day);
+    final start = _calendarMidnight(from);
+    final end = _calendarMidnight(to);
     if (end.isBefore(start)) {
       throw ArgumentError('The report end date cannot be before the start date.');
     }
-    final endExclusive = end.add(const Duration(days: 1));
+    final endExclusive = _nextCalendarMidnight(to);
 
     var recognizedRevenue = 0.0;
     var completedBookingsCount = 0;
@@ -83,5 +85,35 @@ class OwnerFinanceCalculator {
       expensesByGroup: Map.unmodifiable(expensesByGroup),
       revenueByService: Map.unmodifiable(revenueByService),
     );
+  }
+
+  DateTime _calendarMidnight(DateTime value) {
+    if (value is tz.TZDateTime) {
+      return tz.TZDateTime(
+        value.location,
+        value.year,
+        value.month,
+        value.day,
+      );
+    }
+    if (value.isUtc) {
+      return DateTime.utc(value.year, value.month, value.day);
+    }
+    return DateTime(value.year, value.month, value.day);
+  }
+
+  DateTime _nextCalendarMidnight(DateTime value) {
+    if (value is tz.TZDateTime) {
+      return tz.TZDateTime(
+        value.location,
+        value.year,
+        value.month,
+        value.day + 1,
+      );
+    }
+    if (value.isUtc) {
+      return DateTime.utc(value.year, value.month, value.day + 1);
+    }
+    return DateTime(value.year, value.month, value.day + 1);
   }
 }

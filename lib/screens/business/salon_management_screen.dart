@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -50,12 +52,17 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
   bool _acceptingBookings = true;
   bool _isLoading = false;
   bool _hydrated = false;
+  String _persistedLogoUrl = '';
+  final Set<String> _stagedLogoUrls = <String>{};
   double _latitude = 0;
   double _longitude = 0;
   double? _uploadProgress;
 
   @override
   void dispose() {
+    for (final url in _stagedLogoUrls) {
+      unawaited(_media.deleteByUrl(url));
+    }
     _nameController.dispose();
     _categoryController.dispose();
     _descriptionController.dispose();
@@ -74,7 +81,8 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
     _addressController.text = business.address;
     _phoneController.text = business.phone ?? '';
     _websiteController.text = business.website ?? '';
-    _logoUrlController.text = business.imageUrl;
+    _persistedLogoUrl = business.imageUrl.trim();
+    _logoUrlController.text = _persistedLogoUrl;
     _acceptingBookings = business.acceptingBookings;
     _latitude = business.latitude;
     _longitude = business.longitude;
@@ -471,9 +479,12 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
         },
       );
       if (url == null || !mounted) return;
-      final oldUrl = _logoUrlController.text;
+      final oldUrl = _logoUrlController.text.trim();
+      _stagedLogoUrls.add(url);
       setState(() => _logoUrlController.text = url);
-      if (oldUrl.isNotEmpty && oldUrl != url) {
+      if (oldUrl.isNotEmpty &&
+          oldUrl != url &&
+          _stagedLogoUrls.remove(oldUrl)) {
         await _media.deleteByUrl(oldUrl);
       }
     } catch (_) {
@@ -488,10 +499,12 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
   }
 
   Future<void> _deleteMainPhoto() async {
-    final url = _logoUrlController.text;
+    final url = _logoUrlController.text.trim();
     setState(() => _logoUrlController.clear());
     try {
-      await _media.deleteByUrl(url);
+      if (_stagedLogoUrls.remove(url)) {
+        await _media.deleteByUrl(url);
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -537,6 +550,28 @@ class _SalonManagementScreenState extends ConsumerState<SalonManagementScreen> {
       );
 
       await ref.read(ownerBusinessProvider.notifier).updateBusiness(updated);
+
+      final savedLogoUrl = updated.imageUrl.trim();
+      _stagedLogoUrls.remove(savedLogoUrl);
+      final oldPersistedLogoUrl = _persistedLogoUrl;
+      _persistedLogoUrl = savedLogoUrl;
+      if (oldPersistedLogoUrl.isNotEmpty &&
+          oldPersistedLogoUrl != savedLogoUrl) {
+        try {
+          await _media.deleteByUrl(oldPersistedLogoUrl);
+        } catch (_) {
+          // The business document is already updated; stale-file cleanup is
+          // best-effort and must not roll back the successful profile save.
+        }
+      }
+      for (final orphan in List<String>.of(_stagedLogoUrls)) {
+        try {
+          await _media.deleteByUrl(orphan);
+        } finally {
+          _stagedLogoUrls.remove(orphan);
+        }
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

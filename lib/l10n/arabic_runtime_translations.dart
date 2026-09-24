@@ -33,6 +33,10 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
       'تحقق من الاتصال ثم حاول مرة أخرى.',
   'Booking status updated to {status}': 'تم تحديث حالة الحجز إلى {status}',
 
+  'Load more': 'تحميل المزيد',
+  'Load older bookings': 'تحميل الحجوزات الأقدم',
+  'No matches in this page yet.': 'لا توجد نتائج مطابقة في هذه الصفحة حتى الآن.',
+  'Search more results': 'البحث في المزيد من النتائج',
   // Active routed UI coverage.
   '142 Luxury Blvd, Downtown NYC': '142 شارع لاكشري، وسط نيويورك',
   'About Business': 'عن النشاط',
@@ -196,6 +200,7 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Valid: {start} – {end}': 'صالح من {start} إلى {end}',
   'Sharing {business}...': 'جارٍ مشاركة {business}...',
   'Staff: {name}': 'الموظف: {name}',
+  'Unable to save private customer notes. Please try again.': 'تعذر حفظ ملاحظات العميل الخاصة. حاول مرة أخرى.',
   'Unable to save service. Please try again.': 'تعذر حفظ الخدمة. حاول مرة أخرى.',
   'Unable to load working hours. Please try again.':
       'تعذر تحميل ساعات العمل. حاول مرة أخرى.',
@@ -237,4 +242,15 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'The selected business is no longer available.': 'النشاط التجاري المحدد لم يعد متاحًا.',
   'Unable to verify the appointment time. Please try again.': 'تعذر التحقق من موعد الحجز. حاول مرة أخرى.',
   'Unable to load business details. Please try again.': 'تعذر تحميل بيانات النشاط التجاري. حاول مرة أخرى.',
+  'Services this employee can perform': 'الخدمات التي يمكن لهذا الموظف تقديمها',
+  'Select specific services, or leave all unchecked to allow all active services.': 'اختر خدمات محددة، أو اتركها كلها بدون تحديد للسماح بجميع الخدمات النشطة.',
+  'Unable to load services. Please try again.': 'تعذر تحميل الخدمات. حاول مرة أخرى.',
+  'No active services are available yet.': 'لا توجد خدمات نشطة متاحة حتى الآن.',
+  'Service disabled': 'تم تعطيل الخدمة',
+  'No specialists are available for this time slot.': 'لا يوجد أخصائيون متاحون لهذا الوقت.',
+  'Unable to update this service. Please try again.': 'تعذر تحديث هذه الخدمة. حاول مرة أخرى.',
+  'Unable to restore your account profile.': 'تعذر استعادة ملف حسابك.',
+  'Check your connection and retry. Your account has not been signed out.': 'تحقق من اتصالك بالإنترنت وحاول مرة أخرى. لم يتم تسجيل خروج حسابك.',
+  'Retry': 'إعادة المحاولة',
+  'Sign out': 'تسجيل الخروج',
 };

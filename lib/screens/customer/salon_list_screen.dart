@@ -17,9 +17,100 @@ class SalonListScreen extends ConsumerStatefulWidget {
 }
 
 class _SalonListScreenState extends ConsumerState<SalonListScreen> {
+  List<BusinessModel> _businesses = const [];
+  String? _nextCursor;
+  bool _hasMore = true;
+  bool _isLoading = true;
+  bool _isLoadingMore = false;
+  Object? _error;
+  String? _loadedCategory;
+  int _generation = 0;
+
   Color get _mutedColor => Theme.of(context).brightness == Brightness.dark
       ? Theme.of(context).colorScheme.onSurfaceVariant
       : AppColors.textMutedLight;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _ensureCategoryLoaded();
+  }
+
+  void _ensureCategoryLoaded() {
+    final category = ref.read(selectedCategoryProvider);
+    if (_loadedCategory == category) return;
+    _loadedCategory = category;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadFirstPage(category);
+    });
+  }
+
+  Future<void> _loadFirstPage([String? categoryOverride]) async {
+    final category =
+        categoryOverride ?? ref.read(selectedCategoryProvider);
+    final generation = ++_generation;
+    setState(() {
+      _isLoading = true;
+      _isLoadingMore = false;
+      _businesses = const [];
+      _nextCursor = null;
+      _hasMore = true;
+      _error = null;
+    });
+
+    try {
+      final page = await ref.read(businessRepositoryProvider).fetchBusinessesPage(
+            category: category,
+          );
+      if (!mounted || generation != _generation) return;
+      setState(() {
+        _businesses = page.items;
+        _nextCursor = page.nextCursor;
+        _hasMore = page.hasMore;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted || generation != _generation) return;
+      setState(() {
+        _error = error;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoading || _isLoadingMore || !_hasMore) return;
+    final cursor = _nextCursor;
+    if (cursor == null || cursor.isEmpty) {
+      setState(() => _hasMore = false);
+      return;
+    }
+    final generation = _generation;
+    setState(() => _isLoadingMore = true);
+    try {
+      final page = await ref.read(businessRepositoryProvider).fetchBusinessesPage(
+            category: ref.read(selectedCategoryProvider),
+            afterId: cursor,
+          );
+      if (!mounted || generation != _generation) return;
+      setState(() {
+        final byId = <String, BusinessModel>{
+          for (final business in _businesses) business.id: business,
+          for (final business in page.items) business.id: business,
+        };
+        _businesses = byId.values.toList(growable: false);
+        _nextCursor = page.nextCursor;
+        _hasMore = page.hasMore;
+        _isLoadingMore = false;
+      });
+    } catch (error) {
+      if (!mounted || generation != _generation) return;
+      setState(() {
+        _error = error;
+        _isLoadingMore = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -31,7 +122,13 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
   @override
   Widget build(BuildContext context) {
     final selectedCategory = ref.watch(selectedCategoryProvider);
-    final businessesAsync = ref.watch(businessesProvider);
+    if (_loadedCategory != selectedCategory) {
+      _loadedCategory = selectedCategory;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadFirstPage(selectedCategory);
+      });
+    }
+
     final title = selectedCategory == 'all'
         ? context.tr('Top Salons & Spas')
         : context.tr(
@@ -55,28 +152,51 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
           ),
           title: Text(title),
         ),
-        body: businessesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) => _errorState(ref),
-          data: (businesses) {
-            if (businesses.isEmpty) return _emptyState(selectedCategory);
+        body: _buildBody(selectedCategory),
+      ),
+    );
+  }
 
-            return RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(businessesProvider);
-                await ref.read(businessesProvider.future);
-              },
-              child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                itemCount: businesses.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, index) =>
-                    _businessCard(context, businesses[index]),
+  Widget _buildBody(String selectedCategory) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null && _businesses.isEmpty) {
+      return _errorState();
+    }
+    if (_businesses.isEmpty && !_hasMore) {
+      return _emptyState(selectedCategory);
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _loadFirstPage(),
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        itemCount: _businesses.length + (_hasMore ? 1 : 0),
+        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        itemBuilder: (context, index) {
+          if (index < _businesses.length) {
+            return _businessCard(context, _businesses[index]);
+          }
+          return Center(
+            child: OutlinedButton.icon(
+              onPressed: _isLoadingMore ? null : _loadMore,
+              icon: _isLoadingMore
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.expand_more_rounded),
+              label: Text(
+                context.tr(
+                  _businesses.isEmpty ? 'Search more results' : 'Load more',
+                ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -223,7 +343,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
     );
   }
 
-  Widget _errorState(WidgetRef ref) {
+  Widget _errorState() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -238,7 +358,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
             ),
             const SizedBox(height: 12),
             TextButton.icon(
-              onPressed: () => ref.invalidate(businessesProvider),
+              onPressed: _loadFirstPage,
               icon: const Icon(Icons.refresh_rounded),
               label: Text(context.tr('Try Again')),
             ),

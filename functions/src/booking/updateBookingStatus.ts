@@ -66,12 +66,22 @@ export const updateBookingStatus = onCall(async (request) => {
     }
 
     const bizData = bizSnap.data() || {};
-    const ownerId = bizData.ownerId || bizData.owner_id;
+    const ownerId = bizData.owner_id ?? bizData.ownerId;
     if (ownerId !== callerUid) {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: Only the business owner can update booking status.'
       );
+    }
+
+    if (currentStatus === newStatus) {
+      return {
+        success: true,
+        bookingId,
+        previousStatus: currentStatus,
+        newStatus,
+        idempotentReplay: true,
+      };
     }
 
     const allowedTransitions: Record<string, string[]> = {
@@ -136,8 +146,16 @@ export const updateBookingStatus = onCall(async (request) => {
         startAt,
         endAt
       );
+      const ownedLockRefs: admin.firestore.DocumentReference[] = [];
       for (const lock of lockObjects) {
-        transaction.delete(db.collection('booking_slots').doc(lock.lockId));
+        const lockRef = db.collection('booking_slots').doc(lock.lockId);
+        const lockSnap = await transaction.get(lockRef);
+        if (lockSnap.exists && lockSnap.data()?.bookingId === bookingId) {
+          ownedLockRefs.push(lockRef);
+        }
+      }
+      for (const lockRef of ownedLockRefs) {
+        transaction.delete(lockRef);
       }
     }
 
@@ -160,6 +178,7 @@ export const updateBookingStatus = onCall(async (request) => {
       bookingId,
       previousStatus: currentStatus,
       newStatus,
+      idempotentReplay: false,
     };
   });
 });

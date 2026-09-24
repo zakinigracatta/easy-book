@@ -5,6 +5,20 @@ import '../core/domain_exceptions.dart';
 import '../models/booking_model.dart';
 import 'booking_functions_service.dart';
 
+class CustomerBookingsPage {
+  const CustomerBookingsPage({
+    required this.items,
+    required this.cursorStartDateTime,
+    required this.cursorBookingId,
+    required this.hasMore,
+  });
+
+  final List<BookingModel> items;
+  final DateTime? cursorStartDateTime;
+  final String? cursorBookingId;
+  final bool hasMore;
+}
+
 class BookingService {
   BookingService({
     FirebaseFirestore? firestore,
@@ -24,30 +38,123 @@ class BookingService {
     }
   }
 
-  Future<List<BookingModel>> getBookings(String customerId) async {
+  List<BookingModel> _sortCustomerBookings(
+    Iterable<BookingModel> bookings,
+  ) {
+    final list = bookings.toList(growable: false);
+    final now = DateTime.now();
+
+    int bookingGroup(BookingModel booking) {
+      final isUpcoming = booking.startDateTime.isAfter(now) &&
+          (booking.status == BookingStatus.pending ||
+              booking.status == BookingStatus.confirmed);
+      return isUpcoming ? 0 : 1;
+    }
+
+    list.sort((a, b) {
+      final groupCompare = bookingGroup(a).compareTo(bookingGroup(b));
+      if (groupCompare != 0) return groupCompare;
+      return bookingGroup(a) == 0
+          ? a.startDateTime.compareTo(b.startDateTime)
+          : b.startDateTime.compareTo(a.startDateTime);
+    });
+    return list;
+  }
+
+  Future<CustomerBookingsPage> getBookingsPage(
+    String customerId, {
+    DateTime? afterStartDateTime,
+    String? afterBookingId,
+    int pageSize = 50,
+  }) async {
     final normalizedCustomerId = customerId.trim();
-    if (normalizedCustomerId.isEmpty) return [];
+    if (normalizedCustomerId.isEmpty) {
+      return const CustomerBookingsPage(
+        items: <BookingModel>[],
+        cursorStartDateTime: null,
+        cursorBookingId: null,
+        hasMore: false,
+      );
+    }
+
+    final safePageSize = pageSize.clamp(1, 100).toInt();
 
     try {
-      final snap = await _firestore
+      Query<Map<String, dynamic>> query = _firestore
           .collection('bookings')
           .where('customerId', isEqualTo: normalizedCustomerId)
-          .get();
+          .orderBy('startDateTime', descending: true)
+          .orderBy(FieldPath.documentId, descending: true)
+          .limit(safePageSize);
 
-      final list = snap.docs.map((doc) {
+      final cursorId = afterBookingId?.trim() ?? '';
+      if (afterStartDateTime != null && cursorId.isNotEmpty) {
+        query = query.startAfter([
+          Timestamp.fromDate(afterStartDateTime),
+          cursorId,
+        ]);
+      }
+
+      final snap = await query.get();
+      final items = snap.docs.map((doc) {
         final data = Map<String, dynamic>.from(doc.data());
-        // Always trust Firestore's document ID as the canonical booking ID.
-        // This keeps cancellation/rescheduling working even for legacy records
-        // that were created before an `id` field was stored in the document.
+        // Firestore's document ID is canonical even for legacy records.
         data['id'] = doc.id;
         return BookingModel.fromJson(data);
-      }).toList();
+      }).toList(growable: false);
 
-      list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
-      return list;
+      DateTime? cursorStartDateTime;
+      String? cursorBookingId;
+      if (snap.docs.isNotEmpty) {
+        final lastDoc = snap.docs.last;
+        final lastData = Map<String, dynamic>.from(lastDoc.data());
+        lastData['id'] = lastDoc.id;
+        final lastBooking = BookingModel.fromJson(lastData);
+        cursorStartDateTime = lastBooking.startDateTime;
+        cursorBookingId = lastDoc.id;
+      }
+
+      return CustomerBookingsPage(
+        items: _sortCustomerBookings(items),
+        cursorStartDateTime: cursorStartDateTime,
+        cursorBookingId: cursorBookingId,
+        hasMore: snap.docs.length == safePageSize,
+      );
     } catch (e) {
-      debugPrint('getBookings error: $e');
+      debugPrint('getBookingsPage error: $e');
       throw DomainException('Failed to fetch bookings for customer.');
+    }
+  }
+
+  Future<List<BookingModel>> getBookings(String customerId) async {
+    final page = await getBookingsPage(customerId);
+    return page.items;
+  }
+
+  Future<BookingModel?> getBookingForCustomer({
+    required String bookingId,
+    required String customerId,
+  }) async {
+    final normalizedBookingId = bookingId.trim();
+    final normalizedCustomerId = customerId.trim();
+    if (normalizedBookingId.isEmpty || normalizedCustomerId.isEmpty) {
+      return null;
+    }
+
+    try {
+      final doc =
+          await _firestore.collection('bookings').doc(normalizedBookingId).get();
+      if (!doc.exists || doc.data() == null) return null;
+
+      final data = Map<String, dynamic>.from(doc.data()!);
+      if ((data['customerId'] ?? '').toString() != normalizedCustomerId) {
+        return null;
+      }
+      data['id'] = doc.id;
+      return BookingModel.fromJson(data);
+    } on FirebaseException catch (e) {
+      debugPrint('getBookingForCustomer error: ${e.code}');
+      throw DomainException('Failed to load booking details.');
     }
   }
 
@@ -83,6 +190,7 @@ class BookingService {
         requestedStartAt: booking.startDateTime,
         customerName: booking.customerName,
         customerPhone: booking.customerPhone ?? '',
+        clientRequestId: booking.clientRequestId,
         notes: booking.notes ?? '',
       );
     }
@@ -94,6 +202,12 @@ class BookingService {
       requestedStartAt: booking.startDateTime,
       customerName: booking.customerName,
       customerPhone: booking.customerPhone ?? '',
+      expectedServicePrice: booking.servicePrice,
+      expectedDurationMinutes:
+          booking.endDateTime.difference(booking.startDateTime).inMinutes,
+      expectedCurrency: booking.currency,
+      anySpecialist: booking.anySpecialist,
+      clientRequestId: booking.clientRequestId,
       notes: booking.notes ?? '',
     );
   }
@@ -114,11 +228,13 @@ class BookingService {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newStartDateTime,
+    String? newStaffId,
   }) async {
     validateCanonical15MinAlignment(newStartDateTime);
     return _functionsService.rescheduleBooking(
       bookingId: bookingId,
       newRequestedStartAt: newStartDateTime,
+      newStaffId: newStaffId,
     );
   }
 
@@ -127,35 +243,35 @@ class BookingService {
     required BookingStatus to,
     required String actorRole,
   }) {
-    if (from == BookingStatus.cancelled || from == BookingStatus.completed) {
-      return false;
-    }
-
     if (actorRole == 'customer') {
-      if (to == BookingStatus.cancelled) return true;
-      return false;
+      return to == BookingStatus.cancelled &&
+          (from == BookingStatus.pending || from == BookingStatus.confirmed);
     }
 
-    if (actorRole == 'owner') {
-      if (from == BookingStatus.pending && to == BookingStatus.confirmed) {
-        return true;
-      }
-      if (from == BookingStatus.confirmed && to == BookingStatus.arrived) {
-        return true;
-      }
-      if (from == BookingStatus.arrived && to == BookingStatus.inProgress) {
-        return true;
-      }
-      if (from == BookingStatus.inProgress && to == BookingStatus.completed) {
-        return true;
-      }
-      if (to == BookingStatus.cancelled || to == BookingStatus.noShow) {
-        return true;
-      }
-      return false;
-    }
+    if (actorRole != 'owner') return false;
 
-    return false;
+    final allowed = <BookingStatus, Set<BookingStatus>>{
+      BookingStatus.pending: {
+        BookingStatus.confirmed,
+        BookingStatus.cancelled,
+      },
+      BookingStatus.confirmed: {
+        BookingStatus.arrived,
+        BookingStatus.inProgress,
+        BookingStatus.noShow,
+        BookingStatus.cancelled,
+      },
+      BookingStatus.arrived: {
+        BookingStatus.inProgress,
+        BookingStatus.cancelled,
+      },
+      BookingStatus.inProgress: {
+        BookingStatus.completed,
+        BookingStatus.cancelled,
+      },
+    };
+
+    return allowed[from]?.contains(to) ?? false;
   }
 
   /// Updates booking status via trusted Callable Cloud Function.

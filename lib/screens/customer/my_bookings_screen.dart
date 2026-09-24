@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/utils/business_clock.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/booking_model.dart';
@@ -23,6 +24,27 @@ class MyBookingsScreen extends ConsumerWidget {
     return Theme.of(context).brightness == Brightness.dark
         ? Theme.of(context).colorScheme.onSurfaceVariant
         : AppColors.textSecondaryLight;
+  }
+
+  String _statusKey(BookingStatus status) {
+    return switch (status) {
+      BookingStatus.pending => 'Pending',
+      BookingStatus.confirmed => 'Confirmed',
+      BookingStatus.arrived => 'Arrived',
+      BookingStatus.inProgress => 'In Progress',
+      BookingStatus.completed => 'Completed',
+      BookingStatus.cancelled => 'Cancelled',
+      BookingStatus.noShow => 'No Show',
+    };
+  }
+
+  Color _statusColor(BookingStatus status) {
+    return switch (status) {
+      BookingStatus.confirmed || BookingStatus.completed => AppColors.success,
+      BookingStatus.cancelled || BookingStatus.noShow => AppColors.error,
+      BookingStatus.pending => AppColors.warning,
+      BookingStatus.arrived || BookingStatus.inProgress => AppColors.primary,
+    };
   }
 
   @override
@@ -73,6 +95,10 @@ class MyBookingsScreen extends ConsumerWidget {
           ),
         ),
         data: (bookings) {
+          final appointmentsNotifier =
+              ref.read(appointmentsProvider.notifier);
+          final hasMore = appointmentsNotifier.hasMore;
+
           if (bookings.isEmpty) {
             return Center(
               child: Column(
@@ -110,31 +136,59 @@ class MyBookingsScreen extends ConsumerWidget {
 
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 90),
-            itemCount: bookings.length,
+            itemCount: bookings.length + (hasMore ? 1 : 0),
             itemBuilder: (context, index) {
+              if (index >= bookings.length) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 14),
+                  child: Center(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final loaded = await ref
+                            .read(appointmentsProvider.notifier)
+                            .loadMore();
+                        if (!loaded && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                context.tr(
+                                  'Unable to load bookings. Please try again.',
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.expand_more_rounded),
+                      label: Text(context.tr('Load older bookings')),
+                    ),
+                  ),
+                );
+              }
+
               final booking = bookings[index];
+              final bookingLocalStart = BusinessClock.inTimeZone(
+                booking.startDateTime,
+                booking.timeZone,
+              );
               final dateStr =
-                  '${booking.startDateTime.day}/${booking.startDateTime.month}/${booking.startDateTime.year} '
-                  '${booking.startDateTime.hour}:${booking.startDateTime.minute.toString().padLeft(2, '0')}';
-              final isCancelled = booking.status == BookingStatus.cancelled;
+                  '${bookingLocalStart.day}/${bookingLocalStart.month}/${bookingLocalStart.year} '
+                  '${bookingLocalStart.hour}:${bookingLocalStart.minute.toString().padLeft(2, '0')}';
               final isConfirmed = booking.status == BookingStatus.confirmed;
               final isPending = booking.status == BookingStatus.pending;
               final canModify = (isPending || isConfirmed) &&
                   booking.startDateTime.isAfter(DateTime.now());
 
-              final statusColor = isCancelled
-                  ? AppColors.error
-                  : (isConfirmed
-                      ? AppColors.success
-                      : (isPending ? AppColors.warning : Colors.blue));
-              final statusKey = booking.status.name[0].toUpperCase() +
-                  booking.status.name.substring(1);
+              final statusColor = _statusColor(booking.status);
+              final statusKey = _statusKey(booking.status);
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: GlassCard(
-                  onTap: () =>
-                      context.push('/booking-details', extra: booking),
+                  onTap: () => context.push(
+                    '/booking-details/${booking.id}',
+                    extra: booking,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -197,7 +251,10 @@ class MyBookingsScreen extends ConsumerWidget {
                           Directionality(
                             textDirection: TextDirection.ltr,
                             child: Text(
-                              CurrencyFormatter.format(booking.servicePrice),
+                              CurrencyFormatter.format(
+                                booking.servicePrice,
+                                currency: booking.currency,
+                              ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -210,7 +267,7 @@ class MyBookingsScreen extends ConsumerWidget {
                               children: [
                                 OutlinedButton(
                                   onPressed: () => context.push(
-                                    '/reschedule-booking',
+                                    '/reschedule-booking/${booking.id}',
                                     extra: booking,
                                   ),
                                   child: Text(
@@ -221,8 +278,7 @@ class MyBookingsScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 OutlinedButton(
                                   onPressed: () => context.push(
-                                    '/cancel-booking',
-                                    extra: booking.id,
+                                    '/cancel-booking/${booking.id}',
                                   ),
                                   child: Text(
                                     context.tr('Cancel'),

@@ -10,6 +10,13 @@ export const cancelBooking = onCall(async (request) => {
     );
   }
 
+  if (request.auth.token.email && request.auth.token.email_verified !== true) {
+    throw new HttpsError(
+      'failed-precondition',
+      'EMAIL_NOT_VERIFIED: Verify your email address before managing bookings.'
+    );
+  }
+
   const callerUid = request.auth.uid;
   const data = request.data || {};
   const bookingId =
@@ -43,16 +50,6 @@ export const cancelBooking = onCall(async (request) => {
     const customerId = bookingData.customerId;
     const currentStatus = bookingData.status;
 
-    if (currentStatus === 'cancelled') {
-      return { success: true, message: 'Booking is already cancelled.' };
-    }
-    if (currentStatus === 'completed' || currentStatus === 'noShow') {
-      throw new HttpsError(
-        'failed-precondition',
-        `CANNOT_CANCEL: A ${currentStatus} booking cannot be cancelled.`
-      );
-    }
-
     let cancelledBy = '';
     if (customerId && customerId === callerUid) {
       cancelledBy = 'customer';
@@ -61,7 +58,7 @@ export const cancelBooking = onCall(async (request) => {
       const bizSnap = await transaction.get(bizRef);
       if (bizSnap.exists) {
         const bizData = bizSnap.data() || {};
-        const ownerId = bizData.ownerId || bizData.owner_id;
+        const ownerId = bizData.owner_id ?? bizData.ownerId;
         if (ownerId === callerUid) cancelledBy = 'owner';
       }
     }
@@ -70,6 +67,22 @@ export const cancelBooking = onCall(async (request) => {
       throw new HttpsError(
         'permission-denied',
         'PERMISSION_DENIED: You are not authorized to cancel this booking.'
+      );
+    }
+
+    if (currentStatus === 'cancelled') {
+      return { success: true, message: 'Booking is already cancelled.' };
+    }
+    const cancellableStatuses = new Set([
+      'pending',
+      'confirmed',
+      'arrived',
+      'inProgress',
+    ]);
+    if (!cancellableStatuses.has(currentStatus)) {
+      throw new HttpsError(
+        'failed-precondition',
+        `CANNOT_CANCEL: A ${currentStatus || 'unknown'} booking cannot be cancelled.`
       );
     }
 
@@ -118,8 +131,16 @@ export const cancelBooking = onCall(async (request) => {
       startAt,
       endAt
     );
+    const ownedLockRefs: admin.firestore.DocumentReference[] = [];
     for (const lock of lockObjects) {
-      transaction.delete(db.collection('booking_slots').doc(lock.lockId));
+      const lockRef = db.collection('booking_slots').doc(lock.lockId);
+      const lockSnap = await transaction.get(lockRef);
+      if (lockSnap.exists && lockSnap.data()?.bookingId === bookingId) {
+        ownedLockRefs.push(lockRef);
+      }
+    }
+    for (const lockRef of ownedLockRefs) {
+      transaction.delete(lockRef);
     }
 
     transaction.update(bookingRef, {

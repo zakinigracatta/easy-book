@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/domain_exceptions.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/service_model.dart';
@@ -110,7 +111,7 @@ class ServicesManagementScreen extends ConsumerWidget {
                                           vertical: 3,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: (service.isActive
+                                          color: (service.isActive && service.isBookable
                                                   ? AppColors.success
                                                   : AppColors.error)
                                               .withValues(alpha: 0.15),
@@ -118,12 +119,12 @@ class ServicesManagementScreen extends ConsumerWidget {
                                         ),
                                         child: Text(
                                           context.tr(
-                                            service.isActive
+                                            service.isActive && service.isBookable
                                                 ? 'Available'
                                                 : 'Disabled',
                                           ),
                                           style: TextStyle(
-                                            color: service.isActive
+                                            color: service.isActive && service.isBookable
                                                 ? AppColors.success
                                                 : AppColors.error,
                                             fontSize: 10,
@@ -213,11 +214,10 @@ class ServicesManagementScreen extends ConsumerWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Switch(
-                                  value: service.isActive,
+                                  value: service.isActive && service.isBookable,
                                   activeThumbColor: AppColors.primary,
-                                  onChanged: (_) => ref
-                                      .read(ownerServicesProvider.notifier)
-                                      .toggleServiceActive(service),
+                                  onChanged: (_) =>
+                                      _toggleService(context, ref, service),
                                 ),
                                 IconButton(
                                   tooltip: context.tr('Edit'),
@@ -266,6 +266,34 @@ class ServicesManagementScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _toggleService(
+    BuildContext context,
+    WidgetRef ref,
+    ServiceModel service,
+  ) async {
+    try {
+      await ref
+          .read(ownerServicesProvider.notifier)
+          .toggleServiceActive(service);
+    } on DomainException catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr(e.message)),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr('Unable to update this service. Please try again.')),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   void _confirmDelete(
     BuildContext context,
     WidgetRef ref,
@@ -297,16 +325,34 @@ class ServicesManagementScreen extends ConsumerWidget {
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             onPressed: () async {
               Navigator.pop(dialogContext);
-              await ref
-                  .read(ownerServicesProvider.notifier)
-                  .deleteService(service.id);
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(context.tr('Service deleted')),
-                  backgroundColor: AppColors.error,
-                ),
-              );
+              try {
+                await ref
+                    .read(ownerServicesProvider.notifier)
+                    .deleteService(service.id);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.tr('Service disabled')),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              } on DomainException catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.tr(e.message)),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              } catch (_) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.tr('Unable to update this service. Please try again.')),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
             },
             child: Text(
               context.tr('Delete'),

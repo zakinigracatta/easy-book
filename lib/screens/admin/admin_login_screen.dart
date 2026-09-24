@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
+import '../../services/navigation_service.dart';
 import '../../features/admin/admin_locale_provider.dart';
 import '../../features/admin/admin_localization.dart';
 
@@ -79,9 +80,14 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         return;
       }
 
-      // Verify email is verified
+      // Refresh Firebase state so email verification completed in
+      // another tab/device is not rejected because of a stale local user.
       final firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null && !firebaseUser.emailVerified) {
+      if (firebaseUser != null) {
+        await firebaseUser.reload();
+      }
+      final refreshedUser = FirebaseAuth.instance.currentUser;
+      if (refreshedUser != null && !refreshedUser.emailVerified) {
         await ref.read(authProvider.notifier).logout();
         if (mounted) {
           _showError(_t('Admin email address must be verified.', 'يجب التحقق من البريد الإلكتروني للمسؤول.'));
@@ -90,7 +96,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       }
 
       if (mounted) {
-        context.go('/admin/dashboard');
+        final pendingRoute = NavigationService().consumePendingRoute();
+        context.go(
+          pendingRoute != null && pendingRoute.startsWith('/admin')
+              ? pendingRoute
+              : '/admin/dashboard',
+        );
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {

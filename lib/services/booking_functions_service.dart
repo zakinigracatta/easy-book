@@ -19,6 +19,11 @@ class BookingFunctionsService {
     required DateTime requestedStartAt,
     required String customerName,
     required String customerPhone,
+    required double expectedServicePrice,
+    required int expectedDurationMinutes,
+    required String expectedCurrency,
+    bool anySpecialist = false,
+    String? clientRequestId,
     String notes = '',
   }) async {
     try {
@@ -30,14 +35,26 @@ class BookingFunctionsService {
         'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
+        'expectedServicePrice': expectedServicePrice,
+        'expectedDurationMinutes': expectedDurationMinutes,
+        'expectedCurrency': expectedCurrency.trim().isEmpty
+            ? 'AED'
+            : expectedCurrency.trim(),
+        'anySpecialist': anySpecialist,
+        if (clientRequestId != null && clientRequestId.trim().isNotEmpty)
+          'clientRequestId': clientRequestId.trim(),
         'notes': notes,
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
+      final currency = (resData['currency'] ?? 'AED').toString();
+      final timeZone = (resData['timeZone'] ?? 'Asia/Dubai').toString();
       final endDateTime =
           DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final resolvedStaffId = (resData['staffId'] ?? staffId).toString();
+      final resolvedStaffName = (resData['staffName'] ?? '').toString();
 
       return BookingModel(
         id: bookingId,
@@ -49,15 +66,19 @@ class BookingFunctionsService {
         serviceId: serviceId,
         serviceName: '',
         servicePrice: servicePrice,
-        staffId: staffId,
-        staffName: '',
+        currency: currency,
+        timeZone: timeZone,
+        staffId: resolvedStaffId,
+        staffName: resolvedStaffName,
         startDateTime: requestedStartAt,
         endDateTime: endDateTime,
         status: BookingStatus.pending,
         bookingSource: 'app',
         notes: notes,
         slotLockId:
-            '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+            '${businessId}_${resolvedStaffId}_${requestedStartAt.millisecondsSinceEpoch}',
+        clientRequestId: clientRequestId,
+        anySpecialist: anySpecialist,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -80,6 +101,7 @@ class BookingFunctionsService {
     required DateTime requestedStartAt,
     required String customerName,
     required String customerPhone,
+    String? clientRequestId,
     String notes = '',
   }) async {
     try {
@@ -91,14 +113,20 @@ class BookingFunctionsService {
         'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
+        if (clientRequestId != null && clientRequestId.trim().isNotEmpty)
+          'clientRequestId': clientRequestId.trim(),
         'notes': notes,
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
       final bookingId = resData['bookingId'] as String;
       final servicePrice = (resData['servicePrice'] as num).toDouble();
+      final currency = (resData['currency'] ?? 'AED').toString();
+      final timeZone = (resData['timeZone'] ?? 'Asia/Dubai').toString();
       final endDateTime =
           DateTime.parse(resData['endDateTime'] as String).toLocal();
+      final resolvedStaffId = (resData['staffId'] ?? staffId).toString();
+      final resolvedStaffName = (resData['staffName'] ?? '').toString();
 
       return BookingModel(
         id: bookingId,
@@ -110,15 +138,18 @@ class BookingFunctionsService {
         serviceId: serviceId,
         serviceName: '',
         servicePrice: servicePrice,
-        staffId: staffId,
-        staffName: '',
+        currency: currency,
+        timeZone: timeZone,
+        staffId: resolvedStaffId,
+        staffName: resolvedStaffName,
         startDateTime: requestedStartAt,
         endDateTime: endDateTime,
         status: BookingStatus.confirmed,
         bookingSource: 'walkIn',
+        clientRequestId: clientRequestId,
         notes: notes,
         slotLockId:
-            '${businessId}_${staffId}_${requestedStartAt.millisecondsSinceEpoch}',
+            '${businessId}_${resolvedStaffId}_${requestedStartAt.millisecondsSinceEpoch}',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -160,12 +191,15 @@ class BookingFunctionsService {
   Future<BookingModel> rescheduleBooking({
     required String bookingId,
     required DateTime newRequestedStartAt,
+    String? newStaffId,
   }) async {
     try {
       final callable = _functions.httpsCallable('rescheduleBooking');
       final response = await callable.call({
         'bookingId': bookingId,
         'newRequestedStartAt': _utcIso(newRequestedStartAt),
+        if (newStaffId != null && newStaffId.trim().isNotEmpty)
+          'newStaffId': newStaffId.trim(),
       });
 
       final resData = Map<String, dynamic>.from(response.data as Map);
@@ -176,6 +210,8 @@ class BookingFunctionsService {
         (value) => value.name == responseStatus,
         orElse: () => BookingStatus.pending,
       );
+      final resolvedStaffId = (resData['staffId'] ?? newStaffId ?? '').toString();
+      final resolvedStaffName = (resData['staffName'] ?? '').toString();
 
       return BookingModel(
         id: bookingId,
@@ -187,8 +223,8 @@ class BookingFunctionsService {
         serviceId: '',
         serviceName: '',
         servicePrice: 0.0,
-        staffId: '',
-        staffName: '',
+        staffId: resolvedStaffId,
+        staffName: resolvedStaffName,
         startDateTime: newRequestedStartAt,
         endDateTime: endDateTime,
         status: status,
@@ -255,9 +291,15 @@ class BookingFunctionsService {
         msg.contains('OUTSIDE_STAFF_SHIFT') ||
         msg.contains('STAFF_ON_BREAK') ||
         msg.contains('STAFF_ON_LEAVE') ||
-        msg.contains('STAFF_INELIGIBLE')) {
+        msg.contains('STAFF_INELIGIBLE') ||
+        msg.contains('STAFF_SCHEDULE_NOT_CONFIGURED')) {
       return EmployeeUnavailableException(
         'The selected specialist is unavailable during this time slot.',
+      );
+    }
+    if (msg.contains('BOOKING_TERMS_CHANGED')) {
+      return ServiceUnavailableException(
+        'The service price or duration changed. Please review the service again before confirming.',
       );
     }
     if (msg.contains('SERVICE_NOT_FOUND') ||
@@ -290,11 +332,17 @@ class BookingFunctionsService {
     }
     if (msg.contains('INVALID_CANONICAL_ALIGNMENT') ||
         msg.contains('START_TIME_IN_PAST') ||
+        msg.contains('START_TIME_TOO_SOON') ||
+        msg.contains('START_TIME_TOO_FAR') ||
         msg.contains('INVALID_BOOKING_INTERVAL')) {
       return InvalidBookingTimeException(
-        msg.contains('START_TIME_IN_PAST')
-            ? 'Please select a future appointment time.'
-            : 'Appointment start time must be aligned to 15-minute intervals.',
+        msg.contains('START_TIME_TOO_SOON')
+            ? 'Please select an appointment at least 30 minutes from now.'
+            : msg.contains('START_TIME_TOO_FAR')
+                ? 'Please select an appointment within the next 60 days.'
+                : msg.contains('START_TIME_IN_PAST')
+                    ? 'Please select a future appointment time.'
+                    : 'Appointment start time must be aligned to 15-minute intervals.',
       );
     }
 

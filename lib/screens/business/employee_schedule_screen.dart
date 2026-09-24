@@ -77,6 +77,13 @@ class _EmployeeScheduleScreenState
               );
             }
 
+            final routeStaffId = GoRouterState.of(context).extra;
+            if (_selectedStaffId == null &&
+                routeStaffId is String &&
+                staffList.any((staff) => staff.id == routeStaffId)) {
+              _selectedStaffId = routeStaffId;
+              _schedule.clear();
+            }
             final selected = _resolveSelectedStaff(staffList);
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -181,9 +188,15 @@ class _EmployeeScheduleScreenState
       }
 
       final weekday = i + 1;
-      final working = staff.workingDays == null ||
-          staff.workingDays!.isEmpty ||
-          staff.workingDays!.contains(weekday);
+      final hasWeeklySchedule = staff.weeklySchedule.isNotEmpty;
+      final hasLegacyShift =
+          staff.shiftStart?.trim().isNotEmpty == true &&
+          staff.shiftEnd?.trim().isNotEmpty == true;
+      final working = hasWeeklySchedule
+          ? false
+          : (staff.workingDays != null
+              ? staff.workingDays!.contains(weekday)
+              : hasLegacyShift);
       _schedule[day] = StaffWorkingHours(
         dayName: day,
         openTime: staff.shiftStart ?? '09:00 AM',
