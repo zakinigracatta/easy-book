@@ -171,6 +171,23 @@ void main() {
     expect(source, contains("redirectTarget == '/login'"));
   });
 
+  test('android Firebase metadata targets the production package app', () {
+    final firebaseJson = File('firebase.json').readAsStringSync();
+    final options =
+        File('lib/firebase_options.dart').readAsStringSync();
+    final services =
+        File('android/app/google-services.json').readAsStringSync();
+    final gradle =
+        File('android/app/build.gradle.kts').readAsStringSync();
+
+    const appId = '1:669700001010:android:a47c10c1fe440d6a47946b';
+    expect(firebaseJson, contains('"android": "$appId"'));
+    expect(options, contains("appId: '$appId'"));
+    expect(services, contains('"mobilesdk_app_id": "$appId"'));
+    expect(services, contains('"package_name": "ae.easybook.app"'));
+    expect(gradle, contains('applicationId = "ae.easybook.app"'));
+  });
+
   test('owner finance authorization prioritizes canonical owner identity', () {
     final source = File(
       'lib/repositories/owner_finance_repository.dart',
