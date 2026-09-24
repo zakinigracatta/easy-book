@@ -1296,3 +1296,54 @@ test('54. Owner cannot publish an oversized review reply', async () => {
       })
   );
 });
+
+test('55. Atomic owner registration can create profile and business together', async () => {
+  const ownerDb = testEnv.authenticatedContext('atomic_owner', {
+    email: 'atomic.owner@example.com',
+  }).firestore();
+
+  const batch = ownerDb.batch();
+  batch.set(ownerDb.collection('users').doc('atomic_owner'), {
+    id: 'atomic_owner',
+    email: 'atomic.owner@example.com',
+    role: 'owner',
+    wallet_balance: 0,
+  });
+  batch.set(ownerDb.collection('businesses').doc('atomic_owner'), {
+    id: 'atomic_owner',
+    ownerId: 'atomic_owner',
+    owner_id: 'atomic_owner',
+    is_verified: false,
+    is_active: true,
+    rating: 0,
+    review_count: 0,
+  });
+
+  await assertSucceeds(batch.commit());
+});
+
+test('56. Atomic customer registration cannot create an owner business', async () => {
+  const customerDb = testEnv.authenticatedContext('atomic_customer', {
+    email: 'atomic.customer@example.com',
+  }).firestore();
+
+  const batch = customerDb.batch();
+  batch.set(customerDb.collection('users').doc('atomic_customer'), {
+    id: 'atomic_customer',
+    email: 'atomic.customer@example.com',
+    role: 'customer',
+    wallet_balance: 0,
+  });
+  batch.set(customerDb.collection('businesses').doc('atomic_customer'), {
+    id: 'atomic_customer',
+    ownerId: 'atomic_customer',
+    owner_id: 'atomic_customer',
+    is_verified: false,
+    is_active: true,
+    rating: 0,
+    review_count: 0,
+  });
+
+  await assertFails(batch.commit());
+});
+
