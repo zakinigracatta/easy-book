@@ -169,7 +169,7 @@ class _SalonListScreenState extends ConsumerState<SalonListScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadFirstPage,
+      onRefresh: () => _loadFirstPage(),
       child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(20),
