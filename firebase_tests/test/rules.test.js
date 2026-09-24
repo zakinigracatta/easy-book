@@ -1093,3 +1093,102 @@ test('48. Owner can update a legacy offer without deleting legacy aliases', asyn
       }, { merge: true })
   );
 });
+
+
+test('49. Owner cannot write a service with another business identity', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('service_identity_owner').set({
+      id: 'service_identity_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('service_identity_biz').set({
+      id: 'service_identity_biz',
+      ownerId: 'service_identity_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('service_identity_owner').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('service_identity_biz')
+      .collection('services').doc('service_1').set({
+        id: 'service_1',
+        business_id: 'another_business',
+        salon_id: 'another_business',
+        name: 'Wrong business service',
+        price: 50,
+        duration_minutes: 30,
+        is_active: true,
+        is_bookable: true,
+      })
+  );
+});
+
+test('50. Owner cannot write a service with a mismatched document id', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('service_doc_owner').set({
+      id: 'service_doc_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('service_doc_biz').set({
+      id: 'service_doc_biz',
+      ownerId: 'service_doc_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('service_doc_owner').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('service_doc_biz')
+      .collection('services').doc('service_1').set({
+        id: 'service_2',
+        business_id: 'service_doc_biz',
+        salon_id: 'service_doc_biz',
+        name: 'Wrong document id',
+        price: 50,
+        duration_minutes: 30,
+        is_active: true,
+        is_bookable: true,
+      })
+  );
+});
+
+test('51. Legacy service without identity aliases can still be deactivated', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('service_legacy_owner').set({
+      id: 'service_legacy_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('service_legacy_biz').set({
+      id: 'service_legacy_biz',
+      ownerId: 'service_legacy_owner',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('service_legacy_biz')
+      .collection('services').doc('legacy_service').set({
+        name: 'Legacy service',
+        price: 50,
+        duration: '30 mins',
+        isActive: true,
+        isBookable: true,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('service_legacy_owner').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('service_legacy_biz')
+      .collection('services').doc('legacy_service').update({
+        isActive: false,
+        isBookable: false,
+      })
+  );
+});
