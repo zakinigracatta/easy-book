@@ -52,21 +52,12 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          tooltip: context.tr('Notifications'),
-                          icon: const Icon(Icons.notifications_outlined),
-                          onPressed: () => context.push('/notifications'),
-                        ),
-                        GestureDetector(
-                          onTap: () => context.push('/customer-profile'),
-                          child: const CircleAvatar(
-                            radius: 20,
-                            child: Icon(Icons.person_rounded),
-                          ),
-                        ),
-                      ],
+                    GestureDetector(
+                      onTap: () => context.push('/customer-profile'),
+                      child: const CircleAvatar(
+                        radius: 20,
+                        child: Icon(Icons.person_rounded),
+                      ),
                     ),
                   ],
                 ),
