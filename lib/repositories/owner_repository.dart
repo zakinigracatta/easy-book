@@ -726,6 +726,7 @@ class OwnerRepositoryImpl implements OwnerRepository {
             ownerNotes: notesMap[customerKey] ?? old.ownerNotes,
           );
         }
+        }
 
         hasMoreBookings = page.hasMore;
         cursorStartDateTime = page.cursorStartDateTime;
