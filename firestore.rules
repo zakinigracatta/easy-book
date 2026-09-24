@@ -25,6 +25,15 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
     }
 
+    // Write-only helper for atomic owner registration. getAfter() sees the
+    // owner profile created in the same batch without weakening normal reads.
+    function isOwnerAccountAfterWrite() {
+      return isAuthenticated() &&
+        getAfter(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        ).data.role == 'owner';
+    }
+
     function hasOwnerIdentity(data, userId) {
       return (
         ('owner_id' in data) &&
@@ -381,7 +390,7 @@ service cloud.firestore {
                     && hasActivePublicationState(resource.data)
                   );
 
-      allow create: if isOwnerAccount()
+      allow create: if (isOwnerAccount() || isOwnerAccountAfterWrite())
                     && hasOwnerIdentity(request.resource.data, request.auth.uid)
                     && (
                       !('ownerId' in request.resource.data)
