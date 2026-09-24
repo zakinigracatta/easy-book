@@ -125,15 +125,6 @@ export const createWalkInBooking = onCall(async (request) => {
 
   validateCanonical15MinAlignment(requestedStartAt);
 
-  // Walk-ins may be entered at the current quarter-hour, but never as old
-  // historical appointments through this live booking endpoint.
-  if (requestedStartAt.getTime() < Date.now() - 15 * 60 * 1000) {
-    throw new HttpsError(
-      'failed-precondition',
-      'START_TIME_IN_PAST: Walk-in booking time is too far in the past.'
-    );
-  }
-
   const db = admin.firestore();
   const deterministicId = clientRequestId
     ? createHash('sha256')
@@ -182,6 +173,17 @@ export const createWalkInBooking = onCall(async (request) => {
         }
         return idempotentResponse(bookingDocRef.id, existing);
       }
+    }
+
+    // New walk-ins may be entered at the current quarter-hour, but never as
+    // old historical appointments. This check intentionally runs after the
+    // idempotency replay lookup so a delayed retry can still return the
+    // already-committed booking instead of a false START_TIME_IN_PAST error.
+    if (requestedStartAt.getTime() < Date.now() - 15 * 60 * 1000) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_IN_PAST: Walk-in booking time is too far in the past.'
+      );
     }
 
     const context = await validateBookingRequirements(
