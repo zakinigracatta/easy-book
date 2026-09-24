@@ -102,6 +102,10 @@ void main() {
     expect(server, contains(r"doc(`wb_${deterministicId}`)"));
     expect(server, contains('idempotentReplay: true'));
     expect(server, contains('IDEMPOTENCY_KEY_REUSED'));
+    expect(
+      server.indexOf('idempotentResponse(bookingDocRef.id, existing)'),
+      lessThan(server.indexOf('START_TIME_IN_PAST: Walk-in booking time is too far in the past.')),
+    );
     expect(client, contains("'clientRequestId': clientRequestId.trim()"));
     expect(client, contains('clientRequestId: clientRequestId'));
     expect(screen, contains('final String _clientRequestId = const Uuid().v4();'));
