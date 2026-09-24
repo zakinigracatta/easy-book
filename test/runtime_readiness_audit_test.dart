@@ -137,4 +137,24 @@ void main() {
     expect(navigation, contains('In-memory navigation remains functional'));
   });
 
+  test('authenticated protected deep links survive role-profile cold start', () {
+    final router = File('lib/routes/app_router.dart').readAsStringSync();
+    final splash =
+        File('lib/screens/auth/splash_screen.dart').readAsStringSync();
+
+    expect(
+      router,
+      contains("redirectTarget == '/splash'"),
+    );
+    expect(
+      router,
+      contains('NavigationService().setPendingRoute(state.uri.toString())'),
+    );
+    expect(
+      splash,
+      contains('final pendingRoute = NavigationService().consumePendingRoute()'),
+    );
+    expect(splash, contains('destination = pendingRoute;'));
+  });
+
 }

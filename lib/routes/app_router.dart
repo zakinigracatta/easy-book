@@ -270,20 +270,33 @@ final appRouter = GoRouter(
     if (user == null &&
         redirectTarget == '/login' &&
         isCustomerProtectedRoute(state.matchedLocation)) {
-      NavigationService().setPendingRoute(state.matchedLocation);
+      NavigationService().setPendingRoute(state.uri.toString());
     }
 
     if (user == null &&
         redirectTarget == '/owner-login' &&
         ownerProtectedRoutes.contains(state.matchedLocation)) {
-      NavigationService().setPendingRoute(state.matchedLocation);
+      NavigationService().setPendingRoute(state.uri.toString());
     }
 
     if (user == null &&
         redirectTarget == adminLoginRoute &&
         (adminProtectedRoutes.contains(state.matchedLocation) ||
             state.matchedLocation.startsWith('/admin/'))) {
-      NavigationService().setPendingRoute(state.matchedLocation);
+      NavigationService().setPendingRoute(state.uri.toString());
+    }
+
+    // An authenticated Owner/Admin can hit a protected deep link before the
+    // Firestore role profile has resolved. Preserve the exact URI while the
+    // fail-closed guard routes through Splash, then restore it after profile
+    // resolution. The destination is still re-evaluated by this guard.
+    if (user != null &&
+        redirectTarget == '/splash' &&
+        state.matchedLocation != '/splash' &&
+        (ownerProtectedRoutes.contains(state.matchedLocation) ||
+            adminProtectedRoutes.contains(state.matchedLocation) ||
+            state.matchedLocation.startsWith('/admin/'))) {
+      NavigationService().setPendingRoute(state.uri.toString());
     }
 
     return redirectTarget;

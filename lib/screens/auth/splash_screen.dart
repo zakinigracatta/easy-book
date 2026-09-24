@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/navigation_service.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -133,7 +134,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             debugPrint('[SPLASH] profile resolution completed');
           }
 
-          if (userModel.role == UserRole.owner ||
+          final pendingRoute = NavigationService().consumePendingRoute();
+          if (pendingRoute != null && pendingRoute.isNotEmpty) {
+            if (kDebugMode) {
+              debugPrint('[SPLASH] destination resolved: pending route');
+            }
+            destination = pendingRoute;
+          } else if (userModel.role == UserRole.owner ||
               userModel.role == UserRole.businessOwner) {
             if (kDebugMode) {
               debugPrint('[SPLASH] destination resolved: owner');
@@ -141,8 +148,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             destination = '/owner-dashboard';
           } else if (userModel.isAdmin) {
             if (kDebugMode) {
-              debugPrint(
-                  '[SPLASH] destination resolved: admin');
+              debugPrint('[SPLASH] destination resolved: admin');
             }
             destination = kIsWeb ? '/admin/dashboard' : '/admin-web-only';
           } else {
