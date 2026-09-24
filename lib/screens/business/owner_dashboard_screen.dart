@@ -35,7 +35,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final businessAsync = ref.watch(ownerBusinessProvider);
-    final bookingsAsync = ref.watch(ownerBookingsProvider);
+    final dashboardBookingsAsync = ref.watch(ownerDashboardBookingsProvider);
     final notificationsAsync = ref.watch(ownerNotificationsProvider);
     final todayFinanceAsync = ref.watch(ownerTodayProfitAndLossProvider);
     final businessTimeZone =
@@ -60,11 +60,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
             onRefresh: () async {
               ref.invalidate(ownerNotificationsProvider);
               ref.invalidate(ownerTodayProfitAndLossProvider);
+              ref.invalidate(ownerDashboardBookingsProvider);
               await Future.wait<void>([
                 ref.read(ownerBusinessProvider.notifier).loadBusiness(),
-                ref.read(ownerBookingsProvider.notifier).loadBookings(),
                 ref.read(ownerNotificationsProvider.future).then((_) {}),
                 ref.read(ownerTodayProfitAndLossProvider.future).then((_) {}),
+                ref.read(ownerDashboardBookingsProvider.future).then((_) {}),
               ]);
             },
             child: SingleChildScrollView(
@@ -86,7 +87,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
                   _buildMetricsSection(
                     context,
-                    bookingsAsync,
+                    dashboardBookingsAsync,
                     todayFinanceAsync,
                     businessTimeZone,
                   ),
@@ -129,7 +130,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   _buildUpcomingBookingsList(
                     context,
                     ref,
-                    bookingsAsync,
+                    dashboardBookingsAsync,
                     businessTimeZone,
                   ),
                 ],
@@ -363,25 +364,21 @@ class OwnerDashboardScreen extends ConsumerWidget {
 
   Widget _buildMetricsSection(
     BuildContext context,
-    AsyncValue<List<BookingModel>> bookingsAsync,
+    AsyncValue<OwnerDashboardBookingsData> bookingsAsync,
     AsyncValue<ProfitAndLossSummary> financeAsync,
     String timeZone,
   ) {
-    final now = BusinessClock.now(timeZone);
-
     return bookingsAsync.when(
-      data: (bookings) {
-        final todayBookings = bookings.where((booking) {
-          final localStart =
-              BusinessClock.inTimeZone(booking.startDateTime, timeZone);
-          return localStart.year == now.year &&
-              localStart.month == now.month &&
-              localStart.day == now.day;
-        }).toList();
-        final pendingCount =
-            bookings.where((booking) => booking.status == BookingStatus.pending).length;
-        final customerIdsToday =
-            todayBookings.map((booking) => booking.customerId).toSet().length;
+      data: (dashboard) {
+        final todayBookings = dashboard.todayBookings;
+        final pendingCount = dashboard.pendingCount;
+        final customerIdsToday = todayBookings.map((booking) {
+          final customerId = booking.customerId.trim();
+          if (customerId.isNotEmpty) return customerId;
+          final phone = (booking.customerPhone ?? '').trim();
+          if (phone.isNotEmpty) return 'walkin:$phone';
+          return 'booking:${booking.id}';
+        }).toSet().length;
 
         final revenueText = financeAsync.when(
           data: (finance) =>
@@ -551,26 +548,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
   Widget _buildUpcomingBookingsList(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<List<BookingModel>> bookingsAsync,
+    AsyncValue<OwnerDashboardBookingsData> bookingsAsync,
     String timeZone,
   ) {
     return bookingsAsync.when(
-      data: (bookings) {
-        final now = BusinessClock.now(timeZone);
-        final upcoming = bookings
-            .where((booking) {
-              final localStart =
-                  BusinessClock.inTimeZone(booking.startDateTime, timeZone);
-              return localStart.isAfter(now) &&
-                  booking.status != BookingStatus.cancelled &&
-                  booking.status != BookingStatus.completed &&
-                  booking.status != BookingStatus.noShow;
-            })
-            .toList()
-          ..sort(
-            (a, b) => a.startDateTime.compareTo(b.startDateTime),
-          );
-        final nextBookings = upcoming.take(3).toList();
+      data: (dashboard) {
+        final nextBookings = dashboard.upcomingBookings;
 
         if (nextBookings.isEmpty) {
           return OwnerEmptyStateWidget(
@@ -594,6 +577,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       .updateStatus(booking.id, newStatus);
                   ref.invalidate(ownerTodayProfitAndLossProvider);
                   ref.invalidate(ownerProfitAndLossProvider);
+                  ref.invalidate(ownerDashboardBookingsProvider);
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
