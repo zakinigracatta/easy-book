@@ -88,4 +88,22 @@ void main() {
     expect(source, contains('staffId: resolvedStaffId'));
     expect(source, contains('staffName: resolvedStaffName'));
   });
+  test('walk-in booking retries use a stable server idempotency key', () {
+    final server =
+        File('functions/src/booking/createWalkInBooking.ts').readAsStringSync();
+    final client =
+        File('lib/services/booking_functions_service.dart').readAsStringSync();
+    final screen =
+        File('lib/screens/business/quick_walk_in_booking_screen.dart')
+            .readAsStringSync();
+
+    expect(server, contains("typeof data.clientRequestId === 'string'"));
+    expect(server, contains('walkin_${ownerUid}_${clientRequestId}'));
+    expect(server, contains('idempotentReplay: true'));
+    expect(server, contains('IDEMPOTENCY_KEY_REUSED'));
+    expect(client, contains("'clientRequestId': clientRequestId.trim()"));
+    expect(client, contains('clientRequestId: clientRequestId'));
+    expect(screen, contains('final String _clientRequestId = const Uuid().v4();'));
+  });
+
 }
