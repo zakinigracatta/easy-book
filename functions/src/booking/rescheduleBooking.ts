@@ -154,16 +154,6 @@ export const rescheduleBooking = onCall(async (request) => {
     }
 
     if (
-      oldStartAt.getTime() === newStartAt.getTime() &&
-      (customerUsesAnySpecialist || targetStaffId === staffId)
-    ) {
-      throw new HttpsError(
-        'failed-precondition',
-        'NO_RESCHEDULE_CHANGE: Select a different appointment time or specialist.'
-      );
-    }
-
-    if (
       bookingData.endDateTime &&
       typeof bookingData.endDateTime.toDate === 'function'
     ) {
@@ -171,6 +161,28 @@ export const rescheduleBooking = onCall(async (request) => {
     } else {
       const duration = bookingData.durationMinutes || 30;
       oldEndAt = new Date(oldStartAt.getTime() + duration * 60 * 1000);
+    }
+
+    // Treat an exact retry as an idempotent success. A callable response can be
+    // lost after Firestore commits, and retrying the same reschedule must not
+    // report a false failure to the customer.
+    if (
+      oldStartAt.getTime() === newStartAt.getTime() &&
+      (customerUsesAnySpecialist || targetStaffId === staffId)
+    ) {
+      return {
+        success: true,
+        bookingId,
+        startDateTime: oldStartAt.toISOString(),
+        endDateTime: oldEndAt.toISOString(),
+        staffId,
+        staffName:
+          typeof bookingData.staffName === 'string'
+            ? bookingData.staffName
+            : 'Specialist',
+        status: currentStatus,
+        idempotentReplay: true,
+      };
     }
 
     let context: Awaited<ReturnType<typeof validateBookingRequirements>>;
@@ -290,6 +302,7 @@ export const rescheduleBooking = onCall(async (request) => {
       staffId: targetStaffId,
       staffName: context.staffName,
       status: nextStatus,
+      idempotentReplay: false,
     };
   });
 });
