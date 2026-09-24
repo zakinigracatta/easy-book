@@ -11,7 +11,7 @@ void main() {
     expect(source, contains(".where('owner_id', isEqualTo: uid)"));
     expect(
       source,
-      isNot(contains(".collection('businesses')\n      .doc(user.uid)\n      .get()")),
+      isNot(contains(".collection('businesses')\n      .doc(uid)\n      .get()")),
     );
   });
 
