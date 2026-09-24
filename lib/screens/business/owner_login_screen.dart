@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/app_providers.dart';
+import '../../services/navigation_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
@@ -65,7 +66,12 @@ class _OwnerLoginScreenState extends ConsumerState<OwnerLoginScreen> {
         return;
       }
 
-      context.go('/owner-dashboard');
+      final pendingRoute = NavigationService().consumePendingRoute();
+      context.go(
+        pendingRoute != null && pendingRoute.isNotEmpty
+            ? pendingRoute
+            : '/owner-dashboard',
+      );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
       final message = switch (e.code) {
