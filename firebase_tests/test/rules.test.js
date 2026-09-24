@@ -1045,3 +1045,51 @@ test('47. Owner cannot hard-delete a staff record', async () => {
       .collection('staff').doc('staff_1').delete()
   );
 });
+
+
+test('48. Owner can update a legacy offer without deleting legacy aliases', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner_legacy').set({
+      id: 'offer_owner_legacy',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz_legacy').set({
+      id: 'offer_biz_legacy',
+      ownerId: 'offer_owner_legacy',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('offer_biz_legacy')
+      .collection('offers').doc('legacy_offer').set({
+        id: 'legacy_offer',
+        business_id: 'offer_biz_legacy',
+        title: 'Legacy offer',
+        description: '',
+        discount_type: 'percentage',
+        discount_value: 10,
+        start_date: '2026-09-01T00:00:00.000Z',
+        end_date: '2026-10-01T00:00:00.000Z',
+        service_ids: [],
+        is_active: true,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('offer_owner_legacy').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('offer_biz_legacy')
+      .collection('offers').doc('legacy_offer').set({
+        id: 'legacy_offer',
+        businessId: 'offer_biz_legacy',
+        title: 'Legacy offer updated',
+        description: '',
+        discountType: 'percentage',
+        discountValue: 15,
+        startDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-10-01T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      }, { merge: true })
+  );
+});
