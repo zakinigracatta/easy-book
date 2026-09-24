@@ -63,6 +63,19 @@ void main() {
     );
   });
 
+  test('booking confirmation rejects multi-service or mismatched draft state', () {
+    final source = File(
+      'lib/screens/customer/booking_confirmation_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('draft.selectedServices.length > 1'));
+    expect(source, contains('draft.selectedServices.single.id != serviceId'));
+    expect(
+      source,
+      contains('draft.selectedServices.single.salonId != businessId'),
+    );
+  });
+
   test('customer booking status labels handle camel-case statuses explicitly', () {
     final source =
         File('lib/screens/customer/my_bookings_screen.dart').readAsStringSync();
