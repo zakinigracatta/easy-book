@@ -301,7 +301,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           child: TextButton(
                             onPressed: () async {
                               await FirebaseAuth.instance.signOut();
-                              if (!mounted) return;
+                              if (!context.mounted) return;
                               context.go('/home');
                             },
                             child: Text(context.tr('Sign out')),

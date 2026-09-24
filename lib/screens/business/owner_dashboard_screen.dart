@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../models/booking_model.dart';
 import '../../models/profit_and_loss_summary.dart';
 import '../../providers/owner_finance_providers.dart';
-import '../../core/utils/business_clock.dart';
 import '../../providers/owner_providers.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_drawer.dart';
@@ -38,8 +36,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
     final dashboardBookingsAsync = ref.watch(ownerDashboardBookingsProvider);
     final notificationsAsync = ref.watch(ownerNotificationsProvider);
     final todayFinanceAsync = ref.watch(ownerTodayProfitAndLossProvider);
-    final businessTimeZone =
-        businessAsync.value?.timeZone ?? 'Asia/Dubai';
 
     final unreadNotificationsCount = notificationsAsync.maybeWhen(
       data: (notifications) =>

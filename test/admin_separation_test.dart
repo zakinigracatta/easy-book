@@ -525,6 +525,9 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<UserModel?> refreshCurrentProfile() async => null;
+
+  @override
   Future<void> logout() async {}
 
   @override
