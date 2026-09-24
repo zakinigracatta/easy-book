@@ -12,10 +12,36 @@ import '../models/employee_time_off_model.dart';
 import '../services/booking_service.dart';
 import '../core/domain_exceptions.dart';
 
+class OwnerBookingsPage {
+  const OwnerBookingsPage({
+    required this.items,
+    required this.cursorStartDateTime,
+    required this.cursorBookingId,
+    required this.hasMore,
+  });
+
+  final List<BookingModel> items;
+  final DateTime? cursorStartDateTime;
+  final String? cursorBookingId;
+  final bool hasMore;
+}
+
 abstract class OwnerRepository {
   Future<BusinessModel> fetchOwnerBusiness(String businessId);
   Future<void> updateOwnerBusiness(BusinessModel business);
   Future<List<BookingModel>> fetchOwnerBookings(String businessId);
+  Future<OwnerBookingsPage> fetchOwnerBookingsPage(
+    String businessId, {
+    DateTime? afterStartDateTime,
+    String? afterBookingId,
+    int pageSize = 75,
+  });
+  Future<List<BookingModel>> fetchOwnerBookingsInRange(
+    String businessId, {
+    required DateTime start,
+    required DateTime end,
+    String? staffId,
+  });
   Future<BookingModel> createWalkInBooking(BookingModel booking);
   Future<void> updateBookingStatus(String bookingId, BookingStatus newStatus);
   Future<List<ServiceModel>> fetchOwnerServices(String businessId);
@@ -110,22 +136,102 @@ class OwnerRepositoryImpl implements OwnerRepository {
 
   @override
   Future<List<BookingModel>> fetchOwnerBookings(String businessId) async {
-    if (businessId.isEmpty) return [];
+    final page = await fetchOwnerBookingsPage(businessId);
+    return page.items;
+  }
+
+  @override
+  Future<OwnerBookingsPage> fetchOwnerBookingsPage(
+    String businessId, {
+    DateTime? afterStartDateTime,
+    String? afterBookingId,
+    int pageSize = 75,
+  }) async {
+    if (businessId.isEmpty) {
+      return const OwnerBookingsPage(
+        items: <BookingModel>[],
+        cursorStartDateTime: null,
+        cursorBookingId: null,
+        hasMore: false,
+      );
+    }
+
+    final safePageSize = pageSize.clamp(1, 100);
     try {
-      final snap = await _firestore
+      Query<Map<String, dynamic>> query = _firestore
           .collection('bookings')
           .where('businessId', isEqualTo: businessId)
-          .get();
+          .orderBy('startDateTime', descending: true)
+          .orderBy(FieldPath.documentId, descending: true)
+          .limit(safePageSize);
 
+      final cursorId = afterBookingId?.trim() ?? '';
+      if (afterStartDateTime != null && cursorId.isNotEmpty) {
+        query = query.startAfter([
+          Timestamp.fromDate(afterStartDateTime),
+          cursorId,
+        ]);
+      }
+
+      final snap = await query.get();
       final list = snap.docs.map((d) {
-        final m = d.data();
+        final m = Map<String, dynamic>.from(d.data());
         m['id'] = d.id;
         return BookingModel.fromJson(m);
-      }).toList();
-      list.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
-      return list;
+      }).toList(growable: false);
+
+      final last = list.isEmpty ? null : list.last;
+      return OwnerBookingsPage(
+        items: list,
+        cursorStartDateTime: last?.startDateTime,
+        cursorBookingId: last?.id,
+        hasMore: snap.docs.length == safePageSize,
+      );
     } on FirebaseException catch (e) {
       throw DomainException('Failed to fetch bookings: ${e.message ?? e.code}');
+    }
+  }
+
+  @override
+  Future<List<BookingModel>> fetchOwnerBookingsInRange(
+    String businessId, {
+    required DateTime start,
+    required DateTime end,
+    String? staffId,
+  }) async {
+    if (businessId.isEmpty || !end.isAfter(start)) return [];
+
+    try {
+      Query<Map<String, dynamic>> query = _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId);
+
+      final normalizedStaffId = staffId?.trim() ?? '';
+      if (normalizedStaffId.isNotEmpty) {
+        query = query.where('staffId', isEqualTo: normalizedStaffId);
+      }
+
+      final snap = await query
+          .where(
+            'startDateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(start),
+          )
+          .where(
+            'startDateTime',
+            isLessThan: Timestamp.fromDate(end),
+          )
+          .orderBy('startDateTime')
+          .get();
+
+      return snap.docs.map((d) {
+        final m = Map<String, dynamic>.from(d.data());
+        m['id'] = d.id;
+        return BookingModel.fromJson(m);
+      }).toList(growable: false);
+    } on FirebaseException catch (e) {
+      throw DomainException(
+        'Failed to fetch booking range: ${e.message ?? e.code}',
+      );
     }
   }
 
@@ -292,7 +398,12 @@ class OwnerRepositoryImpl implements OwnerRepository {
     try {
       // Do not silently create an operational contradiction where an employee
       // is marked on leave while they still have a live appointment.
-      final bookings = await fetchOwnerBookings(bizId);
+      final bookings = await fetchOwnerBookingsInRange(
+        bizId,
+        start: timeOff.startDate.subtract(const Duration(days: 1)),
+        end: timeOff.endDate,
+        staffId: timeOff.employeeId,
+      );
       final conflicts = bookings.where((booking) {
         final blocksLeave = booking.status == BookingStatus.pending ||
             booking.status == BookingStatus.confirmed ||
@@ -480,10 +591,20 @@ class OwnerRepositoryImpl implements OwnerRepository {
         if (note != null) notesMap[doc.id] = note;
       }
 
-      final bookings = await fetchOwnerBookings(businessId);
       final customerMap = <String, CustomerProfileModel>{};
+      DateTime? cursorStartDateTime;
+      String? cursorBookingId;
+      var hasMoreBookings = true;
 
-      for (final b in bookings) {
+      while (hasMoreBookings) {
+        final page = await fetchOwnerBookingsPage(
+          businessId,
+          afterStartDateTime: cursorStartDateTime,
+          afterBookingId: cursorBookingId,
+          pageSize: 100,
+        );
+
+        for (final b in page.items) {
         final rawCustomerId = b.customerId.trim();
         final phone = (b.customerPhone ?? '').trim();
         final phoneDigits = phone.replaceAll(RegExp(r'[^0-9]'), '');
@@ -534,6 +655,11 @@ class OwnerRepositoryImpl implements OwnerRepository {
             ownerNotes: notesMap[customerKey] ?? old.ownerNotes,
           );
         }
+
+        hasMoreBookings = page.hasMore;
+        cursorStartDateTime = page.cursorStartDateTime;
+        cursorBookingId = page.cursorBookingId;
+        if (page.items.isEmpty) break;
       }
 
       return customerMap.values.toList();
