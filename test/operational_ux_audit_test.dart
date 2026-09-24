@@ -3,6 +3,17 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('admin protected destinations survive admin login', () {
+    final router = File('lib/routes/app_router.dart').readAsStringSync();
+    final adminLogin =
+        File('lib/screens/admin/admin_login_screen.dart').readAsStringSync();
+
+    expect(router, contains('redirectTarget == adminLoginRoute'));
+    expect(router, contains("state.matchedLocation.startsWith('/admin/')"));
+    expect(adminLogin, contains('consumePendingRoute()'));
+    expect(adminLogin, contains("pendingRoute.startsWith('/admin')"));
+  });
+
   test('owner protected destinations survive login and email verification', () {
     final router = File('lib/routes/app_router.dart').readAsStringSync();
     final ownerLogin =
