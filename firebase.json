@@ -4,7 +4,7 @@
       "android": {
         "default": {
           "projectId": "easy-book-zaki",
-          "appId": "1:669700001010:android:27b759ec2a883f7347946b",
+          "appId": "1:669700001010:android:a47c10c1fe440d6a47946b",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -55,5 +55,19 @@
       "port": 4000
     },
     "singleProjectMode": true
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }
