@@ -69,7 +69,7 @@ class _BookingConfirmationScreenState
 
     final staffId = _resolvedStaffId(draft);
     final staffName = _resolvedStaffName(draft);
-    if (staffId.isEmpty) {
+    if (!draft.anySpecialist && staffId.isEmpty) {
       _showMessage('No available specialist was resolved for this time slot.');
       return;
     }
