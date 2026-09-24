@@ -304,11 +304,6 @@ class BookingFunctionsService {
         'This appointment can no longer be cancelled.',
       );
     }
-    if (msg.contains('NO_RESCHEDULE_CHANGE')) {
-      return DomainException(
-        'Please select a different date, time, or specialist.',
-      );
-    }
     if (msg.contains('CANNOT_RESCHEDULE')) {
       return DomainException(
         'This appointment can no longer be rescheduled.',
