@@ -272,6 +272,13 @@ final appRouter = GoRouter(
       NavigationService().setPendingRoute(state.matchedLocation);
     }
 
+    if (user == null &&
+        redirectTarget == adminLoginRoute &&
+        (adminProtectedRoutes.contains(state.matchedLocation) ||
+            state.matchedLocation.startsWith('/admin/'))) {
+      NavigationService().setPendingRoute(state.matchedLocation);
+    }
+
     return redirectTarget;
   },
   routes: [
