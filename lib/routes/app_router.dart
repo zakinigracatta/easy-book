@@ -273,6 +273,16 @@ final appRouter = GoRouter(
       NavigationService().setPendingRoute(state.uri.toString());
     }
 
+    if (user != null &&
+        redirectTarget == '/verify-email' &&
+        state.matchedLocation != '/verify-email' &&
+        (isCustomerProtectedRoute(state.matchedLocation) ||
+            ownerProtectedRoutes.contains(state.matchedLocation) ||
+            adminProtectedRoutes.contains(state.matchedLocation) ||
+            state.matchedLocation.startsWith('/admin/'))) {
+      NavigationService().setPendingRoute(state.uri.toString());
+    }
+
     if (user == null &&
         redirectTarget == '/owner-login' &&
         ownerProtectedRoutes.contains(state.matchedLocation)) {
