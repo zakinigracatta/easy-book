@@ -480,7 +480,8 @@ class OwnerRepositoryImpl implements OwnerRepository {
             noShowCount: b.status == BookingStatus.noShow ? 1 : 0,
             totalSpent:
                 b.status == BookingStatus.completed ? b.servicePrice : 0.0,
-            lastVisit: b.startDateTime,
+            lastVisit:
+                b.status == BookingStatus.completed ? b.startDateTime : null,
             favoriteServices: [b.serviceName],
             ownerNotes: notesMap[customerKey],
           );
@@ -497,10 +498,12 @@ class OwnerRepositoryImpl implements OwnerRepository {
                 old.noShowCount + (b.status == BookingStatus.noShow ? 1 : 0),
             totalSpent: old.totalSpent +
                 (b.status == BookingStatus.completed ? b.servicePrice : 0.0),
-            lastVisit: (old.lastVisit != null &&
-                    b.startDateTime.isAfter(old.lastVisit!))
-                ? b.startDateTime
-                : (old.lastVisit ?? b.startDateTime),
+            lastVisit: b.status == BookingStatus.completed
+                ? (old.lastVisit == null ||
+                        b.startDateTime.isAfter(old.lastVisit!)
+                    ? b.startDateTime
+                    : old.lastVisit)
+                : old.lastVisit,
             favoriteServices: {...old.favoriteServices, b.serviceName}.toList(),
             ownerNotes: notesMap[customerKey] ?? old.ownerNotes,
           );
