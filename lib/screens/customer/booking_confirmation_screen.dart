@@ -83,6 +83,20 @@ class _BookingConfirmationScreenState
       return;
     }
 
+    // The trusted booking backend is intentionally single-service today.
+    // Fail closed if future UI/state changes accidentally carry multiple or
+    // mismatched services rather than showing one total and booking another.
+    if (draft.selectedServices.length > 1 ||
+        (draft.selectedServices.isNotEmpty &&
+            (draft.selectedServices.single.id != serviceId ||
+                draft.selectedServices.single.salonId != businessId))) {
+      _showMessage(
+        'The selected service changed. Please select the service again.',
+        isError: true,
+      );
+      return;
+    }
+
     DateTime? startDateTime = draft.resolvedStartAt;
     if (startDateTime == null) {
       try {
