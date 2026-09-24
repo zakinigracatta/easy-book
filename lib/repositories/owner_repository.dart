@@ -285,13 +285,39 @@ class OwnerRepositoryImpl implements OwnerRepository {
     if (bizId == null || bizId.isEmpty) {
       throw DomainException('Business ID is required for employee time off.');
     }
+    if (!timeOff.endDate.isAfter(timeOff.startDate)) {
+      throw DomainException('Leave end time must be after its start time.');
+    }
+
     try {
+      // Do not silently create an operational contradiction where an employee
+      // is marked on leave while they still have a live appointment.
+      final bookings = await fetchOwnerBookings(bizId);
+      final conflicts = bookings.where((booking) {
+        final blocksLeave = booking.status == BookingStatus.pending ||
+            booking.status == BookingStatus.confirmed ||
+            booking.status == BookingStatus.arrived ||
+            booking.status == BookingStatus.inProgress;
+        if (!blocksLeave || booking.staffId != timeOff.employeeId) return false;
+        return booking.startDateTime.isBefore(timeOff.endDate) &&
+            booking.endDateTime.isAfter(timeOff.startDate);
+      }).toList(growable: false);
+
+      if (conflicts.isNotEmpty) {
+        throw DomainException(
+          'Employee leave conflicts with ${conflicts.length} existing appointment(s). '
+          'Reschedule or cancel those bookings before scheduling leave.',
+        );
+      }
+
       await _firestore
           .collection('businesses')
           .doc(bizId)
           .collection('timeOffs')
           .doc(timeOff.id)
           .set(timeOff.toJson(), SetOptions(merge: true));
+    } on DomainException {
+      rethrow;
     } on FirebaseException catch (e) {
       throw DomainException(
           'Failed to save time off record: ${e.message ?? e.code}');
