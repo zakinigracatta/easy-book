@@ -117,7 +117,8 @@ class _CustomerManagementScreenState
                               backgroundColor:
                                   AppColors.primary.withValues(alpha: 0.2),
                               child: Text(
-                                c.name[0].toUpperCase(),
+                                (c.name.trim().isNotEmpty ? c.name.trim()[0] : '?')
+                                    .toUpperCase(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primaryLight,
