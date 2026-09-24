@@ -1,19 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../l10n/app_localizations.dart';
+import '../providers/app_providers.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 
 /// App drawer for Business Owner / Partner screens.
 /// Admin Portal is web-only and separate.
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   final String portalType;
 
   const AppDrawer({super.key, required this.portalType});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final signedInEmail = FirebaseAuth.instance.currentUser?.email ?? '';
 
     final businessItems = [
@@ -98,7 +101,10 @@ class AppDrawer extends StatelessWidget {
                     ),
                     onTap: () async {
                       Navigator.pop(context);
-                      await FirebaseAuth.instance.signOut();
+                      await ref.read(authProvider.notifier).logout();
+                      ref.invalidate(bookingDraftProvider);
+                      ref.invalidate(favoritesProvider);
+                      ref.invalidate(appointmentsProvider);
                       if (context.mounted) context.go('/welcome');
                     },
                   ),
