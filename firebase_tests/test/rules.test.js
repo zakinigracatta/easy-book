@@ -981,3 +981,67 @@ test('45. Owner cannot write an offer for another business identity', async () =
       })
   );
 });
+
+
+test('46. Owner cannot hard-delete a service', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('soft_owner_service').set({
+      id: 'soft_owner_service',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('soft_biz_service').set({
+      id: 'soft_biz_service',
+      ownerId: 'soft_owner_service',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('soft_biz_service')
+      .collection('services').doc('service_1').set({
+        id: 'service_1',
+        business_id: 'soft_biz_service',
+        name: 'Haircut',
+        is_active: true,
+        is_bookable: true,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('soft_owner_service').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('soft_biz_service')
+      .collection('services').doc('service_1').delete()
+  );
+});
+
+test('47. Owner cannot hard-delete a staff record', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('soft_owner_staff').set({
+      id: 'soft_owner_staff',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('soft_biz_staff').set({
+      id: 'soft_biz_staff',
+      ownerId: 'soft_owner_staff',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('soft_biz_staff')
+      .collection('staff').doc('staff_1').set({
+        id: 'staff_1',
+        business_id: 'soft_biz_staff',
+        name: 'Specialist',
+        is_active: true,
+        rating: 0,
+        review_count: 0,
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('soft_owner_staff').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('soft_biz_staff')
+      .collection('staff').doc('staff_1').delete()
+  );
+});
