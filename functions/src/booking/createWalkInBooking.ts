@@ -75,6 +75,8 @@ function idempotentResponse(
     durationMinutes:
       typeof data.durationMinutes === 'number' ? data.durationMinutes : 0,
     endDateTime: endDateTime.toISOString(),
+    staffId: typeof data.staffId === 'string' ? data.staffId : '',
+    staffName: typeof data.staffName === 'string' ? data.staffName : 'Specialist',
     status: typeof data.status === 'string' ? data.status : 'confirmed',
     idempotentReplay: true,
   };
@@ -105,19 +107,6 @@ export const createWalkInBooking = onCall(async (request) => {
   const customerPhone = cleanText(data.customerPhone, 40);
   const clientRequestId = optionalRequestId(data.clientRequestId);
   const notes = cleanText(data.notes, 1000);
-  const clientRequestId =
-    typeof data.clientRequestId === 'string' ? data.clientRequestId.trim() : '';
-
-  if (
-    clientRequestId.length > 100 ||
-    (clientRequestId.length > 0 &&
-      !/^[A-Za-z0-9_-]+$/.test(clientRequestId))
-  ) {
-    throw new HttpsError(
-      'invalid-argument',
-      'INVALID_CLIENT_REQUEST_ID: clientRequestId must contain only letters, numbers, underscores, or hyphens.'
-    );
-  }
 
   if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
     throw new HttpsError(
@@ -157,6 +146,23 @@ export const createWalkInBooking = onCall(async (request) => {
     : db.collection('bookings').doc();
 
   return db.runTransaction(async (transaction) => {
+    const bizRef = db.collection('businesses').doc(businessId);
+    const bizSnap = await transaction.get(bizRef);
+    if (!bizSnap.exists) {
+      throw new HttpsError(
+        'not-found',
+        'BUSINESS_NOT_FOUND: Business does not exist.'
+      );
+    }
+    const bizData = bizSnap.data() || {};
+    const ownerId = bizData.owner_id ?? bizData.ownerId;
+    if (ownerId !== ownerUid) {
+      throw new HttpsError(
+        'permission-denied',
+        'PERMISSION_DENIED: Caller is not the owner of this business.'
+      );
+    }
+
     if (clientRequestId) {
       const existingSnap = await transaction.get(bookingDocRef);
       if (existingSnap.exists) {
@@ -175,85 +181,6 @@ export const createWalkInBooking = onCall(async (request) => {
           );
         }
         return idempotentResponse(bookingDocRef.id, existing);
-      }
-    }
-    const bizRef = db.collection('businesses').doc(businessId);
-    const bizSnap = await transaction.get(bizRef);
-    if (!bizSnap.exists) {
-      throw new HttpsError(
-        'not-found',
-        'BUSINESS_NOT_FOUND: Business does not exist.'
-      );
-    }
-    const bizData = bizSnap.data() || {};
-    const ownerId = bizData.owner_id ?? bizData.ownerId;
-    if (ownerId !== ownerUid) {
-      throw new HttpsError(
-        'permission-denied',
-        'PERMISSION_DENIED: Caller is not the owner of this business.'
-      );
-    }
-
-    const bookingDocRef = clientRequestId
-      ? db.collection('bookings').doc(
-          `walkin_${ownerUid}_${clientRequestId}`
-        )
-      : db.collection('bookings').doc();
-
-    if (clientRequestId) {
-      const existingBookingSnap = await transaction.get(bookingDocRef);
-      if (existingBookingSnap.exists) {
-        const existing = existingBookingSnap.data() || {};
-        const existingStart =
-          existing.startDateTime &&
-          typeof existing.startDateTime.toDate === 'function'
-            ? existing.startDateTime.toDate()
-            : new Date(existing.startTimestamp || 0);
-
-        const sameRequest =
-          existing.businessId === businessId &&
-          existing.serviceId === serviceId &&
-          existing.staffId === staffId &&
-          existingStart.getTime() === requestedStartAt.getTime() &&
-          existing.bookingSource === 'walkIn';
-
-        if (!sameRequest) {
-          throw new HttpsError(
-            'already-exists',
-            'IDEMPOTENCY_KEY_REUSED: This walk-in request key was already used for different booking details.'
-          );
-        }
-
-        const existingEnd =
-          existing.endDateTime &&
-          typeof existing.endDateTime.toDate === 'function'
-            ? existing.endDateTime.toDate()
-            : new Date(
-                existingStart.getTime() +
-                  Number(existing.durationMinutes || 30) * 60 * 1000
-              );
-
-        return {
-          success: true,
-          bookingId: bookingDocRef.id,
-          servicePrice: Number(existing.servicePrice || 0),
-          currency:
-            typeof existing.currency === 'string' ? existing.currency : 'AED',
-          timeZone:
-            typeof existing.timeZone === 'string'
-              ? existing.timeZone
-              : 'Asia/Dubai',
-          durationMinutes: Number(existing.durationMinutes || 30),
-          endDateTime: existingEnd.toISOString(),
-          staffId,
-          staffName:
-            typeof existing.staffName === 'string'
-              ? existing.staffName
-              : 'Specialist',
-          status:
-            typeof existing.status === 'string' ? existing.status : 'confirmed',
-          idempotentReplay: true,
-        };
       }
     }
 
@@ -324,7 +251,6 @@ export const createWalkInBooking = onCall(async (request) => {
       status: 'confirmed',
       bookingSource: 'walkIn',
       notes,
-      clientRequestId: clientRequestId || null,
       createdByOwnerId: ownerUid,
       slotLockId: primarySlotLockId,
       ...(clientRequestId ? { clientRequestId } : {}),
@@ -343,7 +269,6 @@ export const createWalkInBooking = onCall(async (request) => {
       staffId,
       staffName: context.staffName,
       status: 'confirmed',
-      idempotentReplay: false,
       idempotentReplay: false,
     };
   });
