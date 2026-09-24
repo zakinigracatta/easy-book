@@ -74,6 +74,16 @@ export const updateBookingStatus = onCall(async (request) => {
       );
     }
 
+    if (currentStatus === newStatus) {
+      return {
+        success: true,
+        bookingId,
+        previousStatus: currentStatus,
+        newStatus,
+        idempotentReplay: true,
+      };
+    }
+
     const allowedTransitions: Record<string, string[]> = {
       pending: ['confirmed', 'cancelled'],
       confirmed: ['arrived', 'inProgress', 'noShow', 'cancelled'],
@@ -168,6 +178,7 @@ export const updateBookingStatus = onCall(async (request) => {
       bookingId,
       previousStatus: currentStatus,
       newStatus,
+      idempotentReplay: false,
     };
   });
 });
