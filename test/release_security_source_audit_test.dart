@@ -242,6 +242,16 @@ void main() {
     );
   });
 
+  test('reschedule retries return idempotent success instead of false failure', () {
+    final source = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('idempotentReplay: true'));
+    expect(source, contains('idempotentReplay: false'));
+    expect(source, isNot(contains('NO_RESCHEDULE_CHANGE')));
+  });
+
   test('customer reschedules fail closed when business approval is withdrawn', () {
     final validationSource = File(
       'functions/src/booking/bookingValidation.ts',
