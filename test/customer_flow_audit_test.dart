@@ -63,6 +63,21 @@ void main() {
     );
   });
 
+  test('booking confirmation revalidates the 30-minute lead time', () {
+    final source = File(
+      'lib/screens/customer/booking_confirmation_screen.dart',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains('startDateTime.difference(now) <= const Duration(minutes: 30)'),
+    );
+    expect(
+      source,
+      contains('Please select an appointment at least 30 minutes from now.'),
+    );
+  });
+
   test('any-specialist assignment stays server-owned until booking commit', () {
     final timeSource = File(
       'lib/screens/customer/booking_time_screen.dart',
