@@ -13,6 +13,7 @@ import '../models/owner_notification_model.dart';
 import '../models/employee_time_off_model.dart';
 import '../repositories/owner_repository.dart';
 import '../core/utils/business_clock.dart';
+import 'auth_provider.dart';
 
 final ownerRepositoryProvider = Provider<OwnerRepository>((ref) {
   return OwnerRepositoryImpl();
@@ -20,8 +21,9 @@ final ownerRepositoryProvider = Provider<OwnerRepository>((ref) {
 
 // Objective 21: Real Owner Business ID Resolution
 final currentBusinessIdProvider = FutureProvider<String>((ref) async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null || user.uid.isEmpty) return '';
+  final authUser = ref.watch(authProvider);
+  final uid = authUser?.id ?? '';
+  if (uid.isEmpty) return '';
 
   // Resolve ownership through an owner-scoped query first. Reading
   // businesses/{uid} before we know it exists can be rejected by Firestore
@@ -30,7 +32,7 @@ final currentBusinessIdProvider = FutureProvider<String>((ref) async {
   // document IDs without broadening read permissions.
   final canonicalSnap = await FirebaseFirestore.instance
       .collection('businesses')
-      .where('owner_id', isEqualTo: user.uid)
+      .where('owner_id', isEqualTo: uid)
       .limit(1)
       .get();
 
@@ -41,7 +43,7 @@ final currentBusinessIdProvider = FutureProvider<String>((ref) async {
   // Legacy fallback is used only when canonical owner_id records are absent.
   final legacySnap = await FirebaseFirestore.instance
       .collection('businesses')
-      .where('ownerId', isEqualTo: user.uid)
+      .where('ownerId', isEqualTo: uid)
       .limit(1)
       .get();
 
