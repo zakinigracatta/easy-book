@@ -271,6 +271,62 @@ final ownerBookingsForDateProvider = FutureProvider.autoDispose.family<
   );
 });
 
+class OwnerDashboardBookingsData {
+  const OwnerDashboardBookingsData({
+    required this.todayBookings,
+    required this.upcomingBookings,
+    required this.pendingCount,
+  });
+
+  final List<BookingModel> todayBookings;
+  final List<BookingModel> upcomingBookings;
+  final int pendingCount;
+}
+
+final ownerDashboardBookingsProvider =
+    FutureProvider<OwnerDashboardBookingsData>((ref) async {
+  final repo = ref.watch(ownerRepositoryProvider);
+  final businessId = await ref.watch(currentBusinessIdProvider.future);
+  if (businessId.isEmpty) {
+    return const OwnerDashboardBookingsData(
+      todayBookings: <BookingModel>[],
+      upcomingBookings: <BookingModel>[],
+      pendingCount: 0,
+    );
+  }
+
+  final timeZone =
+      ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
+  final today = BusinessClock.calendarToday(timeZone);
+  final start = BusinessClock.wallClock(today, timeZone);
+  final end = BusinessClock.wallClock(
+    DateTime(today.year, today.month, today.day + 1),
+    timeZone,
+  );
+  final now = BusinessClock.now(timeZone);
+
+  final todayBookings = await repo.fetchOwnerBookingsInRange(
+    businessId,
+    start: start,
+    end: end,
+  );
+  final upcomingBookings = await repo.fetchUpcomingOwnerBookings(
+    businessId,
+    after: now,
+    limit: 3,
+  );
+  final pendingCount = await repo.countOwnerBookingsByStatus(
+    businessId,
+    BookingStatus.pending,
+  );
+
+  return OwnerDashboardBookingsData(
+    todayBookings: todayBookings,
+    upcomingBookings: upcomingBookings,
+    pendingCount: pendingCount,
+  );
+});
+
 // Filter & Search Providers for Owner Bookings
 final ownerBookingFilterProvider = StateProvider<String>((ref) => 'All');
 final ownerBookingSearchQueryProvider = StateProvider<String>((ref) => '');
