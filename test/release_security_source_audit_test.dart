@@ -298,6 +298,18 @@ void main() {
       contains("requireVerifiedBusiness: actor === 'customer'"),
     );
   });
+  test('canonical migration is pinned to the Easy Book Firebase project', () {
+    final migration = File(
+      'functions/src/admin/migrateCanonicalFields.ts',
+    ).readAsStringSync();
+    final packageJson = File('functions/package.json').readAsStringSync();
+
+    expect(migration, contains("EXPECTED_PROJECT_ID = 'easy-book-zaki'"));
+    expect(migration, contains("process.argv.indexOf('--project')"));
+    expect(migration, contains('Refusing canonical migration for project'));
+    expect(packageJson, contains('--project easy-book-zaki'));
+  });
+
   test('legacy canonical migration never overwrites existing canonical fields', () {
     final migration = File(
       'functions/src/admin/migrateCanonicalFields.ts',
