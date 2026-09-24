@@ -65,7 +65,8 @@ class _CustomerProfileModalState extends ConsumerState<CustomerProfileModal> {
                           : null,
                   child: (c.avatarUrl == null || c.avatarUrl!.isEmpty)
                       ? Text(
-                          c.name[0].toUpperCase(),
+                          (c.name.trim().isNotEmpty ? c.name.trim()[0] : '?')
+                              .toUpperCase(),
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
