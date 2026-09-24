@@ -83,10 +83,10 @@ void main() {
 
     expect(auth, contains('await _saveProfile(recoveredCustomer);'));
     expect(auth, contains('return recoveredCustomer;'));
-    expect(
-      splash,
-      contains("destination = '/login';"),
-    );
+    expect(splash, contains('needsProfileRecovery = true;'));
+    expect(splash, contains('Unable to restore your account profile.'));
+    expect(splash, contains("child: const Text('Retry')"));
+    expect(splash, contains("child: const Text('Sign out')"));
     expect(
       splash,
       isNot(contains('destination resolved: guest/customer fallback')),
