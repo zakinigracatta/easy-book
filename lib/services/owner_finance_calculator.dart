@@ -1,7 +1,7 @@
-import '../models/booking_model.dart';
-import '../models/expense_model.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import '../models/booking_model.dart';
+import '../models/expense_model.dart';
 import '../models/profit_and_loss_summary.dart';
 
 class OwnerFinanceCalculator {
@@ -116,5 +116,4 @@ class OwnerFinanceCalculator {
     }
     return DateTime(value.year, value.month, value.day + 1);
   }
-
 }
