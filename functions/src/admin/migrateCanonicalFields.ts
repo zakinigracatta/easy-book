@@ -19,6 +19,7 @@ const BUSINESS_MAPPINGS: Mapping[] = [
 
 const SERVICE_MAPPINGS: Mapping[] = [
   ['business_id', 'salon_id'],
+  ['business_id', 'businessId'],
   ['is_active', 'isActive'],
   ['is_bookable', 'isBookable'],
   ['duration_minutes', 'durationMinutes'],
@@ -29,6 +30,7 @@ const SERVICE_MAPPINGS: Mapping[] = [
 ];
 
 const STAFF_MAPPINGS: Mapping[] = [
+  ['business_id', 'businessId'],
   ['is_active', 'isActive'],
   ['service_ids', 'serviceIds'],
   ['weekly_schedule', 'weeklySchedule'],
@@ -37,6 +39,7 @@ const STAFF_MAPPINGS: Mapping[] = [
   ['shift_end', 'shiftEnd'],
   ['avatar_url', 'avatarUrl'],
   ['role_title', 'roleTitle'],
+  ['review_count', 'reviewCount'],
 ];
 
 function canonicalPatch(
@@ -47,8 +50,12 @@ function canonicalPatch(
 
   for (const [canonical, legacy] of mappings) {
     const hasCanonical = Object.prototype.hasOwnProperty.call(data, canonical);
+    const hasQueuedCanonical = Object.prototype.hasOwnProperty.call(
+      patch,
+      canonical
+    );
     const hasLegacy = Object.prototype.hasOwnProperty.call(data, legacy);
-    if (!hasCanonical && hasLegacy) {
+    if (!hasCanonical && !hasQueuedCanonical && hasLegacy) {
       patch[canonical] = data[legacy];
     }
   }
