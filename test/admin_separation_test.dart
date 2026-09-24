@@ -258,6 +258,23 @@ void main() {
       }
     });
 
+    test('8a. Dynamic booking routes remain protected for Guests', () {
+      for (final route in [
+        '/booking-details/booking_123',
+        '/reschedule-booking/booking_123',
+        '/cancel-booking/booking_123',
+      ]) {
+        final redirectTarget = evaluateRouteGuard(
+          location: route,
+          isWeb: false,
+          hasFirebaseUser: false,
+          isEmailVerified: true,
+          userModel: null,
+        );
+        expect(redirectTarget, equals('/login'));
+      }
+    });
+
     test('9. Existing Business Partner protected routes remain protected', () {
       for (final route in ownerProtectedRoutes) {
         // Guest attempt
