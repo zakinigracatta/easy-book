@@ -154,7 +154,7 @@ class MyBookingsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 14),
                 child: GlassCard(
                   onTap: () => context.push(
-                    '/booking-details/\${booking.id}',
+                    '/booking-details/${booking.id}',
                     extra: booking,
                   ),
                   child: Column(
@@ -235,7 +235,7 @@ class MyBookingsScreen extends ConsumerWidget {
                               children: [
                                 OutlinedButton(
                                   onPressed: () => context.push(
-                                    '/reschedule-booking/\${booking.id}',
+                                    '/reschedule-booking/${booking.id}',
                                     extra: booking,
                                   ),
                                   child: Text(
@@ -246,7 +246,7 @@ class MyBookingsScreen extends ConsumerWidget {
                                 const SizedBox(width: 8),
                                 OutlinedButton(
                                   onPressed: () => context.push(
-                                    '/cancel-booking/\${booking.id}',
+                                    '/cancel-booking/${booking.id}',
                                   ),
                                   child: Text(
                                     context.tr('Cancel'),
