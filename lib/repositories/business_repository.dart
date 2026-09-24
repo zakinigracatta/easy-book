@@ -62,7 +62,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String? afterId,
     int pageSize = 30,
   }) async {
-    final safePageSize = pageSize.clamp(1, 50);
+    final safePageSize = pageSize.clamp(1, 50).toInt();
     Query<Map<String, dynamic>> firestoreQuery = _firestore
         .collection('businesses')
         .where('is_verified', isEqualTo: true)
