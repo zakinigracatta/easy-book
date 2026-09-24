@@ -113,4 +113,21 @@ void main() {
     expect(navigation, contains('_persistPendingRoute(null)'));
   });
 
+  test('local storage failures do not block app startup or auth navigation', () {
+    final mainSource = File('lib/main.dart').readAsStringSync();
+    final storage =
+        File('lib/services/local_storage_service.dart').readAsStringSync();
+    final navigation =
+        File('lib/services/navigation_service.dart').readAsStringSync();
+
+    expect(mainSource, contains('try {'));
+    expect(mainSource, contains('await LocalStorageService.initHive();'));
+    expect(mainSource, contains('await Firebase.initializeApp('));
+    expect(storage, contains('Hive.isBoxOpen'));
+    expect(storage, contains('return const <String>[];'));
+    expect(navigation, contains('Future<void> _writePendingRoute'));
+    expect(navigation, contains('unawaited(_writePendingRoute(route))'));
+    expect(navigation, contains('In-memory navigation remains functional'));
+  });
+
 }

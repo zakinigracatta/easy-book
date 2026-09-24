@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../constants/app_constants.dart';
@@ -16,21 +18,33 @@ class NavigationService {
   String? _pendingRoute;
 
   String? _storedPendingRoute() {
-    if (!Hive.isBoxOpen(AppConstants.hiveSettingsBox)) return null;
-    final value =
-        Hive.box(AppConstants.hiveSettingsBox).get(_pendingRouteKey);
-    final route = value is String ? value.trim() : '';
-    return route.isEmpty ? null : route;
+    try {
+      if (!Hive.isBoxOpen(AppConstants.hiveSettingsBox)) return null;
+      final value =
+          Hive.box(AppConstants.hiveSettingsBox).get(_pendingRouteKey);
+      final route = value is String ? value.trim() : '';
+      return route.isEmpty ? null : route;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _writePendingRoute(String? route) async {
+    try {
+      if (!Hive.isBoxOpen(AppConstants.hiveSettingsBox)) return;
+      final box = Hive.box(AppConstants.hiveSettingsBox);
+      if (route == null || route.trim().isEmpty) {
+        await box.delete(_pendingRouteKey);
+      } else {
+        await box.put(_pendingRouteKey, route.trim());
+      }
+    } catch (_) {
+      // In-memory navigation remains functional if local storage is unavailable.
+    }
   }
 
   void _persistPendingRoute(String? route) {
-    if (!Hive.isBoxOpen(AppConstants.hiveSettingsBox)) return;
-    final box = Hive.box(AppConstants.hiveSettingsBox);
-    if (route == null || route.trim().isEmpty) {
-      box.delete(_pendingRouteKey);
-    } else {
-      box.put(_pendingRouteKey, route.trim());
-    }
+    unawaited(_writePendingRoute(route));
   }
 
   /// Get the current pending target route, recovering it from local storage
