@@ -19,6 +19,9 @@ class BookingFunctionsService {
     required DateTime requestedStartAt,
     required String customerName,
     required String customerPhone,
+    required double expectedServicePrice,
+    required int expectedDurationMinutes,
+    required String expectedCurrency,
     bool anySpecialist = false,
     String? clientRequestId,
     String notes = '',
@@ -32,6 +35,11 @@ class BookingFunctionsService {
         'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
+        'expectedServicePrice': expectedServicePrice,
+        'expectedDurationMinutes': expectedDurationMinutes,
+        'expectedCurrency': expectedCurrency.trim().isEmpty
+            ? 'AED'
+            : expectedCurrency.trim(),
         'anySpecialist': anySpecialist,
         if (clientRequestId != null && clientRequestId.trim().isNotEmpty)
           'clientRequestId': clientRequestId.trim(),
@@ -281,6 +289,11 @@ class BookingFunctionsService {
         msg.contains('STAFF_SCHEDULE_NOT_CONFIGURED')) {
       return EmployeeUnavailableException(
         'The selected specialist is unavailable during this time slot.',
+      );
+    }
+    if (msg.contains('BOOKING_TERMS_CHANGED')) {
+      return ServiceUnavailableException(
+        'The service price or duration changed. Please review the service again before confirming.',
       );
     }
     if (msg.contains('SERVICE_NOT_FOUND') ||
