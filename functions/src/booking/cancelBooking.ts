@@ -73,10 +73,16 @@ export const cancelBooking = onCall(async (request) => {
     if (currentStatus === 'cancelled') {
       return { success: true, message: 'Booking is already cancelled.' };
     }
-    if (currentStatus === 'completed' || currentStatus === 'noShow') {
+    const cancellableStatuses = new Set([
+      'pending',
+      'confirmed',
+      'arrived',
+      'inProgress',
+    ]);
+    if (!cancellableStatuses.has(currentStatus)) {
       throw new HttpsError(
         'failed-precondition',
-        `CANNOT_CANCEL: A ${currentStatus} booking cannot be cancelled.`
+        `CANNOT_CANCEL: A ${currentStatus || 'unknown'} booking cannot be cancelled.`
       );
     }
 
