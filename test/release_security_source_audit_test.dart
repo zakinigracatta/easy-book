@@ -234,7 +234,33 @@ void main() {
     );
     expect(
       walkInSource,
-      contains('{ requireAcceptingBookings: false }'),
+      contains('requireAcceptingBookings: false'),
+    );
+    expect(
+      walkInSource,
+      contains('requireVerifiedBusiness: false'),
+    );
+  });
+
+  test('customer reschedules fail closed when business approval is withdrawn', () {
+    final validationSource = File(
+      'functions/src/booking/bookingValidation.ts',
+    ).readAsStringSync();
+    final rescheduleSource = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(
+      validationSource,
+      contains('requireVerifiedBusiness?: boolean'),
+    );
+    expect(
+      validationSource,
+      contains('BUSINESS_NOT_VERIFIED'),
+    );
+    expect(
+      rescheduleSource,
+      contains("requireVerifiedBusiness: actor === 'customer'"),
     );
   });
   test('legacy canonical migration never overwrites existing canonical fields', () {
