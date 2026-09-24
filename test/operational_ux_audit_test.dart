@@ -404,7 +404,8 @@ void main() {
 
     expect(source, contains('profile?.isOwnerRole == true'));
     expect(source, contains('profile?.isAdmin == true'));
-    expect(source, contains("context.go('/admin/dashboard')"));
+    expect(source, contains("pendingRoute.startsWith('/admin')"));
+    expect(source, contains("'/admin/dashboard'"));
     expect(source, isNot(contains('if (role == UserRole.admin)')));
   });
 
