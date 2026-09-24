@@ -73,11 +73,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         NavigationService().clearPendingRoute();
         context.go('/admin-dashboard');
       } else if (pendingRoute != null && pendingRoute.isNotEmpty) {
-        if (context.canPop()) {
-          context.pop(true);
-        } else {
-          context.go(pendingRoute);
-        }
+        context.go(pendingRoute);
       } else if (context.canPop()) {
         context.pop(true);
       } else {
