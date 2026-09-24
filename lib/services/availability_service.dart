@@ -59,7 +59,9 @@ class AvailabilityService {
         offset < normalizedStaffIds.length;
         offset += maxStaffPerRequest) {
       final endOffset =
-          (offset + maxStaffPerRequest).clamp(0, normalizedStaffIds.length);
+          (offset + maxStaffPerRequest)
+              .clamp(0, normalizedStaffIds.length)
+              .toInt();
       final batch = normalizedStaffIds.sublist(offset, endOffset);
 
       final response = await callable.call({
