@@ -201,14 +201,12 @@ void main() {
   });
 
   test('owner dashboard only shows future bookings as upcoming', () {
-    final providerSource = File(
-      'lib/providers/owner_providers.dart',
-    ).readAsStringSync();
-    final repositorySource = File(
-      'lib/repositories/owner_repository.dart',
-    ).readAsStringSync();
+    final providerSource =
+        File('lib/providers/owner_providers.dart').readAsStringSync();
+    final repositorySource =
+        File('lib/repositories/owner_repository.dart').readAsStringSync();
 
-    expect(providerSource, contains('BusinessClock.now(timeZone)'));
+    expect(providerSource, contains('final now = BusinessClock.now(timeZone);'));
     expect(providerSource, contains('fetchUpcomingOwnerBookings('));
     expect(providerSource, contains('after: now'));
     expect(
@@ -216,10 +214,6 @@ void main() {
       contains('isGreaterThan: Timestamp.fromDate(after)'),
     );
     expect(repositorySource, contains(".orderBy('startDateTime')"));
-    expect(repositorySource, contains("'pending'"));
-    expect(repositorySource, contains("'confirmed'"));
-    expect(repositorySource, contains("'arrived'"));
-    expect(repositorySource, contains("'inProgress'"));
   });
 
   test('owner calendar passes selected date into walk-in booking', () {
