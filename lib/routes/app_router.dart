@@ -266,6 +266,12 @@ final appRouter = GoRouter(
       NavigationService().setPendingRoute(state.matchedLocation);
     }
 
+    if (user == null &&
+        redirectTarget == '/owner-login' &&
+        ownerProtectedRoutes.contains(state.matchedLocation)) {
+      NavigationService().setPendingRoute(state.matchedLocation);
+    }
+
     return redirectTarget;
   },
   routes: [
