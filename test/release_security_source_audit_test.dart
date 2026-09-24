@@ -282,6 +282,9 @@ void main() {
     expect(migration, contains("['is_verified', 'isVerified']"));
     expect(migration, contains("['is_active', 'isActive']"));
     expect(migration, contains("['is_bookable', 'isBookable']"));
+    expect(migration, contains("['business_id', 'businessId']"));
+    expect(migration, contains("['review_count', 'reviewCount']"));
+    expect(migration, contains('hasQueuedCanonical'));
     expect(migration, contains("process.argv.includes('--dry-run')"));
   });
 
