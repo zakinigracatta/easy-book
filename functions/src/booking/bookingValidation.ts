@@ -220,7 +220,10 @@ export async function validateBookingRequirements(
   serviceId: string,
   staffId: string,
   requestedStartAt: Date,
-  options: { requireAcceptingBookings?: boolean } = {}
+  options: {
+    requireAcceptingBookings?: boolean;
+    requireVerifiedBusiness?: boolean;
+  } = {}
 ): Promise<ValidatedBookingContext> {
   const bizRef = db.collection('businesses').doc(businessId);
   const bizSnap = await transaction.get(bizRef);
@@ -231,6 +234,7 @@ export async function validateBookingRequirements(
     );
   }
   const bizData = bizSnap.data() || {};
+  const isVerified = (bizData.is_verified ?? bizData.isVerified) === true;
   const isActive = (bizData.is_active ?? bizData.isActive) === true;
   const acceptingBookings =
     (bizData.accepting_bookings ?? bizData.acceptingBookings) === true;
@@ -239,6 +243,16 @@ export async function validateBookingRequirements(
 
   const requireAcceptingBookings =
     options.requireAcceptingBookings ?? true;
+  const requireVerifiedBusiness =
+    options.requireVerifiedBusiness ?? true;
+
+  if (requireVerifiedBusiness && !isVerified) {
+    throw new HttpsError(
+      'failed-precondition',
+      'BUSINESS_NOT_VERIFIED: Business approval is required for customer booking.'
+    );
+  }
+
   if (
     !isActive ||
     businessStatus !== 'open' ||
