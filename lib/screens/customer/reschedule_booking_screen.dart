@@ -14,9 +14,10 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/glass_card.dart';
 
 class RescheduleBookingScreen extends ConsumerStatefulWidget {
+  final String? bookingId;
   final BookingModel? booking;
 
-  const RescheduleBookingScreen({super.key, this.booking});
+  const RescheduleBookingScreen({super.key, this.bookingId, this.booking});
 
   @override
   ConsumerState<RescheduleBookingScreen> createState() =>
@@ -25,6 +26,17 @@ class RescheduleBookingScreen extends ConsumerStatefulWidget {
 
 class _RescheduleBookingScreenState
     extends ConsumerState<RescheduleBookingScreen> {
+  BookingModel? _resolveBooking() {
+    if (widget.booking != null) return widget.booking;
+    final targetId = widget.bookingId?.trim() ?? '';
+    if (targetId.isEmpty) return null;
+    final bookings = ref.read(appointmentsProvider).value ?? const <BookingModel>[];
+    for (final item in bookings) {
+      if (item.id == targetId) return item;
+    }
+    return null;
+  }
+
   late DateTime _selectedDate;
   AvailableSlot? _selectedSlot;
   bool _isLoading = false;
@@ -39,7 +51,7 @@ class _RescheduleBookingScreenState
   }
 
   Future<void> _handleConfirmReschedule() async {
-    final booking = widget.booking;
+    final booking = _resolveBooking();
     final slot = _selectedSlot;
     if (booking == null || slot == null) return;
 
@@ -116,7 +128,15 @@ class _RescheduleBookingScreenState
 
   @override
   Widget build(BuildContext context) {
-    final booking = widget.booking;
+    final appointmentsState = ref.watch(appointmentsProvider);
+    final booking = widget.booking ?? _resolveBooking();
+
+    if (booking == null && appointmentsState.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.tr('Reschedule Booking'))),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (booking == null) {
       return Scaffold(
