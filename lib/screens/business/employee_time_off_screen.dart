@@ -292,10 +292,13 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
       return;
     }
 
-    if (_selectedStaff == null ||
-        !activeStaff.any((staff) => staff.id == _selectedStaff!.id)) {
-      _selectedStaff = activeStaff.first;
-    }
+    final selectedStaffId = _selectedStaff?.id;
+    _selectedStaff = selectedStaffId == null
+        ? activeStaff.first
+        : activeStaff.firstWhere(
+            (staff) => staff.id == selectedStaffId,
+            orElse: () => activeStaff.first,
+          );
 
     await showModalBottomSheet<void>(
       context: context,
