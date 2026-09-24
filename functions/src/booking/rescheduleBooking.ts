@@ -194,7 +194,8 @@ export const rescheduleBooking = onCall(async (request) => {
         businessId,
         serviceId,
         targetStaffId,
-        newStartAt
+        newStartAt,
+        { requireVerifiedBusiness: actor === 'customer' }
       );
       newLockObjects = generateIntervalSlotLockIds(
         businessId,
