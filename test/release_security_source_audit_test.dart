@@ -252,6 +252,16 @@ void main() {
     expect(source, contains("cleanText(userData.phone, 40)"));
   });
 
+  test('owner booking status retries are idempotent', () {
+    final source = File(
+      'functions/src/booking/updateBookingStatus.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('if (currentStatus === newStatus)'));
+    expect(source, contains('idempotentReplay: true'));
+    expect(source, contains('idempotentReplay: false'));
+  });
+
   test('reschedule retries return idempotent success instead of false failure', () {
     final source = File(
       'functions/src/booking/rescheduleBooking.ts',
