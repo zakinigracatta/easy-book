@@ -63,6 +63,26 @@ void main() {
     );
   });
 
+  test('any-specialist assignment stays server-owned until booking commit', () {
+    final timeSource = File(
+      'lib/screens/customer/booking_time_screen.dart',
+    ).readAsStringSync();
+    final confirmationSource = File(
+      'lib/screens/customer/booking_confirmation_screen.dart',
+    ).readAsStringSync();
+
+    expect(timeSource, contains("resolvedId = '';"));
+    expect(timeSource, contains("resolvedName = 'Any Available Specialist';"));
+    expect(
+      timeSource,
+      isNot(contains('_selectedSlot!.availableStaffIds.first')),
+    );
+    expect(
+      confirmationSource,
+      contains('if (!draft.anySpecialist && staffId.isEmpty)'),
+    );
+  });
+
   test('booking confirmation rejects multi-service or mismatched draft state', () {
     final source = File(
       'lib/screens/customer/booking_confirmation_screen.dart',
