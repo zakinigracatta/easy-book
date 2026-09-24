@@ -157,6 +157,12 @@ class AuthService {
     return user;
   }
 
+  Future<UserModel?> refreshCurrentProfile() async {
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser == null) return null;
+    return _loadOrCreateProfile(firebaseUser);
+  }
+
   Future<void> logout() => _auth.signOut();
 
   Future<void> sendPasswordResetEmail(String email) {

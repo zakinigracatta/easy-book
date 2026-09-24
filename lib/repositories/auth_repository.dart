@@ -28,6 +28,8 @@ abstract class AuthRepository {
     String? businessImageUrl,
   });
 
+  Future<UserModel?> refreshCurrentProfile();
+
   Future<void> logout();
 
   Future<void> sendPasswordResetEmail(String email);
@@ -95,6 +97,10 @@ class AuthRepositoryImpl implements AuthRepository {
       businessImageUrl: businessImageUrl,
     );
   }
+
+  @override
+  Future<UserModel?> refreshCurrentProfile() =>
+      _authService.refreshCurrentProfile();
 
   @override
   Future<void> logout() => _authService.logout();

@@ -100,13 +100,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             debugPrint('[SPLASH] authProvider state: loading');
           }
 
-          // Bounded timeout failsafe (3 seconds max for profile resolution)
+          // Explicitly reload the profile so Retry still works after an
+          // authStateChanges stream error. Bound the network wait so startup
+          // can surface a recovery UI instead of hanging indefinitely.
           try {
-            await _waitForProfile();
-            userModel = ref.read(authProvider);
+            userModel = await ref
+                .read(authProvider.notifier)
+                .refreshCurrentProfile()
+                .timeout(const Duration(seconds: 8));
           } catch (_) {
             if (kDebugMode) {
-              debugPrint('[SPLASH] profile resolution failed');
+              debugPrint('[SPLASH] explicit profile refresh failed');
+            }
+          }
+
+          if (userModel == null) {
+            try {
+              await _waitForProfile();
+              userModel = ref.read(authProvider);
+            } catch (_) {
+              if (kDebugMode) {
+                debugPrint('[SPLASH] profile resolution failed');
+              }
             }
           }
         }

@@ -83,6 +83,9 @@ void main() {
 
     expect(auth, contains('await _saveProfile(recoveredCustomer);'));
     expect(auth, contains('return recoveredCustomer;'));
+    expect(auth, contains('Future<UserModel?> refreshCurrentProfile() async'));
+    expect(splash, contains('.refreshCurrentProfile()'));
+    expect(splash, contains('.timeout(const Duration(seconds: 8))'));
     expect(splash, contains('needsProfileRecovery = true;'));
     expect(splash, contains('Unable to restore your account profile.'));
     expect(splash, contains("child: const Text('Retry')"));
