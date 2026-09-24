@@ -89,7 +89,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     context,
                     dashboardBookingsAsync,
                     todayFinanceAsync,
-                    businessTimeZone,
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -131,7 +130,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                     context,
                     ref,
                     dashboardBookingsAsync,
-                    businessTimeZone,
                   ),
                 ],
               ),
@@ -366,7 +364,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
     BuildContext context,
     AsyncValue<OwnerDashboardBookingsData> bookingsAsync,
     AsyncValue<ProfitAndLossSummary> financeAsync,
-    String timeZone,
   ) {
     return bookingsAsync.when(
       data: (dashboard) {
@@ -549,7 +546,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     AsyncValue<OwnerDashboardBookingsData> bookingsAsync,
-    String timeZone,
   ) {
     return bookingsAsync.when(
       data: (dashboard) {
