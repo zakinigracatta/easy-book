@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 
@@ -265,17 +266,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           color: Color(0xFF4F46E5),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Unable to restore your account profile.',
+                        Text(
+                          context.tr('Unable to restore your account profile.'),
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Check your connection and retry. Your account has not been signed out.',
+                        Text(
+                          context.tr(
+                            'Check your connection and retry. Your account has not been signed out.',
+                          ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 20),
@@ -289,7 +292,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                               });
                               _runStartupSequence();
                             },
-                            child: const Text('Retry'),
+                            child: Text(context.tr('Retry')),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -301,7 +304,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                               if (!mounted) return;
                               context.go('/home');
                             },
-                            child: const Text('Sign out'),
+                            child: Text(context.tr('Sign out')),
                           ),
                         ),
                       ],

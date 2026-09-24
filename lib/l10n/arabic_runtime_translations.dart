@@ -249,4 +249,8 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Service disabled': 'تم تعطيل الخدمة',
   'No specialists are available for this time slot.': 'لا يوجد أخصائيون متاحون لهذا الوقت.',
   'Unable to update this service. Please try again.': 'تعذر تحديث هذه الخدمة. حاول مرة أخرى.',
+  'Unable to restore your account profile.': 'تعذر استعادة ملف حسابك.',
+  'Check your connection and retry. Your account has not been signed out.': 'تحقق من اتصالك بالإنترنت وحاول مرة أخرى. لم يتم تسجيل خروج حسابك.',
+  'Retry': 'إعادة المحاولة',
+  'Sign out': 'تسجيل الخروج',
 };

@@ -263,4 +263,8 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Service disabled': 'Услуга отключена',
   'No specialists are available for this time slot.': 'На это время нет доступных специалистов.',
   'Unable to update this service. Please try again.': 'Не удалось обновить эту услугу. Попробуйте снова.',
+  'Unable to restore your account profile.': 'Не удалось восстановить профиль вашей учетной записи.',
+  'Check your connection and retry. Your account has not been signed out.': 'Проверьте подключение и повторите попытку. Вы не вышли из учетной записи.',
+  'Retry': 'Повторить',
+  'Sign out': 'Выйти',
 };

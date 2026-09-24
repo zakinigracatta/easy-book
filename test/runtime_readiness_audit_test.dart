@@ -87,9 +87,15 @@ void main() {
     expect(splash, contains('.refreshCurrentProfile()'));
     expect(splash, contains('.timeout(const Duration(seconds: 8))'));
     expect(splash, contains('needsProfileRecovery = true;'));
-    expect(splash, contains('Unable to restore your account profile.'));
-    expect(splash, contains("child: const Text('Retry')"));
-    expect(splash, contains("child: const Text('Sign out')"));
+    expect(
+      splash,
+      contains("context.tr('Unable to restore your account profile.')"),
+    );
+    expect(splash, contains("context.tr('Retry')"));
+    expect(splash, contains("context.tr('Sign out')"));
+    expect(auth, isNot(contains('Profile email:')));
+    expect(auth, isNot(contains('Creating Firestore profile for uid=')));
+    expect(auth, isNot(contains('owner uid=')));
     expect(
       splash,
       isNot(contains('destination resolved: guest/customer fallback')),

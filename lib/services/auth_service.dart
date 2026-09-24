@@ -211,8 +211,9 @@ class AuthService {
         try {
           await _ensureOwnerBusiness(user);
         } catch (e) {
-          debugPrint(
-              'Unable to repair owner business link for uid=${user.id}: $e');
+          if (kDebugMode) {
+            debugPrint('Unable to repair owner business link: ${e.runtimeType}');
+          }
         }
       }
 
@@ -287,13 +288,6 @@ class AuthService {
 
   Future<void> _saveProfile(UserModel user) async {
     final data = _profileWriteData(user);
-
-    debugPrint('Creating Firestore profile for uid=${user.id}');
-    debugPrint('Profile keys: ${data.keys.toList()}');
-    debugPrint('Profile role: ${data['role']}');
-    debugPrint('Profile email: ${data['email']}');
-    debugPrint('Wallet initial value: ${data['wallet_balance']}');
-
     await _users.doc(user.id).set(data, SetOptions(merge: true));
   }
 
@@ -317,15 +311,15 @@ class AuthService {
     try {
       await firebaseUser.sendEmailVerification();
     } on FirebaseAuthException catch (e) {
-      debugPrint(
-        'Verification email could not be sent for uid=${firebaseUser.uid}: '
-        '${e.code}',
-      );
+      if (kDebugMode) {
+        debugPrint('Verification email could not be sent: ${e.code}');
+      }
     } catch (e) {
-      debugPrint(
-        'Verification email could not be sent for uid=${firebaseUser.uid}: '
-        '$e',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'Verification email could not be sent: ${e.runtimeType}',
+        );
+      }
     }
   }
 
@@ -348,7 +342,9 @@ class AuthService {
         .get();
     if (legacyMatch.docs.isNotEmpty) return;
 
-    debugPrint('Creating missing business record for owner uid=${user.id}');
+    if (kDebugMode) {
+      debugPrint('Creating a missing owner business record.');
+    }
 
     await deterministicRef.set(
       _newOwnerBusinessWriteData(user),
