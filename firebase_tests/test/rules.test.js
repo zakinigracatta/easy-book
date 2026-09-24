@@ -743,3 +743,97 @@ test('39. Business create rejects conflicting owner aliases', async () => {
     })
   );
 });
+
+
+test('40. Owner cannot forge staff rating or review count', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('staff_owner').set({
+      id: 'staff_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('staff_biz').set({
+      id: 'staff_biz',
+      ownerId: 'staff_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('staff_owner').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('staff_biz')
+      .collection('staff').doc('staff_forged').set({
+        id: 'staff_forged',
+        business_id: 'staff_biz',
+        businessId: 'staff_biz',
+        name: 'Forged Specialist',
+        is_active: true,
+        isActive: true,
+        rating: 5,
+        review_count: 999,
+      })
+  );
+});
+
+test('41. Owner can create staff with zero trust counters', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('staff_owner_zero').set({
+      id: 'staff_owner_zero',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('staff_biz_zero').set({
+      id: 'staff_biz_zero',
+      ownerId: 'staff_owner_zero',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('staff_owner_zero').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('staff_biz_zero')
+      .collection('staff').doc('staff_ok').set({
+        id: 'staff_ok',
+        business_id: 'staff_biz_zero',
+        businessId: 'staff_biz_zero',
+        name: 'New Specialist',
+        is_active: true,
+        isActive: true,
+        rating: 0,
+        review_count: 0,
+      })
+  );
+});
+
+test('42. Owner cannot move a staff record to another business identity', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('staff_owner_identity').set({
+      id: 'staff_owner_identity',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('staff_biz_identity').set({
+      id: 'staff_biz_identity',
+      ownerId: 'staff_owner_identity',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('staff_owner_identity').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('staff_biz_identity')
+      .collection('staff').doc('staff_bad_identity').set({
+        id: 'staff_bad_identity',
+        business_id: 'another_business',
+        businessId: 'another_business',
+        name: 'Wrong Business',
+        is_active: true,
+        isActive: true,
+        rating: 0,
+        review_count: 0,
+      })
+  );
+});
