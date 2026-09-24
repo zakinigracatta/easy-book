@@ -368,7 +368,7 @@ class _AddServiceScreenState extends ConsumerState<AddServiceScreen> {
 
       await ref.read(ownerServicesProvider.notifier).saveService(service);
 
-      final savedImageUrl = service.imageUrl.trim();
+      final savedImageUrl = service.imageUrl?.trim() ?? '';
       _stagedImageUrls.remove(savedImageUrl);
       if (_persistedImageUrl.isNotEmpty &&
           _persistedImageUrl != savedImageUrl) {
