@@ -3,6 +3,18 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('owner providers preserve loading while business id resolves', () {
+    final source =
+        File('lib/providers/owner_providers.dart').readAsStringSync();
+
+    expect(source, contains('resolvingBusinessId: bizIdAsync.isLoading'));
+    expect(source, contains('if (_resolvingBusinessId)'));
+    expect(
+      source,
+      contains('await ref.watch(currentBusinessIdProvider.future)'),
+    );
+  });
+
   test('owner walk-in uses business time and valid booking inputs', () {
     final source =
         File('lib/screens/business/quick_walk_in_booking_screen.dart')
