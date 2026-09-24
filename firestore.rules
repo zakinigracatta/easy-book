@@ -524,7 +524,10 @@ service cloud.firestore {
         allow update: if isBusinessOwner(businessId)
                       && resource != null
                       && request.resource.data.diff(resource.data).affectedKeys()
-                          .hasOnly(['businessReply', 'businessReplyAt']);
+                          .hasOnly(['businessReply', 'businessReplyAt'])
+                      && request.resource.data.businessReply is string
+                      && request.resource.data.businessReply.size() <= 500
+                      && request.resource.data.businessReplyAt == request.time;
       }
 
       match /notifications/{notificationId} {
