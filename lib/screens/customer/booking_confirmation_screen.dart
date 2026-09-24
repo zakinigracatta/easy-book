@@ -129,8 +129,16 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    if (!startDateTime.isAfter(DateTime.now())) {
+    final now = DateTime.now();
+    if (!startDateTime.isAfter(now)) {
       _showMessage('Please select a future appointment time.');
+      return;
+    }
+    if (startDateTime.difference(now) <= const Duration(minutes: 30)) {
+      _showMessage(
+        'Please select an appointment at least 30 minutes from now.',
+        isError: true,
+      );
       return;
     }
 
