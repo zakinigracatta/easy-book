@@ -77,4 +77,15 @@ void main() {
     expect(ownerCard, contains('currency: booking.currency'));
     expect(summary, contains('currency: totalCurrency'));
   });
+
+
+  test('reschedule response preserves backend-resolved specialist metadata', () {
+    final source =
+        File('lib/services/booking_functions_service.dart').readAsStringSync();
+
+    expect(source, contains("resData['staffId']"));
+    expect(source, contains("resData['staffName']"));
+    expect(source, contains('staffId: resolvedStaffId'));
+    expect(source, contains('staffName: resolvedStaffName'));
+  });
 }
