@@ -42,6 +42,15 @@ abstract class OwnerRepository {
     required DateTime end,
     String? staffId,
   });
+  Future<List<BookingModel>> fetchUpcomingOwnerBookings(
+    String businessId, {
+    required DateTime after,
+    int limit = 3,
+  });
+  Future<int> countOwnerBookingsByStatus(
+    String businessId,
+    BookingStatus status,
+  );
   Future<BookingModel> createWalkInBooking(BookingModel booking);
   Future<void> updateBookingStatus(String bookingId, BookingStatus newStatus);
   Future<List<ServiceModel>> fetchOwnerServices(String businessId);
@@ -231,6 +240,68 @@ class OwnerRepositoryImpl implements OwnerRepository {
     } on FirebaseException catch (e) {
       throw DomainException(
         'Failed to fetch booking range: ${e.message ?? e.code}',
+      );
+    }
+  }
+
+  @override
+  Future<List<BookingModel>> fetchUpcomingOwnerBookings(
+    String businessId, {
+    required DateTime after,
+    int limit = 3,
+  }) async {
+    if (businessId.isEmpty) return const <BookingModel>[];
+    final safeLimit = limit.clamp(1, 20);
+    try {
+      final snap = await _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId)
+          .where(
+            'startDateTime',
+            isGreaterThan: Timestamp.fromDate(after),
+          )
+          .orderBy('startDateTime')
+          .limit(safeLimit * 4)
+          .get();
+
+      final result = <BookingModel>[];
+      for (final doc in snap.docs) {
+        final data = Map<String, dynamic>.from(doc.data());
+        data['id'] = doc.id;
+        final booking = BookingModel.fromJson(data);
+        if (booking.status == BookingStatus.cancelled ||
+            booking.status == BookingStatus.completed ||
+            booking.status == BookingStatus.noShow) {
+          continue;
+        }
+        result.add(booking);
+        if (result.length == safeLimit) break;
+      }
+      return result;
+    } on FirebaseException catch (e) {
+      throw DomainException(
+        'Failed to fetch upcoming bookings: ${e.message ?? e.code}',
+      );
+    }
+  }
+
+  @override
+  Future<int> countOwnerBookingsByStatus(
+    String businessId,
+    BookingStatus status,
+  ) async {
+    if (businessId.isEmpty) return 0;
+    try {
+      final aggregate = await _firestore
+          .collection('bookings')
+          .where('businessId', isEqualTo: businessId)
+          .where('status', isEqualTo: status.name)
+          .count()
+          .get();
+      return aggregate.count ?? 0;
+    } on FirebaseException catch (e) {
+      throw DomainException(
+        'Failed to count bookings: ${e.message ?? e.code}',
       );
     }
   }
