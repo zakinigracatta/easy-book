@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../core/domain_exceptions.dart';
 import '../../core/utils/business_clock.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/employee_time_off_model.dart';
@@ -499,6 +500,10 @@ class _EmployeeTimeOffScreenState extends ConsumerState<EmployeeTimeOffScreen> {
       Navigator.pop(sheetContext);
       if (mounted) {
         _showMessage(context.tr('Employee leave scheduled successfully.'));
+      }
+    } on DomainException catch (e) {
+      if (mounted) {
+        _showMessage(e.message, isError: true);
       }
     } catch (_) {
       if (mounted) {
