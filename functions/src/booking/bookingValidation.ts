@@ -194,6 +194,25 @@ function readString(
   return null;
 }
 
+function readStoredDate(value: unknown): Date | null {
+  if (value instanceof admin.firestore.Timestamp) return value.toDate();
+  if (value instanceof Date) return value;
+  if (
+    value &&
+    typeof value === 'object' &&
+    'toDate' in value &&
+    typeof (value as { toDate?: unknown }).toDate === 'function'
+  ) {
+    const parsed = (value as { toDate: () => Date }).toDate();
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  if (typeof value === 'string') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+}
+
 function readServiceDurationMinutes(
   source: Record<string, unknown>
 ): number | null {
@@ -582,27 +601,16 @@ export async function validateBookingRequirements(
   const reqEndMs = calculatedEndAt.getTime();
   for (const doc of timeOffDocs.values()) {
     const timeOff = doc.data();
-    let timeOffStartMs = 0;
-    let timeOffEndMs = 0;
-
-    if (
-      timeOff.startDate &&
-      typeof timeOff.startDate.toMillis === 'function'
-    ) {
-      timeOffStartMs = timeOff.startDate.toMillis();
-    } else if (typeof timeOff.startDate === 'string') {
-      timeOffStartMs = new Date(timeOff.startDate).getTime();
-    }
-
-    if (timeOff.endDate && typeof timeOff.endDate.toMillis === 'function') {
-      const endDate = timeOff.endDate.toDate();
-      timeOffEndMs = normalizeInclusiveTimeOffEndMs(endDate, timeZone);
-    } else if (typeof timeOff.endDate === 'string') {
-      const endDate = new Date(timeOff.endDate);
-      if (!Number.isNaN(endDate.getTime())) {
-        timeOffEndMs = normalizeInclusiveTimeOffEndMs(endDate, timeZone);
-      }
-    }
+    const startDate = readStoredDate(
+      timeOff.startDate ?? timeOff.start_date
+    );
+    const endDate = readStoredDate(
+      timeOff.endDate ?? timeOff.end_date
+    );
+    const timeOffStartMs = startDate?.getTime() ?? 0;
+    const timeOffEndMs = endDate
+      ? normalizeInclusiveTimeOffEndMs(endDate, timeZone)
+      : 0;
 
     if (
       timeOffStartMs > 0 &&
