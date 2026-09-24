@@ -135,7 +135,13 @@ service cloud.firestore {
         ) &&
         (
           (!('review_count' in resource.data) &&
-            (!('review_count' in request.resource.data) || request.resource.data.review_count == 0)) ||
+            (
+              (!('reviewCount' in resource.data) &&
+                (!('review_count' in request.resource.data) || request.resource.data.review_count == 0)) ||
+              (('reviewCount' in resource.data) &&
+                ('review_count' in request.resource.data) &&
+                request.resource.data.review_count == resource.data.reviewCount)
+            )) ||
           (('review_count' in resource.data) &&
             ('review_count' in request.resource.data) &&
             request.resource.data.review_count == resource.data.review_count)
