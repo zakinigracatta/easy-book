@@ -33,6 +33,28 @@ void main() {
     expect(verifyEmail, contains('final pendingRoute = NavigationService().consumePendingRoute();'));
   });
 
+  test('protected deep links survive email verification for all roles', () {
+    final router = File('lib/routes/app_router.dart').readAsStringSync();
+    final customerLogin =
+        File('lib/screens/auth/login_screen.dart').readAsStringSync();
+    final verifyEmail =
+        File('lib/screens/auth/verify_email_screen.dart').readAsStringSync();
+
+    expect(router, contains("redirectTarget == '/verify-email'"));
+    expect(
+      router,
+      contains('NavigationService().setPendingRoute(state.uri.toString())'),
+    );
+    expect(
+      customerLogin,
+      contains('context.go(pendingRoute);'),
+    );
+    expect(
+      verifyEmail,
+      contains("pendingRoute.startsWith('/admin')"),
+    );
+  });
+
   test('admin business details use canonical staff role and duration aliases', () {
     final source = File(
       'lib/features/admin/business_details_screen.dart',
