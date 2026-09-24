@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../l10n/app_localizations.dart';
 import '../providers/app_providers.dart';
-import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 
 /// App drawer for Business Owner / Partner screens.
