@@ -242,5 +242,6 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Unable to load services. Please try again.': 'تعذر تحميل الخدمات. حاول مرة أخرى.',
   'No active services are available yet.': 'لا توجد خدمات نشطة متاحة حتى الآن.',
   'Service disabled': 'تم تعطيل الخدمة',
+  'No specialists are available for this time slot.': 'لا يوجد أخصائيون متاحون لهذا الوقت.',
   'Unable to update this service. Please try again.': 'تعذر تحديث هذه الخدمة. حاول مرة أخرى.',
 };
