@@ -18,8 +18,8 @@ class AdminDashboardScreen extends StatelessWidget {
     _Destination(
         'Users',
         'المستخدمون',
-        'Manage customer and partner accounts',
-        'إدارة حسابات العملاء والشركاء',
+        'View customer and partner accounts',
+        'عرض حسابات العملاء والشركاء',
         Icons.people_alt_rounded,
         Color(0xFF7C3AED),
         '/admin/users'),
