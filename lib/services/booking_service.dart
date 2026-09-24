@@ -97,6 +97,7 @@ class BookingService {
         requestedStartAt: booking.startDateTime,
         customerName: booking.customerName,
         customerPhone: booking.customerPhone ?? '',
+        clientRequestId: booking.clientRequestId,
         notes: booking.notes ?? '',
       );
     }
