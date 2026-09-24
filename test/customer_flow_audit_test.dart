@@ -155,7 +155,8 @@ void main() {
       contains("STAFF_CHANGE_NOT_ALLOWED"),
     );
     expect(rescheduleFunction, contains('staffId: targetStaffId'));
-    expect(rescheduleFunction, contains('NO_RESCHEDULE_CHANGE'));
+    expect(rescheduleFunction, contains('idempotentReplay: true'));
+    expect(rescheduleFunction, isNot(contains('NO_RESCHEDULE_CHANGE')));
     expect(client, contains("msg.contains('NO_RESCHEDULE_CHANGE')"));
   });
   test('customer booking retries use a stable idempotency key', () {
