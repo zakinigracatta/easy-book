@@ -2,6 +2,8 @@ import 'package:easy_book/models/booking_model.dart';
 import 'package:easy_book/models/expense_model.dart';
 import 'package:easy_book/services/owner_finance_calculator.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 void main() {
   const calculator = OwnerFinanceCalculator();
@@ -241,6 +243,39 @@ void main() {
     expect(summary.recognizedRevenue, 120);
     expect(summary.expenses, 20);
     expect(summary.netProfit, 100);
+  });
+
+  test('preserves business timezone at report day boundaries', () {
+    tzdata.initializeTimeZones();
+    final dubai = tz.getLocation('Asia/Dubai');
+    final reportDay = tz.TZDateTime(dubai, 2026, 8, 23);
+
+    final summary = calculator.calculate(
+      bookings: [
+        booking(
+          id: 'dubai-midnight',
+          status: BookingStatus.completed,
+          price: 150,
+          date: tz.TZDateTime(dubai, 2026, 8, 23, 0, 30),
+        ),
+      ],
+      expenses: [
+        expense(
+          id: 'dubai-expense',
+          category: ExpenseCategory.utilities,
+          amount: 25,
+          date: tz.TZDateTime(dubai, 2026, 8, 23, 23, 30),
+        ),
+      ],
+      from: reportDay,
+      to: reportDay,
+    );
+
+    expect(summary.recognizedRevenue, 150);
+    expect(summary.expenses, 25);
+    expect(summary.netProfit, 125);
+    expect(summary.from, isA<tz.TZDateTime>());
+    expect((summary.from as tz.TZDateTime).location.name, 'Asia/Dubai');
   });
 
   test('returns zero margin and zero average when there is no recognized revenue', () {
