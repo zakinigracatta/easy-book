@@ -56,20 +56,35 @@ final currentBusinessIdProvider = FutureProvider<String>((ref) async {
 class OwnerBusinessNotifier extends StateNotifier<AsyncValue<BusinessModel>> {
   final OwnerRepository _repo;
   final String _businessId;
+  final bool _resolvingBusinessId;
 
-  OwnerBusinessNotifier(this._repo, this._businessId)
-      : super(_businessId.isEmpty
-            ? AsyncValue.error(
-                StateError('No business is linked to this owner account.'),
-                StackTrace.current,
-              )
-            : const AsyncValue.loading()) {
-    if (_businessId.isNotEmpty) {
+  OwnerBusinessNotifier(
+    this._repo,
+    this._businessId, {
+    bool resolvingBusinessId = false,
+  })  : _resolvingBusinessId = resolvingBusinessId,
+        super(
+          resolvingBusinessId
+              ? const AsyncValue.loading()
+              : _businessId.isEmpty
+                  ? AsyncValue.error(
+                      StateError(
+                        'No business is linked to this owner account.',
+                      ),
+                      StackTrace.current,
+                    )
+                  : const AsyncValue.loading(),
+        ) {
+    if (!resolvingBusinessId && _businessId.isNotEmpty) {
       loadBusiness();
     }
   }
 
   Future<void> loadBusiness() async {
+    if (_resolvingBusinessId) {
+      state = const AsyncValue.loading();
+      return;
+    }
     if (_businessId.isEmpty) {
       state = AsyncValue.error(
         StateError('No business is linked to this owner account.'),
@@ -112,7 +127,11 @@ final ownerBusinessProvider =
   final repo = ref.watch(ownerRepositoryProvider);
   final bizIdAsync = ref.watch(currentBusinessIdProvider);
   final bizId = bizIdAsync.value ?? '';
-  return OwnerBusinessNotifier(repo, bizId);
+  return OwnerBusinessNotifier(
+    repo,
+    bizId,
+    resolvingBusinessId: bizIdAsync.isLoading,
+  );
 });
 
 // Owner Bookings Notifier
@@ -120,17 +139,30 @@ class OwnerBookingsNotifier
     extends StateNotifier<AsyncValue<List<BookingModel>>> {
   final OwnerRepository _repo;
   final String _businessId;
+  final bool _resolvingBusinessId;
 
-  OwnerBookingsNotifier(this._repo, this._businessId)
-      : super(_businessId.isEmpty
-            ? const AsyncValue.data(<BookingModel>[])
-            : const AsyncValue.loading()) {
-    if (_businessId.isNotEmpty) {
+  OwnerBookingsNotifier(
+    this._repo,
+    this._businessId, {
+    bool resolvingBusinessId = false,
+  })  : _resolvingBusinessId = resolvingBusinessId,
+        super(
+          resolvingBusinessId
+              ? const AsyncValue.loading()
+              : _businessId.isEmpty
+                  ? const AsyncValue.data(<BookingModel>[])
+                  : const AsyncValue.loading(),
+        ) {
+    if (!resolvingBusinessId && _businessId.isNotEmpty) {
       loadBookings();
     }
   }
 
   Future<void> loadBookings() async {
+    if (_resolvingBusinessId) {
+      state = const AsyncValue.loading();
+      return;
+    }
     if (_businessId.isEmpty) {
       state = const AsyncValue.data(<BookingModel>[]);
       return;
@@ -162,7 +194,11 @@ final ownerBookingsProvider = StateNotifierProvider<OwnerBookingsNotifier,
   final repo = ref.watch(ownerRepositoryProvider);
   final bizIdAsync = ref.watch(currentBusinessIdProvider);
   final bizId = bizIdAsync.value ?? '';
-  return OwnerBookingsNotifier(repo, bizId);
+  return OwnerBookingsNotifier(
+    repo,
+    bizId,
+    resolvingBusinessId: bizIdAsync.isLoading,
+  );
 });
 
 // Filter & Search Providers for Owner Bookings
@@ -233,17 +269,30 @@ class OwnerServicesNotifier
     extends StateNotifier<AsyncValue<List<ServiceModel>>> {
   final OwnerRepository _repo;
   final String _businessId;
+  final bool _resolvingBusinessId;
 
-  OwnerServicesNotifier(this._repo, this._businessId)
-      : super(_businessId.isEmpty
-            ? const AsyncValue.data(<ServiceModel>[])
-            : const AsyncValue.loading()) {
-    if (_businessId.isNotEmpty) {
+  OwnerServicesNotifier(
+    this._repo,
+    this._businessId, {
+    bool resolvingBusinessId = false,
+  })  : _resolvingBusinessId = resolvingBusinessId,
+        super(
+          resolvingBusinessId
+              ? const AsyncValue.loading()
+              : _businessId.isEmpty
+                  ? const AsyncValue.data(<ServiceModel>[])
+                  : const AsyncValue.loading(),
+        ) {
+    if (!resolvingBusinessId && _businessId.isNotEmpty) {
       loadServices();
     }
   }
 
   Future<void> loadServices() async {
+    if (_resolvingBusinessId) {
+      state = const AsyncValue.loading();
+      return;
+    }
     if (_businessId.isEmpty) {
       state = const AsyncValue.data(<ServiceModel>[]);
       return;
@@ -295,7 +344,11 @@ final ownerServicesProvider = StateNotifierProvider<OwnerServicesNotifier,
   final repo = ref.watch(ownerRepositoryProvider);
   final bizIdAsync = ref.watch(currentBusinessIdProvider);
   final bizId = bizIdAsync.value ?? '';
-  return OwnerServicesNotifier(repo, bizId);
+  return OwnerServicesNotifier(
+    repo,
+    bizId,
+    resolvingBusinessId: bizIdAsync.isLoading,
+  );
 });
 
 // Owner Employees Notifier
@@ -303,17 +356,30 @@ class OwnerEmployeesNotifier
     extends StateNotifier<AsyncValue<List<StaffModel>>> {
   final OwnerRepository _repo;
   final String _businessId;
+  final bool _resolvingBusinessId;
 
-  OwnerEmployeesNotifier(this._repo, this._businessId)
-      : super(_businessId.isEmpty
-            ? const AsyncValue.data(<StaffModel>[])
-            : const AsyncValue.loading()) {
-    if (_businessId.isNotEmpty) {
+  OwnerEmployeesNotifier(
+    this._repo,
+    this._businessId, {
+    bool resolvingBusinessId = false,
+  })  : _resolvingBusinessId = resolvingBusinessId,
+        super(
+          resolvingBusinessId
+              ? const AsyncValue.loading()
+              : _businessId.isEmpty
+                  ? const AsyncValue.data(<StaffModel>[])
+                  : const AsyncValue.loading(),
+        ) {
+    if (!resolvingBusinessId && _businessId.isNotEmpty) {
       loadEmployees();
     }
   }
 
   Future<void> loadEmployees() async {
+    if (_resolvingBusinessId) {
+      state = const AsyncValue.loading();
+      return;
+    }
     if (_businessId.isEmpty) {
       state = const AsyncValue.data(<StaffModel>[]);
       return;
@@ -345,15 +411,18 @@ final ownerEmployeesProvider =
   final repo = ref.watch(ownerRepositoryProvider);
   final bizIdAsync = ref.watch(currentBusinessIdProvider);
   final bizId = bizIdAsync.value ?? '';
-  return OwnerEmployeesNotifier(repo, bizId);
+  return OwnerEmployeesNotifier(
+    repo,
+    bizId,
+    resolvingBusinessId: bizIdAsync.isLoading,
+  );
 });
 
 // Owner Time Offs Provider
 final ownerTimeOffsProvider =
     FutureProvider<List<EmployeeTimeOffModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = await ref.watch(currentBusinessIdProvider.future);
   if (bizId.isEmpty) return [];
   return repo.fetchEmployeeTimeOffs(bizId);
 });
@@ -363,17 +432,30 @@ class OwnerGalleryNotifier
     extends StateNotifier<AsyncValue<List<GalleryImageModel>>> {
   final OwnerRepository _repo;
   final String _businessId;
+  final bool _resolvingBusinessId;
 
-  OwnerGalleryNotifier(this._repo, this._businessId)
-      : super(_businessId.isEmpty
-            ? const AsyncValue.data(<GalleryImageModel>[])
-            : const AsyncValue.loading()) {
-    if (_businessId.isNotEmpty) {
+  OwnerGalleryNotifier(
+    this._repo,
+    this._businessId, {
+    bool resolvingBusinessId = false,
+  })  : _resolvingBusinessId = resolvingBusinessId,
+        super(
+          resolvingBusinessId
+              ? const AsyncValue.loading()
+              : _businessId.isEmpty
+                  ? const AsyncValue.data(<GalleryImageModel>[])
+                  : const AsyncValue.loading(),
+        ) {
+    if (!resolvingBusinessId && _businessId.isNotEmpty) {
       loadGallery();
     }
   }
 
   Future<void> loadGallery() async {
+    if (_resolvingBusinessId) {
+      state = const AsyncValue.loading();
+      return;
+    }
     if (_businessId.isEmpty) {
       state = const AsyncValue.data(<GalleryImageModel>[]);
       return;
@@ -404,14 +486,17 @@ final ownerGalleryProvider = StateNotifierProvider<OwnerGalleryNotifier,
   final repo = ref.watch(ownerRepositoryProvider);
   final bizIdAsync = ref.watch(currentBusinessIdProvider);
   final bizId = bizIdAsync.value ?? '';
-  return OwnerGalleryNotifier(repo, bizId);
+  return OwnerGalleryNotifier(
+    repo,
+    bizId,
+    resolvingBusinessId: bizIdAsync.isLoading,
+  );
 });
 
 // Owner Reviews Provider
 final ownerReviewsProvider = FutureProvider<List<ReviewModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = await ref.watch(currentBusinessIdProvider.future);
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerReviews(bizId);
 });
@@ -419,8 +504,7 @@ final ownerReviewsProvider = FutureProvider<List<ReviewModel>>((ref) async {
 // Owner Offers Provider
 final ownerOffersProvider = FutureProvider<List<OfferModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = await ref.watch(currentBusinessIdProvider.future);
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerOffers(bizId);
 });
@@ -429,8 +513,7 @@ final ownerOffersProvider = FutureProvider<List<OfferModel>>((ref) async {
 final ownerCustomersProvider =
     FutureProvider<List<CustomerProfileModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = await ref.watch(currentBusinessIdProvider.future);
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerCustomers(bizId);
 });
@@ -439,8 +522,7 @@ final ownerCustomersProvider =
 final ownerNotificationsProvider =
     FutureProvider<List<OwnerNotificationModel>>((ref) async {
   final repo = ref.watch(ownerRepositoryProvider);
-  final bizIdAsync = ref.watch(currentBusinessIdProvider);
-  final bizId = bizIdAsync.value ?? '';
+  final bizId = await ref.watch(currentBusinessIdProvider.future);
   if (bizId.isEmpty) return [];
   return repo.fetchOwnerNotifications(bizId);
 });
