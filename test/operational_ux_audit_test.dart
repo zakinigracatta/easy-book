@@ -470,4 +470,14 @@ void main() {
       contains('b.status == BookingStatus.completed'),
     );
   });
+
+
+  test('admin business list surfaces inactive state before approval label', () {
+    final source = File(
+      'lib/features/admin/business_management_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains("final statusLabel = !isActive"));
+    expect(source, contains("adminText(context, 'Inactive', 'غير نشط')"));
+  });
 }
