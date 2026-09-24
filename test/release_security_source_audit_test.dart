@@ -261,6 +261,15 @@ void main() {
     expect(source, contains("cleanText(userData.phone, 40)"));
   });
 
+  test('booking cancellation fails closed on unknown statuses', () {
+    final source = File(
+      'functions/src/booking/cancelBooking.ts',
+    ).readAsStringSync();
+
+    expect(source, contains('const cancellableStatuses = new Set(['));
+    expect(source, contains('if (!cancellableStatuses.has(currentStatus))'));
+  });
+
   test('owner booking status retries are idempotent', () {
     final source = File(
       'functions/src/booking/updateBookingStatus.ts',
