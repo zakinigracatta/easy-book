@@ -142,6 +142,13 @@ class OwnerBookingsNotifier
   final OwnerRepository _repo;
   final String _businessId;
   final bool _resolvingBusinessId;
+  DateTime? _cursorStartDateTime;
+  String? _cursorBookingId;
+  bool _hasMore = false;
+  bool _isLoadingMore = false;
+
+  bool get hasMore => _hasMore;
+  bool get isLoadingMore => _isLoadingMore;
 
   OwnerBookingsNotifier(
     this._repo,
@@ -171,11 +178,50 @@ class OwnerBookingsNotifier
     }
 
     state = const AsyncValue.loading();
+    _cursorStartDateTime = null;
+    _cursorBookingId = null;
+    _hasMore = false;
+    _isLoadingMore = false;
     try {
-      final list = await _repo.fetchOwnerBookings(_businessId);
-      state = AsyncValue.data(list);
+      final page = await _repo.fetchOwnerBookingsPage(_businessId);
+      _cursorStartDateTime = page.cursorStartDateTime;
+      _cursorBookingId = page.cursorBookingId;
+      _hasMore = page.hasMore;
+      state = AsyncValue.data(page.items);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (_resolvingBusinessId ||
+        _businessId.isEmpty ||
+        !_hasMore ||
+        _isLoadingMore) {
+      return;
+    }
+
+    final current = state.value ?? const <BookingModel>[];
+    _isLoadingMore = true;
+    try {
+      final page = await _repo.fetchOwnerBookingsPage(
+        _businessId,
+        afterStartDateTime: _cursorStartDateTime,
+        afterBookingId: _cursorBookingId,
+      );
+      final merged = <String, BookingModel>{
+        for (final booking in current) booking.id: booking,
+        for (final booking in page.items) booking.id: booking,
+      }.values.toList()
+        ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
+      _cursorStartDateTime = page.cursorStartDateTime;
+      _cursorBookingId = page.cursorBookingId;
+      _hasMore = page.hasMore;
+      state = AsyncValue.data(merged);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    } finally {
+      _isLoadingMore = false;
     }
   }
 
@@ -200,6 +246,28 @@ final ownerBookingsProvider = StateNotifierProvider<OwnerBookingsNotifier,
     repo,
     bizId,
     resolvingBusinessId: bizIdAsync.isLoading,
+  );
+});
+
+final ownerBookingsForDateProvider = FutureProvider.autoDispose.family<
+    List<BookingModel>,
+    ({DateTime date, String timeZone})>((ref, arg) async {
+  final repo = ref.watch(ownerRepositoryProvider);
+  final businessId = await ref.watch(currentBusinessIdProvider.future);
+  if (businessId.isEmpty) return const <BookingModel>[];
+
+  final start = BusinessClock.wallClock(
+    DateTime(arg.date.year, arg.date.month, arg.date.day),
+    arg.timeZone,
+  );
+  final end = BusinessClock.wallClock(
+    DateTime(arg.date.year, arg.date.month, arg.date.day + 1),
+    arg.timeZone,
+  );
+  return repo.fetchOwnerBookingsInRange(
+    businessId,
+    start: start,
+    end: end,
   );
 });
 
