@@ -455,4 +455,19 @@ void main() {
     expect(source, contains('_showCompactMenu'));
     expect(source, contains("context.go(item.route)"));
   });
+
+
+  test('owner CRM last visit uses completed appointments only', () {
+    final source =
+        File('lib/repositories/owner_repository.dart').readAsStringSync();
+
+    expect(
+      source,
+      contains('b.status == BookingStatus.completed ? b.startDateTime : null'),
+    );
+    expect(
+      source,
+      contains('b.status == BookingStatus.completed'),
+    );
+  });
 }
