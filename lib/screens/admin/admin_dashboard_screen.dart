@@ -32,14 +32,6 @@ class AdminDashboardScreen extends StatelessWidget {
         Color(0xFF059669),
         '/admin/approvals'),
     _Destination(
-        'Payments',
-        'المدفوعات',
-        'Payment integration status and future payout tools',
-        'حالة تكامل المدفوعات وأدوات التحويل القادمة',
-        Icons.account_balance_wallet_rounded,
-        Color(0xFFEA580C),
-        '/admin/payments'),
-    _Destination(
         'Analytics',
         'التحليلات',
         'Explore platform activity and performance',
@@ -47,14 +39,6 @@ class AdminDashboardScreen extends StatelessWidget {
         Icons.insights_rounded,
         Color(0xFF0891B2),
         '/admin/analytics'),
-    _Destination(
-        'Reports',
-        'التقارير',
-        'Audit integration status and future operational reports',
-        'حالة تكامل التدقيق والتقارير التشغيلية القادمة',
-        Icons.summarize_rounded,
-        Color(0xFF475569),
-        '/admin/reports'),
   ];
 
   @override
