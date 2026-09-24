@@ -227,16 +227,18 @@ class _BusinessManagementScreenState extends State<BusinessManagementScreen> {
                         'is_active',
                         'isActive',
                       );
-                      final statusLabel = isVerified
-                          ? adminText(context, 'Approved', 'معتمد')
-                          : isActive
-                              ? adminText(context, 'Pending', 'قيد الاعتماد')
-                              : adminText(context, 'Rejected', 'مرفوض');
-                      final statusColor = isVerified
-                          ? AppColors.success
-                          : isActive
-                              ? AppColors.warning
-                              : AppColors.error;
+                      final statusLabel = !isActive
+                          ? (isVerified
+                              ? adminText(context, 'Inactive', 'غير نشط')
+                              : adminText(context, 'Rejected', 'مرفوض'))
+                          : isVerified
+                              ? adminText(context, 'Approved', 'معتمد')
+                              : adminText(context, 'Pending', 'قيد الاعتماد');
+                      final statusColor = !isActive
+                          ? AppColors.error
+                          : isVerified
+                              ? AppColors.success
+                              : AppColors.warning;
                       final rating =
                           (data['rating'] as num?)?.toDouble() ?? 0.0;
 
