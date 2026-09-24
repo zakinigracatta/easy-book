@@ -53,15 +53,23 @@ class _BookingTimeScreenState extends ConsumerState<BookingTimeScreen> {
     String resolvedId = draft.staffId ?? '';
     String resolvedName = draft.staffName ?? context.tr('Specialist');
 
-    if (draft.anySpecialist || resolvedId.isEmpty) {
-      if (_selectedSlot!.availableStaffIds.isNotEmpty) {
-        resolvedId = _selectedSlot!.availableStaffIds.first;
-        final matches = eligibleStaff.where((staff) => staff.id == resolvedId);
-        if (matches.isNotEmpty) resolvedName = matches.first.name;
+    if (draft.anySpecialist) {
+      // The availability engine proves that at least one eligible employee is
+      // available, but assignment remains server-owned until the atomic
+      // booking transaction commits.
+      if (_selectedSlot!.availableStaffIds.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.tr('No specialists are available for this time slot.'),
+            ),
+          ),
+        );
+        return;
       }
-    }
-
-    if (resolvedId.isEmpty) {
+      resolvedId = '';
+      resolvedName = 'Any Available Specialist';
+    } else if (resolvedId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
