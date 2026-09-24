@@ -880,3 +880,104 @@ test('43. Owner may backfill canonical staff review_count from identical legacy 
       })
   );
 });
+
+
+test('43. Owner can create a valid offer for own business', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner').set({
+      id: 'offer_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz').set({
+      id: 'offer_biz',
+      ownerId: 'offer_owner',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('offer_owner').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('offer_biz')
+      .collection('offers').doc('offer_ok').set({
+        id: 'offer_ok',
+        businessId: 'offer_biz',
+        title: 'Weekend offer',
+        description: 'Valid promotion',
+        discountType: 'percentage',
+        discountValue: 20,
+        startDate: '2026-09-25T00:00:00.000Z',
+        endDate: '2026-10-25T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      })
+  );
+});
+
+test('44. Owner cannot publish an invalid percentage offer', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner_bad').set({
+      id: 'offer_owner_bad',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz_bad').set({
+      id: 'offer_biz_bad',
+      ownerId: 'offer_owner_bad',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('offer_owner_bad').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('offer_biz_bad')
+      .collection('offers').doc('offer_bad').set({
+        id: 'offer_bad',
+        businessId: 'offer_biz_bad',
+        title: 'Impossible offer',
+        description: '',
+        discountType: 'percentage',
+        discountValue: 150,
+        startDate: '2026-09-25T00:00:00.000Z',
+        endDate: '2026-10-25T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      })
+  );
+});
+
+test('45. Owner cannot write an offer for another business identity', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('offer_owner_identity').set({
+      id: 'offer_owner_identity',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('offer_biz_identity').set({
+      id: 'offer_biz_identity',
+      ownerId: 'offer_owner_identity',
+      is_verified: true,
+      is_active: true,
+    });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('offer_owner_identity').firestore();
+  await assertFails(
+    ownerDb.collection('businesses').doc('offer_biz_identity')
+      .collection('offers').doc('offer_wrong_biz').set({
+        id: 'offer_wrong_biz',
+        businessId: 'another_business',
+        title: 'Wrong identity',
+        description: '',
+        discountType: 'percentage',
+        discountValue: 10,
+        startDate: '2026-09-25T00:00:00.000Z',
+        endDate: '2026-10-25T00:00:00.000Z',
+        serviceIds: [],
+        isActive: true,
+      })
+  );
+});
