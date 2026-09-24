@@ -111,6 +111,7 @@ class AuthNotifier extends StateNotifier<UserModel?> {
 
   Future<void> logout() async {
     await _repository.logout();
+    NavigationService().clearPendingRoute();
     state = null;
   }
 
