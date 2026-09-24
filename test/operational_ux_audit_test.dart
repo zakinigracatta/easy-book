@@ -101,27 +101,37 @@ void main() {
   });
 
   test('owner dashboard upcoming list is future-only and timezone-aware', () {
-    final source =
-        File('lib/screens/business/owner_dashboard_screen.dart').readAsStringSync();
+    final providerSource =
+        File('lib/providers/owner_providers.dart').readAsStringSync();
+    final repositorySource =
+        File('lib/repositories/owner_repository.dart').readAsStringSync();
 
-    expect(source, contains('BusinessClock.now(timeZone)'));
-    expect(source, contains('BusinessClock.inTimeZone(booking.startDateTime, timeZone)'));
-    expect(source, contains('localStart.isAfter(now)'));
-    expect(source, contains('booking.status != BookingStatus.noShow'));
-    expect(source, contains('a.startDateTime.compareTo(b.startDateTime)'));
+    expect(providerSource, contains('BusinessClock.now(timeZone)'));
+    expect(providerSource, contains('fetchUpcomingOwnerBookings('));
+    expect(providerSource, contains('after: now'));
+    expect(repositorySource, contains("'startDateTime',"));
+    expect(repositorySource, contains('isGreaterThan: Timestamp.fromDate(after)'));
+    expect(repositorySource, contains(".orderBy('startDateTime')"));
+    expect(repositorySource, contains("'noShow'"), reason:
+        'Upcoming query must stay constrained to active statuses, excluding no-show/completed/cancelled records.');
   });
 
   test('owner calendar groups bookings by business timezone', () {
-    final source =
+    final screenSource =
         File('lib/screens/business/booking_calendar_screen.dart').readAsStringSync();
+    final providerSource =
+        File('lib/providers/owner_providers.dart').readAsStringSync();
 
-    expect(source, contains('BusinessClock.calendarToday(timeZone)'));
-    expect(source, contains('BusinessClock.inTimeZone(b.startDateTime, timeZone)'));
+    expect(screenSource, contains('BusinessClock.calendarToday(timeZone)'));
+    expect(screenSource, contains('ownerBookingsForDateProvider(dateProviderArg)'));
     expect(
-      source,
+      screenSource,
       contains("businessToday.subtract(const Duration(days: 90))"),
     );
-    expect(source, contains('lastDate: businessToday.add'));
+    expect(screenSource, contains('lastDate: businessToday.add'));
+    expect(providerSource, contains('BusinessClock.wallClock('));
+    expect(providerSource, contains('DateTime(arg.date.year, arg.date.month, arg.date.day + 1)'));
+    expect(providerSource, contains('fetchOwnerBookingsInRange('));
   });
 
   test('owner booking actions respect backend timing and capabilities', () {
@@ -143,7 +153,8 @@ void main() {
 
     expect(source, contains('await Future.wait<void>(['));
     expect(source, contains('loadBusiness()'));
-    expect(source, contains('loadBookings()'));
+    expect(source, contains('ownerDashboardBookingsProvider.future'));
+    expect(source, contains('ownerTodayProfitAndLossProvider.future'));
     expect(source, isNot(contains('Future<void>.delayed(Duration.zero)')));
   });
 
