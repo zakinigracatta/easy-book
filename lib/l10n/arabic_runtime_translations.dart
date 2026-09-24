@@ -33,6 +33,10 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
       'تحقق من الاتصال ثم حاول مرة أخرى.',
   'Booking status updated to {status}': 'تم تحديث حالة الحجز إلى {status}',
 
+  'Load more': 'تحميل المزيد',
+  'Load older bookings': 'تحميل الحجوزات الأقدم',
+  'No matches in this page yet.': 'لا توجد نتائج مطابقة في هذه الصفحة حتى الآن.',
+  'Search more results': 'البحث في المزيد من النتائج',
   // Active routed UI coverage.
   '142 Luxury Blvd, Downtown NYC': '142 شارع لاكشري، وسط نيويورك',
   'About Business': 'عن النشاط',
