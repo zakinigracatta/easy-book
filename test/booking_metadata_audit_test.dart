@@ -99,7 +99,7 @@ void main() {
 
     expect(server, contains('optionalRequestId(data.clientRequestId)'));
     expect(server, contains("createHash('sha256')"));
-    expect(server, contains("doc(`wb_${deterministicId}`)"));
+    expect(server, contains(r"doc(`wb_${deterministicId}`)"));
     expect(server, contains('idempotentReplay: true'));
     expect(server, contains('IDEMPOTENCY_KEY_REUSED'));
     expect(client, contains("'clientRequestId': clientRequestId.trim()"));
