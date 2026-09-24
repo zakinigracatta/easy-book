@@ -157,4 +157,16 @@ void main() {
     expect(splash, contains('destination = pendingRoute;'));
   });
 
+  test('unfinished owner notification inbox is not exposed in MVP navigation', () {
+    final dashboard =
+        File('lib/screens/business/owner_dashboard_screen.dart')
+            .readAsStringSync();
+    final more =
+        File('lib/screens/business/owner_more_screen.dart').readAsStringSync();
+
+    expect(dashboard, isNot(contains("context.push('/owner-notifications')")));
+    expect(dashboard, isNot(contains('ownerNotificationsProvider')));
+    expect(more, isNot(contains("'/owner-notifications'")));
+  });
+
 }

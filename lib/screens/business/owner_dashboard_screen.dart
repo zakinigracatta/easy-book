@@ -34,14 +34,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final businessAsync = ref.watch(ownerBusinessProvider);
     final dashboardBookingsAsync = ref.watch(ownerDashboardBookingsProvider);
-    final notificationsAsync = ref.watch(ownerNotificationsProvider);
     final todayFinanceAsync = ref.watch(ownerTodayProfitAndLossProvider);
-
-    final unreadNotificationsCount = notificationsAsync.maybeWhen(
-      data: (notifications) =>
-          notifications.where((notification) => !notification.isRead).length,
-      orElse: () => 0,
-    );
 
     return PopScope(
       canPop: context.canPop(),
@@ -54,12 +47,10 @@ class OwnerDashboardScreen extends ConsumerWidget {
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(ownerNotificationsProvider);
               ref.invalidate(ownerTodayProfitAndLossProvider);
               ref.invalidate(ownerDashboardBookingsProvider);
               await Future.wait<void>([
                 ref.read(ownerBusinessProvider.notifier).loadBusiness(),
-                ref.read(ownerNotificationsProvider.future).then((_) {}),
                 ref.read(ownerTodayProfitAndLossProvider.future).then((_) {}),
                 ref.read(ownerDashboardBookingsProvider.future).then((_) {}),
               ]);
@@ -75,7 +66,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                       context,
                       ref,
                       business,
-                      unreadNotificationsCount,
                     ),
                     loading: () => _buildHeaderSkeleton(context),
                     error: (_, __) => _buildHeaderSkeleton(context),
@@ -141,7 +131,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     dynamic business,
-    int unreadNotificationsCount,
   ) {
     final acceptingBookings = business.acceptingBookings == true;
 
@@ -299,15 +288,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
                 ),
               ],
             ),
-          ),
-          IconButton(
-            tooltip: context.tr('Notifications'),
-            icon: Badge(
-              isLabelVisible: unreadNotificationsCount > 0,
-              label: Text('$unreadNotificationsCount'),
-              child: const Icon(Icons.notifications_outlined),
-            ),
-            onPressed: () => context.push('/owner-notifications'),
           ),
           IconButton(
             tooltip: context.tr('Settings'),
