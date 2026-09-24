@@ -837,3 +837,46 @@ test('42. Owner cannot move a staff record to another business identity', async 
       })
   );
 });
+
+
+test('43. Owner may backfill canonical staff review_count from identical legacy reviewCount', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('legacy_staff_owner').set({
+      id: 'legacy_staff_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('legacy_staff_biz').set({
+      id: 'legacy_staff_biz',
+      ownerId: 'legacy_staff_owner',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('legacy_staff_biz')
+      .collection('staff').doc('legacy_staff').set({
+        id: 'legacy_staff',
+        businessId: 'legacy_staff_biz',
+        name: 'Legacy Specialist',
+        isActive: true,
+        rating: 4.5,
+        reviewCount: 12,
+      });
+  });
+
+  const ownerDb = testEnv.authenticatedContext('legacy_staff_owner').firestore();
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('legacy_staff_biz')
+      .collection('staff').doc('legacy_staff').update({
+        business_id: 'legacy_staff_biz',
+        is_active: true,
+        review_count: 12,
+      })
+  );
+
+  await assertFails(
+    ownerDb.collection('businesses').doc('legacy_staff_biz')
+      .collection('staff').doc('legacy_staff').update({
+        review_count: 13,
+      })
+  );
+});
