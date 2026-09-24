@@ -427,7 +427,10 @@ service cloud.firestore {
                       && hasActivePublicationState(resource.data)
                       && hasBookablePublicationState(resource.data)
                     );
-        allow create, update, delete: if isBusinessOwner(businessId);
+        allow create, update: if isBusinessOwner(businessId);
+        // Preserve historical booking references; owners deactivate services
+        // through the repository instead of deleting the document.
+        allow delete: if false;
       }
 
       match /staff/{staffId} {
@@ -443,7 +446,9 @@ service cloud.firestore {
         allow update: if isBusinessOwner(businessId)
                       && staffBelongsToBusiness(request.resource.data, businessId)
                       && preservesStaffTrustFields();
-        allow delete: if isBusinessOwner(businessId);
+        // Preserve historical booking references; owners deactivate staff
+        // through the repository instead of deleting the document.
+        allow delete: if false;
       }
 
       // PRIVATE OWNER FINANCE: employees and customers have no read/write access.
