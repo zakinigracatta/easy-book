@@ -262,6 +262,21 @@ void main() {
     expect(source, isNot(contains('NO_RESCHEDULE_CHANGE')));
   });
 
+  test('owner reschedules are not blocked by the public booking toggle', () {
+    final source = File(
+      'functions/src/booking/rescheduleBooking.ts',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains("requireAcceptingBookings: actor === 'customer'"),
+    );
+    expect(
+      source,
+      contains("requireVerifiedBusiness: actor === 'customer'"),
+    );
+  });
+
   test('customer reschedules fail closed when business approval is withdrawn', () {
     final validationSource = File(
       'functions/src/booking/bookingValidation.ts',
