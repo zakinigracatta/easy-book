@@ -1192,3 +1192,106 @@ test('51. Legacy service without identity aliases can still be deactivated', asy
       })
   );
 });
+
+
+test('52. Owner review reply requires bounded text and server timestamp', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('review_reply_owner').set({
+      id: 'review_reply_owner',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz').set({
+      id: 'review_reply_biz',
+      ownerId: 'review_reply_owner',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz')
+      .collection('reviews').doc('review_1').set({
+        id: 'review_1',
+        userName: 'Customer',
+        rating: 5,
+        comment: 'Great service',
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('review_reply_owner').firestore();
+
+  await assertSucceeds(
+    ownerDb.collection('businesses').doc('review_reply_biz')
+      .collection('reviews').doc('review_1').update({
+        businessReply: 'Thank you!',
+        businessReplyAt: FieldValue.serverTimestamp(),
+      })
+  );
+});
+
+test('53. Owner cannot forge review reply timestamp', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('review_reply_owner_bad').set({
+      id: 'review_reply_owner_bad',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_bad').set({
+      id: 'review_reply_biz_bad',
+      ownerId: 'review_reply_owner_bad',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_bad')
+      .collection('reviews').doc('review_bad').set({
+        id: 'review_bad',
+        userName: 'Customer',
+        rating: 5,
+        comment: 'Great service',
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('review_reply_owner_bad').firestore();
+
+  await assertFails(
+    ownerDb.collection('businesses').doc('review_reply_biz_bad')
+      .collection('reviews').doc('review_bad').update({
+        businessReply: 'Thank you!',
+        businessReplyAt: new Date('2020-01-01T00:00:00Z'),
+      })
+  );
+});
+
+test('54. Owner cannot publish an oversized review reply', async () => {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const adminDb = context.firestore();
+    await adminDb.collection('users').doc('review_reply_owner_long').set({
+      id: 'review_reply_owner_long',
+      role: 'owner',
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_long').set({
+      id: 'review_reply_biz_long',
+      ownerId: 'review_reply_owner_long',
+      is_verified: true,
+      is_active: true,
+    });
+    await adminDb.collection('businesses').doc('review_reply_biz_long')
+      .collection('reviews').doc('review_long').set({
+        id: 'review_long',
+        userName: 'Customer',
+        rating: 5,
+        comment: 'Great service',
+      });
+  });
+
+  const ownerDb =
+      testEnv.authenticatedContext('review_reply_owner_long').firestore();
+
+  await assertFails(
+    ownerDb.collection('businesses').doc('review_reply_biz_long')
+      .collection('reviews').doc('review_long').update({
+        businessReply: 'x'.repeat(501),
+        businessReplyAt: FieldValue.serverTimestamp(),
+      })
+  );
+});
