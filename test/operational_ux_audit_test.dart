@@ -3,6 +3,25 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('owner protected destinations survive login and email verification', () {
+    final router = File('lib/routes/app_router.dart').readAsStringSync();
+    final ownerLogin =
+        File('lib/screens/business/owner_login_screen.dart').readAsStringSync();
+    final verifyEmail =
+        File('lib/screens/auth/verify_email_screen.dart').readAsStringSync();
+
+    expect(
+      router,
+      contains("redirectTarget == '/owner-login'"),
+    );
+    expect(
+      router,
+      contains('ownerProtectedRoutes.contains(state.matchedLocation)'),
+    );
+    expect(ownerLogin, contains('consumePendingRoute()'));
+    expect(verifyEmail, contains('final pendingRoute = NavigationService().consumePendingRoute();'));
+  });
+
   test('admin business details use canonical staff role and duration aliases', () {
     final source = File(
       'lib/features/admin/business_details_screen.dart',
