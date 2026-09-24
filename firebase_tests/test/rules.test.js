@@ -1223,7 +1223,7 @@ test('52. Owner review reply requires bounded text and server timestamp', async 
     ownerDb.collection('businesses').doc('review_reply_biz')
       .collection('reviews').doc('review_1').update({
         businessReply: 'Thank you!',
-        businessReplyAt: FieldValue.serverTimestamp(),
+        businessReplyAt: serverTimestamp(),
       })
   );
 });
@@ -1291,7 +1291,7 @@ test('54. Owner cannot publish an oversized review reply', async () => {
     ownerDb.collection('businesses').doc('review_reply_biz_long')
       .collection('reviews').doc('review_long').update({
         businessReply: 'x'.repeat(501),
-        businessReplyAt: FieldValue.serverTimestamp(),
+        businessReplyAt: serverTimestamp(),
       })
   );
 });
