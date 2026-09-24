@@ -127,8 +127,12 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       }
 
       if (profile?.isAdmin == true) {
-        NavigationService().clearPendingRoute();
-        context.go('/admin/dashboard');
+        final pendingRoute = NavigationService().consumePendingRoute();
+        context.go(
+          pendingRoute != null && pendingRoute.startsWith('/admin')
+              ? pendingRoute
+              : '/admin/dashboard',
+        );
         return;
       }
 
