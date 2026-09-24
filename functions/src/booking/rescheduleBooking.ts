@@ -53,12 +53,6 @@ export const rescheduleBooking = onCall(async (request) => {
   }
 
   validateCanonical15MinAlignment(newStartAt);
-  if (newStartAt.getTime() <= Date.now()) {
-    throw new HttpsError(
-      'failed-precondition',
-      'START_TIME_IN_PAST: A rescheduled appointment must start in the future.'
-    );
-  }
 
   const db = admin.firestore();
 
@@ -103,23 +97,6 @@ export const rescheduleBooking = onCall(async (request) => {
       );
     }
 
-    if (currentStatus !== 'pending' && currentStatus !== 'confirmed') {
-      throw new HttpsError(
-        'failed-precondition',
-        `CANNOT_RESCHEDULE: Cannot reschedule a ${currentStatus} appointment.`
-      );
-    }
-
-    if (
-      actor === 'customer' &&
-      newStartAt.getTime() < Date.now() + 30 * 60 * 1000
-    ) {
-      throw new HttpsError(
-        'failed-precondition',
-        'START_TIME_TOO_SOON: Customer reschedules require at least 30 minutes lead time.'
-      );
-    }
-
     const customerUsesAnySpecialist = actor === 'customer' && anySpecialist;
     let targetStaffId = staffId;
 
@@ -144,13 +121,6 @@ export const rescheduleBooking = onCall(async (request) => {
       oldStartAt = bookingData.startDateTime.toDate();
     } else {
       oldStartAt = new Date(bookingData.startTimestamp || Date.now());
-    }
-
-    if (oldStartAt.getTime() <= Date.now()) {
-      throw new HttpsError(
-        'failed-precondition',
-        'CANNOT_RESCHEDULE: The original appointment has already started.'
-      );
     }
 
     if (
@@ -183,6 +153,37 @@ export const rescheduleBooking = onCall(async (request) => {
         status: currentStatus,
         idempotentReplay: true,
       };
+    }
+
+    if (currentStatus !== 'pending' && currentStatus !== 'confirmed') {
+      throw new HttpsError(
+        'failed-precondition',
+        `CANNOT_RESCHEDULE: Cannot reschedule a ${currentStatus} appointment.`
+      );
+    }
+
+    if (oldStartAt.getTime() <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'CANNOT_RESCHEDULE: The original appointment has already started.'
+      );
+    }
+
+    if (newStartAt.getTime() <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_IN_PAST: A rescheduled appointment must start in the future.'
+      );
+    }
+
+    if (
+      actor === 'customer' &&
+      newStartAt.getTime() < Date.now() + 30 * 60 * 1000
+    ) {
+      throw new HttpsError(
+        'failed-precondition',
+        'START_TIME_TOO_SOON: Customer reschedules require at least 30 minutes lead time.'
+      );
     }
 
     let context: Awaited<ReturnType<typeof validateBookingRequirements>>;
@@ -289,6 +290,7 @@ export const rescheduleBooking = onCall(async (request) => {
     transaction.update(bookingRef, {
       startDateTime: admin.firestore.Timestamp.fromDate(newStartAt),
       endDateTime: admin.firestore.Timestamp.fromDate(context.calculatedEndAt),
+      durationMinutes: context.durationMinutes,
       startTimestamp: newStartAt.getTime(),
       slotLockId: primarySlotLockId,
       staffId: targetStaffId,
