@@ -43,7 +43,25 @@ class _BookingConfirmationScreenState
       return;
     }
 
-    await currentUser.reload();
+    try {
+      await currentUser.reload();
+    } on FirebaseAuthException {
+      if (mounted) {
+        _showMessage(
+          'Unable to refresh your sign-in session. Check your connection and try again.',
+          isError: true,
+        );
+      }
+      return;
+    } catch (_) {
+      if (mounted) {
+        _showMessage(
+          'Unable to verify your sign-in session. Please try again.',
+          isError: true,
+        );
+      }
+      return;
+    }
     if (!mounted) return;
     final refreshedUser = FirebaseAuth.instance.currentUser;
     if (refreshedUser == null) {
