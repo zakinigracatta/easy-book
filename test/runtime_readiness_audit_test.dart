@@ -75,4 +75,22 @@ void main() {
       isTrue,
     );
   });
+  test('authenticated startup does not silently downgrade unresolved roles', () {
+    final auth =
+        File('lib/services/auth_service.dart').readAsStringSync();
+    final splash =
+        File('lib/screens/auth/splash_screen.dart').readAsStringSync();
+
+    expect(auth, contains('await _saveProfile(recoveredCustomer);'));
+    expect(auth, contains('return recoveredCustomer;'));
+    expect(
+      splash,
+      contains("destination = '/login';"),
+    );
+    expect(
+      splash,
+      isNot(contains('destination resolved: guest/customer fallback')),
+    );
+  });
+
 }

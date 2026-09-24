@@ -134,21 +134,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             destination = '/home';
           }
         } else {
-          // Profile failed/timed out: fallback safely to customer home
+          // A Firebase session exists, but its role/profile is unresolved.
+          // Do not silently classify the account as a customer: that can send
+          // owner/admin sessions to the wrong portal on a slow network.
           if (kDebugMode) {
             debugPrint('[SPLASH] profile resolution completed/failed');
-            debugPrint(
-                '[SPLASH] destination resolved: guest/customer fallback');
+            debugPrint('[SPLASH] destination resolved: auth recovery');
           }
-          destination = '/home';
+          destination = '/login';
         }
       }
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[SPLASH] profile resolution completed/failed');
-        debugPrint('[SPLASH] destination resolved: guest fallback on error');
+        debugPrint('[SPLASH] startup resolution error: $e');
       }
-      destination = '/home';
+      destination = FirebaseAuth.instance.currentUser == null
+          ? '/home'
+          : '/login';
     }
 
     // Await the remainder of the minimum 2-second branding splash delay

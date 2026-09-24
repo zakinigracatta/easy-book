@@ -213,7 +213,7 @@ class AuthService {
       return user;
     }
 
-    return UserModel(
+    final recoveredCustomer = UserModel(
       id: firebaseUser.uid,
       email: (firebaseUser.email ?? '').trim().toLowerCase(),
       fullName: firebaseUser.displayName?.trim().isNotEmpty == true
@@ -223,6 +223,12 @@ class AuthService {
       role: UserRole.customer,
       walletBalance: 0.0,
     );
+
+    // Legacy Firebase Auth users may predate the Firestore profile document.
+    // Persist the recovered customer profile so startup, favorites and profile
+    // data do not remain ephemeral on every launch.
+    await _saveProfile(recoveredCustomer);
+    return recoveredCustomer;
   }
 
   Map<String, dynamic> _profileWriteData(UserModel user) {
