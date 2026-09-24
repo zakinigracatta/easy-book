@@ -108,6 +108,10 @@ class BookingService {
       requestedStartAt: booking.startDateTime,
       customerName: booking.customerName,
       customerPhone: booking.customerPhone ?? '',
+      expectedServicePrice: booking.servicePrice,
+      expectedDurationMinutes:
+          booking.endDateTime.difference(booking.startDateTime).inMinutes,
+      expectedCurrency: booking.currency,
       anySpecialist: booking.anySpecialist,
       clientRequestId: booking.clientRequestId,
       notes: booking.notes ?? '',
