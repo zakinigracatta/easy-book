@@ -103,7 +103,10 @@ export const createWalkInBooking = onCall(async (request) => {
       serviceId,
       staffId,
       requestedStartAt,
-      { requireAcceptingBookings: false }
+      {
+        requireAcceptingBookings: false,
+        requireVerifiedBusiness: false,
+      }
     );
 
     const lockObjects = generateIntervalSlotLockIds(
