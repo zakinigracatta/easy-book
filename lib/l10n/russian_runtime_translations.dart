@@ -210,6 +210,7 @@ const Map<String, String> russianRuntimeTranslations = <String, String>{
   'Valid: {start} – {end}': 'Действует: {start} – {end}',
   'Sharing {business}...': 'Отправка {business}...',
   'Staff: {name}': 'Сотрудник: {name}',
+  'Unable to save private customer notes. Please try again.': 'Не удалось сохранить личные заметки о клиенте. Попробуйте еще раз.',
   'Unable to save service. Please try again.': 'Не удалось сохранить услугу. Попробуйте снова.',
   'Unable to load working hours. Please try again.':
       'Не удалось загрузить часы работы. Попробуйте снова.',
