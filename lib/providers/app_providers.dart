@@ -14,6 +14,7 @@ import '../repositories/business_repository.dart';
 import '../services/auth_service.dart';
 import '../services/availability_service.dart';
 import '../services/booking_availability_engine.dart';
+import 'auth_provider.dart';
 
 export 'auth_provider.dart';
 
@@ -339,20 +340,27 @@ final reviewsProvider =
 class AppointmentsNotifier
     extends StateNotifier<AsyncValue<List<BookingModel>>> {
   final BookingRepository _repository;
+  final String _customerId;
 
-  AppointmentsNotifier(this._repository) : super(const AsyncValue.loading()) {
-    loadAppointments();
+  AppointmentsNotifier(this._repository, this._customerId)
+      : super(
+          _customerId.isEmpty
+              ? const AsyncValue.data(<BookingModel>[])
+              : const AsyncValue.loading(),
+        ) {
+    if (_customerId.isNotEmpty) {
+      loadAppointments();
+    }
   }
 
   Future<void> loadAppointments() async {
-    state = const AsyncValue.loading();
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || uid.isEmpty) {
-      state = const AsyncValue.data([]);
+    if (_customerId.isEmpty) {
+      state = const AsyncValue.data(<BookingModel>[]);
       return;
     }
+    state = const AsyncValue.loading();
     try {
-      final list = await _repository.fetchCustomerBookings(uid);
+      final list = await _repository.fetchCustomerBookings(_customerId);
       state = AsyncValue.data(list);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -360,8 +368,7 @@ class AppointmentsNotifier
   }
 
   Future<BookingModel> createBooking(BookingModel booking) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || uid.isEmpty) {
+    if (_customerId.isEmpty) {
       throw Exception('User must be logged in to create a booking.');
     }
     final saved = await _repository.createBooking(booking);
@@ -381,7 +388,7 @@ class AppointmentsNotifier
     int durationMinutes = 45,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null || user.uid.isEmpty) {
+    if (_customerId.isEmpty || user == null || user.uid != _customerId) {
       throw Exception('User must be logged in to create a booking.');
     }
     final startDateTime = dateTime;
@@ -432,7 +439,13 @@ class AppointmentsNotifier
 final appointmentsProvider =
     StateNotifierProvider<AppointmentsNotifier, AsyncValue<List<BookingModel>>>(
         (ref) {
-  return AppointmentsNotifier(ref.read(bookingRepositoryProvider));
+  final customerId = ref.watch(
+    authProvider.select((user) => user?.id ?? ''),
+  );
+  return AppointmentsNotifier(
+    ref.read(bookingRepositoryProvider),
+    customerId,
+  );
 });
 
 // Theme Mode Provider
