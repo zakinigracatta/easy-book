@@ -6,10 +6,29 @@ import '../models/review_model.dart';
 import '../models/service_model.dart';
 import '../models/staff_model.dart';
 
+class BusinessPage {
+  const BusinessPage({
+    required this.items,
+    required this.nextCursor,
+    required this.hasMore,
+  });
+
+  final List<BusinessModel> items;
+  final String? nextCursor;
+  final bool hasMore;
+}
+
 abstract class BusinessRepository {
   Future<List<BusinessModel>> fetchBusinesses({
     String? category,
     String? query,
+  });
+
+  Future<BusinessPage> fetchBusinessesPage({
+    String? category,
+    String? query,
+    String? afterId,
+    int pageSize = 30,
   });
 
   Future<BusinessModel?> fetchBusinessById(String id);
@@ -29,15 +48,34 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String? category,
     String? query,
   }) async {
-    // Public discovery must only query records that Firestore can prove are
-    // published. Security rules are not filters, so querying the whole
-    // collection would fail as soon as one pending business exists.
-    final snapshot = await _firestore
+    final page = await fetchBusinessesPage(
+      category: category,
+      query: query,
+    );
+    return page.items;
+  }
+
+  @override
+  Future<BusinessPage> fetchBusinessesPage({
+    String? category,
+    String? query,
+    String? afterId,
+    int pageSize = 30,
+  }) async {
+    final safePageSize = pageSize.clamp(1, 50);
+    Query<Map<String, dynamic>> firestoreQuery = _firestore
         .collection('businesses')
         .where('is_verified', isEqualTo: true)
         .where('is_active', isEqualTo: true)
-        .get();
+        .orderBy(FieldPath.documentId)
+        .limit(safePageSize);
 
+    final normalizedCursor = afterId?.trim() ?? '';
+    if (normalizedCursor.isNotEmpty) {
+      firestoreQuery = firestoreQuery.startAfter([normalizedCursor]);
+    }
+
+    final snapshot = await firestoreQuery.get();
     final businesses = snapshot.docs
         .map((doc) {
           final data = Map<String, dynamic>.from(doc.data());
@@ -45,9 +83,14 @@ class BusinessRepositoryImpl implements BusinessRepository {
           return BusinessModel.fromJson(data);
         })
         .where((business) => business.isActive && business.isVerified)
-        .toList();
+        .toList(growable: false);
 
-    return _filterBusinesses(businesses, category, query);
+    final filtered = _filterBusinesses(businesses, category, query);
+    return BusinessPage(
+      items: filtered,
+      nextCursor: snapshot.docs.isEmpty ? null : snapshot.docs.last.id,
+      hasMore: snapshot.docs.length == safePageSize,
+    );
   }
 
   List<BusinessModel> _filterBusinesses(
