@@ -14,6 +14,15 @@ void main() {
     expect(source, contains("st['roleTitle'] ??"));
   });
 
+  test('owner finance expenses preserve loading while business id resolves', () {
+    final source = File(
+      'lib/providers/owner_finance_providers.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('resolvingBusinessId: businessIdAsync.isLoading'));
+    expect(source, contains('if (_resolvingBusinessId)'));
+  });
+
   test('owner providers preserve loading while business id resolves', () {
     final source =
         File('lib/providers/owner_providers.dart').readAsStringSync();
