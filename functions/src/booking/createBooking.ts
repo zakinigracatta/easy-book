@@ -26,6 +26,35 @@ function cleanText(value: unknown, maxLength: number): string {
   return value.trim().slice(0, maxLength);
 }
 
+function requiredFiniteNumber(
+  value: unknown,
+  name: string,
+  { min = 0 }: { min?: number } = {}
+): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < min) {
+    throw new HttpsError(
+      'invalid-argument',
+      `INVALID_${name.toUpperCase()}: ${name} must be a finite number.`
+    );
+  }
+  return value;
+}
+
+function requiredPositiveInteger(value: unknown, name: string): number {
+  if (
+    typeof value !== 'number' ||
+    !Number.isInteger(value) ||
+    value <= 0 ||
+    value > 24 * 60
+  ) {
+    throw new HttpsError(
+      'invalid-argument',
+      `INVALID_${name.toUpperCase()}: ${name} must be a positive integer.`
+    );
+  }
+  return value;
+}
+
 function optionalRequestId(value: unknown): string {
   if (value == null) return '';
   if (typeof value !== 'string') {
@@ -111,6 +140,16 @@ export const createBooking = onCall(async (request) => {
   const requestedCustomerName =
     cleanText(data.customerName, 120) || 'Valued Customer';
   const requestedCustomerPhone = cleanText(data.customerPhone, 40);
+  const expectedServicePrice = requiredFiniteNumber(
+    data.expectedServicePrice,
+    'expectedServicePrice'
+  );
+  const expectedDurationMinutes = requiredPositiveInteger(
+    data.expectedDurationMinutes,
+    'expectedDurationMinutes'
+  );
+  const expectedCurrency =
+    cleanText(data.expectedCurrency, 12).toUpperCase() || 'AED';
   const notes = cleanText(data.notes, 1000);
 
   if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
@@ -241,6 +280,20 @@ export const createBooking = onCall(async (request) => {
     }
 
     validateMaximumAdvanceDate(requestedStartAt, context.timeZone);
+
+    const priceChanged =
+      Math.abs(context.servicePrice - expectedServicePrice) > 0.005;
+    const durationChanged =
+      context.durationMinutes !== expectedDurationMinutes;
+    const currencyChanged =
+      context.currency.trim().toUpperCase() !== expectedCurrency;
+
+    if (priceChanged || durationChanged || currencyChanged) {
+      throw new HttpsError(
+        'failed-precondition',
+        'BOOKING_TERMS_CHANGED: Service price, duration, or currency changed after the customer reviewed the booking.'
+      );
+    }
 
     for (const lock of lockObjects) {
       const lockRef = db.collection('booking_slots').doc(lock.lockId);
