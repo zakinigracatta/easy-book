@@ -166,7 +166,7 @@ void main() {
 
     expect(
       source,
-      contains('NavigationService().setPendingRoute(state.matchedLocation)'),
+      contains('NavigationService().setPendingRoute(state.uri.toString())'),
     );
     expect(source, contains("redirectTarget == '/login'"));
   });
