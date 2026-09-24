@@ -108,8 +108,9 @@ export const createBooking = onCall(async (request) => {
     : requiredId(data.staffId, 'staffId');
   const clientRequestId = optionalRequestId(data.clientRequestId);
   const requestedStartRaw = data.requestedStartAt;
-  const customerName = cleanText(data.customerName, 120) || 'Valued Customer';
-  const customerPhone = cleanText(data.customerPhone, 40);
+  const requestedCustomerName =
+    cleanText(data.customerName, 120) || 'Valued Customer';
+  const requestedCustomerPhone = cleanText(data.customerPhone, 40);
   const notes = cleanText(data.notes, 1000);
 
   if (typeof requestedStartRaw !== 'string' || requestedStartRaw.length > 80) {
@@ -176,6 +177,15 @@ export const createBooking = onCall(async (request) => {
         'START_TIME_TOO_SOON: Customer bookings require at least 30 minutes lead time.'
       );
     }
+
+    const userRef = db.collection('users').doc(customerId);
+    const userSnap = await transaction.get(userRef);
+    const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const customerName =
+      cleanText(userData.full_name ?? userData.name, 120) ||
+      requestedCustomerName;
+    const customerPhone =
+      cleanText(userData.phone, 40) || requestedCustomerPhone;
 
     const businessRef = db.collection('businesses').doc(businessId);
     const businessSnap = await transaction.get(businessRef);
