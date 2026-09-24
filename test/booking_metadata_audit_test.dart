@@ -97,8 +97,9 @@ void main() {
         File('lib/screens/business/quick_walk_in_booking_screen.dart')
             .readAsStringSync();
 
-    expect(server, contains("typeof data.clientRequestId === 'string'"));
-    expect(server, contains('walkin_${ownerUid}_${clientRequestId}'));
+    expect(server, contains('optionalRequestId(data.clientRequestId)'));
+    expect(server, contains("createHash('sha256')"));
+    expect(server, contains("doc(`wb_${deterministicId}`)"));
     expect(server, contains('idempotentReplay: true'));
     expect(server, contains('IDEMPOTENCY_KEY_REUSED'));
     expect(client, contains("'clientRequestId': clientRequestId.trim()"));
