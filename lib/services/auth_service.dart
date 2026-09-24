@@ -220,22 +220,12 @@ class AuthService {
       return user;
     }
 
-    final recoveredCustomer = UserModel(
-      id: firebaseUser.uid,
-      email: (firebaseUser.email ?? '').trim().toLowerCase(),
-      fullName: firebaseUser.displayName?.trim().isNotEmpty == true
-          ? firebaseUser.displayName!.trim()
-          : 'Easy Book User',
-      phone: firebaseUser.phoneNumber ?? '',
-      role: UserRole.customer,
-      walletBalance: 0.0,
+    throw FirebaseException(
+      plugin: 'cloud_firestore',
+      code: 'user-profile-missing',
+      message:
+          'The authenticated account does not have an Easy Book profile document.',
     );
-
-    // Legacy Firebase Auth users may predate the Firestore profile document.
-    // Persist the recovered customer profile so startup, favorites and profile
-    // data do not remain ephemeral on every launch.
-    await _saveProfile(recoveredCustomer);
-    return recoveredCustomer;
   }
 
   Map<String, dynamic> _profileWriteData(UserModel user) {

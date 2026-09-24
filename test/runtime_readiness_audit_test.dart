@@ -13,6 +13,10 @@ void main() {
     expect(manifest, contains('android.permission.INTERNET'));
     expect(manifest, contains('android:label="Easy Book"'));
     expect(gradle, contains('rootProject.file("key.properties")'));
+    expect(
+      gradle.indexOf('plugins {'),
+      lessThan(gradle.indexOf('val keystoreProperties = Properties()')),
+    );
     expect(gradle, contains('releaseTaskRequested'));
     expect(gradle, contains('Release signing is not configured.'));
     expect(
@@ -81,8 +85,11 @@ void main() {
     final splash =
         File('lib/screens/auth/splash_screen.dart').readAsStringSync();
 
-    expect(auth, contains('await _saveProfile(recoveredCustomer);'));
-    expect(auth, contains('return recoveredCustomer;'));
+    expect(auth, contains("code: 'user-profile-missing'"));
+    expect(
+      auth,
+      isNot(contains('final recoveredCustomer = UserModel(')),
+    );
     expect(auth, contains('Future<UserModel?> refreshCurrentProfile() async'));
     expect(splash, contains('.refreshCurrentProfile()'));
     expect(splash, contains('.timeout(const Duration(seconds: 8))'));
