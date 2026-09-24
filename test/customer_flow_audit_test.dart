@@ -292,4 +292,14 @@ void main() {
   });
 
 
+  test('customer booking navigation uses real route ids instead of escaped interpolation', () {
+    final source =
+        File('lib/screens/customer/my_bookings_screen.dart').readAsStringSync();
+
+    expect(source, contains(r"'/booking-details/${booking.id}'"));
+    expect(source, contains(r"'/reschedule-booking/${booking.id}'"));
+    expect(source, contains(r"'/cancel-booking/${booking.id}'"));
+    expect(source, isNot(contains(r"'\${booking.id}'")));
+  });
+
 }
