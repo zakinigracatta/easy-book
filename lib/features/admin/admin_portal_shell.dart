@@ -42,22 +42,10 @@ class AdminPortalShell extends ConsumerWidget {
       'طلبات الاعتماد',
     ),
     _AdminDestination(
-      '/admin/payments',
-      Icons.account_balance_wallet_rounded,
-      'Payments',
-      'المدفوعات',
-    ),
-    _AdminDestination(
       '/admin/analytics',
       Icons.insights_rounded,
       'Analytics',
       'التحليلات',
-    ),
-    _AdminDestination(
-      '/admin/reports',
-      Icons.summarize_rounded,
-      'Reports',
-      'التقارير',
     ),
   ];
 
