@@ -1,7 +1,28 @@
 import * as admin from 'firebase-admin';
 
+const EXPECTED_PROJECT_ID = 'easy-book-zaki';
+
+function projectIdFromArgs(): string {
+  const flagIndex = process.argv.indexOf('--project');
+  if (flagIndex < 0 || flagIndex + 1 >= process.argv.length) {
+    throw new Error(
+      `Missing --project. Canonical migration is locked to ${EXPECTED_PROJECT_ID}.`
+    );
+  }
+
+  const projectId = process.argv[flagIndex + 1].trim();
+  if (projectId !== EXPECTED_PROJECT_ID) {
+    throw new Error(
+      `Refusing canonical migration for project "${projectId}". Expected ${EXPECTED_PROJECT_ID}.`
+    );
+  }
+  return projectId;
+}
+
+const projectId = projectIdFromArgs();
+
 if (!admin.apps.length) {
-  admin.initializeApp();
+  admin.initializeApp({ projectId });
 }
 
 type Mapping = readonly [canonical: string, legacy: string];
