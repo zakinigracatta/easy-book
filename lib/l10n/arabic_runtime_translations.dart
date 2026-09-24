@@ -196,6 +196,7 @@ const Map<String, String> arabicRuntimeTranslations = <String, String>{
   'Valid: {start} – {end}': 'صالح من {start} إلى {end}',
   'Sharing {business}...': 'جارٍ مشاركة {business}...',
   'Staff: {name}': 'الموظف: {name}',
+  'Unable to save private customer notes. Please try again.': 'تعذر حفظ ملاحظات العميل الخاصة. حاول مرة أخرى.',
   'Unable to save service. Please try again.': 'تعذر حفظ الخدمة. حاول مرة أخرى.',
   'Unable to load working hours. Please try again.':
       'تعذر تحميل ساعات العمل. حاول مرة أخرى.',
