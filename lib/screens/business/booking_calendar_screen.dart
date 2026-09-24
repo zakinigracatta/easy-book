@@ -25,13 +25,18 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bookingsAsync = ref.watch(ownerBookingsProvider);
     final timeZone =
         ref.watch(ownerBusinessProvider).value?.timeZone ?? 'Asia/Dubai';
     final businessToday = BusinessClock.calendarToday(timeZone);
     final effectiveSelectedDate = _hasSelectedDate
         ? _selectedDate
         : businessToday;
+    final dateProviderArg = (
+      date: effectiveSelectedDate,
+      timeZone: timeZone,
+    );
+    final bookingsAsync =
+        ref.watch(ownerBookingsForDateProvider(dateProviderArg));
 
     return PopScope(
       canPop: context.canPop(),
@@ -117,15 +122,7 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
             // Bookings List for Selected Date
             Expanded(
               child: bookingsAsync.when(
-                data: (allBookings) {
-                  final dateBookings = allBookings.where((b) {
-                    final localStart =
-                        BusinessClock.inTimeZone(b.startDateTime, timeZone);
-                    return localStart.year == effectiveSelectedDate.year &&
-                        localStart.month == effectiveSelectedDate.month &&
-                        localStart.day == effectiveSelectedDate.day;
-                  }).toList();
-
+                data: (dateBookings) {
                   if (dateBookings.isEmpty) {
                     return OwnerEmptyStateWidget(
                       icon: Icons.event_available_rounded,
@@ -144,10 +141,13 @@ class _BookingCalendarScreenState extends ConsumerState<BookingCalendarScreen> {
                       final b = dateBookings[index];
                       return OwnerBookingCard(
                         booking: b,
-                        onStatusChanged: (newStatus) {
-                          ref
+                        onStatusChanged: (newStatus) async {
+                          await ref
                               .read(ownerBookingsProvider.notifier)
                               .updateStatus(b.id, newStatus);
+                          ref.invalidate(
+                            ownerBookingsForDateProvider(dateProviderArg),
+                          );
                         },
                       );
                     },
