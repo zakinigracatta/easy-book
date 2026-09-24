@@ -188,6 +188,18 @@ void main() {
     expect(gradle, contains('applicationId = "ae.easybook.app"'));
   });
 
+  test('android release signing secrets stay out of source control', () {
+    final ignore = File('.gitignore').readAsStringSync();
+    final gradle =
+        File('android/app/build.gradle.kts').readAsStringSync();
+
+    expect(ignore, contains('android/key.properties'));
+    expect(ignore, contains('android/*.jks'));
+    expect(ignore, contains('android/*.keystore'));
+    expect(gradle, contains('if (releaseTaskRequested && !hasReleaseKeystore)'));
+    expect(gradle, contains('Release signing is not configured.'));
+  });
+
   test('owner finance authorization prioritizes canonical owner identity', () {
     final source = File(
       'lib/repositories/owner_finance_repository.dart',
