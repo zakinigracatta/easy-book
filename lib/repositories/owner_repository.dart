@@ -458,11 +458,23 @@ class OwnerRepositoryImpl implements OwnerRepository {
       final customerMap = <String, CustomerProfileModel>{};
 
       for (final b in bookings) {
-        if (!customerMap.containsKey(b.customerId)) {
-          customerMap[b.customerId] = CustomerProfileModel(
-            id: b.customerId,
-            name: b.customerName,
-            phone: b.customerPhone ?? '',
+        final rawCustomerId = b.customerId.trim();
+        final phone = (b.customerPhone ?? '').trim();
+        final phoneDigits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+        final customerKey = rawCustomerId.isNotEmpty
+            ? rawCustomerId
+            : phoneDigits.isNotEmpty
+                ? 'walkin_phone_$phoneDigits'
+                : 'walkin_booking_${b.id}';
+        final displayName = b.customerName.trim().isNotEmpty
+            ? b.customerName.trim()
+            : 'Walk-in Customer';
+
+        if (!customerMap.containsKey(customerKey)) {
+          customerMap[customerKey] = CustomerProfileModel(
+            id: customerKey,
+            name: displayName,
+            phone: phone,
             totalBookings: 1,
             completedVisits: b.status == BookingStatus.completed ? 1 : 0,
             noShowCount: b.status == BookingStatus.noShow ? 1 : 0,
@@ -470,14 +482,14 @@ class OwnerRepositoryImpl implements OwnerRepository {
                 b.status == BookingStatus.completed ? b.servicePrice : 0.0,
             lastVisit: b.startDateTime,
             favoriteServices: [b.serviceName],
-            ownerNotes: notesMap[b.customerId],
+            ownerNotes: notesMap[customerKey],
           );
         } else {
-          final old = customerMap[b.customerId]!;
-          customerMap[b.customerId] = CustomerProfileModel(
+          final old = customerMap[customerKey]!;
+          customerMap[customerKey] = CustomerProfileModel(
             id: old.id,
             name: old.name,
-            phone: old.phone.isNotEmpty ? old.phone : (b.customerPhone ?? ''),
+            phone: old.phone.isNotEmpty ? old.phone : phone,
             totalBookings: old.totalBookings + 1,
             completedVisits: old.completedVisits +
                 (b.status == BookingStatus.completed ? 1 : 0),
@@ -490,7 +502,7 @@ class OwnerRepositoryImpl implements OwnerRepository {
                 ? b.startDateTime
                 : (old.lastVisit ?? b.startDateTime),
             favoriteServices: {...old.favoriteServices, b.serviceName}.toList(),
-            ownerNotes: notesMap[b.customerId] ?? old.ownerNotes,
+            ownerNotes: notesMap[customerKey] ?? old.ownerNotes,
           );
         }
       }
