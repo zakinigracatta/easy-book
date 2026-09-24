@@ -3,6 +3,17 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('admin business details use canonical staff role and duration aliases', () {
+    final source = File(
+      'lib/features/admin/business_details_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains("s['duration_minutes'] ??"));
+    expect(source, contains("s['durationMinutes']"));
+    expect(source, contains("st['role_title'] ??"));
+    expect(source, contains("st['roleTitle'] ??"));
+  });
+
   test('owner providers preserve loading while business id resolves', () {
     final source =
         File('lib/providers/owner_providers.dart').readAsStringSync();
