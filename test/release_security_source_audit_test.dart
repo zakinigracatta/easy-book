@@ -242,6 +242,16 @@ void main() {
     );
   });
 
+  test('customer booking prefers authoritative Firestore profile identity', () {
+    final source = File(
+      'functions/src/booking/createBooking.ts',
+    ).readAsStringSync();
+
+    expect(source, contains("db.collection('users').doc(customerId)"));
+    expect(source, contains('userData.full_name ?? userData.name'));
+    expect(source, contains("cleanText(userData.phone, 40)"));
+  });
+
   test('reschedule retries return idempotent success instead of false failure', () {
     final source = File(
       'functions/src/booking/rescheduleBooking.ts',
