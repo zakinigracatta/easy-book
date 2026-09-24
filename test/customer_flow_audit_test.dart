@@ -302,4 +302,30 @@ void main() {
     expect(source, isNot(contains(r"'\${booking.id}'")));
   });
 
+  test('customer booking history is cursor-paged and deep links recover by id', () {
+    final service =
+        File('lib/services/booking_service.dart').readAsStringSync();
+    final repository =
+        File('lib/repositories/booking_repository.dart').readAsStringSync();
+    final providers =
+        File('lib/providers/app_providers.dart').readAsStringSync();
+    final listScreen =
+        File('lib/screens/customer/my_bookings_screen.dart').readAsStringSync();
+    final details =
+        File('lib/screens/customer/booking_details_screen.dart').readAsStringSync();
+    final reschedule =
+        File('lib/screens/customer/reschedule_booking_screen.dart').readAsStringSync();
+
+    expect(service, contains('Future<CustomerBookingsPage> getBookingsPage('));
+    expect(service, contains(".orderBy('startDateTime', descending: true)"));
+    expect(service, contains('query.startAfter(['));
+    expect(service, contains('.limit(safePageSize)'));
+    expect(repository, contains('fetchCustomerBookingsPage('));
+    expect(providers, contains('Future<bool> loadMore() async'));
+    expect(providers, contains('customerBookingByIdProvider'));
+    expect(listScreen, contains("context.tr('Load older bookings')"));
+    expect(details, contains('customerBookingByIdProvider(targetId)'));
+    expect(reschedule, contains('customerBookingByIdProvider(targetId)'));
+  });
+
 }

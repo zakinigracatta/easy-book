@@ -51,7 +51,11 @@ class _RescheduleBookingScreenState
   }
 
   Future<void> _handleConfirmReschedule() async {
-    final booking = _resolveBooking();
+    final targetId = widget.bookingId?.trim() ?? '';
+    final directBooking = targetId.isEmpty
+        ? null
+        : ref.read(customerBookingByIdProvider(targetId)).value;
+    final booking = _resolveBooking() ?? directBooking;
     final slot = _selectedSlot;
     if (booking == null || slot == null) return;
 
@@ -129,9 +133,17 @@ class _RescheduleBookingScreenState
   @override
   Widget build(BuildContext context) {
     final appointmentsState = ref.watch(appointmentsProvider);
-    final booking = widget.booking ?? _resolveBooking();
+    final targetId = widget.bookingId?.trim() ?? '';
+    final directBookingAsync =
+        widget.booking == null && targetId.isNotEmpty
+            ? ref.watch(customerBookingByIdProvider(targetId))
+            : null;
+    final booking =
+        widget.booking ?? _resolveBooking() ?? directBookingAsync?.value;
 
-    if (booking == null && appointmentsState.isLoading) {
+    if (booking == null &&
+        (appointmentsState.isLoading ||
+            (directBookingAsync?.isLoading ?? false))) {
       return Scaffold(
         appBar: AppBar(title: Text(context.tr('Reschedule Booking'))),
         body: const Center(child: CircularProgressIndicator()),

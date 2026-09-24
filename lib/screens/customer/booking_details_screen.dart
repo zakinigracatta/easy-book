@@ -31,7 +31,15 @@ class BookingDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appointmentsState = ref.watch(appointmentsProvider);
-    final currentBooking = booking ?? _resolveBooking(ref);
+    final targetId = bookingId?.trim() ?? '';
+    final directBookingAsync = booking == null && targetId.isNotEmpty
+        ? ref.watch(customerBookingByIdProvider(targetId))
+        : null;
+    final currentBooking =
+        booking ?? _resolveBooking(ref) ?? directBookingAsync?.value;
+    final isResolvingBooking = currentBooking == null &&
+        (appointmentsState.isLoading ||
+            (directBookingAsync?.isLoading ?? false));
 
     return PopScope(
       canPop: context.canPop(),
@@ -49,7 +57,7 @@ class BookingDetailsScreen extends ConsumerWidget {
           ),
           title: Text(context.tr('Booking Details & QR')),
         ),
-        body: currentBooking == null && booking == null && appointmentsState.isLoading
+        body: isResolvingBooking
             ? const Center(child: CircularProgressIndicator())
             : currentBooking == null
             ? Center(

@@ -95,6 +95,10 @@ class MyBookingsScreen extends ConsumerWidget {
           ),
         ),
         data: (bookings) {
+          final appointmentsNotifier =
+              ref.read(appointmentsProvider.notifier);
+          final hasMore = appointmentsNotifier.hasMore;
+
           if (bookings.isEmpty) {
             return Center(
               child: Column(
@@ -132,8 +136,36 @@ class MyBookingsScreen extends ConsumerWidget {
 
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 90),
-            itemCount: bookings.length,
+            itemCount: bookings.length + (hasMore ? 1 : 0),
             itemBuilder: (context, index) {
+              if (index >= bookings.length) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 14),
+                  child: Center(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final loaded = await ref
+                            .read(appointmentsProvider.notifier)
+                            .loadMore();
+                        if (!loaded && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                context.tr(
+                                  'Unable to load bookings. Please try again.',
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.expand_more_rounded),
+                      label: Text(context.tr('Load older bookings')),
+                    ),
+                  ),
+                );
+              }
+
               final booking = bookings[index];
               final bookingLocalStart = BusinessClock.inTimeZone(
                 booking.startDateTime,

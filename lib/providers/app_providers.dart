@@ -345,6 +345,13 @@ class AppointmentsNotifier
     extends StateNotifier<AsyncValue<List<BookingModel>>> {
   final BookingRepository _repository;
   final String _customerId;
+  DateTime? _cursorStartDateTime;
+  String? _cursorBookingId;
+  bool _hasMore = false;
+  bool _isLoadingMore = false;
+
+  bool get hasMore => _hasMore;
+  bool get isLoadingMore => _isLoadingMore;
 
   AppointmentsNotifier(this._repository, this._customerId)
       : super(
@@ -357,17 +364,80 @@ class AppointmentsNotifier
     }
   }
 
+  List<BookingModel> _sortBookings(Iterable<BookingModel> bookings) {
+    final list = bookings.toList(growable: false);
+    final now = DateTime.now();
+
+    int bookingGroup(BookingModel booking) {
+      final isUpcoming = booking.startDateTime.isAfter(now) &&
+          (booking.status == BookingStatus.pending ||
+              booking.status == BookingStatus.confirmed);
+      return isUpcoming ? 0 : 1;
+    }
+
+    list.sort((a, b) {
+      final groupCompare = bookingGroup(a).compareTo(bookingGroup(b));
+      if (groupCompare != 0) return groupCompare;
+      return bookingGroup(a) == 0
+          ? a.startDateTime.compareTo(b.startDateTime)
+          : b.startDateTime.compareTo(a.startDateTime);
+    });
+    return list;
+  }
+
   Future<void> loadAppointments() async {
     if (_customerId.isEmpty) {
+      _cursorStartDateTime = null;
+      _cursorBookingId = null;
+      _hasMore = false;
       state = const AsyncValue.data(<BookingModel>[]);
       return;
     }
+
     state = const AsyncValue.loading();
+    _cursorStartDateTime = null;
+    _cursorBookingId = null;
+    _hasMore = false;
+    _isLoadingMore = false;
+
     try {
-      final list = await _repository.fetchCustomerBookings(_customerId);
-      state = AsyncValue.data(list);
+      final page =
+          await _repository.fetchCustomerBookingsPage(_customerId);
+      _cursorStartDateTime = page.cursorStartDateTime;
+      _cursorBookingId = page.cursorBookingId;
+      _hasMore = page.hasMore;
+      state = AsyncValue.data(page.items);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<bool> loadMore() async {
+    if (_customerId.isEmpty || !_hasMore || _isLoadingMore) {
+      return true;
+    }
+
+    final current = state.value ?? const <BookingModel>[];
+    _isLoadingMore = true;
+    try {
+      final page = await _repository.fetchCustomerBookingsPage(
+        _customerId,
+        afterStartDateTime: _cursorStartDateTime,
+        afterBookingId: _cursorBookingId,
+      );
+      final merged = <String, BookingModel>{
+        for (final booking in current) booking.id: booking,
+        for (final booking in page.items) booking.id: booking,
+      };
+      _cursorStartDateTime = page.cursorStartDateTime;
+      _cursorBookingId = page.cursorBookingId;
+      _hasMore = page.hasMore;
+      state = AsyncValue.data(_sortBookings(merged.values));
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      _isLoadingMore = false;
     }
   }
 
@@ -451,6 +521,36 @@ final appointmentsProvider =
     customerId,
   );
 });
+
+final customerBookingByIdProvider =
+    FutureProvider.autoDispose.family<BookingModel?, String>(
+  (ref, bookingId) async {
+    final normalizedBookingId = bookingId.trim();
+    if (normalizedBookingId.isEmpty) return null;
+
+    final appointmentsState = ref.watch(appointmentsProvider);
+    final loadedBookings =
+        appointmentsState.value ?? const <BookingModel>[];
+    for (final booking in loadedBookings) {
+      if (booking.id == normalizedBookingId) return booking;
+    }
+
+    // Let the first page settle before adding a direct read. If the booking is
+    // older than the current page, this provider automatically recomputes when
+    // appointmentsProvider publishes its loaded state.
+    if (appointmentsState.isLoading) return null;
+
+    final customerId = ref.watch(
+      authProvider.select((user) => user?.id ?? ''),
+    );
+    if (customerId.isEmpty) return null;
+
+    return ref.read(bookingRepositoryProvider).fetchCustomerBookingById(
+          bookingId: normalizedBookingId,
+          customerId: customerId,
+        );
+  },
+);
 
 // Theme Mode Provider
 final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
