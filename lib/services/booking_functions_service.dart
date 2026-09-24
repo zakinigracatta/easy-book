@@ -196,6 +196,8 @@ class BookingFunctionsService {
         (value) => value.name == responseStatus,
         orElse: () => BookingStatus.pending,
       );
+      final resolvedStaffId = (resData['staffId'] ?? newStaffId ?? '').toString();
+      final resolvedStaffName = (resData['staffName'] ?? '').toString();
 
       return BookingModel(
         id: bookingId,
@@ -207,8 +209,8 @@ class BookingFunctionsService {
         serviceId: '',
         serviceName: '',
         servicePrice: 0.0,
-        staffId: '',
-        staffName: '',
+        staffId: resolvedStaffId,
+        staffName: resolvedStaffName,
         startDateTime: newRequestedStartAt,
         endDateTime: endDateTime,
         status: status,
