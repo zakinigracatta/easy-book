@@ -7,8 +7,8 @@ void main() {
     final source =
         File('lib/providers/owner_providers.dart').readAsStringSync();
 
-    expect(source, contains(".where('ownerId', isEqualTo: user.uid)"));
-    expect(source, contains(".where('owner_id', isEqualTo: user.uid)"));
+    expect(source, contains(".where('ownerId', isEqualTo: uid)"));
+    expect(source, contains(".where('owner_id', isEqualTo: uid)"));
     expect(
       source,
       isNot(contains(".collection('businesses')\n      .doc(user.uid)\n      .get()")),
@@ -201,16 +201,25 @@ void main() {
   });
 
   test('owner dashboard only shows future bookings as upcoming', () {
-    final source = File(
-      'lib/screens/business/owner_dashboard_screen.dart',
+    final providerSource = File(
+      'lib/providers/owner_providers.dart',
+    ).readAsStringSync();
+    final repositorySource = File(
+      'lib/repositories/owner_repository.dart',
     ).readAsStringSync();
 
-    expect(source, contains('localStart.isAfter(now)'));
+    expect(providerSource, contains('BusinessClock.now(timeZone)'));
+    expect(providerSource, contains('fetchUpcomingOwnerBookings('));
+    expect(providerSource, contains('after: now'));
     expect(
-      source,
-      contains('a.startDateTime.compareTo(b.startDateTime)'),
+      repositorySource,
+      contains('isGreaterThan: Timestamp.fromDate(after)'),
     );
-    expect(source, contains('BusinessClock.inTimeZone'));
+    expect(repositorySource, contains(".orderBy('startDateTime')"));
+    expect(repositorySource, contains("'pending'"));
+    expect(repositorySource, contains("'confirmed'"));
+    expect(repositorySource, contains("'arrived'"));
+    expect(repositorySource, contains("'inProgress'"));
   });
 
   test('owner calendar passes selected date into walk-in booking', () {
