@@ -101,6 +101,7 @@ class BookingFunctionsService {
     required DateTime requestedStartAt,
     required String customerName,
     required String customerPhone,
+    String? clientRequestId,
     String notes = '',
   }) async {
     try {
@@ -112,6 +113,8 @@ class BookingFunctionsService {
         'requestedStartAt': _utcIso(requestedStartAt),
         'customerName': customerName,
         'customerPhone': customerPhone,
+        if (clientRequestId != null && clientRequestId.trim().isNotEmpty)
+          'clientRequestId': clientRequestId.trim(),
         'notes': notes,
       });
 
